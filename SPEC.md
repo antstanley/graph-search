@@ -6,7 +6,8 @@
 | **Owner** | Ant Stanley |
 | **Scope** | Repository-wide |
 | **Depends on** | Tree-sitter (parsing), Grafeo (embedded graph store) |
-| **Consumed by** | A human at a shell; the `nanus` agent, via `bash` |
+| **Delivery shape** | An in-process Rust library (shape 3, §11.1); the CLI is a thin client over it |
+| **Consumed by** | An in-process host (a future `nanus` tool; the evaluation harness); and, via the CLI, a person and the `nanus` agent through `bash` |
 
 ---
 
@@ -37,9 +38,10 @@ The design borrows from two references:
   the product thesis that **one** strong retrieval tool outperforms a menu.
 
 The intended end state is a `nanus` `search` tool replacing `glob` and `grep`.
-The path to it runs through this binary being invoked by `bash`, so the
-capability can be evaluated in situ with no harness change and a one-line
-rollback.
+The product is an **in-process library** (§3, §4.7, §11.1) — the thing such a
+tool would link — and the CLI is a thin client over it. The path there runs
+through that CLI being invoked by `bash`, so the capability can be evaluated in
+situ with no harness change and a one-line rollback.
 
 ---
 
@@ -66,8 +68,9 @@ rollback.
 
 ## 2. Non-goals (v1)
 
-- **No daemon, no file watcher.** Deferred; `index`/`sync` plus lazy reconcile
-  is the v1 freshness story. (Rationale in §11.)
+- **No daemon, no file watcher, no socket service.** v1 is an in-process library
+  plus a thin CLI; `index`/`sync` and a lazy reconcile are the freshness story.
+  A socket service (`serve`) is §11.1 shape 2, deferred and optional.
 - **No embeddings or vector search.** Grafeo's vector/BM25 features are not
   enabled in v1; `text` remains literal-substring, matching `nanus` `grep`.
 - **No MCP server.** CLI-first. An MCP surface is a later, optional adapter.
@@ -84,15 +87,22 @@ rollback.
 
 ## 3. Consumers and interfaces
 
+The **product is a library**: a `SearchService` handle that owns a workspace's
+index and answers queries in-process. Every other surface is a thin client over
+it, so the behaviour measured through any of them is the behaviour `nanus` would
+get if it linked the library directly.
+
 | Consumer | Interface | Notes |
 |---|---|---|
-| A person | `graph-search <command>` at a shell | Human-readable output by default. |
-| The `nanus` agent | `bash` running `graph-search search … --json` | JSON on stdout; diagnostics on stderr. |
+| **An in-process host** — the reference shape; the evaluation harness; a future `nanus` adapter | the `graph-search` library: `Index::open(root)` → `SearchService` (§4.7) | No IPC, no per-call startup. Shape 3 in §11.1. |
+| A person | `graph-search <command>` at a shell | A thin client over the library; human-readable by default. |
+| The `nanus` agent, initially | `bash` running `graph-search search … --json` | JSON on stdout; diagnostics on stderr. |
 
-The CLI is the only interface in v1. It is deliberately usable both ways: legible
-enough to run by hand, strict enough to script. The `--json` payload is the
-contract `nanus` depends on; the text rendering is for humans and is not a
-contract.
+The CLI is a *client*, not the implementation: it parses arguments, opens the
+library, and renders. The `--json` payload is the contract `nanus` parses from
+`bash`; the text rendering is for humans and is not a contract. When `nanus`
+links the library directly, the typed API (§4.7) replaces the JSON contract and
+nothing above `core` changes.
 
 ---
 
@@ -100,34 +110,39 @@ contract.
 
 ### 4.1 Crates and the dependency rule
 
-Dependencies point inward. `core` knows nothing about tree-sitter or Grafeo; the
-engine and the parser are adapters selected in the composition root.
+Dependencies point inward. `core` knows nothing about tree-sitter or Grafeo. The
+engine and the parser are adapters wired by the **library** (`crates/graph-search`)
+— the product — and consumed in-process by the CLI and by any host that links it.
 
 ```
-                         ┌────────────────────────────┐
-                         │        graph-search-cli     │  composition root:
-                         │   init · index · sync ·     │  the `graph-search`
-                         │   search · status           │  binary; wires adapters
-                         └───────┬─────────────┬───────┘
-                                 │             │
-                ┌────────────────▼──┐      ┌───▼─────────────────┐
-                │  graph-search-    │      │  graph-search-       │
-                │  engine           │      │  langs               │
-                │  (Grafeo adapter) │      │  (tree-sitter        │
-                │  impl GraphStore  │      │   extractors)        │
-                └────────┬──────────┘      └──────────┬───────────┘
-                         │                            │
-                         └───────────┬────────────────┘
-                                     ▼
-                        ┌────────────────────────────┐
-                        │      graph-search-core      │  domain · ports ·
-                        │  projector · reconcile ·    │  query engine — pure,
-                        │  query engine               │  no engine/parser
-                        └─────────────┬──────────────┘
-                                      ▼
-                        ┌────────────────────────────┐
-                        │      graph-search-types     │  leaf value types
-                        └────────────────────────────┘
+   hosts (in-process, shape 3)          clients
+   ┌───────────────┐  ┌────────────┐    ┌──────────────────────────┐
+   │ nanus adapter │  │ eval       │    │ graph-search-cli (thin)  │  the binary;
+   │ (future)      │  │ harness    │    │ parse · render · dispatch│  wires nothing
+   └───────┬───────┘  └─────┬──────┘    └────────────┬─────────────┘
+           └────────┬───────┴────────────────────────┘
+                    ▼
+        ┌──────────────────────────────────┐
+        │        graph-search (LIBRARY)     │  Index::open → SearchService
+        │  options · adapter wiring · the   │  the product; no IPC, no socket
+        │  in-process service API (§4.7)    │
+        └────────┬───────────────────┬──────┘
+                 ▼                   ▼
+     ┌───────────────────┐   ┌──────────────────────┐
+     │ graph-search-     │   │ graph-search-langs    │
+     │ engine (Grafeo)   │   │ (tree-sitter          │
+     │ impl GraphStore   │   │  extractors)          │
+     └─────────┬─────────┘   └──────────┬───────────┘
+               └───────────┬────────────┘
+                           ▼
+             ┌────────────────────────────────┐
+             │        graph-search-core        │  domain · ports ·
+             │  projector · reconcile · query  │  pure; no engine/parser
+             └───────────────┬────────────────┘
+                             ▼
+             ┌────────────────────────────────┐
+             │        graph-search-types       │  leaf value types
+             └────────────────────────────────┘
 ```
 
 | Crate | Owns | May depend on |
@@ -136,7 +151,8 @@ engine and the parser are adapters selected in the composition root.
 | `graph-search-core` | Domain model; port traits; the projector (parse→graph); the reconcile (diff/apply); the query engine; the `files`/`text` walker. | `types` only |
 | `graph-search-langs` | Tree-sitter grammars and per-language extraction queries; impl of core's `LanguageExtractor`. | `core`, `types`, tree-sitter |
 | `graph-search-engine` | The embedded Grafeo store; impl of core's `GraphStore`. | `core`, `types`, `grafeo` |
-| `graph-search-cli` | Argument parsing, config resolution, adapter construction, command dispatch, rendering. | all of the above |
+| `graph-search` | **The library (the product).** The public API (`Index` → `SearchService`), options, and the wiring of concrete adapters behind the core ports. What a host links in-process. | adapters + `core`, `types` |
+| `graph-search-cli` | A thin client: argument parsing, dispatch into the library, rendering. It wires nothing itself. | `graph-search` |
 
 A dependency from `core` onto an adapter or a vendor crate is a **defect**; the
 gate should make it impossible to merge (§15).
@@ -298,6 +314,72 @@ can serve, the walk wins on *both* axes in the architecture we have:
 retrieval* the graph is the real lever regardless: `explore`/`impact` replace a
 chain of greps and reads with one call, and that does not depend on how
 `files`/`text` are sourced.
+
+**In the target (library) shape this flips for `files`.** Shape 3 holds the
+`Index` open in-process (§4.7), so the path set *is* resident and the store open
+is paid once, not per query. The rule the library applies is therefore: **`files`
+is index-first whenever the index is resident and fresh in this process;
+otherwise it walks.** A one-shot client that opens cold walks unless it is told
+otherwise; a host that keeps the library alive gets the fast path. `text` stays a
+scan regardless, because the bytes must still be examined.
+
+### 4.7 The library API (the product surface)
+
+The library exposes one index handle and one query service. Everything the CLI
+does is a call through this API — which is also the API a future `nanus` adapter
+would call, so the evaluation measures the real thing.
+
+```rust
+/// An opened workspace index.
+pub struct Index { /* store · manifest · options */ }
+
+/// How to open it.
+pub struct OpenOptions {
+    pub root: PathBuf,
+    pub store: Option<PathBuf>,   // default <root>/.graph-search/index
+    pub excludes: Vec<String>,
+    pub languages: Vec<Language>,
+    pub reconcile: Reconcile,     // Never | BeforeQuery | Explicit
+    pub read_only: bool,          // refuse to build or mutate
+}
+
+impl Index {
+    pub fn open(options: OpenOptions) -> Result<Index, Error>;
+    pub fn search(&self) -> SearchService<'_>;
+    pub fn status(&self) -> IndexStatus;
+    pub fn sync(&self) -> Result<SyncReport, Error>;
+    pub fn reindex(&self) -> Result<SyncReport, Error>;
+}
+
+/// The read API. Every method is bounded (§14) and reports truncation.
+impl SearchService<'_> {
+    pub fn files(&self, q: FilesQuery) -> Result<FilesResult, Error>;
+    pub fn text(&self, q: TextQuery) -> Result<TextResult, Error>;
+    pub fn symbol(&self, q: SymbolQuery) -> Result<GraphResult, Error>;
+    pub fn references(&self, q: RefQuery) -> Result<GraphResult, Error>;
+    pub fn callers(&self, q: TraversalQuery) -> Result<GraphResult, Error>;
+    pub fn callees(&self, q: TraversalQuery) -> Result<GraphResult, Error>;
+    pub fn impact(&self, q: TraversalQuery) -> Result<ImpactResult, Error>;
+    pub fn deps(&self, q: DepsQuery) -> Result<GraphResult, Error>;
+    pub fn neighbors(&self, q: NeighborsQuery) -> Result<GraphResult, Error>;
+    pub fn path(&self, q: PathQuery) -> Result<GraphResult, Error>;
+    pub fn explore(&self, q: ExploreQuery) -> Result<ExploreResult, Error>;
+    pub fn status(&self) -> IndexStatus;
+}
+```
+
+Properties the API holds:
+
+- **Transport-free.** The `graph-search-types` records are the request/result
+  vocabulary; nothing here names a socket, a process, or JSON. The CLI's `--json`
+  output is a serialisation of these same results (§9).
+- **Bounded and honest.** Every method enforces the §14 caps and returns a
+  `truncations` list and a `stale` flag. There is no unbounded method.
+- **Residency decides sourcing, not the caller.** `files` is index-first when the
+  `Index` is held open and fresh, and walks otherwise (§4.6); `text` always
+  scans. The caller does not choose.
+- **Read/write split.** `sync`/`reindex` mutate; every `SearchService` method
+  reads a snapshot.
 
 ---
 
@@ -845,57 +927,62 @@ Consequences and their mitigations:
   refused by name. Readers never lock.
 - **Atomicity.** One `apply` per reconcile, manifest last (§6.4).
 
-### 11.1 The persistent-service deployment model
+### 11.1 Delivery shapes — the in-process library is the target
 
-Three shapes, one core API (`SearchService`), so the shape is a transport choice
-rather than a rewrite:
+There is one API (`SearchService`, §4.7) and three ways to reach it. **Shape 3 is
+the reference and the thing we build**: it is what a linked-in `nanus` tool would
+be, so it is what the evaluation measures.
 
-1. **One-shot CLI** (v1): each command is its own process; it opens the store,
-   answers, exits.
-2. **Persistent service + thin client**: `graph-search serve` owns one
-   workspace's store and indexes; every other command is a client over a local
-   socket, falling back to shape 1 when no service is running.
-3. **In-process library** (the truly "integrated tool"): `nanus` links `core` +
-   the adapters (feature-gated) and calls the service API directly, no IPC.
+1. **One-shot CLI** — each command is its own process that opens the library,
+   answers, and exits. This is how `nanus` drives the experiment through `bash`
+   before any integration; it is a worse proxy for integrated behaviour only in
+   its per-call startup cost.
+2. **Persistent socket service** (optional, later) — `graph-search serve` owns a
+   workspace and answers clients over a local socket, to share one warm index
+   between processes. The same pattern `nanus` uses for its own link, and **not**
+   required by the target.
+3. **In-process library** — **the reference and the target.** A host links
+   `graph-search` and holds an `Index` open: no IPC, no per-call startup, indexes
+   resident. The evaluation harness and a future `nanus` adapter both use this,
+   and it is built from M1.
 
-Shape 2 is how the capability is *deployed* without linking the heavy deps into
-the host; shape 3 is the fastest and is what a `nanus` tool would ultimately use.
-Shape 2 is the closest an out-of-process implementation gets to an integrated
-tool, and it is the same pattern `nanus` already uses for its own socket.
+The order is deliberate: shape 3 is the target; shapes 1 and 2 are conveniences
+around it.
 
-What shape 2 changes:
+What residency (shape 3) changes:
 
-| Operation | One-shot (shape 1) | Persistent service (shape 2) |
+| Operation | One-shot client (shape 1) | In-process library (shape 3) |
 |---|---|---|
 | `files` | walk (fresh, ~10–50 ms) | **index-first** — path set resident, in-memory glob |
 | `text` | mmap + SIMD scan | scan of resident/mmap bodies; a **trigram index** becomes affordable at scale |
 | `graph`/`explore` | store open per call | no open; lower latency; room for a richer single call |
 
-So the service flips `files` to fast **and** accurate — the one place it changes
-the answer — and lowers the latency of every graph query, which is what makes a
+So residency flips `files` to fast **and** accurate — the one place it changes the
+answer — and lowers the latency of every graph query, which is what makes a
 richer one-call `explore` viable. `text` remains body-bound; residency saves
 syscalls and enables an incremental substring index, but the bytes still have to
 be examined.
 
-The service must meet five requirements:
+A resident host must meet five requirements:
 
-- **It owns freshness.** A long-lived store drifts. The service reconciles on a
+- **It owns freshness.** A long-lived index drifts. The host reconciles on a
   debounced watcher (`notify`) or before a query, and reports staleness either
-  way. A service that answers from a drifting index is **less** accurate than the
-  one-shot walk — this is the failure mode to design against, and it is the
-  daemon §2 deferred.
-- **Lifecycle.** One service per workspace root, claimed by a lock file; a
-  `0600` socket under the nanus home or `<store>/`; an idle timeout; a version
-  handshake that refuses a mismatched client.
-- **Fallback.** With no service running, the CLI runs shape 1 — the walk for
-  `files`/`text`, and for graph modes either a local reconcile or a clear "not
-  indexed" answer. The capability is never unusable because a daemon is down.
+  way. A host that answers from a drifting index is **less** accurate than the
+  one-shot walk — the failure mode to design against, and the freshness machinery
+  §2 deferred.
+- **Lifecycle.** Shape 3 is held by the host (a session owns it). Shape 2, if it
+  is built, adds one service per workspace root, claimed by a lock file; a `0600`
+  socket; an idle timeout; and a version handshake.
+- **Fallback.** A one-shot client with no cold index walks for `files`/`text`,
+  and for graph modes either reconciles locally or returns a clear "not indexed"
+  answer. The capability is never unusable because an index is absent.
 - **Single writer, snapshot readers** (§6.6).
 - **A memory bound.** The path set is cheap; bodies are not. Prefer `mmap` over a
   heap copy, and cap any body/trigram cache.
 
-Accuracy under shape 2 is therefore *unchanged from shape 1 if, and only if,
-freshness is enforced*; it is worse if the service is allowed to drift.
+Accuracy under a resident shape is therefore *unchanged from the one-shot walk
+if, and only if, freshness is enforced*; it is worse if the index is allowed to
+drift.
 
 ---
 
@@ -1023,13 +1110,16 @@ implementation so the implementation is aimed at it.
 
 ### 16.2 Arms
 
-| Arm | Tools available |
+| Arm | How the capability is reached |
 |---|---|
 | **Baseline** | `nanus` as it is: `glob`, `grep`, `read`, `edit`, `write`, `bash`. |
-| **Treatment** | The same, plus the system-prompt line pointing at `graph-search search …` and `graph-search sync`. |
+| **Treatment A — CLI** | The same, plus a system-prompt line pointing at `graph-search search …` / `sync`: the one-shot client (shape 1), reached through `bash`. |
+| **Treatment B — in-process** | A harness that links the `graph-search` library (shape 3), holds the `Index` open across a turn, and exposes it to the agent as a pre-warmed handle. This is the arm that models the integrated tool. |
 
 Everything else is held constant: same model, same effort, same sandbox/approval
-state, same turn budget.
+state, same turn budget. The gap between A and B *is* the cost of not being
+in-process — the number that decides whether linking the library into `nanus` is
+worth it.
 
 ### 16.3 Task suite
 
@@ -1079,37 +1169,42 @@ vibe. It is the input to the decision in §18.
 
 | # | Milestone | Deliverable | Notes |
 |---|---|---|---|
-| **M0** | Repo + spec | This document; workspace skeleton that builds. | **Current.** |
-| **M1** | Types, ports, CLI shell | `graph-search-types`; `core` ports + walker; `files`/`text` modes fully working; CLI with `--json`; contract tests. | No engine, no parser. Ships `glob`/`grep` parity on its own. |
-| **M2** | Engine + index/sync | Grafeo adapter; `init`/`index`/`sync`/`status`; manifest + reconcile; store conformance suite. | Feature set for Grafeo pinned here. |
-| **M3** | Rust extractor + graph modes | `langs` Rust extractor; `symbol`/`refs`/`callers`/`callees`/`impact`/`deps`; staleness-aware lazy reconcile. | The core value; one language proven end-to-end. |
-| **M4** | TS/JS + HTML/CSS | Remaining extractors; `neighbors`/`path`; cross-edges for HTML/CSS. | Languages can land behind features. |
-| **M5** | `explore` + eval harness | Combined retrieval; the task suite and the measuring harness. | The context-efficiency bet is tested here. |
-| **M6** | Evaluate → decide | `docs/evaluation-*.md`; a go/no-go on §18. | Includes the resident-`serve` decision if open cost warrants it. |
+| **M0** | Repo + spec | This document; a workspace skeleton — including the `graph-search` library crate — that builds. | **Current.** |
+| **M1** | **Library + `files`/`text`** | `types`; `core` ports + walker; the **`SearchService` API** (§4.7); the `graph-search` library wired for `files`/`text`/`status`; a thin CLI with `--json`; contract tests. | Ships `glob`/`grep` parity **as a library**. No engine, no parser. |
+| **M2** | Engine + index/sync | Grafeo adapter; `Index::open` + `reindex`/`sync`; manifest + reconcile; the **resident handle** (index-first `files`); store conformance suite. | Grafeo's feature set is pinned here. |
+| **M3** | Rust extractor + graph modes | `langs` Rust extractor; `symbol`/`refs`/`callers`/`callees`/`impact`/`deps`; staleness-aware lazy reconcile. | One language proven end-to-end; the core value. |
+| **M4** | TS/JS + HTML/CSS | Remaining extractors; `neighbors`/`path`; HTML/CSS cross-edges. | Languages can land behind features. |
+| **M5** | `explore` + eval harness | Combined retrieval; the task suite; the in-process harness (shape 3) and the CLI arm (shape 1). | The context-efficiency bet is measured here. |
+| **M6** | Evaluate → decide | `docs/evaluation-*.md`; a go/no-go on §18. | Optional here and only if the numbers ask: a socket `serve` (shape 2) and a trigram `text` index. |
 
-Each milestone is independently useful: M1 alone is a `glob`/`grep` replacement;
-M3 alone is a code-graph tool.
+Each milestone is independently useful: M1 alone is a `glob`/`grep` library; M3
+alone is a code-graph library. The **library API exists from M1**, so every later
+milestone is reachable in-process without rework.
 
 ---
 
 ## 18. Future `nanus` integration (only if §16 says so)
 
-If the evaluation is positive, the integration is small and reversible:
+The library is already shaped for this: `SearchService` (§4.7) is what a `nanus`
+adapter would call, so integration is a link plus a port, not a rewrite.
 
-1. **Port.** Add a `GraphPort`/`SearchPort` to `nanus-ports` mirroring §4.2's
-   read surface, plus a `graph_key()`. Vendor-free, as every nanus port is.
-2. **Adapter.** Move `graph-search-engine` + `graph-search-langs` behind a
-   `nanus-adapter-graph` crate, **feature-gated**, so a minimal `nanus` build
-   stays dependency-light and `search` degrades to `files`/`text`.
+1. **Adapter.** A `nanus-adapter-graph` crate depends on the `graph-search`
+   library, **feature-gated**, so a minimal `nanus` build stays dependency-light
+   and `search` degrades to `files`/`text`.
+2. **Port.** Add a `SearchPort` (or `GraphPort`) to `nanus-ports` whose methods
+   mirror `SearchService` (§4.7); the adapter implements it. Vendor-free, as
+   every nanus port is.
 3. **Tool.** Replace `glob` and `grep` with one `search` tool (`ToolAccess::Read`)
    whose modes are §8.1–§8.4. The tool count goes 7 → 6.
-4. **The CLI stays.** `nanus` may keep invoking `graph-search` via `bash` even
-   after the tool exists; the tool and the binary share `core`.
-5. **Removal criteria.** `glob`/`grep` are removed only when the tool's modes
+4. **Lifetime.** The tool holds one `Index` for the session — a resident
+   in-process handle — so `files` is index-first from the first call and no
+   per-call startup is paid (shape 3).
+5. **The CLI stays** as an independent client and as the `bash` fallback.
+6. **Removal criteria.** `glob`/`grep` are removed only when the tool's modes
    reproduce their semantics (§8.1–§8.2) and the evaluation shows no regression.
 
-The `graph-search` repo remains the place where extraction and engine choices are
-developed; `nanus` depends on the crates, not the other way round.
+The `graph-search` repo remains where extraction and engine choices are
+developed; `nanus` depends on the library, not the other way round.
 
 ---
 
@@ -1127,8 +1222,9 @@ developed; `nanus` depends on the crates, not the other way round.
    or are they a distraction from Rust/TS?
 5. **`explore` seeding without embeddings.** How good is literal + name ranking?
    If it underperforms, is a *local* embedding model worth the dependency?
-6. **One-shot vs resident.** Does per-invocation open cost matter at real repo
-   sizes? (Decides the `serve` mode.)
+6. **Resident in-process vs one-shot for measurement.** The target is resident
+   (shape 3) and the CLI is one-shot. How much of the measured difference is real
+   retrieval value rather than per-call startup? (This is Treatment A vs B, §16.2.)
 7. **`impact` semantics.** Counts + top-N, or a full cone? The former is bounded
    and probably right; confirm against real use.
 8. **`path` between symbols.** Is it actually used, or is it a feature nobody
@@ -1141,9 +1237,9 @@ developed; `nanus` depends on the crates, not the other way round.
 11. **A content index for `text`.** Is a trigram/n-gram index (or an in-memory
     body cache) worth it over a mmap + SIMD scan? And is a Grafeo BM25 `--ranked`
     mode worth offering beside exact `grep`, given the semantic difference?
-12. **`files` index-first crossover.** At what repo size and invocation pattern
-    does an index-backed glob actually beat a walk? This is measured, not
-    assumed, and it gates the resident-mode decision.
+12. **`files` index-first crossover.** With the library resident, when does an
+    index-backed glob beat a walk? Measured, not assumed; it also decides whether
+    the one-shot CLI should ever prefer the index.
 
 ---
 

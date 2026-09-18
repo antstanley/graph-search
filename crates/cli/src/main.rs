@@ -7,6 +7,8 @@
 #![warn(missing_docs)]
 
 fn main() {
-    // The placeholder exists only so the workspace builds in M0.
+    // The CLI is a thin client over the library; this only proves the edge
+    // exists until the command surface lands in M1 (see SPEC.md §10, §17).
+    let _index = graph_search::Index;
     eprintln!("graph-search: not yet implemented (see SPEC.md §17, milestone M1)");
 }

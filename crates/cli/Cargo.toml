@@ -12,6 +12,8 @@ name = "graph-search"
 path = "src/main.rs"
 
 [dependencies]
+# The CLI is a thin client over the in-process library (SPEC.md 11.1, shape 3).
+graph-search = { workspace = true }
 
 [lints]
 workspace = true

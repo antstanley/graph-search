@@ -1,0 +1,21 @@
+[package]
+name = "graph-search"
+description = "The in-process search library: Index + SearchService. The product; the CLI is a thin client over it."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+# ---------------------------------------------------------------------------
+# The library is where adapter wiring happens, so it is the ONLY crate besides
+# `cli` that may name a concrete engine and parser. It exposes a transport-free
+# API (`Index` -> `SearchService`); the CLI, the evaluation harness, and a future
+# nanus adapter all consume it in-process (SPEC.md 11.1, shape 3).
+#
+# Dependencies are injected, so `core` stays pure and the adapters stay swappable.
+# ---------------------------------------------------------------------------
+[dependencies]
+
+[lints]
+workspace = true

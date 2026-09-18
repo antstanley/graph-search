@@ -22,6 +22,7 @@ members = [
     "crates/core",
     "crates/langs",
     "crates/engine",
+    "crates/graph-search",
     "crates/cli",
 ]
 default-members = ["crates/cli"]
@@ -40,6 +41,8 @@ graph-search-types = { path = "crates/types" }
 graph-search-core = { path = "crates/core" }
 graph-search-langs = { path = "crates/langs" }
 graph-search-engine = { path = "crates/engine" }
+# The in-process library: the product. Hosts link this; the CLI is a client.
+graph-search = { path = "crates/graph-search" }
 graph-search-cli = { path = "crates/cli" }
 
 # Engine. Apache-2.0, pure-Rust, embeddable. The `embedded` profile is LPG + GQL
