@@ -845,6 +845,58 @@ Consequences and their mitigations:
   refused by name. Readers never lock.
 - **Atomicity.** One `apply` per reconcile, manifest last (§6.4).
 
+### 11.1 The persistent-service deployment model
+
+Three shapes, one core API (`SearchService`), so the shape is a transport choice
+rather than a rewrite:
+
+1. **One-shot CLI** (v1): each command is its own process; it opens the store,
+   answers, exits.
+2. **Persistent service + thin client**: `graph-search serve` owns one
+   workspace's store and indexes; every other command is a client over a local
+   socket, falling back to shape 1 when no service is running.
+3. **In-process library** (the truly "integrated tool"): `nanus` links `core` +
+   the adapters (feature-gated) and calls the service API directly, no IPC.
+
+Shape 2 is how the capability is *deployed* without linking the heavy deps into
+the host; shape 3 is the fastest and is what a `nanus` tool would ultimately use.
+Shape 2 is the closest an out-of-process implementation gets to an integrated
+tool, and it is the same pattern `nanus` already uses for its own socket.
+
+What shape 2 changes:
+
+| Operation | One-shot (shape 1) | Persistent service (shape 2) |
+|---|---|---|
+| `files` | walk (fresh, ~10–50 ms) | **index-first** — path set resident, in-memory glob |
+| `text` | mmap + SIMD scan | scan of resident/mmap bodies; a **trigram index** becomes affordable at scale |
+| `graph`/`explore` | store open per call | no open; lower latency; room for a richer single call |
+
+So the service flips `files` to fast **and** accurate — the one place it changes
+the answer — and lowers the latency of every graph query, which is what makes a
+richer one-call `explore` viable. `text` remains body-bound; residency saves
+syscalls and enables an incremental substring index, but the bytes still have to
+be examined.
+
+The service must meet five requirements:
+
+- **It owns freshness.** A long-lived store drifts. The service reconciles on a
+  debounced watcher (`notify`) or before a query, and reports staleness either
+  way. A service that answers from a drifting index is **less** accurate than the
+  one-shot walk — this is the failure mode to design against, and it is the
+  daemon §2 deferred.
+- **Lifecycle.** One service per workspace root, claimed by a lock file; a
+  `0600` socket under the nanus home or `<store>/`; an idle timeout; a version
+  handshake that refuses a mismatched client.
+- **Fallback.** With no service running, the CLI runs shape 1 — the walk for
+  `files`/`text`, and for graph modes either a local reconcile or a clear "not
+  indexed" answer. The capability is never unusable because a daemon is down.
+- **Single writer, snapshot readers** (§6.6).
+- **A memory bound.** The path set is cheap; bodies are not. Prefer `mmap` over a
+  heap copy, and cap any body/trigram cache.
+
+Accuracy under shape 2 is therefore *unchanged from shape 1 if, and only if,
+freshness is enforced*; it is worse if the service is allowed to drift.
+
 ---
 
 ## 12. Configuration
