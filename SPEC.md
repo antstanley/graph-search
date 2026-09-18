@@ -280,6 +280,25 @@ So v1 sources `files` and `text` from a **walk** and uses the index only for
 `text` stays a scan (or gains a dedicated content index), because the symbol
 graph never holds bodies.
 
+**Decision — the fastest accurate route.** For the two operations either route
+can serve, the walk wins on *both* axes in the architecture we have:
+
+- **Speed.** A one-shot process pays the store open and a freshness check on
+  every invocation; the walk pays neither. A warm `mmap` + SIMD substring scan
+  reads at gigabytes per second, and the OS page cache is already holding the
+  bytes, so a content cache would save syscalls, not bytes. Index-first `files`
+  only wins in a **resident** process, where the path set is a few megabytes and
+  a glob is an in-memory match.
+- **Accuracy.** The walk is fresh by construction. An index-sourced answer is
+  correct only while the index is current, so index-first ties on accuracy only
+  once freshness is *maintained* — a watcher (the daemon we deferred) or a
+  per-query scan that costs about what the walk it replaces costs.
+
+`text` is body-bound and gains little either way. And for *end-to-end agent
+retrieval* the graph is the real lever regardless: `explore`/`impact` replace a
+chain of greps and reads with one call, and that does not depend on how
+`files`/`text` are sourced.
+
 ---
 
 ## 5. Domain model
