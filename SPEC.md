@@ -1163,6 +1163,74 @@ structural answer) so correctness is scored, not eyeballed.
 The evaluation is a report in this repo (`docs/evaluation-YYYY-MM-DD.md`), not a
 vibe. It is the input to the decision in §18.
 
+### 16.6 Pre-registered prediction (priors, before building)
+
+Recorded *before* M1 so the measurement has something to falsify. These are
+predictions, not results. Sources: (a) **codegraph's** published benchmark — 62%
+fewer tokens and 44% lower cost on average across seven repos, 57–78% fewer on
+discovery-heavy questions, and ~80% **more** residual context; and (b) `nanus`'s
+own limits, below.
+
+Anchors from `nanus`, used by the token model:
+
+| Fact | Value |
+|---|---|
+| `read` default window | 2 000 lines (ceiling 20 000, ≤ 4 MiB) |
+| `grep` default / ceiling | 250 matches / 2 000; line cap 400 chars |
+| `glob` default / ceiling | 100 / 1 000 |
+| Context budget | 64 000 estimated tokens (chars ÷ 4), drop-oldest |
+| Step budget | 512 |
+
+The multiplier that matters: `nanus` replays the whole log on every step, so a
+tool result added at step *s* is re-sent on every later step. A turn's token cost
+is ≈ Σ (prompt size per step), which grows with **both** the size and the number
+of results. Replacing a chain of `grep`/`read` results with one bounded result
+cuts both, and the step reduction compounds it.
+
+Per-archetype prediction (a mixed suite ≈ 20% trivial, 15% discovery, 25%
+definition-location, 25% structural, 15% broad):
+
+| Archetype | Baseline calls / steps / tokens | Treatment calls / steps / tokens | Δ tokens |
+|---|---|---|---|
+| Trivial literal find | 2 / 1–2 / 5–12k | 1 / 1 / 5–10k | 0 to −20% |
+| File discovery (glob) | 1 / 1 / 0.5–3k | 1 / 1 / same | ~0% |
+| Locate a definition | 3–4 / 2–3 / 8–20k | 1 / 1 / 1–2k | −70 to −85% |
+| Structural (callers / impact / flow) | 4–12 / 4–10 / 25–120k | 1–3 / 1–2 / 3–8k | −70 to −90% |
+| Broad exploration | 8–20 / 6–15 / 40–200k | 1–2 + reads / 3–5 / 10–30k | −60 to −85% |
+
+**Headline prediction:**
+
+- **Tool calls:** −40% to −65% on discovery-heavy tasks; **0%** on trivial and
+  file-discovery tasks.
+- **Tokens:** **−30% to −55%** weighted across a mixed suite; −60% to −85% on
+  discovery-heavy tasks; ~0% on trivial ones.
+- **Wall time:** −25% to −55% on discovery tasks (steps × model latency dominate).
+- **Cost:** tracks tokens, −30% to −55%.
+- **Accuracy:** neutral-to-positive *if adoption is high*; the risks are
+  static-graph false negatives (dynamic dispatch, macros, HTML/CSS class matching)
+  and stale indexes. A confident-wrong answer is a fail whatever the token number.
+- **Residual context:** predicted **lower** than baseline here, unlike codegraph,
+  because `explore` is bounded (≤ 64 KiB, small snippets) and `nanus` elides at
+  64k. If it comes out higher, the payload discipline (§8.4, §9.3) failed.
+
+Two confounds to control:
+
+1. **Adoption.** The benefit is zero if the model does not reach for the tool.
+   Record the fraction of discovery tasks where it did (target: > 50%).
+2. **Cold index.** A first query on an unbuilt index pays the build (~2 s per 200
+   files). Warm the index before a timed run; measure build/sync separately.
+
+Falsification thresholds (the go/no-go for §18):
+
+- **Proceed** if a mixed-suite run shows **≥ 25% fewer tokens or ≥ 35% fewer tool
+  calls** with **no rubric regression**.
+- **Strong** if **≥ 50% fewer tokens *and* ≥ 50% fewer calls**.
+- **Kill / rethink** if rubric scores regress, or tokens rise, or stale/truncated
+  answers are mistaken for complete ones.
+
+The measurement protocol and a results table to fill in live in
+[`docs/benchmark-plan.md`](docs/benchmark-plan.md).
+
 ---
 
 ## 17. Milestones
