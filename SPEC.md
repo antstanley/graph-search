@@ -246,6 +246,40 @@ nodes, a recorded reason), not an erroring search (§6.4).
 | `graph`/`explore` assembly | `core` (read via snapshot) |
 | Rendering (text/JSON) | `cli` |
 
+### 4.6 Sourcing: paths, symbols, and bodies are three different things
+
+The speed of a query depends on which of three kinds of data it needs, and only
+two of them are in the graph:
+
+| Data | In the index? | Serves |
+|---|---|---|
+| **Paths** — the set of files | yes, if the projector records *every walked path* (not only files that parse) | `files` (glob) |
+| **Symbols and edges** — declarations and their call/import/reference edges | yes | `graph`, `explore` |
+| **Bodies** — the raw text of each file | **no** | `text` (grep) |
+
+The symbol graph stores a signature and a line range per symbol, never file
+contents. So **`text` cannot be answered from the graph**: grep needs the bytes.
+Making it index-backed would require either a separate content store with a
+substring index (trigram/n-gram), or Grafeo's BM25 text index — which is
+*tokenized, ranked* search and would change `grep`'s semantics (no exact
+substring, no exact line/column). Those are options (§19), not the v1 design.
+
+Two consequences shape §8:
+
+- **Residency is the prerequisite for the speed win.** "The index is in memory"
+  is only true of a process that stays up across queries. A one-shot CLI pays the
+  store open on every invocation, so an index-backed `files` can be *slower* than
+  a walk — and the walk is fresh by construction.
+- **Staleness is a correctness risk, not only a speed one.** An index-backed
+  `files` that misses a file created after the last index is a confident false
+  negative — the exact failure this project exists to avoid. Any index-sourced
+  answer must carry a verified-fresh guarantee or a staleness notice.
+
+So v1 sources `files` and `text` from a **walk** and uses the index only for
+`graph`/`explore`. §11's resident mode is where `files` becomes index-first;
+`text` stays a scan (or gains a dedicated content index), because the symbol
+graph never holds bodies.
+
 ---
 
 ## 5. Domain model
@@ -259,7 +293,7 @@ is derived, so correctness is a question of convergence to the working tree
 
 | Kind | Source language | Notes |
 |---|---|---|
-| `file` | all | one per indexed file; carries language, size, line count, hash. |
+| `file` | all | one per **walked** file, whether or not it parses (a file with no extractor still gets a `file` node, `language = unknown`), so a glob can be answered from the index. Carries language, size, line count, hash. |
 | `module` | Rust (`mod`), TS/JS (module) | a named module; may or may not correspond to a file. |
 | `function` | Rust, TS/JS | free function. |
 | `method` | Rust, TS/JS | associated function / class or impl method. |
@@ -366,9 +400,11 @@ scattered calls, because an index that eats `target/` is worse than useless.
 
 ### 6.2 Parse
 
-For each selected file: read bytes, detect language by extension, hand a
-`SourceFile` to the extractor. The extractor emits nodes, `contains` edges, and
-candidate (`unresolved`) references. `core` then:
+Every walked file gets a `file` node (§5.1) — including files with no extractor,
+so the index can answer `files` globs completely. A file whose language has an
+extractor is additionally read and parsed: its bytes are handed to the extractor
+as a `SourceFile`, which emits nodes, `contains` edges, and candidate
+(`unresolved`) references. `core` then:
 
 1. Resolves references against the workspace index (§7.4).
 2. Adds `calls`/`references`/`imports`/… edges with `resolved` flags.
@@ -533,9 +569,12 @@ negatives**. The tool never presents the graph as exhaustive. Every `graph` and
 
 ## 8. Query surface
 
-One `search` command with a mode, plus `status`. `files` and `text` are served
-by a filesystem walk and reproduce `nanus`'s `glob`/`grep` semantics; `graph`
-modes and `explore` are served from the index.
+One `search` command with a mode, plus `status`. Sourcing follows §4.6: `files`
+and `text` are served by a filesystem walk in v1 (reproducing `nanus`'s
+`glob`/`grep` semantics exactly, and fresh by construction), while `graph` modes
+and `explore` are served from the index. `files` becomes index-first once a
+resident store exists (§11); `text` never reads the symbol graph, because the
+graph does not hold bodies.
 
 ### 8.1 `files` (glob)
 
@@ -566,6 +605,10 @@ graph-search search text <literal> [--path DIR] [--include GLOB] [--limit N]
 - A capped search that matched nothing renders:
   `No matches in the files reached: the search stopped at the {limit}-match cap before it finished, so matches may exist beyond it.`
 - Truncation notice: `(stopped at {limit} matches; narrow the pattern or the include filter)`.
+- **Sourced by scanning the files** (mmap + a SIMD substring search), not by the
+  index; §4.6. A `--ranked` mode backed by Grafeo's BM25 text index is a possible
+  later addition with explicitly different (tokenized, ranked) semantics — it
+  would not be a drop-in for `grep`.
 
 These strings are reproduced verbatim so that the evaluation compares the same
 answers and so that any later swap is behaviour-preserving.
@@ -775,7 +818,10 @@ Consequences and their mitigations:
   and deferred to M6+: a `std::thread` owns the store; commands send requests and
   await a `oneshot`; the boundary is a channel, so callers stay `!Send`-friendly.
   (This matters for the eventual `nanus` integration: a dedicated engine thread
-  does **not** require making the kernel's futures `Send`.)
+  does **not** require making the kernel's futures `Send`.) In a resident
+  process, `files` moves to index-first (§4.6): the whole path set is a few
+  megabytes and a glob is an in-memory match. `text` does not — it needs bodies,
+  which the graph does not hold — so it stays a scan, or gains a content index.
 - **Single writer.** `index`/`sync` hold `<store>/index.lock`; a second writer is
   refused by name. Readers never lock.
 - **Atomicity.** One `apply` per reconcile, manifest last (§6.4).
@@ -1021,6 +1067,12 @@ developed; `nanus` depends on the crates, not the other way round.
 10. **The one-tool hypothesis itself.** `explore` may be the real answer and the
     discrete `graph` modes may be unnecessary. The evaluation decides whether the
     tool has three modes or one.
+11. **A content index for `text`.** Is a trigram/n-gram index (or an in-memory
+    body cache) worth it over a mmap + SIMD scan? And is a Grafeo BM25 `--ranked`
+    mode worth offering beside exact `grep`, given the semantic difference?
+12. **`files` index-first crossover.** At what repo size and invocation pattern
+    does an index-backed glob actually beat a walk? This is measured, not
+    assumed, and it gates the resident-mode decision.
 
 ---
 
