@@ -1,0 +1,9 @@
+@import "./reset.css";
+
+.container { display: flex; }
+#main { padding: 0; --gap: 8px; }
+.btn.primary, .btn.dark { color: black; }
+
+@media (max-width: 600px) {
+  .container { flex-direction: column; }
+}

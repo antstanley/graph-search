@@ -14,6 +14,13 @@ path = "src/main.rs"
 [dependencies]
 # The CLI is a thin client over the in-process library (SPEC.md 11.1, shape 3).
 graph-search = { workspace = true }
+graph-search-types = { workspace = true }
+clap = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+[dev-dependencies]
+tempfile = { workspace = true }
 
 [lints]
 workspace = true

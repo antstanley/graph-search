@@ -48,7 +48,7 @@ graph-search-cli = { path = "crates/cli" }
 # Engine. Apache-2.0, pure-Rust, embeddable. The `embedded` profile is LPG + GQL
 # + AI(vector/text) + algos + parallel + file storage; the exact feature set is
 # pinned per milestone (see SPEC.md §4.4). Confined to `engine`.
-grafeo = { version = "0.5.42", default-features = false, features = ["embedded"] }
+grafeo = { version = "0.5.42", default-features = false, features = ["edge", "wal", "grafeo-file"] }
 
 # Parsers. C under the bindings; confined to `langs`.
 tree-sitter = "0.27"

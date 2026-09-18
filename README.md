@@ -1,6 +1,6 @@
 # graph-search
 
-**Status: M0 — specification only. No behaviour implemented yet.**
+**Status: v1 implemented (milestones M1–M5). The evaluation of §16 is pending.**
 
 An experiment in a single, context-efficient search capability for code and
 context: one surface for finding **files**, **text**, and **symbols and their
@@ -60,12 +60,25 @@ by `core`.
 ## Building
 
 ```
-cargo build                          # the workspace builds at M0 with stub crates
-cargo run -p graph-search-cli -- --help
+cargo build --release
+cargo test --workspace               # unit, fixture, conformance, contract, property
+target/release/graph-search --help
 ```
 
-The library API is specified in [`SPEC.md`](SPEC.md) §4.7 and the command surface
-in §10; they land across milestones M1–M5 (§17).
+## Trying it
+
+```
+graph-search --root . index                     # full build (tree-sitter + Grafeo)
+graph-search --root . status                    # counts, staleness
+graph-search search files "crates/core/src/*.rs"
+graph-search search text "WriteBatch" --include "*.rs"
+graph-search search symbol "SearchService" --json
+graph-search search callers "Index::sync" --json
+graph-search search explore "how does reconcile classify a modified file"
+```
+
+After editing files, `graph-search sync` reconciles incrementally; queries
+reconcile lazily and report staleness either way (`SPEC.md` §6.5).
 
 ## Documentation
 

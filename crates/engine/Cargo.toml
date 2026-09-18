@@ -8,6 +8,17 @@ license.workspace = true
 publish.workspace = true
 
 [dependencies]
+graph-search-types = { workspace = true }
+graph-search-core = { workspace = true }
+grafeo = { workspace = true }
+grafeo-common = "0.5.42"
+grafeo-core = "0.5.42"
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+
+[dev-dependencies]
+tempfile = { workspace = true }
 
 [lints]
 workspace = true

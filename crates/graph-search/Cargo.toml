@@ -16,6 +16,17 @@ publish.workspace = true
 # Dependencies are injected, so `core` stays pure and the adapters stay swappable.
 # ---------------------------------------------------------------------------
 [dependencies]
+graph-search-types = { workspace = true }
+graph-search-core = { workspace = true }
+graph-search-langs = { workspace = true }
+graph-search-engine = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+toml = { workspace = true }
+
+[dev-dependencies]
+tempfile = { workspace = true }
 
 [lints]
 workspace = true

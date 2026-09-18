@@ -8,6 +8,18 @@ license.workspace = true
 publish.workspace = true
 
 [dependencies]
+graph-search-types = { workspace = true }
+ignore = { workspace = true }
+globset = { workspace = true }
+memchr = "2"
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+sha2 = { workspace = true }
+
+[dev-dependencies]
+proptest = { workspace = true }
+tempfile = { workspace = true }
 
 [lints]
 workspace = true
