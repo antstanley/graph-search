@@ -1,0 +1,115 @@
+# Workspace root for `graph-search`, an experiment in unified code/context search.
+#
+# The dependency edges point strictly inward (hexagonal rule):
+#
+#   types   — leaf: canonical value types only. No workspace deps.
+#   core    — the domain, the port traits, the projector/reconcile, the query
+#             engine. Depends ONLY on `types` and its own ports. Never an
+#             adapter, never an engine, never tree-sitter.
+#   langs   — driven adapter: tree-sitter extractors implementing core's
+#             `LanguageExtractor` port. Depends on `core` + `types`.
+#   engine  — driven adapter: the embedded Grafeo engine behind core's `GraphStore`
+#             port. Depends on `core` + `types`. Confined so no engine type leaks.
+#   cli     — composition root: the `graph-search` binary. Depends on all.
+#
+# The engine and the parser are chosen here and nowhere else; swapping either is
+# an adapter swap, not a rewrite of `core`.
+
+[workspace]
+resolver = "3"
+members = [
+    "crates/types",
+    "crates/core",
+    "crates/langs",
+    "crates/engine",
+    "crates/cli",
+]
+default-members = ["crates/cli"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.98"
+license = "MIT"
+repository = "https://github.com/antstanley/graph-search"
+publish = false
+
+[workspace.dependencies]
+# Internal crates.
+graph-search-types = { path = "crates/types" }
+graph-search-core = { path = "crates/core" }
+graph-search-langs = { path = "crates/langs" }
+graph-search-engine = { path = "crates/engine" }
+graph-search-cli = { path = "crates/cli" }
+
+# Engine. Apache-2.0, pure-Rust, embeddable. The `embedded` profile is LPG + GQL
+# + AI(vector/text) + algos + parallel + file storage; the exact feature set is
+# pinned per milestone (see SPEC.md §4.4). Confined to `engine`.
+grafeo = { version = "0.5.42", default-features = false, features = ["embedded"] }
+
+# Parsers. C under the bindings; confined to `langs`.
+tree-sitter = "0.27"
+tree-sitter-rust = "0.24"
+tree-sitter-typescript = "0.23"
+tree-sitter-javascript = "0.25"
+tree-sitter-html = "0.23"
+tree-sitter-css = "0.25"
+
+# Wire and CLI.
+clap = { version = "4.6", features = ["derive", "env", "wrap_help"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+toml = "1"
+
+# Walking and matching (the same choices nanus makes, so `files`/`text` semantics
+# can match it exactly).
+ignore = "0.4"
+globset = "0.4"
+
+# Errors and observability.
+thiserror = "2"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
+
+# Content hashing for the reconcile manifest.
+sha2 = "0.10"
+
+# Dev.
+proptest = "1"
+tempfile = "3"
+
+[workspace.lints.rust]
+# Mirrors nanus: no `unsafe` in this workspace's own crates. Dependencies (the
+# tree-sitter bindings, Grafeo) may use it internally; a lint on members is not a
+# lint on the world.
+unsafe_code = "forbid"
+missing_docs = "warn"
+unreachable_pub = "warn"
+rust_2018_idioms = { level = "warn", priority = -1 }
+
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+# Nursery is unstable and noisy; opted out repo-wide.
+nursery = { level = "allow", priority = -1 }
+# Tiger-style discipline, as in nanus.
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"
+todo = "deny"
+unimplemented = "deny"
+dbg_macro = "deny"
+exit = "deny"
+arithmetic_side_effects = "deny"
+integer_division = "deny"
+print_stdout = "deny"
+print_stderr = "deny"
+missing_const_for_fn = "allow"
+module_name_repetitions = "allow"
+missing_errors_doc = "allow"
+missing_panics_doc = "allow"
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+strip = "debuginfo"

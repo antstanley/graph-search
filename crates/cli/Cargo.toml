@@ -1,0 +1,17 @@
+[package]
+name = "graph-search-cli"
+description = "Composition root: the graph-search binary."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[[bin]]
+name = "graph-search"
+path = "src/main.rs"
+
+[dependencies]
+
+[lints]
+workspace = true
