@@ -471,7 +471,12 @@ database migration.
 
 `signature` is a *single truncated line* (the declaration's first line, capped at
 `MAX_SIGNATURE_CHARS`). Full bodies are never stored in the graph; `read` fetches
-them.
+them. Function/method nodes additionally carry the reserved
+`graph_search.body_terms.v1` attribute: a JSON bag of normalized token counts and
+a truncation flag. It covers at most the first 64 source lines / 4,096 Unicode
+scalar values of the exact symbol byte span, including the declaration and any
+comments or string literals inside that span. It does not contain raw source
+bodies. The same attribute is persisted in raw extraction facts.
 
 ---
 
@@ -541,7 +546,10 @@ edges deleted by subtree replacement; HTML/CSS cross-matching is conservatively
 rebound on every change. `SyncReport.modified` includes rebound files, while
 `unchanged` excludes them. A no-op skips graph application; same-content metadata
 changes refresh only the manifest. Missing caches fall back conservatively, and
-older schemas trigger a rebuild. The dependency walk and manifest I/O are still
+older schemas trigger a rebuild. Parser version 3 rebuilds older projections
+to populate bounded body terms and correct Rust/JS/TS byte offsets (zero-based,
+exclusive end); schema version remains 2. The normal staleness check also
+detects parser-version mismatches, so default queries trigger this migration. The dependency walk and manifest I/O are still
 workspace-sized; this is not constant-time incremental indexing.
 
 ### 6.4 Apply
@@ -762,13 +770,22 @@ graph-search search explore <query> [--k 8] [--hops 1] [--context-lines 2]
 This is the context-efficient entry point and the closest analogue to
 `codegraph`'s single tool. Given free-text terms:
 
-1. **Seed** — exact bare/qualified names take priority. Otherwise split camelCase,
-   acronym, snake_case, and path tokens and rank metadata with BM25 (name/path/
-   signature weights 8/2/1). Deduplicate query terms and remove sentence function
-   words. Require a real token match; scores are relevance, not confidence.
-   A bounded literal body scan supplies lower-priority fallback files. Lexical
-   statistics are built from the graph snapshot; there is no separate persistent
-   text index or embedding model. Filters apply before the result cap.
+1. **Seed** — exact bare/qualified names take priority, followed by complete
+   split-name matches (camelCase, acronym and snake_case tokens). If there is no
+   complete split-name match, a query of at most four distinct terms that are
+   all existing bare names prioritizes those named targets for graph connections.
+   These priority lanes use stable path/line/id order. Otherwise rank metadata
+   with BM25 (name/path/signature weights 8/2/1) plus a separately normalized
+   bounded function/method body field at weight 1. Deduplicate query terms and
+   remove sentence function words. Require a real token match; scores are
+   relevance, not confidence. Greedily select seeds, multiplying ordinary
+   relevance by `0.5^n` after `n` seeds from that file have been selected; named
+   priority lanes are unpenalized. A bounded literal body scan supplies
+   lower-priority fallback files. Lexical statistics are built from the graph
+   snapshot on each query; there is no separate persistent text index or
+   embedding model. Filters apply before the result cap. Standalone comments,
+   documentation passages, and query expansion were evaluated but are not
+   enabled by default; see `research/09-natural-language-retrieval.md`.
 2. **Assemble** — for the top `k` seeds: the definition location, its
    `signature`, and a **bounded snippet** of `context_lines` around the
    definition.

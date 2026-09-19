@@ -495,7 +495,12 @@ impl<'a> QueryEngine<'a> {
         let approximation = Approximation {
             resolved,
             unresolved: (edges.len() as u64).saturating_sub(resolved),
-            ..Approximation::default()
+            note: format!(
+                "{}; body relevance indexes at most {} lines / {} characters per function or method",
+                Approximation::default().note,
+                crate::lexical::BODY_LINE_CAP,
+                crate::lexical::BODY_CHAR_CAP
+            ),
         };
         let mut result = ExploreResult {
             items,
@@ -673,6 +678,25 @@ impl<'a> QueryEngine<'a> {
             .filter(|n| !n.is_file())
             .collect();
         let index = crate::lexical::LexicalIndex::new(&nodes);
+        let bare_names: BTreeSet<_> = nodes
+            .iter()
+            .filter_map(|node| node.name.as_ref())
+            .map(|name| name.to_lowercase())
+            .collect();
+        // A complete split identifier takes precedence over interpreting its
+        // words as separate targets (e.g. `load secret` vs `load_secret`).
+        let split_name = |name: &str| {
+            crate::lexical::query_terms(&crate::lexical::tokens(name).join(" ")) == terms
+        };
+        let has_split_name = nodes.iter().any(|node| {
+            node.name.as_deref().is_some_and(split_name)
+                && self.passes_filters(node, query.filters.lang, query.filters.path_glob.as_deref())
+        });
+        let names_query = !has_split_name
+            && terms.len() <= 4
+            && terms.iter().all(|term| bare_names.contains(term));
+        let mut exact_ids = BTreeSet::new();
+        let mut named_ids = BTreeSet::new();
         for (position, node) in nodes.into_iter().enumerate() {
             if !self.passes_filters(
                 &node,
@@ -689,10 +713,16 @@ impl<'a> QueryEngine<'a> {
                     .qualified_name
                     .as_deref()
                     .is_some_and(|n| n.to_lowercase() == exact);
-            let bm25 = index.score(position, &terms);
-            // Bounded, monotone lexical lane; exact spelling always wins.
-            let score = if is_exact { 2.0 } else { bm25 / (1.0 + bm25) };
-            if score > 0.0 {
+            let named = node.name.as_ref().is_some_and(|name| {
+                (names_query && terms.contains(&name.to_lowercase())) || split_name(name)
+            });
+            let score = index.score(position, &terms);
+            if is_exact {
+                exact_ids.insert(node.id.clone());
+            } else if named {
+                named_ids.insert(node.id.clone());
+            }
+            if score > 0.0 || is_exact || named {
                 scored.push(Scored::new(node, score));
             }
         }
@@ -770,18 +800,6 @@ impl<'a> QueryEngine<'a> {
             }
         }
 
-        scored.sort_by(|a, b| {
-            b.score
-                .partial_cmp(&a.score)
-                .unwrap_or(std::cmp::Ordering::Equal)
-                .then_with(|| a.item.path.cmp(&b.item.path))
-                .then_with(|| {
-                    a.item
-                        .span
-                        .map(|s| s.start_line)
-                        .cmp(&b.item.span.map(|s| s.start_line))
-                })
-        });
         let candidates = scored.len();
         let k = if query.k == 0 {
             graph_search_types::limits::EXPLORE_DEFAULT_K
@@ -789,7 +807,7 @@ impl<'a> QueryEngine<'a> {
             effective_limit(query.k)
         };
         truncations.extend(result_truncations(candidates, k));
-        scored.truncate(k as usize);
+        scored = diverse_seeds(scored, &exact_ids, &named_ids, k as usize);
         Ok(Seeds {
             nodes: scored,
             truncations,
@@ -975,6 +993,56 @@ impl<'a> QueryEngine<'a> {
     }
 }
 
+/// Greedy file diversity on raw relevance. Exact and explicitly named symbols
+/// keep their own unpenalized priority lanes, including multi-target graph queries.
+fn diverse_seeds(
+    mut candidates: Vec<Scored<Node>>,
+    exact: &BTreeSet<NodeId>,
+    named: &BTreeSet<NodeId>,
+    limit: usize,
+) -> Vec<Scored<Node>> {
+    let mut selected = Vec::new();
+    let mut counts: BTreeMap<String, i32> = BTreeMap::new();
+    while selected.len() < limit && !candidates.is_empty() {
+        let rank = |candidate: &Scored<Node>| {
+            let priority = if exact.contains(&candidate.item.id) {
+                2
+            } else {
+                i32::from(named.contains(&candidate.item.id))
+            };
+            let score = if priority > 0 {
+                0.0
+            } else {
+                candidate.score * 0.5_f32.powi(*counts.get(&candidate.item.path).unwrap_or(&0))
+            };
+            (priority, score)
+        };
+        let best = candidates
+            .iter()
+            .enumerate()
+            .min_by(|(_, a), (_, b)| {
+                let (ap, a_score) = rank(a);
+                let (bp, b_score) = rank(b);
+                bp.cmp(&ap)
+                    .then_with(|| b_score.total_cmp(&a_score))
+                    .then_with(|| a.item.path.cmp(&b.item.path))
+                    .then_with(|| {
+                        a.item
+                            .span
+                            .map(|span| span.start_line)
+                            .cmp(&b.item.span.map(|span| span.start_line))
+                    })
+                    .then_with(|| a.item.id.cmp(&b.item.id))
+            })
+            .map_or(0, |(position, _)| position);
+        let picked = candidates.swap_remove(best);
+        let count = counts.entry(picked.item.path.clone()).or_default();
+        *count = count.saturating_add(1);
+        selected.push(picked);
+    }
+    selected
+}
+
 /// Reads a bounded excerpt around the definition from the file on disk
 /// (`SPEC.md` §8.4 step 2, §9.3).
 fn snippet_for(node: &Node, context_lines: u32, root: &Path) -> Option<Snippet> {
@@ -1050,11 +1118,11 @@ fn explore_byte_cap(requested: u32) -> usize {
 fn fit_explore(result: &mut ExploreResult, cap: usize) -> Result<()> {
     loop {
         let resolved = result.edges.iter().filter(|e| e.resolved).count() as u64;
-        result.approximation = Some(Approximation {
-            resolved,
-            unresolved: (result.edges.len() as u64).saturating_sub(resolved),
-            ..Approximation::default()
-        });
+        let approximation = result
+            .approximation
+            .get_or_insert_with(Approximation::default);
+        approximation.resolved = resolved;
+        approximation.unresolved = (result.edges.len() as u64).saturating_sub(resolved);
         if serde_json::to_vec(result).map_or(usize::MAX, |v| v.len()) <= cap {
             return Ok(());
         }
@@ -1077,5 +1145,52 @@ fn fit_explore(result: &mut ExploreResult, cap: usize) -> Result<()> {
                 "max_bytes={cap} cannot hold explore metadata"
             )));
         }
+    }
+}
+
+#[cfg(test)]
+mod diversity_tests {
+    use super::*;
+
+    fn candidate(id: &str, path: &str, score: f32) -> Scored<Node> {
+        Scored::new(
+            Node {
+                id: NodeId::new(id),
+                path: path.to_owned(),
+                ..Node::default()
+            },
+            score,
+        )
+    }
+
+    #[test]
+    fn relevance_diversifies_files_but_exact_targets_remain_first() {
+        let candidates = vec![
+            candidate("a1", "a.rs", 10.0),
+            candidate("a2", "a.rs", 9.0),
+            candidate("a3", "a.rs", 8.0),
+            candidate("b1", "b.rs", 7.0),
+        ];
+        let ranked = diverse_seeds(candidates.clone(), &BTreeSet::new(), &BTreeSet::new(), 3);
+        assert_eq!(
+            ranked
+                .iter()
+                .map(|c| c.item.id.as_str())
+                .collect::<Vec<_>>(),
+            ["a1", "b1", "a2"]
+        );
+        let ranked = diverse_seeds(
+            candidates,
+            &BTreeSet::from([NodeId::new("a2"), NodeId::new("a3")]),
+            &BTreeSet::new(),
+            3,
+        );
+        assert_eq!(
+            ranked
+                .iter()
+                .map(|c| c.item.id.as_str())
+                .collect::<Vec<_>>(),
+            ["a2", "a3", "b1"]
+        );
     }
 }

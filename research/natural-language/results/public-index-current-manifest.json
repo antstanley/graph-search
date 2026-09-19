@@ -1,0 +1,127 @@
+{
+  "schema": 1,
+  "created_unix": 1789814182.1760361,
+  "seed": 1729,
+  "split": "all",
+  "repeats": 1,
+  "tasks_sha256": "97e0a725721b874315ea1fbb7bd478ece0044fd738e549a85b9e948c731ca842",
+  "oracles_sha256": "db30fd8e08fc933c2591cf36fdeddea1a6641f6aa559c0fd47ab26c5e396a915",
+  "implementation": {
+    "python": "3.14.7",
+    "platform": "macOS-27.0-arm64-arm-64bit-Mach-O",
+    "rg": "ripgrep 15.2.0\n\nfeatures:+pcre2\nsimd(compile):+NEON\nsimd(runtime):+NEON\n\nPCRE2 10.45 is available (JIT is available)",
+    "codegraph": "1.6.0",
+    "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)",
+    "source_sha256": {
+      "taskbench/__init__.py": "554ed173c1e6ff623956079d4548da85b97a61dcf1ab63383f2886c89e12cbbc",
+      "taskbench/__main__.py": "eac128055743becd24dbf11377600232ffbf94a83cafbba6de1104dc386fa54e",
+      "taskbench/backends.py": "df87f7a230a7e7f1fbb42255470f85d44bc7f1cfe1518037c497e3f672429c7b",
+      "taskbench/core.py": "4ce1dca8b169197b910ea9dd6eafbd7ffc0db60e2e79c45816e03fa12584536e",
+      "taskbench/provenance.py": "a4b37d525a874171bf4fc068ab73eeb4eae76cd4118f3c859eb87ca15db69d7d",
+      "taskbench/runner.py": "e839ba1d2053daf8d6b40bcba471472ee6d6f2626793c9b5cc1ead34fcafb682",
+      "harness/src/main.rs": "0036aaa56b46c6138de15c84a1d6a1f11324ac9d4871be6d3cca4084e832fe85"
+    },
+    "host_sha256": "67f85363f7f4da19a8c7081001248d9461a4a8a4cba0fd1ad58655d60ca3cda5",
+    "git_head": "bdcbecef41d9863bca23830ed30615f1c219064d"
+  },
+  "driver": null,
+  "model": null,
+  "effort": null,
+  "roots": {
+    "nanus": {
+      "path": "/Users/ant/code/nanus",
+      "head": "c56f8f25cf962f1486d3f2008717162ae9b6fd35",
+      "dirty": true,
+      "source_snapshot_before": {
+        "scope": "git tracked + untracked nonignored files; symlinks recorded without following",
+        "files": 189,
+        "sha256": "d35101d292ea6c08aaa9a48964c6fb35a79873e582658abfe79be5b5759c6e18"
+      },
+      "codegraph_index_present": false,
+      "codegraph_freshness_before": {
+        "status": "unavailable"
+      },
+      "codegraph_freshness_after": {
+        "status": "unavailable"
+      },
+      "source_snapshot_after": {
+        "scope": "git tracked + untracked nonignored files; symlinks recorded without following",
+        "files": 189,
+        "sha256": "d35101d292ea6c08aaa9a48964c6fb35a79873e582658abfe79be5b5759c6e18"
+      }
+    },
+    "blogwright": {
+      "path": "/Users/ant/code/blogwright",
+      "head": "8a364e3224f9cc47d59a7f270e9a762397760d79",
+      "dirty": false,
+      "source_snapshot_before": {
+        "scope": "git tracked + untracked nonignored files; symlinks recorded without following",
+        "files": 587,
+        "sha256": "c6808f466973a47670fa57fa095e6c1d5e6679e81302637bea1bb511345b5c75"
+      },
+      "codegraph_index_present": true,
+      "codegraph_freshness_before": {
+        "status": "fresh",
+        "counts": {
+          "matching": 247
+        },
+        "mismatches": []
+      },
+      "codegraph_freshness_after": {
+        "status": "fresh",
+        "counts": {
+          "matching": 247
+        },
+        "mismatches": []
+      },
+      "source_snapshot_after": {
+        "scope": "git tracked + untracked nonignored files; symlinks recorded without following",
+        "files": 587,
+        "sha256": "c6808f466973a47670fa57fa095e6c1d5e6679e81302637bea1bb511345b5c75"
+      }
+    },
+    "whatsurvey": {
+      "path": "/Users/ant/code/whatsurvey",
+      "head": "84ee5d73139f7b82a93d2e003a459b2380110a7f",
+      "dirty": true,
+      "source_snapshot_before": {
+        "scope": "git tracked + untracked nonignored files; symlinks recorded without following",
+        "files": 1404,
+        "sha256": "0d72eb38f0c77b13dfc71c40fbfdfd15434b5e44a7458c65200f29b244fd6a28"
+      },
+      "codegraph_index_present": true,
+      "codegraph_freshness_before": {
+        "status": "fresh",
+        "counts": {
+          "matching": 1039
+        },
+        "mismatches": []
+      },
+      "codegraph_freshness_after": {
+        "status": "fresh",
+        "counts": {
+          "matching": 1039
+        },
+        "mismatches": []
+      },
+      "source_snapshot_after": {
+        "scope": "git tracked + untracked nonignored files; symlinks recorded without following",
+        "files": 1404,
+        "sha256": "0d72eb38f0c77b13dfc71c40fbfdfd15434b5e44a7458c65200f29b244fd6a28"
+      }
+    }
+  },
+  "setups": {
+    "whatsurvey/graph-search": {
+      "setup_ms": 11616.741290999926
+    },
+    "nanus/graph-search": {
+      "setup_ms": 4227.020749996882
+    },
+    "blogwright/graph-search": {
+      "setup_ms": 5147.810167007265
+    }
+  },
+  "source_validation": "before and after passed",
+  "cleanup_errors": []
+}

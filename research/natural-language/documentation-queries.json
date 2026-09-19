@@ -1,0 +1,65 @@
+[
+  {
+    "repo": "nanus",
+    "split": "dev",
+    "expected_path": "apps/website/src/content/docs/guides/providers.md",
+    "prompt": "Which model providers and plans can I choose, and how do I switch without rebuilding the application?",
+    "source_sha256": "790c041581a4b08a4e36f329ec96c67de4d3f424684a1e8a8326591d6cabf22c"
+  },
+  {
+    "repo": "nanus",
+    "split": "dev",
+    "expected_path": "apps/website/src/content/docs/guides/configuration.md",
+    "prompt": "Where do I configure prompt context limits and tool concurrency, and which environment variables override the settings?",
+    "source_sha256": "72fe141a12fe74efb5c82727202753e9cffe1852043137cae227d1adf525ff0e"
+  },
+  {
+    "repo": "nanus",
+    "split": "heldout",
+    "expected_path": "docs/sessions.md",
+    "prompt": "How can I resume a named conversation from another terminal, and what happens when a session name is renamed or reused?",
+    "source_sha256": "911a77e6897612c42204e0957fb9fba42d01e4aa275936284c4ff34896483bfd"
+  },
+  {
+    "repo": "blogwright",
+    "split": "dev",
+    "expected_path": "docs/src/content/docs/guides/ci-github-oidc.md",
+    "prompt": "How do I deploy from GitHub Actions using temporary AWS credentials without storing access keys?",
+    "source_sha256": "03fa1f69222950c6e72c8cfd571e22025902f6ed8bd72d594b3334965702e149"
+  },
+  {
+    "repo": "blogwright",
+    "split": "dev",
+    "expected_path": "docs/src/content/docs/guides/non-astro-sites.md",
+    "prompt": "How do I deploy a static single-page app from a monorepo subdirectory and choose its output folder?",
+    "source_sha256": "3eeac996e9b647f43a591ae0e74ac92fbd0f797ab17c35b36519184e4757ad21"
+  },
+  {
+    "repo": "blogwright",
+    "split": "heldout",
+    "expected_path": "docs/src/content/docs/reference/rkey.md",
+    "prompt": "Which library import lets my site generate the same document links and deterministic record keys as the publishing synchronizer?",
+    "source_sha256": "92b8bc84d362727d6bba4b47d7a52eb47511c08d41a45ec8dd03c876f54d821c"
+  },
+  {
+    "repo": "whatsurvey",
+    "split": "dev",
+    "expected_path": "docs/entra-credentials.md",
+    "prompt": "What application registration, secret values and deployment inputs must be prepared before operators can sign in with Microsoft?",
+    "source_sha256": "4cc0343d8b98012892976df98feb1d21c6c6d622fc47a93f55d062280c58c72a"
+  },
+  {
+    "repo": "whatsurvey",
+    "split": "dev",
+    "expected_path": "docs/whatsapp-credentials.md",
+    "prompt": "How does an operator create a messaging configuration, copy its callback address and rotate credentials without exposing saved values?",
+    "source_sha256": "f4ca98ce5821ab2839db032f5a75b7d37a16a48d801e9f682b1d814ab664c6e0"
+  },
+  {
+    "repo": "whatsurvey",
+    "split": "heldout",
+    "expected_path": "docs/destructive-environment-reset.md",
+    "prompt": "How is a failed non-production environment migration resumed, and which resources and state are deliberately discarded?",
+    "source_sha256": "0c6117ada3098f0558a1e0241bf82addbe7cd05a88bd07c0abe1ad6a5751d97c"
+  }
+]

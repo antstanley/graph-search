@@ -1,0 +1,795 @@
+{
+  "scope": "Sequential debug public Index; 3 exact explore prompts and 3 development task prompts per repo, each repeated 3 times; not a release benchmark",
+  "binaries": {
+    "baseline": "18f372159bdcef1ea5b86f7f5c3872391c0904e00e43ed2f267fe3440606ac68",
+    "current": "67f85363f7f4da19a8c7081001248d9461a4a8a4cba0fd1ad58655d60ca3cda5"
+  },
+  "repos": {
+    "nanus": {
+      "before": {
+        "scope": "git tracked + untracked nonignored files; symlinks recorded without following",
+        "files": 189,
+        "sha256": "d35101d292ea6c08aaa9a48964c6fb35a79873e582658abfe79be5b5759c6e18"
+      },
+      "arms": {
+        "baseline": {
+          "setup_ms": 3120.8413340064,
+          "live_store_bytes": 17974268,
+          "store_files": {
+            "index/dangling.jsonl": 3615536,
+            "index/index.lock": 9,
+            "index/manifest.json": 9754407,
+            "index/wal/wal_00000000.log": 4604316
+          },
+          "records": [
+            {
+              "group": "exact-explore",
+              "query": "a_stored_image_lands_inside_the_workspace_and_is_where_it_says_it_is",
+              "repeat": 0,
+              "elapsed_ms": 730.3307919937652
+            },
+            {
+              "group": "exact-explore",
+              "query": "an_unknown_tool_is_reported_to_the_model",
+              "repeat": 0,
+              "elapsed_ms": 728.5133749974193
+            },
+            {
+              "group": "exact-explore",
+              "query": "help_text",
+              "repeat": 0,
+              "elapsed_ms": 706.7380420048721
+            },
+            {
+              "group": "natural-explore",
+              "query": "A long conversation cannot fit even after older turns are removed. Explain what the context fitter preserves and why it can still fail. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions.",
+              "repeat": 0,
+              "elapsed_ms": 740.597500000149
+            },
+            {
+              "group": "natural-explore",
+              "query": "Plan a change to the context token estimator while preserving whole-turn eviction and valid tool-call histories. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository.",
+              "repeat": 0,
+              "elapsed_ms": 746.0412079963135
+            },
+            {
+              "group": "natural-explore",
+              "query": "An edit request with identical old and new text fails before changing the file. Trace validation and explain what a successful edit returns. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions.",
+              "repeat": 0,
+              "elapsed_ms": 745.5325000046287
+            },
+            {
+              "group": "exact-explore",
+              "query": "a_stored_image_lands_inside_the_workspace_and_is_where_it_says_it_is",
+              "repeat": 1,
+              "elapsed_ms": 730.820249998942
+            },
+            {
+              "group": "exact-explore",
+              "query": "an_unknown_tool_is_reported_to_the_model",
+              "repeat": 1,
+              "elapsed_ms": 729.1207079979358
+            },
+            {
+              "group": "exact-explore",
+              "query": "help_text",
+              "repeat": 1,
+              "elapsed_ms": 716.864958012593
+            },
+            {
+              "group": "natural-explore",
+              "query": "A long conversation cannot fit even after older turns are removed. Explain what the context fitter preserves and why it can still fail. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions.",
+              "repeat": 1,
+              "elapsed_ms": 747.6971249998314
+            },
+            {
+              "group": "natural-explore",
+              "query": "Plan a change to the context token estimator while preserving whole-turn eviction and valid tool-call histories. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository.",
+              "repeat": 1,
+              "elapsed_ms": 743.3430410019355
+            },
+            {
+              "group": "natural-explore",
+              "query": "An edit request with identical old and new text fails before changing the file. Trace validation and explain what a successful edit returns. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions.",
+              "repeat": 1,
+              "elapsed_ms": 742.3395000078017
+            },
+            {
+              "group": "exact-explore",
+              "query": "a_stored_image_lands_inside_the_workspace_and_is_where_it_says_it_is",
+              "repeat": 2,
+              "elapsed_ms": 735.8015420031734
+            },
+            {
+              "group": "exact-explore",
+              "query": "an_unknown_tool_is_reported_to_the_model",
+              "repeat": 2,
+              "elapsed_ms": 739.5812090107938
+            },
+            {
+              "group": "exact-explore",
+              "query": "help_text",
+              "repeat": 2,
+              "elapsed_ms": 718.4015829989221
+            },
+            {
+              "group": "natural-explore",
+              "query": "A long conversation cannot fit even after older turns are removed. Explain what the context fitter preserves and why it can still fail. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions.",
+              "repeat": 2,
+              "elapsed_ms": 748.138208000455
+            },
+            {
+              "group": "natural-explore",
+              "query": "Plan a change to the context token estimator while preserving whole-turn eviction and valid tool-call histories. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository.",
+              "repeat": 2,
+              "elapsed_ms": 749.2603749997215
+            },
+            {
+              "group": "natural-explore",
+              "query": "An edit request with identical old and new text fails before changing the file. Trace validation and explain what a successful edit returns. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions.",
+              "repeat": 2,
+              "elapsed_ms": 757.0092079986352
+            }
+          ],
+          "median_ms": {
+            "exact-explore": 729.1207079979358,
+            "natural-explore": 746.0412079963135
+          }
+        },
+        "current": {
+          "setup_ms": 3618.6628750001546,
+          "live_store_bytes": 20817138,
+          "store_files": {
+            "index/dangling.jsonl": 3615536,
+            "index/index.lock": 9,
+            "index/manifest.json": 11310316,
+            "index/wal/wal_00000000.log": 5891277
+          },
+          "records": [
+            {
+              "group": "exact-explore",
+              "query": "a_stored_image_lands_inside_the_workspace_and_is_where_it_says_it_is",
+              "repeat": 0,
+              "elapsed_ms": 1061.5750829892932
+            },
+            {
+              "group": "exact-explore",
+              "query": "an_unknown_tool_is_reported_to_the_model",
+              "repeat": 0,
+              "elapsed_ms": 1058.0387090012664
+            },
+            {
+              "group": "exact-explore",
+              "query": "help_text",
+              "repeat": 0,
+              "elapsed_ms": 1009.6892500005197
+            },
+            {
+              "group": "natural-explore",
+              "query": "A long conversation cannot fit even after older turns are removed. Explain what the context fitter preserves and why it can still fail. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions.",
+              "repeat": 0,
+              "elapsed_ms": 1090.7381249999162
+            },
+            {
+              "group": "natural-explore",
+              "query": "Plan a change to the context token estimator while preserving whole-turn eviction and valid tool-call histories. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository.",
+              "repeat": 0,
+              "elapsed_ms": 1086.3461249973625
+            },
+            {
+              "group": "natural-explore",
+              "query": "An edit request with identical old and new text fails before changing the file. Trace validation and explain what a successful edit returns. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions.",
+              "repeat": 0,
+              "elapsed_ms": 1091.0788750043139
+            },
+            {
+              "group": "exact-explore",
+              "query": "a_stored_image_lands_inside_the_workspace_and_is_where_it_says_it_is",
+              "repeat": 1,
+              "elapsed_ms": 1057.7474579913542
+            },
+            {
+              "group": "exact-explore",
+              "query": "an_unknown_tool_is_reported_to_the_model",
+              "repeat": 1,
+              "elapsed_ms": 1063.8612500042655
+            },
+            {
+              "group": "exact-explore",
+              "query": "help_text",
+              "repeat": 1,
+              "elapsed_ms": 1012.2528750071069
+            },
+            {
+              "group": "natural-explore",
+              "query": "A long conversation cannot fit even after older turns are removed. Explain what the context fitter preserves and why it can still fail. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions.",
+              "repeat": 1,
+              "elapsed_ms": 1108.8189169968246
+            },
+            {
+              "group": "natural-explore",
+              "query": "Plan a change to the context token estimator while preserving whole-turn eviction and valid tool-call histories. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository.",
+              "repeat": 1,
+              "elapsed_ms": 1110.6767500023125
+            },
+            {
+              "group": "natural-explore",
+              "query": "An edit request with identical old and new text fails before changing the file. Trace validation and explain what a successful edit returns. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions.",
+              "repeat": 1,
+              "elapsed_ms": 1098.8378750043921
+            },
+            {
+              "group": "exact-explore",
+              "query": "a_stored_image_lands_inside_the_workspace_and_is_where_it_says_it_is",
+              "repeat": 2,
+              "elapsed_ms": 1068.8695410062792
+            },
+            {
+              "group": "exact-explore",
+              "query": "an_unknown_tool_is_reported_to_the_model",
+              "repeat": 2,
+              "elapsed_ms": 1071.6056660021422
+            },
+            {
+              "group": "exact-explore",
+              "query": "help_text",
+              "repeat": 2,
+              "elapsed_ms": 1031.99995799514
+            },
+            {
+              "group": "natural-explore",
+              "query": "A long conversation cannot fit even after older turns are removed. Explain what the context fitter preserves and why it can still fail. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions.",
+              "repeat": 2,
+              "elapsed_ms": 1095.1713340036804
+            },
+            {
+              "group": "natural-explore",
+              "query": "Plan a change to the context token estimator while preserving whole-turn eviction and valid tool-call histories. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository.",
+              "repeat": 2,
+              "elapsed_ms": 1100.858292003977
+            },
+            {
+              "group": "natural-explore",
+              "query": "An edit request with identical old and new text fails before changing the file. Trace validation and explain what a successful edit returns. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions.",
+              "repeat": 2,
+              "elapsed_ms": 1094.8505419946741
+            }
+          ],
+          "median_ms": {
+            "exact-explore": 1058.0387090012664,
+            "natural-explore": 1095.1713340036804
+          }
+        }
+      },
+      "after": {
+        "scope": "git tracked + untracked nonignored files; symlinks recorded without following",
+        "files": 189,
+        "sha256": "d35101d292ea6c08aaa9a48964c6fb35a79873e582658abfe79be5b5759c6e18"
+      }
+    },
+    "blogwright": {
+      "before": {
+        "scope": "git tracked + untracked nonignored files; symlinks recorded without following",
+        "files": 587,
+        "sha256": "c6808f466973a47670fa57fa095e6c1d5e6679e81302637bea1bb511345b5c75"
+      },
+      "arms": {
+        "current": {
+          "setup_ms": 4521.153624998988,
+          "live_store_bytes": 19624320,
+          "store_files": {
+            "index/dangling.jsonl": 2849954,
+            "index/index.lock": 9,
+            "index/manifest.json": 10601209,
+            "index/wal/wal_00000000.log": 6173148
+          },
+          "records": [
+            {
+              "group": "exact-explore",
+              "query": "requireFirehoseRoleArn",
+              "repeat": 0,
+              "elapsed_ms": 1054.4748329994036
+            },
+            {
+              "group": "exact-explore",
+              "query": "parseConfig",
+              "repeat": 0,
+              "elapsed_ms": 1070.4499170096824
+            },
+            {
+              "group": "exact-explore",
+              "query": "previewList",
+              "repeat": 0,
+              "elapsed_ms": 1054.3475419981405
+            },
+            {
+              "group": "natural-explore",
+              "query": "A publishing configuration with an HTTP handle resolver is rejected. Explain validation and how the secret name is selected when omitted. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions.",
+              "repeat": 0,
+              "elapsed_ms": 1103.7613340013195
+            },
+            {
+              "group": "natural-explore",
+              "query": "Plan a clearer publishing-configuration diagnostic while preserving HTTPS resolver validation and the default secret naming convention. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository.",
+              "repeat": 0,
+              "elapsed_ms": 1173.3031250041677
+            },
+            {
+              "group": "natural-explore",
+              "query": "Updating a publishing login session intermittently fails. Explain retry behavior and how legacy password-shaped secrets are handled. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions.",
+              "repeat": 0,
+              "elapsed_ms": 1112.1449159982149
+            },
+            {
+              "group": "exact-explore",
+              "query": "requireFirehoseRoleArn",
+              "repeat": 1,
+              "elapsed_ms": 1056.0857499949634
+            },
+            {
+              "group": "exact-explore",
+              "query": "parseConfig",
+              "repeat": 1,
+              "elapsed_ms": 1074.4900830031838
+            },
+            {
+              "group": "exact-explore",
+              "query": "previewList",
+              "repeat": 1,
+              "elapsed_ms": 1053.8985829916783
+            },
+            {
+              "group": "natural-explore",
+              "query": "A publishing configuration with an HTTP handle resolver is rejected. Explain validation and how the secret name is selected when omitted. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions.",
+              "repeat": 1,
+              "elapsed_ms": 1115.1110419887118
+            },
+            {
+              "group": "natural-explore",
+              "query": "Plan a clearer publishing-configuration diagnostic while preserving HTTPS resolver validation and the default secret naming convention. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository.",
+              "repeat": 1,
+              "elapsed_ms": 1114.7057079942897
+            },
+            {
+              "group": "natural-explore",
+              "query": "Updating a publishing login session intermittently fails. Explain retry behavior and how legacy password-shaped secrets are handled. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions.",
+              "repeat": 1,
+              "elapsed_ms": 1085.1313330058474
+            },
+            {
+              "group": "exact-explore",
+              "query": "requireFirehoseRoleArn",
+              "repeat": 2,
+              "elapsed_ms": 1062.9969160072505
+            },
+            {
+              "group": "exact-explore",
+              "query": "parseConfig",
+              "repeat": 2,
+              "elapsed_ms": 1073.9268749894109
+            },
+            {
+              "group": "exact-explore",
+              "query": "previewList",
+              "repeat": 2,
+              "elapsed_ms": 1054.0529999998398
+            },
+            {
+              "group": "natural-explore",
+              "query": "A publishing configuration with an HTTP handle resolver is rejected. Explain validation and how the secret name is selected when omitted. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions.",
+              "repeat": 2,
+              "elapsed_ms": 1108.4614169958513
+            },
+            {
+              "group": "natural-explore",
+              "query": "Plan a clearer publishing-configuration diagnostic while preserving HTTPS resolver validation and the default secret naming convention. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository.",
+              "repeat": 2,
+              "elapsed_ms": 1122.2762500110548
+            },
+            {
+              "group": "natural-explore",
+              "query": "Updating a publishing login session intermittently fails. Explain retry behavior and how legacy password-shaped secrets are handled. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions.",
+              "repeat": 2,
+              "elapsed_ms": 1098.6086659977445
+            }
+          ],
+          "median_ms": {
+            "exact-explore": 1056.0857499949634,
+            "natural-explore": 1112.1449159982149
+          }
+        },
+        "baseline": {
+          "setup_ms": 4303.677250005421,
+          "live_store_bytes": 18421944,
+          "store_files": {
+            "index/dangling.jsonl": 2849954,
+            "index/index.lock": 9,
+            "index/manifest.json": 9945522,
+            "index/wal/wal_00000000.log": 5626459
+          },
+          "records": [
+            {
+              "group": "exact-explore",
+              "query": "requireFirehoseRoleArn",
+              "repeat": 0,
+              "elapsed_ms": 911.7266249959357
+            },
+            {
+              "group": "exact-explore",
+              "query": "parseConfig",
+              "repeat": 0,
+              "elapsed_ms": 898.9023329922929
+            },
+            {
+              "group": "exact-explore",
+              "query": "previewList",
+              "repeat": 0,
+              "elapsed_ms": 898.1248330092058
+            },
+            {
+              "group": "natural-explore",
+              "query": "A publishing configuration with an HTTP handle resolver is rejected. Explain validation and how the secret name is selected when omitted. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions.",
+              "repeat": 0,
+              "elapsed_ms": 920.7759170094505
+            },
+            {
+              "group": "natural-explore",
+              "query": "Plan a clearer publishing-configuration diagnostic while preserving HTTPS resolver validation and the default secret naming convention. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository.",
+              "repeat": 0,
+              "elapsed_ms": 922.8355830127839
+            },
+            {
+              "group": "natural-explore",
+              "query": "Updating a publishing login session intermittently fails. Explain retry behavior and how legacy password-shaped secrets are handled. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions.",
+              "repeat": 0,
+              "elapsed_ms": 911.3732920086477
+            },
+            {
+              "group": "exact-explore",
+              "query": "requireFirehoseRoleArn",
+              "repeat": 1,
+              "elapsed_ms": 903.5984999936773
+            },
+            {
+              "group": "exact-explore",
+              "query": "parseConfig",
+              "repeat": 1,
+              "elapsed_ms": 897.8020419890527
+            },
+            {
+              "group": "exact-explore",
+              "query": "previewList",
+              "repeat": 1,
+              "elapsed_ms": 898.4768329974031
+            },
+            {
+              "group": "natural-explore",
+              "query": "A publishing configuration with an HTTP handle resolver is rejected. Explain validation and how the secret name is selected when omitted. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions.",
+              "repeat": 1,
+              "elapsed_ms": 932.1347910008626
+            },
+            {
+              "group": "natural-explore",
+              "query": "Plan a clearer publishing-configuration diagnostic while preserving HTTPS resolver validation and the default secret naming convention. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository.",
+              "repeat": 1,
+              "elapsed_ms": 926.9709169893758
+            },
+            {
+              "group": "natural-explore",
+              "query": "Updating a publishing login session intermittently fails. Explain retry behavior and how legacy password-shaped secrets are handled. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions.",
+              "repeat": 1,
+              "elapsed_ms": 915.0768749968847
+            },
+            {
+              "group": "exact-explore",
+              "query": "requireFirehoseRoleArn",
+              "repeat": 2,
+              "elapsed_ms": 902.0827499916777
+            },
+            {
+              "group": "exact-explore",
+              "query": "parseConfig",
+              "repeat": 2,
+              "elapsed_ms": 879.6027500065975
+            },
+            {
+              "group": "exact-explore",
+              "query": "previewList",
+              "repeat": 2,
+              "elapsed_ms": 890.0854170060484
+            },
+            {
+              "group": "natural-explore",
+              "query": "A publishing configuration with an HTTP handle resolver is rejected. Explain validation and how the secret name is selected when omitted. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions.",
+              "repeat": 2,
+              "elapsed_ms": 923.7125419895165
+            },
+            {
+              "group": "natural-explore",
+              "query": "Plan a clearer publishing-configuration diagnostic while preserving HTTPS resolver validation and the default secret naming convention. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository.",
+              "repeat": 2,
+              "elapsed_ms": 922.089750005398
+            },
+            {
+              "group": "natural-explore",
+              "query": "Updating a publishing login session intermittently fails. Explain retry behavior and how legacy password-shaped secrets are handled. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions.",
+              "repeat": 2,
+              "elapsed_ms": 913.182541000424
+            }
+          ],
+          "median_ms": {
+            "exact-explore": 898.4768329974031,
+            "natural-explore": 922.089750005398
+          }
+        }
+      },
+      "after": {
+        "scope": "git tracked + untracked nonignored files; symlinks recorded without following",
+        "files": 587,
+        "sha256": "c6808f466973a47670fa57fa095e6c1d5e6679e81302637bea1bb511345b5c75"
+      }
+    },
+    "whatsurvey": {
+      "before": {
+        "scope": "git tracked + untracked nonignored files; symlinks recorded without following",
+        "files": 1404,
+        "sha256": "0d72eb38f0c77b13dfc71c40fbfdfd15434b5e44a7458c65200f29b244fd6a28"
+      },
+      "arms": {
+        "baseline": {
+          "setup_ms": 9644.138250005199,
+          "live_store_bytes": 51754930,
+          "store_files": {
+            "index/dangling.jsonl": 11665348,
+            "index/index.lock": 9,
+            "index/manifest.json": 25956736,
+            "index/wal/wal_00000000.log": 14132837
+          },
+          "records": [
+            {
+              "group": "exact-explore",
+              "query": "planImport",
+              "repeat": 0,
+              "elapsed_ms": 2181.438208994223
+            },
+            {
+              "group": "exact-explore",
+              "query": "canLaunch",
+              "repeat": 0,
+              "elapsed_ms": 2132.35437500407
+            },
+            {
+              "group": "exact-explore",
+              "query": "severResidualLinks",
+              "repeat": 0,
+              "elapsed_ms": 2134.5344580040546
+            },
+            {
+              "group": "natural-explore",
+              "query": "A webhook signature with the wrong digest length is rejected before comparison. Explain which bytes are authenticated and the acceptance checks. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions.",
+              "repeat": 0,
+              "elapsed_ms": 2172.2816249966854
+            },
+            {
+              "group": "natural-explore",
+              "query": "Plan signature-verification regression tests for changed raw payloads, missing prefixes, wrong lengths, and mismatched digests. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository.",
+              "repeat": 0,
+              "elapsed_ms": 2192.7818749973085
+            },
+            {
+              "group": "natural-explore",
+              "query": "An encrypted settings value cannot be moved to another settings field and decrypted there. Explain context binding and failure reporting. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions.",
+              "repeat": 0,
+              "elapsed_ms": 2174.736417000531
+            },
+            {
+              "group": "exact-explore",
+              "query": "planImport",
+              "repeat": 1,
+              "elapsed_ms": 2138.620166995679
+            },
+            {
+              "group": "exact-explore",
+              "query": "canLaunch",
+              "repeat": 1,
+              "elapsed_ms": 2167.520749993855
+            },
+            {
+              "group": "exact-explore",
+              "query": "severResidualLinks",
+              "repeat": 1,
+              "elapsed_ms": 2143.3007919986267
+            },
+            {
+              "group": "natural-explore",
+              "query": "A webhook signature with the wrong digest length is rejected before comparison. Explain which bytes are authenticated and the acceptance checks. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions.",
+              "repeat": 1,
+              "elapsed_ms": 2163.595500009251
+            },
+            {
+              "group": "natural-explore",
+              "query": "Plan signature-verification regression tests for changed raw payloads, missing prefixes, wrong lengths, and mismatched digests. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository.",
+              "repeat": 1,
+              "elapsed_ms": 2175.719584003673
+            },
+            {
+              "group": "natural-explore",
+              "query": "An encrypted settings value cannot be moved to another settings field and decrypted there. Explain context binding and failure reporting. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions.",
+              "repeat": 1,
+              "elapsed_ms": 2194.348999997601
+            },
+            {
+              "group": "exact-explore",
+              "query": "planImport",
+              "repeat": 2,
+              "elapsed_ms": 2160.8664999948815
+            },
+            {
+              "group": "exact-explore",
+              "query": "canLaunch",
+              "repeat": 2,
+              "elapsed_ms": 2131.2700409907848
+            },
+            {
+              "group": "exact-explore",
+              "query": "severResidualLinks",
+              "repeat": 2,
+              "elapsed_ms": 2143.5658749978757
+            },
+            {
+              "group": "natural-explore",
+              "query": "A webhook signature with the wrong digest length is rejected before comparison. Explain which bytes are authenticated and the acceptance checks. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions.",
+              "repeat": 2,
+              "elapsed_ms": 2174.005084001692
+            },
+            {
+              "group": "natural-explore",
+              "query": "Plan signature-verification regression tests for changed raw payloads, missing prefixes, wrong lengths, and mismatched digests. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository.",
+              "repeat": 2,
+              "elapsed_ms": 2189.93187500746
+            },
+            {
+              "group": "natural-explore",
+              "query": "An encrypted settings value cannot be moved to another settings field and decrypted there. Explain context binding and failure reporting. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions.",
+              "repeat": 2,
+              "elapsed_ms": 2219.8207500041462
+            }
+          ],
+          "median_ms": {
+            "exact-explore": 2143.3007919986267,
+            "natural-explore": 2175.719584003673
+          }
+        },
+        "current": {
+          "setup_ms": 10115.74166599894,
+          "live_store_bytes": 53692644,
+          "store_files": {
+            "index/dangling.jsonl": 11665348,
+            "index/index.lock": 9,
+            "index/manifest.json": 27013658,
+            "index/wal/wal_00000000.log": 15013629
+          },
+          "records": [
+            {
+              "group": "exact-explore",
+              "query": "planImport",
+              "repeat": 0,
+              "elapsed_ms": 2440.716875004
+            },
+            {
+              "group": "exact-explore",
+              "query": "canLaunch",
+              "repeat": 0,
+              "elapsed_ms": 2449.1802919947077
+            },
+            {
+              "group": "exact-explore",
+              "query": "severResidualLinks",
+              "repeat": 0,
+              "elapsed_ms": 2391.3447499944596
+            },
+            {
+              "group": "natural-explore",
+              "query": "A webhook signature with the wrong digest length is rejected before comparison. Explain which bytes are authenticated and the acceptance checks. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions.",
+              "repeat": 0,
+              "elapsed_ms": 2514.0675000002375
+            },
+            {
+              "group": "natural-explore",
+              "query": "Plan signature-verification regression tests for changed raw payloads, missing prefixes, wrong lengths, and mismatched digests. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository.",
+              "repeat": 0,
+              "elapsed_ms": 2521.4662499929545
+            },
+            {
+              "group": "natural-explore",
+              "query": "An encrypted settings value cannot be moved to another settings field and decrypted there. Explain context binding and failure reporting. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions.",
+              "repeat": 0,
+              "elapsed_ms": 2546.8553749960847
+            },
+            {
+              "group": "exact-explore",
+              "query": "planImport",
+              "repeat": 1,
+              "elapsed_ms": 2411.469583006692
+            },
+            {
+              "group": "exact-explore",
+              "query": "canLaunch",
+              "repeat": 1,
+              "elapsed_ms": 2480.751125011011
+            },
+            {
+              "group": "exact-explore",
+              "query": "severResidualLinks",
+              "repeat": 1,
+              "elapsed_ms": 2502.7328339929227
+            },
+            {
+              "group": "natural-explore",
+              "query": "A webhook signature with the wrong digest length is rejected before comparison. Explain which bytes are authenticated and the acceptance checks. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions.",
+              "repeat": 1,
+              "elapsed_ms": 2552.9528339975514
+            },
+            {
+              "group": "natural-explore",
+              "query": "Plan signature-verification regression tests for changed raw payloads, missing prefixes, wrong lengths, and mismatched digests. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository.",
+              "repeat": 1,
+              "elapsed_ms": 2578.663374995813
+            },
+            {
+              "group": "natural-explore",
+              "query": "An encrypted settings value cannot be moved to another settings field and decrypted there. Explain context binding and failure reporting. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions.",
+              "repeat": 1,
+              "elapsed_ms": 2539.286874991376
+            },
+            {
+              "group": "exact-explore",
+              "query": "planImport",
+              "repeat": 2,
+              "elapsed_ms": 2426.13458300184
+            },
+            {
+              "group": "exact-explore",
+              "query": "canLaunch",
+              "repeat": 2,
+              "elapsed_ms": 2479.879708000226
+            },
+            {
+              "group": "exact-explore",
+              "query": "severResidualLinks",
+              "repeat": 2,
+              "elapsed_ms": 2413.286832990707
+            },
+            {
+              "group": "natural-explore",
+              "query": "A webhook signature with the wrong digest length is rejected before comparison. Explain which bytes are authenticated and the acceptance checks. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions.",
+              "repeat": 2,
+              "elapsed_ms": 2555.351291986881
+            },
+            {
+              "group": "natural-explore",
+              "query": "Plan signature-verification regression tests for changed raw payloads, missing prefixes, wrong lengths, and mismatched digests. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository.",
+              "repeat": 2,
+              "elapsed_ms": 2568.3056249981746
+            },
+            {
+              "group": "natural-explore",
+              "query": "An encrypted settings value cannot be moved to another settings field and decrypted there. Explain context binding and failure reporting. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions.",
+              "repeat": 2,
+              "elapsed_ms": 2562.0349579985486
+            }
+          ],
+          "median_ms": {
+            "exact-explore": 2440.716875004,
+            "natural-explore": 2552.9528339975514
+          }
+        }
+      },
+      "after": {
+        "scope": "git tracked + untracked nonignored files; symlinks recorded without following",
+        "files": 1404,
+        "sha256": "0d72eb38f0c77b13dfc71c40fbfdfd15434b5e44a7458c65200f29b244fd6a28"
+      }
+    }
+  }
+}

@@ -1,0 +1,622 @@
+[
+  {
+    "task": "whatsurvey.storage-envelope.change",
+    "split": "dev",
+    "regions": [
+      {
+        "id": "r1",
+        "path": "workspaces/backend/src/core/db/envelope.ts",
+        "start": 14,
+        "end": 28,
+        "file_sha256": "d72a2a7e1f9837c5f33270c2d820b2c95a7b20d77094bc0180e1097ac32e235e",
+        "sha256": "df05647b0508a05b2e118b83859cfd59f9e57053aed3f7544fab04ac4868d64f"
+      }
+    ],
+    "arms": {
+      "baseline": {
+        "evidence": {
+          "required_file_recall": 1.0,
+          "region_coverage": {
+            "r1": 1.0
+          },
+          "evidence_ready": true,
+          "relationship_evidence_recall": 1.0,
+          "task_success": null
+        },
+        "actions": [
+          {
+            "name": "search",
+            "arguments": {
+              "query": "Plan storage-envelope tests that preserve domain keys and input objects while stripping database-only fields from individual items and lists. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository."
+            }
+          },
+          {
+            "name": "read",
+            "arguments": {
+              "path": "workspaces/backend/tests/functions/admin-api/routes/users.test.ts",
+              "start": 76,
+              "count": 100
+            }
+          },
+          {
+            "name": "read",
+            "arguments": {
+              "path": "workspaces/backend/src/functions/admin-api/routes/settings.ts",
+              "start": 133,
+              "count": 100
+            }
+          },
+          {
+            "name": "read",
+            "arguments": {
+              "path": "workspaces/backend/src/core/db/envelope.ts",
+              "start": 4,
+              "count": 100
+            }
+          }
+        ],
+        "candidates": [
+          "candidate workspaces/backend/tests/functions/admin-api/routes/users.test.ts:86 STORAGE_ONLY_KEYS",
+          "candidate workspaces/backend/src/functions/admin-api/routes/settings.ts:143 ACCESS_DOMAIN_PATH",
+          "candidate workspaces/backend/src/core/db/envelope.ts:14 ENVELOPE_KEYS",
+          "candidate workspaces/frontend/src/lib/auth/store.svelte.ts:155 loadFromStorage",
+          "candidate workspaces/backend/src/functions/admin-api/routes/settings.ts:140 ACCESS_DOMAIN_NOT_STRING",
+          "candidate workspaces/backend/tests/core/db/envelope.test.ts:49 items",
+          "candidate workspaces/backend/tests/infra/observability.test.ts:60 EXECUTION_LOG_LEVEL_BY_API",
+          "candidate workspaces/backend/src/core/db/envelope.ts:26 stripEnvelopeList"
+        ]
+      },
+      "current": {
+        "evidence": {
+          "required_file_recall": 1.0,
+          "region_coverage": {
+            "r1": 0.26666666666666666
+          },
+          "evidence_ready": false,
+          "relationship_evidence_recall": 0.0,
+          "task_success": null
+        },
+        "actions": [
+          {
+            "name": "search",
+            "arguments": {
+              "query": "Plan storage-envelope tests that preserve domain keys and input objects while stripping database-only fields from individual items and lists. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository."
+            }
+          },
+          {
+            "name": "read",
+            "arguments": {
+              "path": "workspaces/frontend/src/lib/auth/store.svelte.ts",
+              "start": 145,
+              "count": 100
+            }
+          },
+          {
+            "name": "read",
+            "arguments": {
+              "path": "workspaces/backend/tests/functions/admin-api/routes/users.test.ts",
+              "start": 76,
+              "count": 100
+            }
+          },
+          {
+            "name": "read",
+            "arguments": {
+              "path": "workspaces/backend/src/functions/admin-api/role-guard.ts",
+              "start": 150,
+              "count": 100
+            }
+          }
+        ],
+        "candidates": [
+          "candidate workspaces/frontend/src/lib/auth/store.svelte.ts:155 loadFromStorage",
+          "candidate workspaces/backend/tests/functions/admin-api/routes/users.test.ts:86 STORAGE_ONLY_KEYS",
+          "candidate workspaces/backend/src/functions/admin-api/role-guard.ts:160 isAdminOnlyPath",
+          "candidate workspaces/backend/src/core/db/envelope.ts:26 stripEnvelopeList",
+          "candidate workspaces/backend/src/functions/admin-api/routes/contacts.ts:1318 writeImportPlan",
+          "candidate workspaces/backend/src/functions/admin-api/routes/settings.ts:143 ACCESS_DOMAIN_PATH",
+          "candidate workspaces/frontend/infra/__tests__/frontend-app.test.ts:227 activeInfraSourceFiles",
+          "candidate workspaces/backend/tests/functions/admin-api/routes/groups.test.ts:388 objectsIn"
+        ]
+      }
+    }
+  },
+  {
+    "task": "nanus.write.debug",
+    "split": "dev",
+    "regions": [
+      {
+        "id": "r1",
+        "path": "crates/nanus-bundle/src/tools/write.rs",
+        "start": 68,
+        "end": 112,
+        "file_sha256": "72b7972d4aeda28eeff9e53aa55a2e060b253ba4d9d3a5fc7538c7d6821a6fad",
+        "sha256": "a514a2e4ba7928e8ac0b200387d79a79fd6f4a677e75b03e589bd3ac0fb8bc30"
+      }
+    ],
+    "arms": {
+      "baseline": {
+        "evidence": {
+          "required_file_recall": 0.0,
+          "region_coverage": {
+            "r1": 0.0
+          },
+          "evidence_ready": false,
+          "relationship_evidence_recall": 0.0,
+          "task_success": null
+        },
+        "actions": [
+          {
+            "name": "search",
+            "arguments": {
+              "query": "A write request omitting its mode fails instead of overwriting a file. Explain the accepted modes and the write path. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions."
+            }
+          },
+          {
+            "name": "read",
+            "arguments": {
+              "path": "crates/nanus-bundle/tests/composition.rs",
+              "start": 241,
+              "count": 100
+            }
+          },
+          {
+            "name": "read",
+            "arguments": {
+              "path": "crates/nanus-ports/src/fs.rs",
+              "start": 565,
+              "count": 100
+            }
+          },
+          {
+            "name": "read",
+            "arguments": {
+              "path": "crates/nanus-ports/tests/contracts.rs",
+              "start": 505,
+              "count": 100
+            }
+          }
+        ],
+        "candidates": [
+          "candidate crates/nanus-bundle/tests/composition.rs:251 mounting_from_inside_a_runtime_fails_loudly",
+          "candidate crates/nanus-ports/src/fs.rs:575 a_path_inside_the_workspace_is_accepted",
+          "candidate crates/nanus-ports/src/fs.rs:103 WriteMode",
+          "candidate crates/nanus-ports/tests/contracts.rs:515 a_write_in_create_mode_refuses_to_replace",
+          "candidate crates/nanus-adapter-store/src/store.rs:641 write_claim",
+          "candidate crates/nanus-ports/src/shell.rs:595 each_constructor_pairs_a_mode_with_its_policy",
+          "candidate crates/nanus-adapter-openai/tests/live_wire.rs:262 the_zai_vendor_sends_its_thinking_mode",
+          "candidate crates/nanus-bundle/tests/end_to_end.rs:238 a_write_tool_call_changes_the_file_on_disk"
+        ]
+      },
+      "current": {
+        "evidence": {
+          "required_file_recall": 1.0,
+          "region_coverage": {
+            "r1": 1.0
+          },
+          "evidence_ready": true,
+          "relationship_evidence_recall": 1.0,
+          "task_success": null
+        },
+        "actions": [
+          {
+            "name": "search",
+            "arguments": {
+              "query": "A write request omitting its mode fails instead of overwriting a file. Explain the accepted modes and the write path. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions."
+            }
+          },
+          {
+            "name": "read",
+            "arguments": {
+              "path": "crates/nanus-adapter-store/src/store.rs",
+              "start": 631,
+              "count": 100
+            }
+          },
+          {
+            "name": "read",
+            "arguments": {
+              "path": "crates/nanus-bundle/src/tools/write.rs",
+              "start": 13,
+              "count": 100
+            }
+          },
+          {
+            "name": "read",
+            "arguments": {
+              "path": "crates/nanus-ports/src/shell.rs",
+              "start": 585,
+              "count": 100
+            }
+          }
+        ],
+        "candidates": [
+          "candidate crates/nanus-adapter-store/src/store.rs:641 write_claim",
+          "candidate crates/nanus-bundle/src/tools/write.rs:23 write_tool",
+          "candidate crates/nanus-ports/src/shell.rs:595 each_constructor_pairs_a_mode_with_its_policy",
+          "candidate crates/nanus-ports/tests/contracts.rs:515 a_write_in_create_mode_refuses_to_replace",
+          "candidate crates/nanus-bundle/tests/composition.rs:251 mounting_from_inside_a_runtime_fails_loudly",
+          "candidate crates/nanus-domain/src/approval.rs:605 sandbox_modes_report_what_they_permit",
+          "candidate crates/nanus-ports/src/fs.rs:575 a_path_inside_the_workspace_is_accepted",
+          "candidate crates/nanus-adapter-config/src/config.rs:475 write_atomic"
+        ]
+      }
+    }
+  },
+  {
+    "task": "whatsurvey.captcha-retry.change",
+    "split": "heldout",
+    "regions": [
+      {
+        "id": "r1",
+        "path": "workspaces/backend/src/core/captcha.ts",
+        "start": 32,
+        "end": 96,
+        "file_sha256": "c8ffacf792c82d9b70b619bb84a7ab4cb1614f01698854b96344a1a40ed54491",
+        "sha256": "13fa139640dcde459241bb4d0a0e58aeb94354386eabe598a0490eae12ed9b12"
+      }
+    ],
+    "arms": {
+      "baseline": {
+        "evidence": {
+          "required_file_recall": 1.0,
+          "region_coverage": {
+            "r1": 1.0
+          },
+          "evidence_ready": true,
+          "relationship_evidence_recall": 1.0,
+          "task_success": null
+        },
+        "actions": [
+          {
+            "name": "search",
+            "arguments": {
+              "query": "Plan CAPTCHA tests that distinguish a negative verification from transport or provider errors, preserving the bounded retry count. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository."
+            }
+          },
+          {
+            "name": "read",
+            "arguments": {
+              "path": "workspaces/backend/src/core/captcha.ts",
+              "start": 5,
+              "count": 100
+            }
+          },
+          {
+            "name": "read",
+            "arguments": {
+              "path": "workspaces/backend/src/functions/auth-mock/signing.ts",
+              "start": 195,
+              "count": 100
+            }
+          },
+          {
+            "name": "read",
+            "arguments": {
+              "path": "packages/types/src/index.ts",
+              "start": 12,
+              "count": 100
+            }
+          }
+        ],
+        "candidates": [
+          "candidate workspaces/backend/src/core/captcha.ts:15 RETRY_ATTEMPT",
+          "candidate workspaces/backend/src/functions/auth-mock/signing.ts:205 VerificationExpectations",
+          "candidate packages/types/src/index.ts:22 CaptchaProvider",
+          "candidate workspaces/backend/tests/infra/observability.test.ts:60 EXECUTION_LOG_LEVEL_BY_API",
+          "candidate workspaces/backend/tests/core/db/submissions.test.ts:262 SOURCE_PATH",
+          "candidate workspaces/frontend/src/routes/surveys/[formId]/edit/__tests__/page.test.ts:284 _from",
+          "candidate workspaces/backend/tests/core/db/contacts.test.ts:4253 SOURCE_PATH",
+          "candidate workspaces/backend/src/core/captcha.ts:17 ProviderResult"
+        ]
+      },
+      "current": {
+        "evidence": {
+          "required_file_recall": 1.0,
+          "region_coverage": {
+            "r1": 0.4461538461538462
+          },
+          "evidence_ready": false,
+          "relationship_evidence_recall": 0.0,
+          "task_success": null
+        },
+        "actions": [
+          {
+            "name": "search",
+            "arguments": {
+              "query": "Plan CAPTCHA tests that distinguish a negative verification from transport or provider errors, preserving the bounded retry count. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository."
+            }
+          },
+          {
+            "name": "read",
+            "arguments": {
+              "path": "workspaces/backend/src/core/captcha.ts",
+              "start": 68,
+              "count": 100
+            }
+          },
+          {
+            "name": "read",
+            "arguments": {
+              "path": "workspaces/backend/src/functions/admin-api/routes/contacts.ts",
+              "start": 1308,
+              "count": 100
+            }
+          },
+          {
+            "name": "read",
+            "arguments": {
+              "path": "workspaces/frontend/infra/__tests__/frontend-app.test.ts",
+              "start": 217,
+              "count": 100
+            }
+          }
+        ],
+        "candidates": [
+          "candidate workspaces/backend/src/core/captcha.ts:78 verifyCaptcha",
+          "candidate workspaces/backend/src/functions/admin-api/routes/contacts.ts:1318 writeImportPlan",
+          "candidate workspaces/frontend/infra/__tests__/frontend-app.test.ts:227 activeInfraSourceFiles",
+          "candidate workspaces/backend/src/functions/admin-api/routes/forms.ts:99 toPublicCaptcha",
+          "candidate workspaces/backend/src/functions/form-api/middleware/validate.ts:55 captchaUnavailable",
+          "candidate workspaces/backend/tests/core/db/messages.test.ts:199 page",
+          "candidate workspaces/backend/src/core/whatsapp/client.ts:260 recordRetry",
+          "candidate workspaces/backend/tests/core/email-purposes.test.ts:37 readSource"
+        ]
+      }
+    }
+  },
+  {
+    "task": "blogwright.record-key.debug",
+    "split": "dev",
+    "regions": [
+      {
+        "id": "r1",
+        "path": "packages/pds/src/rkey.ts",
+        "start": 15,
+        "end": 50,
+        "file_sha256": "7ff97b85a7b35e92b80bddc8c56262206d2b29d9f1da70c7b1b3c6028123d4b9",
+        "sha256": "9cb21a9a463ffe33d25593a33b08f29794f244d10d8e49afd687d6c200bcbbe5"
+      },
+      {
+        "id": "r2",
+        "path": "packages/pds/src/rkey.ts",
+        "start": 53,
+        "end": 85,
+        "file_sha256": "7ff97b85a7b35e92b80bddc8c56262206d2b29d9f1da70c7b1b3c6028123d4b9",
+        "sha256": "6dd9cd7416ee6e9137e72c959db3dab705cef01bd3535fb5c38ffcef97cc31ce"
+      }
+    ],
+    "arms": {
+      "baseline": {
+        "evidence": {
+          "required_file_recall": 1.0,
+          "region_coverage": {
+            "r1": 0.0,
+            "r2": 0.45454545454545453
+          },
+          "evidence_ready": false,
+          "relationship_evidence_recall": 0.0,
+          "task_success": null
+        },
+        "actions": [
+          {
+            "name": "search",
+            "arguments": {
+              "query": "Publishing the same post path generates the same record key rather than a fresh timestamp. Explain date extraction and hash fallback. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions."
+            }
+          },
+          {
+            "name": "read",
+            "arguments": {
+              "path": "packages/cli/src/commands.ts",
+              "start": 244,
+              "count": 100
+            }
+          },
+          {
+            "name": "read",
+            "arguments": {
+              "path": "packages/pds/src/rkey.ts",
+              "start": 71,
+              "count": 100
+            }
+          },
+          {
+            "name": "read",
+            "arguments": {
+              "path": "packages/pds/src/sync.ts",
+              "start": 178,
+              "count": 100
+            }
+          }
+        ],
+        "candidates": [
+          "candidate packages/cli/src/commands.ts:254 sourceKey",
+          "candidate packages/cli/src/commands.ts:292 sourceKey",
+          "candidate packages/cli/src/commands.ts:351 sourceKey",
+          "candidate packages/pds/src/rkey.ts:81 postPath",
+          "candidate packages/pds/src/sync.ts:188 rkey",
+          "candidate packages/core/src/aws/cloudfront.ts:207 sameAliases",
+          "candidate packages/analytics/src/transform/map-record.ts:282 droppedTimestamp",
+          "candidate packages/build-agent/src/agent-hash.ts:32 agentSourceHash"
+        ]
+      },
+      "current": {
+        "evidence": {
+          "required_file_recall": 1.0,
+          "region_coverage": {
+            "r1": 1.0,
+            "r2": 1.0
+          },
+          "evidence_ready": true,
+          "relationship_evidence_recall": 1.0,
+          "task_success": null
+        },
+        "actions": [
+          {
+            "name": "search",
+            "arguments": {
+              "query": "Publishing the same post path generates the same record key rather than a fresh timestamp. Explain date extraction and hash fallback. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions."
+            }
+          },
+          {
+            "name": "read",
+            "arguments": {
+              "path": "packages/pds/src/rkey.ts",
+              "start": 5,
+              "count": 100
+            }
+          },
+          {
+            "name": "read",
+            "arguments": {
+              "path": "packages/pds/src/sync.ts",
+              "start": 111,
+              "count": 100
+            }
+          },
+          {
+            "name": "read",
+            "arguments": {
+              "path": "packages/analytics/src/transform/map-record.ts",
+              "start": 272,
+              "count": 100
+            }
+          }
+        ],
+        "candidates": [
+          "candidate packages/pds/src/rkey.ts:15 tidFromPath",
+          "candidate packages/pds/src/sync.ts:121 documentRecord",
+          "candidate packages/analytics/src/transform/map-record.ts:282 droppedTimestamp",
+          "candidate packages/analytics/src/transform-hash.ts:200 transformZipKey",
+          "candidate packages/cli/src/context.ts:178 resolveConfigPath",
+          "candidate packages/cli/src/deploy.ts:34 manifestKey",
+          "candidate packages/analytics/src/transform-hash.test.ts:50 hashOf",
+          "candidate packages/cli/src/commands.ts:254 sourceKey"
+        ]
+      }
+    }
+  },
+  {
+    "task": "whatsurvey.captcha-retry.debug",
+    "split": "heldout",
+    "regions": [
+      {
+        "id": "r1",
+        "path": "workspaces/backend/src/core/captcha.ts",
+        "start": 32,
+        "end": 96,
+        "file_sha256": "c8ffacf792c82d9b70b619bb84a7ab4cb1614f01698854b96344a1a40ed54491",
+        "sha256": "13fa139640dcde459241bb4d0a0e58aeb94354386eabe598a0490eae12ed9b12"
+      }
+    ],
+    "arms": {
+      "baseline": {
+        "evidence": {
+          "required_file_recall": 1.0,
+          "region_coverage": {
+            "r1": 1.0
+          },
+          "evidence_ready": true,
+          "relationship_evidence_recall": 1.0,
+          "task_success": null
+        },
+        "actions": [
+          {
+            "name": "search",
+            "arguments": {
+              "query": "A CAPTCHA response saying success=false is not retried, but an HTTP failure is. Explain retry and timeout behavior. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions."
+            }
+          },
+          {
+            "name": "read",
+            "arguments": {
+              "path": "workspaces/frontend/src/lib/auth/http.ts",
+              "start": 1,
+              "count": 100
+            }
+          },
+          {
+            "name": "read",
+            "arguments": {
+              "path": "workspaces/backend/src/core/captcha.ts",
+              "start": 5,
+              "count": 100
+            }
+          },
+          {
+            "name": "read",
+            "arguments": {
+              "path": "workspaces/backend/tests/infra/observability.test.ts",
+              "start": 50,
+              "count": 100
+            }
+          }
+        ],
+        "candidates": [
+          "candidate workspaces/frontend/src/lib/auth/http.ts:3 AUTH_TIMEOUT_MS",
+          "candidate workspaces/backend/src/core/captcha.ts:15 RETRY_ATTEMPT",
+          "candidate workspaces/backend/src/core/captcha.ts:6 VERIFY_TIMEOUT_MS",
+          "candidate workspaces/backend/tests/infra/observability.test.ts:60 EXECUTION_LOG_LEVEL_BY_API",
+          "candidate workspaces/backend/tests/core/db/submissions.test.ts:262 SOURCE_PATH",
+          "candidate workspaces/backend/tests/core/db/contacts.test.ts:4253 SOURCE_PATH",
+          "candidate workspaces/backend/tests/functions/auth-mock/index.test.ts:1381 retried",
+          "candidate workspaces/backend/tests/functions/auth-mock/index.test.ts:1276 retried"
+        ]
+      },
+      "current": {
+        "evidence": {
+          "required_file_recall": 1.0,
+          "region_coverage": {
+            "r1": 0.4461538461538462
+          },
+          "evidence_ready": false,
+          "relationship_evidence_recall": 0.0,
+          "task_success": null
+        },
+        "actions": [
+          {
+            "name": "search",
+            "arguments": {
+              "query": "A CAPTCHA response saying success=false is not retried, but an HTTP failure is. Explain retry and timeout behavior. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions."
+            }
+          },
+          {
+            "name": "read",
+            "arguments": {
+              "path": "workspaces/frontend/src/lib/auth/http.ts",
+              "start": 1,
+              "count": 100
+            }
+          },
+          {
+            "name": "read",
+            "arguments": {
+              "path": "workspaces/backend/src/functions/auth/index.ts",
+              "start": 602,
+              "count": 100
+            }
+          },
+          {
+            "name": "read",
+            "arguments": {
+              "path": "workspaces/backend/src/core/captcha.ts",
+              "start": 68,
+              "count": 100
+            }
+          }
+        ],
+        "candidates": [
+          "candidate workspaces/frontend/src/lib/auth/http.ts:6 authFetch",
+          "candidate workspaces/backend/src/functions/auth/index.ts:612 isSuccessStatus",
+          "candidate workspaces/backend/src/core/captcha.ts:78 verifyCaptcha",
+          "candidate workspaces/backend/src/functions/form-api/middleware/validate.ts:55 captchaUnavailable",
+          "candidate workspaces/backend/src/functions/admin-api/routes/forms.ts:99 toPublicCaptcha",
+          "candidate workspaces/backend/src/core/whatsapp/client.ts:260 recordRetry",
+          "candidate workspaces/backend/tests/core/email-purposes.test.ts:37 readSource",
+          "candidate workspaces/backend/tests/core/session-states.test.ts:35 readSource"
+        ]
+      }
+    }
+  }
+]
