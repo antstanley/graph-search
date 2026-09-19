@@ -74,6 +74,8 @@ impl GraphStore for MemoryStore {
             outcome.nodes_deleted = outcome
                 .nodes_deleted
                 .saturating_add(self.remove_nodes(&self.file_ids(&upsert.file.path)));
+        }
+        for upsert in &batch.upserts {
             let mut nodes = vec![upsert.file.clone()];
             nodes.extend(upsert.symbols.iter().cloned());
             for node in nodes {

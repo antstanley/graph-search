@@ -68,7 +68,8 @@ impl<'a> Projector<'a> {
             }
         }
         drop(snapshot);
-        self.apply(store, &entries, removed, &changed, true, started)
+        let previous = store.manifest()?.unwrap_or_default();
+        self.apply(store, &entries, removed, &changed, true, previous, started)
     }
 
     /// Incremental reconcile against the manifest; the normal way to keep
@@ -78,11 +79,37 @@ impl<'a> Projector<'a> {
     /// When the store or the tree fails; per-file failures quarantine.
     pub fn sync(&self, search_root: &Path, store: &mut dyn GraphStore) -> Result<SyncReport> {
         let started = std::time::Instant::now();
-        let manifest = store
+        let mut manifest = store
             .manifest()?
             .unwrap_or_else(|| Manifest::new(PARSER_VERSION, SCHEMA_VERSION));
         let entries = walk(search_root, self.policy)?;
         let diff = crate::manifest::classify(&entries, &manifest);
+        // A no-op needs neither a graph snapshot nor rewriting the raw-fact
+        // sidecar. Refresh metadata only after a same-content timestamp change.
+        if diff.is_empty()
+            && !manifest.is_empty()
+            && manifest.parser_version == PARSER_VERSION
+            && manifest.schema_version == SCHEMA_VERSION
+        {
+            let mut refresh = false;
+            for entry in &entries {
+                if let Some(stored) = manifest.entries.get_mut(&entry.rel)
+                    && crate::manifest::entry_differs(stored, entry)
+                {
+                    stored.size = entry.size;
+                    stored.mtime_ns = entry.mtime_ns;
+                    refresh = true;
+                }
+            }
+            if refresh {
+                store.commit_manifest(manifest)?;
+            }
+            return Ok(SyncReport {
+                unchanged: entries.len() as u64,
+                elapsed_ms: u64::try_from(started.elapsed().as_millis()).unwrap_or(u64::MAX),
+                ..SyncReport::default()
+            });
+        }
 
         // Changed set: added and modified; a rename adds the new path.
         let mut changed: Vec<WalkEntry> = diff
@@ -98,19 +125,21 @@ impl<'a> Projector<'a> {
                 changed.push(entry.clone());
             }
         }
-        // Replacing target nodes also deletes incoming edges in the store.
-        // Until raw reference facts are persisted, every graph-changing sync
-        // must reproject the complete tree to rebind unchanged callers.
-        let unchanged = if changed.is_empty() && removed.is_empty() {
-            diff.unchanged.len() as u64
-        } else {
-            changed.clone_from(&entries);
-            0
-        };
         let reindexed_all = diff.reindexed_all;
         let renamed = diff.renamed.clone();
-        let mut report = self.apply(store, &entries, removed, &changed, reindexed_all, started)?;
-        report.unchanged = unchanged;
+        let mut report = self.apply(
+            store,
+            &entries,
+            removed,
+            &changed,
+            reindexed_all,
+            manifest,
+            started,
+        )?;
+        report.unchanged = entries
+            .len()
+            .saturating_sub(report.added.len())
+            .saturating_sub(report.modified.len()) as u64;
         report.renamed = renamed;
         Ok(report)
     }
@@ -126,6 +155,7 @@ impl<'a> Projector<'a> {
         removed: Vec<String>,
         changed: &[WalkEntry],
         reindexed_all: bool,
+        previous: Manifest,
         started: std::time::Instant,
     ) -> Result<SyncReport> {
         // The known-file set resolves import specifiers against: the walked
@@ -133,15 +163,18 @@ impl<'a> Projector<'a> {
         // target).
         let known_files: BTreeSet<String> = entries.iter().map(|e| e.rel.clone()).collect();
 
-        // Phase A: extract every changed file.
-        let mut pending: Vec<Pending> = Vec::new();
-        for entry in changed {
-            pending.push(self.extract_one(entry));
+        // Parse only changed files. Rebind dependencies from persisted raw facts.
+        let mut pending: Vec<Pending> = changed
+            .iter()
+            .map(|entry| self.extract_one(entry))
+            .collect();
+        if !reindexed_all && (!changed.is_empty() || !removed.is_empty()) {
+            self.extend_dependents(store, entries, &removed, &previous, &mut pending)?;
         }
 
         // Phase B: the symbol table reflects the post-apply world: untouched
         // files from the store, changed files from the batch.
-        let changed_paths: BTreeSet<String> = changed.iter().map(|e| e.rel.clone()).collect();
+        let changed_paths: BTreeSet<String> = pending.iter().map(|p| p.entry.rel.clone()).collect();
         let mut table = SymbolTable::new();
         {
             let snapshot = store.snapshot()?;
@@ -163,7 +196,7 @@ impl<'a> Projector<'a> {
         // Phase C: resolve references into edges, then the HTML/CSS matches.
         let cross = CrossTables::from_table(&table);
         for item in &mut pending {
-            let Some(extraction) = item.extraction.take() else {
+            let Some(extraction) = item.extraction.as_ref() else {
                 continue;
             };
             let file_id = item.projection.file.id.clone();
@@ -171,7 +204,7 @@ impl<'a> Projector<'a> {
             let mut edges = edges_for_extraction(
                 &file_id,
                 &item.entry.rel,
-                &extraction,
+                extraction,
                 &item.ids,
                 &table,
                 &known_files,
@@ -180,7 +213,7 @@ impl<'a> Projector<'a> {
             let element_ids = item.ids.clone();
             edges.extend(cross_edges_for(
                 &item.entry.rel,
-                &extraction,
+                extraction,
                 &element_ids,
                 &cross,
                 &known_files,
@@ -200,19 +233,17 @@ impl<'a> Projector<'a> {
         let mut manifest = Manifest::new(PARSER_VERSION, SCHEMA_VERSION);
         for entry in entries {
             if let Some(item) = pending.iter().find(|p| p.entry.rel == entry.rel) {
-                manifest.entries.insert(
-                    entry.rel.clone(),
-                    crate::manifest::entry_for(
-                        entry,
-                        &item.hash,
-                        item.projection
-                            .quarantine
-                            .as_ref()
-                            .map(|q| q.reason.clone()),
-                    ),
+                let mut record = crate::manifest::entry_for(
+                    entry,
+                    &item.hash,
+                    item.projection
+                        .quarantine
+                        .as_ref()
+                        .map(|q| q.reason.clone()),
                 );
-            } else if let Some(stored) = store.manifest()?.and_then(|m| m.get(&entry.rel).cloned())
-            {
+                record.extraction.clone_from(&item.extraction);
+                manifest.entries.insert(entry.rel.clone(), record);
+            } else if let Some(stored) = previous.get(&entry.rel).cloned() {
                 // Unchanged: keep the stored entry so its hash keeps future
                 // syncs on the O(1) path. Refresh the cheap fields so a moved
                 // clock does not re-hash the file every run.
@@ -235,10 +266,7 @@ impl<'a> Projector<'a> {
         }
 
         // Classify the report against the manifest we are replacing.
-        let previously_known: BTreeSet<String> = store
-            .manifest()?
-            .map(|m| m.entries.into_keys().collect())
-            .unwrap_or_default();
+        let previously_known: BTreeSet<String> = previous.entries.into_keys().collect();
         // The added set was `changed`; the manifest decides added vs modified.
         let mut added: Vec<String> = changed_paths.iter().cloned().collect();
         let mut modified: Vec<String> = Vec::new();
@@ -267,6 +295,162 @@ impl<'a> Projector<'a> {
         Ok(report)
     }
 
+    /// Expand raw-name/import dependencies, then incoming-edge closure. Replacing
+    /// a dependent's nodes also deletes its incoming edges, so closure is required
+    /// even when its source bytes and stable IDs did not change.
+    #[allow(clippy::too_many_lines)]
+    fn extend_dependents(
+        &self,
+        store: &dyn GraphStore,
+        entries: &[WalkEntry],
+        removed: &[String],
+        previous: &Manifest,
+        pending: &mut Vec<Pending>,
+    ) -> Result<()> {
+        let snapshot = store.snapshot()?;
+        let nodes = snapshot.all_nodes()?;
+        let edges = snapshot.all_edges()?;
+        let paths: BTreeMap<_, _> = nodes.iter().map(|n| (&n.id, n.path.as_str())).collect();
+        let files: BTreeMap<_, _> = nodes
+            .iter()
+            .filter(|n| n.is_file())
+            .map(|n| (n.path.as_str(), n))
+            .collect();
+        let old_files: BTreeSet<_> = previous.entries.keys().cloned().collect();
+        let new_files: BTreeSet<_> = entries.iter().map(|e| e.rel.clone()).collect();
+        let mut dirty: BTreeSet<_> = pending
+            .iter()
+            .map(|p| p.entry.rel.clone())
+            .chain(removed.iter().cloned())
+            .collect();
+        let mut names = BTreeSet::new();
+        for node in nodes
+            .iter()
+            .filter(|n| dirty.contains(&n.path))
+            .chain(pending.iter().flat_map(|p| p.projection.symbols.iter()))
+        {
+            names.extend(node.name.iter().cloned());
+            names.extend(node.qualified_name.iter().cloned());
+        }
+        // The committed facts remain the old-world authority even if a previous
+        // graph apply completed but committing its manifest failed.
+        for path in &dirty {
+            if let Some(facts) = previous
+                .get(path)
+                .and_then(|entry| entry.extraction.as_ref())
+            {
+                for symbol in &facts.symbols {
+                    names.insert(symbol.name.clone());
+                    names.insert(symbol.qualified_name.clone());
+                }
+            }
+        }
+        // Reverse lookup by raw spelling includes unresolved references and names
+        // that just became ambiguous. Import choice also depends on file presence
+        // and extension precedence, not merely the previous resolved target.
+        let mut consumers: BTreeMap<&str, BTreeSet<&str>> = BTreeMap::new();
+        for (path, stored) in &previous.entries {
+            let Some(facts) = &stored.extraction else {
+                // Older/missing cache: conservatively rebuild rather than omit
+                // an unknown binding dependency. Parse quarantines have no facts.
+                if stored.quarantine.is_none() {
+                    dirty.extend(new_files.iter().cloned());
+                }
+                continue;
+            };
+            let language = files
+                .get(path.as_str())
+                .and_then(|n| n.language)
+                .or_else(|| self.policy.language_for(Path::new(path)))
+                .unwrap_or(Language::Unknown);
+            // Cross-language HTML/CSS matching has bidirectional generated edges
+            // and file links. Conservatively rebind this family on every change.
+            if matches!(language, Language::Html | Language::Css) {
+                dirty.insert(path.clone());
+            }
+            for fact in &facts.references {
+                if fact.dynamic {
+                    continue;
+                }
+                consumers.entry(&fact.name).or_default().insert(path);
+                let specifier = fact.via_import.as_deref().or_else(|| {
+                    (fact.kind == EdgeKind::Imports && fact.from_key.is_none())
+                        .then_some(fact.name.as_str())
+                });
+                if let Some(specifier) = specifier {
+                    let old =
+                        crate::resolve::resolve_specifier(path, specifier, &old_files, language);
+                    let new =
+                        crate::resolve::resolve_specifier(path, specifier, &new_files, language);
+                    if old != new || old.iter().chain(new.iter()).any(|p| dirty.contains(p)) {
+                        dirty.insert(path.clone());
+                    }
+                }
+            }
+        }
+        for name in &names {
+            if let Some(paths) = consumers.get(name.as_str()) {
+                dirty.extend(paths.iter().map(|p| (*p).to_owned()));
+            }
+        }
+        let mut incoming: BTreeMap<&str, BTreeSet<&str>> = BTreeMap::new();
+        for edge in &edges {
+            if let (Some(source), Some(target)) = (
+                paths.get(&edge.from),
+                edge.to.as_ref().and_then(|to| paths.get(to)),
+            ) {
+                incoming.entry(target).or_default().insert(source);
+            }
+        }
+        let mut queue: std::collections::VecDeque<_> = dirty.iter().cloned().collect();
+        while let Some(target) = queue.pop_front() {
+            if let Some(sources) = incoming.get(target.as_str()) {
+                for source in sources {
+                    if dirty.insert((*source).to_owned()) {
+                        queue.push_back((*source).to_owned());
+                    }
+                }
+            }
+        }
+        let parsed: BTreeSet<_> = pending.iter().map(|p| p.entry.rel.clone()).collect();
+        for entry in entries
+            .iter()
+            .filter(|e| dirty.contains(&e.rel) && !parsed.contains(&e.rel))
+        {
+            let cached = previous.get(&entry.rel).zip(files.get(entry.rel.as_str()));
+            if let Some((stored, file)) = cached
+                && (stored.extraction.is_some() || stored.quarantine.is_some())
+            {
+                let item = Pending {
+                    entry: entry.clone(),
+                    hash: stored.content_hash.clone(),
+                    projection: FileProjection {
+                        file: (*file).clone(),
+                        quarantine: if stored.extraction.is_none() {
+                            stored
+                                .quarantine
+                                .as_ref()
+                                .map(|q| QuarantineRecord::new(&entry.rel, q))
+                        } else {
+                            None
+                        },
+                        ..FileProjection::default()
+                    },
+                    extraction: None,
+                    ids: BTreeMap::new(),
+                };
+                pending.push(if let Some(facts) = &stored.extraction {
+                    Self::populate_symbols(item, facts.clone())
+                } else {
+                    item
+                });
+                continue;
+            }
+            pending.push(self.extract_one(entry));
+        }
+        Ok(())
+    }
+
     /// Phase A for one file: read, hash, parse or quarantine.
     #[allow(clippy::too_many_lines)] // one construct per arm; splitting hurts the reading
     fn extract_one(&self, entry: &WalkEntry) -> Pending {
@@ -288,6 +472,7 @@ impl<'a> Projector<'a> {
 
         // No enabled extractor: the file node still exists (`SPEC.md` §6.2).
         let Some(extractor) = self.registry.extractor_for(Path::new(&entry.rel)) else {
+            pending.extraction = Some(Extraction::default());
             return pending;
         };
         let Ok(text) = std::str::from_utf8(&bytes) else {
@@ -317,6 +502,11 @@ impl<'a> Projector<'a> {
             return pending;
         }
 
+        Self::populate_symbols(pending, extraction)
+    }
+
+    fn populate_symbols(mut pending: Pending, extraction: Extraction) -> Pending {
+        let entry = &pending.entry;
         // Stable ids: the qualified name, disambiguated by line only when the
         // file repeats a same-kind name (`SPEC.md` §5.3).
         let mut seen: BTreeMap<(graph_search_types::kind::NodeKind, String), u32> = BTreeMap::new();

@@ -33,46 +33,6 @@ pub const SCAN_FILE_CAP: usize = 512;
 /// How many bytes the explore literal scan may read.
 pub const SCAN_BYTES_CAP: u64 = 8 * 1024 * 1024;
 
-/// Scores one node against the terms: the best single match wins, extra
-/// matching terms add a small bonus. Summing would let a file that merely
-/// mentions every word outrank an exact name hit.
-#[allow(clippy::cast_precision_loss)] // small bounded counts; exactness irrelevant to ranking
-fn score_against(node: &Node, terms: &[String]) -> f32 {
-    let name = node
-        .name
-        .as_deref()
-        .unwrap_or_default()
-        .to_ascii_lowercase();
-    let qualified = node
-        .qualified_name
-        .as_deref()
-        .unwrap_or_default()
-        .to_ascii_lowercase();
-    let path = node.path.to_ascii_lowercase();
-    let mut best = 0.0f32;
-    let mut matches = 0u32;
-    for term in terms {
-        let term_score = if name == *term {
-            1.0
-        } else if name.contains(term.as_str()) {
-            0.7
-        } else if qualified.contains(term.as_str()) {
-            0.5
-        } else if path.contains(term.as_str()) {
-            0.4
-        } else {
-            0.0
-        };
-        if term_score > 0.0 {
-            matches = matches.saturating_add(1);
-        }
-        if term_score > best {
-            best = term_score;
-        }
-    }
-    (best + 0.1 * matches.saturating_sub(1).min(9) as f32).min(1.0)
-}
-
 /// The effective result cap of a query, so a `Default`-derived (unclamped)
 /// query still honours the spec default instead of returning nothing.
 #[must_use]
@@ -693,28 +653,8 @@ impl<'a> QueryEngine<'a> {
     /// bounded literal scan of candidate files (`SPEC.md` §8.4 step 1).
     #[allow(clippy::too_many_lines)]
     fn seed(&self, query: &ExploreQuery, root: &Path, policy: &WalkPolicy) -> Result<Seeds> {
-        // Preserve the baseline multi-term ranking until a lexical ranker
-        // is evaluated. Explicit symbol queries may carry display punctuation.
-        let single = query.query.split_whitespace().count() == 1;
-        let terms: Vec<String> = query
-            .query
-            .split_whitespace()
-            .map(|term| {
-                if single {
-                    term.trim_matches(|c: char| !c.is_alphanumeric() && c != '_')
-                        .to_ascii_lowercase()
-                } else {
-                    term.to_ascii_lowercase()
-                }
-            })
-            .filter(|term| {
-                if single {
-                    !term.is_empty()
-                } else {
-                    term.len() >= 3
-                }
-            })
-            .collect();
+        let terms = crate::lexical::query_terms(&query.query);
+        let exact = crate::lexical::exact_query(&query.query);
         if terms.is_empty() {
             return Ok(Seeds {
                 nodes: Vec::new(),
@@ -726,10 +666,14 @@ impl<'a> QueryEngine<'a> {
         let mut truncations = Vec::new();
         let mut scanned_files = 0u64;
         let mut scored: Vec<Scored<Node>> = Vec::new();
-        for node in self.snapshot.all_nodes()? {
-            if node.is_file() {
-                continue;
-            }
+        let nodes: Vec<_> = self
+            .snapshot
+            .all_nodes()?
+            .into_iter()
+            .filter(|n| !n.is_file())
+            .collect();
+        let index = crate::lexical::LexicalIndex::new(&nodes);
+        for (position, node) in nodes.into_iter().enumerate() {
             if !self.passes_filters(
                 &node,
                 query.filters.lang,
@@ -737,7 +681,17 @@ impl<'a> QueryEngine<'a> {
             ) {
                 continue;
             }
-            let score = score_against(&node, &terms);
+            let is_exact = node
+                .name
+                .as_deref()
+                .is_some_and(|n| n.to_lowercase() == exact)
+                || node
+                    .qualified_name
+                    .as_deref()
+                    .is_some_and(|n| n.to_lowercase() == exact);
+            let bm25 = index.score(position, &terms);
+            // Bounded, monotone lexical lane; exact spelling always wins.
+            let score = if is_exact { 2.0 } else { bm25 / (1.0 + bm25) };
             if score > 0.0 {
                 scored.push(Scored::new(node, score));
             }
@@ -806,9 +760,8 @@ impl<'a> QueryEngine<'a> {
                     ) {
                         continue;
                     }
-                    // A file seed ranks below an exact symbol name but above
-                    // a bare path mention.
-                    file_hits.push(Scored::new(file_node, 0.6));
+                    // Body-only matches are a fallback below metadata hits.
+                    file_hits.push(Scored::new(file_node, f32::MIN_POSITIVE));
                     if scanned_files >= SCAN_FILE_CAP as u64 {
                         break;
                     }

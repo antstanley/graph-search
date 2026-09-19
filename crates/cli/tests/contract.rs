@@ -159,7 +159,10 @@ fn the_json_envelope_is_one_document_and_deterministic() {
         first, second,
         "two runs must be byte-stable modulo elapsed_ms"
     );
-    assert_eq!(first["schema_version"], serde_json::json!(1));
+    assert_eq!(
+        first["schema_version"],
+        serde_json::json!(graph_search_types::SCHEMA_VERSION)
+    );
     assert_eq!(first["command"], serde_json::json!("search.files"));
     assert_eq!(first["truncations"], serde_json::json!([]));
 }

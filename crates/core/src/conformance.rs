@@ -174,6 +174,8 @@ pub fn check_manifest_commit_last(store: &mut dyn GraphStore) {
 /// The full suite, for tests that own a store.
 pub fn run_all(store: &mut dyn GraphStore) {
     check_apply_and_read(store);
+    // Replacing both endpoints must restore the edge regardless of file order.
+    check_apply_and_read(store);
     check_replace_subtree(store);
     check_manifest_commit_last(store);
 }

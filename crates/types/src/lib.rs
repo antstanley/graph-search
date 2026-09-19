@@ -9,6 +9,7 @@
 
 pub mod batch;
 pub mod envelope;
+pub mod extraction;
 pub mod id;
 pub mod kind;
 pub mod limits;
