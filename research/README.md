@@ -4,6 +4,8 @@ Research branch: `research/search-accuracy`
 Baseline: committed `main` at `4dd6af6`  
 Worktree: `/private/tmp/graph-search-research`
 
+**Follow-up implemented:** production identifier-aware BM25 retrieval and selective sync using persisted raw facts. See [current results and tradeoffs](07-lexical-and-incremental.md): 90/90 exact, 89/90 split-name, 8/15 task-language hits, plus 60/60 new held-out split-name hits. The initial study below is preserved as historical evidence.
+
 The search problem spans both **retrieval ranking** and **graph correctness**. This branch documents the investigation, repairs 26 concrete defects, and includes 25 new public-library regression tests. It retains the main checkout's uncommitted work separately.
 
 The strongest controlled retrieval result is the gap between exact and split names: the original engine finds **90/90 exact-name targets but only 32/90 split-name targets** across nanus, blogwright, and whatsurvey. A research-only identifier-aware FTS5 prototype over the same extracted candidates finds **89/90 split-name targets**. These are sampled identifier-derived queries; the task-language challenge performs much worse and is reported separately.
@@ -18,6 +20,7 @@ Read in this order:
 4. [Improvement plan](04-improvement-plan.md): lexical retrieval, semantic bindings, incremental facts, budgets, and evaluation gates.
 5. [Verification certificate](05-verification.md): evidence, regression paths, and material tradeoffs.
 6. [Root checkout comparison](06-root-checkout-review.md): overlap with the pre-existing changes, additional ideas, and reproduced gaps.
+7. [Implemented lexical retrieval and selective sync](07-lexical-and-incremental.md): current behavior, measurements, validation, and limits.
 
 ## Reproduction
 
@@ -26,10 +29,12 @@ The external repositories must be available under `~/code/`; blogwright and what
 ```sh
 cargo test --workspace
 cargo clippy --workspace --all-targets -- -D warnings
+python3 research/scripts/reproduce_followup.py
+# Historical baseline/correctness-only/FTS comparison:
 python3 research/scripts/reproduce.py
 ```
 
-`reproduce.py` archives the baseline commit into a temporary directory, builds the same harness against it, captures baseline results, then builds the patched harness and reruns the comparisons. It requires cached Rust dependencies for `--offline`, Python with SQLite FTS5, and the installed CodeGraph CLI. Remove `--offline` deliberately if dependencies are not cached. Expect several minutes; these are debug builds and CodeGraph context queries perform additional work.
+`reproduce_followup.py` measures current production retrieval and edits disposable copies for sync checks. Its held-out labels are frozen in `results/*-heldout-queries.json`. `reproduce.py` pins both historical arms (`4dd6af6` baseline, `f158605` correctness-only) in temporary archives so it cannot relabel current ranking as the earlier fix-only experiment. It requires cached Rust dependencies for `--offline`, Python with SQLite FTS5, and the installed CodeGraph CLI. Remove `--offline` deliberately if dependencies are not cached. Expect several minutes; these are debug builds and CodeGraph context queries perform additional work.
 
 The harness is a standalone Cargo workspace so production manifests remain unchanged. `research/harness/target/` is ignored. Raw full graph dumps remain temporary; committed results retain query labels, locations, relationships, counts, timings, source hashes, and sanitized external-repository responses. External snippets/signatures are omitted from committed response records. Synthetic fixture output is retained in full.
 
@@ -37,6 +42,6 @@ The harness is a standalone Cargo workspace so production manifests remain uncha
 
 ## Review cautions
 
-Any changed sync currently reprojects the entire walked tree to preserve incoming references. File search uses the consistent scan path instead of the broken resident shortcut. Ambiguous names now return an error requiring an exact ID. Parser version 2 forces old projections to refresh. These are intentional behavior/performance tradeoffs, documented with the fixes.
+The initial fix-only revision reprojected the entire tree on changed sync. Current production parses changed files and rebinds affected cached facts; dependency analysis and manifest I/O remain workspace-sized. File search uses the consistent scan path instead of the broken resident shortcut. Ambiguous names now return an error requiring an exact ID. Parser version 2 and schema version 2 force older projections to refresh. These are intentional behavior/performance tradeoffs, documented with the fixes.
 
-The recommended next change is identifier-aware lexical candidate retrieval with exact-name priority, followed by module/scope-aware binding and explicit graph-work budgets. Do not choose a new storage backend or claim general semantic accuracy from this sample alone.
+Identifier-aware lexical retrieval and cached selective rebinding are now implemented. Remaining priorities include module/scope-aware binding, persistent lexical statistics if profiling warrants them, and explicit graph-work budgets. Do not choose a new storage backend or claim general semantic accuracy from this sample alone.

@@ -1,10 +1,11 @@
 """Collect patched-engine measurements in the same format as discovery."""
+import os
 import json,pathlib,subprocess,collections
 base=pathlib.Path(__file__).resolve().parents[1]
 for repo in ['semantics','nanus','blogwright','whatsurvey']:
  root=base/'fixtures/semantics' if repo=='semantics' else (pathlib.Path.home()/'code')/repo
  out=pathlib.Path('/private/tmp')/f'{repo}-fixed.json'
- with out.open('w') as f:subprocess.run([str(base/'harness/target/debug/search-research'),str(root),str(base/'results'/f'{repo}-queries.json')],stdout=f,check=True,timeout=300)
+ with out.open('w') as f:subprocess.run([os.environ.get('GRAPH_SEARCH_FIXED_BINARY', str(base/'harness/target/debug/search-research')),str(root),str(base/'results'/f'{repo}-queries.json')],stdout=f,check=True,timeout=300)
  data=json.loads(out.read_text())
  def scrub(v):
   if isinstance(v,dict):return {k:scrub(x) for k,x in v.items() if k not in ('snippet','signature')}

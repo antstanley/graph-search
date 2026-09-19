@@ -1,4 +1,5 @@
 """Deterministically sample production functions for exact/split-identifier retrieval."""
+import os
 import json,pathlib,hashlib,re,subprocess,sqlite3,collections,sys,time
 base=pathlib.Path(__file__).resolve().parents[1]
 stop=set('how does the a an is are in to of and where what for with'.split())
@@ -6,7 +7,7 @@ def tokens(s):
  s=re.sub(r'([a-z0-9])([A-Z])',r'\1 \2',s);s=re.sub(r'([A-Z])([A-Z][a-z])',r'\1 \2',s)
  return [x for x in re.findall('[a-z0-9]+',s.lower()) if x not in stop]
 phase=sys.argv[1] if len(sys.argv)>1 else 'baseline'
-binary='/private/tmp/search-research-baseline' if phase=='baseline' else str(base/'harness/target/debug/search-research')
+binary='/private/tmp/search-research-baseline' if phase=='baseline' else os.environ.get('GRAPH_SEARCH_FIXED_BINARY', str(base/'harness/target/debug/search-research'))
 for repo in ['nanus','blogwright','whatsurvey']:
  root=(pathlib.Path.home()/'code')/repo
  original=json.loads(pathlib.Path(f'/private/tmp/{repo}-baseline.json').read_text())

@@ -1,5 +1,7 @@
 # Findings and implemented fixes
 
+> Historical investigation / correctness-only revision. The subsequent implementation and current verification are in [07-lexical-and-incremental.md](07-lexical-and-incremental.md).
+
 The accuracy failure has multiple layers. A better ranker cannot recover a missing definition; a correct definition cannot compensate for a call attached to its file; a graph traversal cannot repair an edge invented by stripping a receiver name. The most useful separation is **candidate coverage → reference extraction → binding → retrieval → graph assembly → freshness and output contracts**.
 
 ## Why the current ranker fails even with correct symbols

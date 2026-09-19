@@ -1,5 +1,7 @@
 # Verification and correctness certificate
 
+> Historical investigation / correctness-only revision. The subsequent implementation and current verification are in [07-lexical-and-incremental.md](07-lexical-and-incremental.md).
+
 ## Obligations
 
 This branch must preserve ordinary exact symbol lookup and supported traversal, fix the documented concrete defects, expose ambiguity/coverage honestly, leave the user's main checkout and external source trees untouched, and retain reproducible evidence separating correctness repairs from ranking experiments.

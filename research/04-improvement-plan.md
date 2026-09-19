@@ -1,5 +1,7 @@
 # Potential solutions and evaluation gates
 
+> Historical investigation / correctness-only revision. The subsequent implementation and current verification are in [07-lexical-and-incremental.md](07-lexical-and-incremental.md).
+
 ## Recommendation
 
 Keep graph traversal, but make lexical retrieval the candidate generator and make binding evidence explicit. Repairing extraction and graph contracts is necessary; it does not solve the observed ranking problem. The controlled FTS experiment supplies stronger evidence for identifier-aware lexical retrieval than for embeddings or replacing the graph database.

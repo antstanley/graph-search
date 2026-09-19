@@ -1,5 +1,7 @@
 # Methodology and scope
 
+> Historical investigation / correctness-only revision. The subsequent implementation and current verification are in [07-lexical-and-incremental.md](07-lexical-and-incremental.md).
+
 ## Revisions and isolation
 
 The production fixes are committed as `f158605`. The baseline is graph-search `4dd6af6`, the committed `main` revision at the start of this investigation. Work was performed in `/private/tmp/graph-search-research` on `research/search-accuracy`. The main checkout already contained uncommitted changes in query, reconcile, resolve, end-to-end tests, and an examples directory. Those changes were deliberately excluded from this baseline and were not edited. This matters when comparing these findings with experiments run from the main working directory.

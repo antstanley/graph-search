@@ -1,5 +1,7 @@
 # Follow-up review of the root checkout
 
+> Historical investigation / correctness-only revision. The subsequent implementation and current verification are in [07-lexical-and-incremental.md](07-lexical-and-incremental.md).
+
 Compared the four modified tracked files and the untracked `dbg_removal.rs` example against research branch commit `0941cb6`. The root checkout remains unchanged. File hashes are in [provenance](results/root-checkout-provenance.json).
 
 ## What was already incorporated

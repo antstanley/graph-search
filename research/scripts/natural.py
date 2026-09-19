@@ -1,4 +1,5 @@
 """Small hand-labelled task-language challenge; labels are intended files, not exhaustive relevance judgements."""
+import os
 import json,pathlib,re,sqlite3,subprocess,time
 base=pathlib.Path(__file__).resolve().parents[1]
 sets={
@@ -28,7 +29,7 @@ for repo,rows in sets.items():
  root=(pathlib.Path.home()/'code')/repo
  req=[{'mode':'explore','query':q,'expected_path':p} for q,p in rows];rp=base/'results'/f'{repo}-natural-queries.json';rp.write_text(json.dumps(req,indent=2)+'\n')
  runs={}
- for phase,binary in [('baseline','/private/tmp/search-research-baseline'),('fixed',str(base/'harness/target/debug/search-research'))]:
+ for phase,binary in [('baseline','/private/tmp/search-research-baseline'),('fixed',os.environ.get('GRAPH_SEARCH_FIXED_BINARY', str(base/'harness/target/debug/search-research')))]:
   out=pathlib.Path(f'/private/tmp/{repo}-natural-{phase}.json')
   with out.open('w') as f:subprocess.run([binary,str(root),str(rp)],stdout=f,check=True,timeout=300)
   runs[phase]=json.loads(out.read_text())
