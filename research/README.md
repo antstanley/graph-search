@@ -17,6 +17,7 @@ Read in this order:
 3. [Measured results](03-experiments.md): generated tables, graph evidence, timings, and rejected experiments.
 4. [Improvement plan](04-improvement-plan.md): lexical retrieval, semantic bindings, incremental facts, budgets, and evaluation gates.
 5. [Verification certificate](05-verification.md): evidence, regression paths, and material tradeoffs.
+6. [Root checkout comparison](06-root-checkout-review.md): overlap with the pre-existing changes, additional ideas, and reproduced gaps.
 
 ## Reproduction
 

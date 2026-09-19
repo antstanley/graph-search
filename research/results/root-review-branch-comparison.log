@@ -1,0 +1,38 @@
+   Compiling graph-search-types v0.1.0 (/private/tmp/graph-search-research/crates/types)
+   Compiling graph-search-core v0.1.0 (/private/tmp/graph-search-research/crates/core)
+   Compiling graph-search-engine v0.1.0 (/private/tmp/graph-search-research/crates/engine)
+   Compiling graph-search-langs v0.1.0 (/private/tmp/graph-search-research/crates/langs)
+   Compiling graph-search v0.1.0 (/private/tmp/graph-search-research/crates/graph-search)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.71s
+     Running tests/root_review.rs (target/debug/deps/root_review-f51a8c419cc5a9de)
+
+running 26 tests
+test explore_respects_index_exclusions ... ok
+test explore_body_hits_respect_filters ... ok
+test explore_punctuation_and_body_snippets_work ... ok
+test explore_two_hop_connections_include_intermediate_source ... ok
+test ambiguous_targets_are_not_silently_selected ... ok
+test explore_serialized_budget_and_snippet_cap_are_real ... ok
+test deleting_a_target_rebinds_unchanged_callers ... ok
+test callable_parameters_remain_dynamic ... ok
+test graph_filters_are_applied_and_bad_globs_rejected ... ok
+test first_graph_query_builds_missing_index ... ok
+test graph_limits_are_reported ... ok
+test foreign_qualified_calls_do_not_bind_to_bare_local_names ... ok
+test impact_keeps_all_converging_edges_and_orders_by_depth ... ok
+test files_and_text_subdirectories_are_resolved_once_and_stay_fresh ... ok
+test invalid_text_include_does_not_broaden_search ... ok
+test js_calls_belong_to_functions_and_nested_receivers_are_visited ... ok
+test rust_nested_receiver_calls_are_visited ... ok
+test symbol_filters_precede_limit_and_ids_are_supported ... ok
+test self_receiver_uses_lexical_impl_owner ... ok
+test nested_qualified_names_do_not_repeat_ancestors ... ok
+test js_initializer_calls_use_enclosing_function_and_destructured_bindings_are_siblings ... ok
+test named_import_aliases_and_js_extension_substitution_resolve ... ok
+test tsx_uses_the_tsx_grammar ... ok
+test zero_length_path_contains_its_endpoint ... ok
+test unrelated_query_returns_no_symbols ... ok
+test sync_rebinds_unchanged_callers_after_target_edits ... ok
+
+test result: ok. 26 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.16s
+
