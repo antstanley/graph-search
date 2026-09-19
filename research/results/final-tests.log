@@ -1,0 +1,196 @@
+   Compiling graph-search-langs v0.1.0 (/private/tmp/graph-search-research/crates/langs)
+   Compiling graph-search v0.1.0 (/private/tmp/graph-search-research/crates/graph-search)
+   Compiling graph-search-cli v0.1.0 (/private/tmp/graph-search-research/crates/cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.80s
+     Running unittests src/lib.rs (target/debug/deps/graph_search-930f98e890fc2db0)
+
+running 3 tests
+test config::tests::replace_defaults_replaces ... ok
+test config::tests::the_spec_example_parses_and_merges ... ok
+test config::tests::a_missing_file_yields_the_defaults ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/accuracy.rs (target/debug/deps/accuracy-34993811a5280771)
+
+running 25 tests
+test explore_two_hop_connections_include_intermediate_source ... ok
+test explore_body_hits_respect_filters ... ok
+test explore_punctuation_and_body_snippets_work ... ok
+test callable_parameters_remain_dynamic ... ok
+test explore_serialized_budget_and_snippet_cap_are_real ... ok
+test ambiguous_targets_are_not_silently_selected ... ok
+test explore_respects_index_exclusions ... ok
+test first_graph_query_builds_missing_index ... ok
+test deleting_a_target_rebinds_unchanged_callers ... ok
+test invalid_text_include_does_not_broaden_search ... ok
+test graph_limits_are_reported ... ok
+test foreign_qualified_calls_do_not_bind_to_bare_local_names ... ok
+test graph_filters_are_applied_and_bad_globs_rejected ... ok
+test files_and_text_subdirectories_are_resolved_once_and_stay_fresh ... ok
+test impact_keeps_all_converging_edges_and_orders_by_depth ... ok
+test rust_nested_receiver_calls_are_visited ... ok
+test js_calls_belong_to_functions_and_nested_receivers_are_visited ... ok
+test nested_qualified_names_do_not_repeat_ancestors ... ok
+test symbol_filters_precede_limit_and_ids_are_supported ... ok
+test js_initializer_calls_use_enclosing_function_and_destructured_bindings_are_siblings ... ok
+test named_import_aliases_and_js_extension_substitution_resolve ... ok
+test self_receiver_uses_lexical_impl_owner ... ok
+test zero_length_path_contains_its_endpoint ... ok
+test tsx_uses_the_tsx_grammar ... ok
+test sync_rebinds_unchanged_callers_after_target_edits ... ok
+
+test result: ok. 25 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.15s
+
+     Running tests/end_to_end.rs (target/debug/deps/end_to_end-dfa22fa8de3c2427)
+
+running 4 tests
+test the_direction_filter_flows_through_deps ... ok
+test a_reader_never_writes_and_a_read_only_index_refuses ... ok
+test a_stale_index_reconciles_before_answering ... ok
+test the_full_surface_answers_through_one_handle ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+     Running unittests src/main.rs (target/debug/deps/graph_search-34515ae4eceb1959)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/contract.rs (target/debug/deps/contract-943b2683117f897f)
+
+running 7 tests
+test a_negated_include_is_refused_with_the_same_guidance ... ok
+test a_comma_include_is_refused_with_a_usage_error ... ok
+test an_empty_pattern_is_refused ... ok
+test graph_modes_without_an_index_and_without_reconcile_exit_4 ... ok
+test an_empty_glob_result_is_a_success_with_the_nanus_string ... ok
+test an_empty_text_result_after_a_cap_hits_the_honest_string ... ok
+test the_json_envelope_is_one_document_and_deterministic ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.79s
+
+     Running unittests src/lib.rs (target/debug/deps/graph_search_core-9b8879bc3a778b21)
+
+running 22 tests
+test hash::tests::the_hash_is_the_known_sha256 ... ok
+test config::tests::extensions_map_to_languages ... ok
+test config::tests::extras_are_added_and_enabled_languages_gate_extraction ... ok
+test files_search::tests::an_empty_pattern_is_refused ... ok
+test reconcile::tests::line_counts_count_partial_last_lines ... ok
+test resolve::cross_tests::a_stylesheet_link_becomes_a_file_edge ... ok
+test resolve::tests::ambiguous_global_names_dangle ... ok
+test resolve::tests::imported_bindings_find_the_export ... ok
+test resolve::tests::imports_resolve_to_workspace_files ... ok
+test resolve::tests::qualified_paths_do_not_discard_unknown_module_prefixes ... ok
+test resolve::tests::same_file_same_name_wins ... ok
+test reconcile::sync_tests::the_manifest_is_committed_last_and_matches_the_tree ... ok
+test files_search::tests::double_star_reaches_every_depth ... ok
+test reconcile::sync_tests::a_full_sync_indexes_symbols_and_edges ... ok
+test files_search::tests::the_cap_says_so ... ok
+test walk::tests::hidden_files_need_the_flag ... ok
+test reconcile::sync_tests::an_unchanged_tree_is_a_no_op_and_a_modified_one_replaces ... ok
+test walk::tests::no_ignore_descends_where_ignore_was_honoured ... ok
+test files_search::tests::a_bare_pattern_is_top_level_only ... ok
+test walk::tests::oversized_files_are_skipped ... ok
+test reconcile::sync_tests::a_removed_file_is_forgotten_and_a_renamed_one_is_detected ... ok
+test walk::tests::the_walker_honours_ignore_files_and_always_skip_dirs ... ok
+
+test result: ok. 22 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/property.rs (target/debug/deps/property-3f032dc8ee3a4f01)
+
+running 2 tests
+test ids_are_stable_under_unrelated_edits ... ok
+test a_bare_glob_never_matches_a_nested_path ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+     Running unittests src/lib.rs (target/debug/deps/graph_search_engine-83d59ea56c329453)
+
+running 2 tests
+test sidecar::tests::the_manifest_round_trips_atomically ... ok
+test sidecar::tests::dangling_references_round_trip_and_filter ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/store.rs (target/debug/deps/store-91301ca04bc2c154)
+
+running 4 tests
+test the_conformance_suite_passes_against_memory ... ok
+test the_conformance_suite_passes_against_grafeo ... ok
+test dangling_references_survive_and_filter_by_file ... ok
+test the_store_persists_across_open ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running unittests src/lib.rs (target/debug/deps/graph_search_langs-0ad8a504ef30f5c2)
+
+running 5 tests
+test rust::tests::use_statements_expand_groups_and_aliases ... ok
+test rust::tests::a_struct_field_type_becomes_a_type_use ... ok
+test rust::tests::an_impl_makes_methods_and_the_implements_edge ... ok
+test rust::tests::duplicate_impl_names_get_disambiguated_by_core ... ok
+test rust::tests::a_free_function_and_a_call_are_extracted ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/fixtures_test.rs (target/debug/deps/fixtures_test-5644a9fb019dde41)
+
+running 7 tests
+test html_page ... ok
+test rust_imports ... ok
+test css_site ... ok
+test rust_functions_and_calls ... ok
+test javascript_app ... ok
+test rust_items ... ok
+test typescript_widget ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/deps/graph_search_types-a341dc821e230faa)
+
+running 9 tests
+test limits::tests::defaults_sit_below_their_ceilings ... ok
+test id::tests::file_ids_are_path_keyed ... ok
+test id::tests::edge_ids_render_the_triple ... ok
+test id::tests::symbol_ids_carry_the_disambiguator_only_when_needed ... ok
+test query::tests::hops_clamp_to_the_ceiling_not_error ... ok
+test node::tests::a_dangling_edge_keeps_the_referenced_name ... ok
+test node::tests::a_resolved_edge_names_its_target ... ok
+test envelope::tests::stale_paths_are_omitted_when_fresh ... ok
+test query::tests::limits_clamp_into_range ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests graph_search
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests graph_search_core
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests graph_search_engine
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests graph_search_langs
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests graph_search_types
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

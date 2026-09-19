@@ -1,0 +1,27 @@
+[
+  {
+    "mode": "explore",
+    "query": "Where are old conversation turns removed to stay within the model context window?",
+    "expected_path": "crates/nanus-domain/src/context.rs"
+  },
+  {
+    "mode": "explore",
+    "query": "How does a shell command get classified as destructive before execution?",
+    "expected_path": "crates/nanus-bundle/src/guard.rs"
+  },
+  {
+    "mode": "explore",
+    "query": "Where is a user asked for permission before a tool executes?",
+    "expected_path": "crates/nanus-bundle/src/agent_loop.rs"
+  },
+  {
+    "mode": "explore",
+    "query": "How are file name patterns used to narrow literal text search results?",
+    "expected_path": "crates/nanus-bundle/src/tools/grep.rs"
+  },
+  {
+    "mode": "explore",
+    "query": "How are simultaneous tool calls limited during an agent turn?",
+    "expected_path": "crates/nanus-bundle/src/agent_loop.rs"
+  }
+]

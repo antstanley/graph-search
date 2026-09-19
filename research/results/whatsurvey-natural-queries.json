@@ -1,0 +1,27 @@
+[
+  {
+    "mode": "explore",
+    "query": "How is an incoming WhatsApp request checked for a forged message authentication code?",
+    "expected_path": "workspaces/backend/src/core/whatsapp/signature.ts"
+  },
+  {
+    "mode": "explore",
+    "query": "Where are confidential configuration values encrypted before storage?",
+    "expected_path": "workspaces/backend/src/core/settings/crypto.ts"
+  },
+  {
+    "mode": "explore",
+    "query": "Where is the editable version of a survey saved before it is published?",
+    "expected_path": "workspaces/backend/src/core/db/survey-versions.ts"
+  },
+  {
+    "mode": "explore",
+    "query": "How can an administrator copy the webhook address in the settings screen?",
+    "expected_path": "workspaces/frontend/src/lib/components/WhatsAppConfigurations.svelte"
+  },
+  {
+    "mode": "explore",
+    "query": "Where is the shared credential for internal API authentication read from the secrets service?",
+    "expected_path": "workspaces/backend/src/core/auth-internal.ts"
+  }
+]

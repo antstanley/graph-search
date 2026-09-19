@@ -1,0 +1,2405 @@
+{
+  "repo": "nanus",
+  "nodes": 5876,
+  "files": 185,
+  "edges": 26660,
+  "index_ms": 1817,
+  "quarantined": [],
+  "file_owned_calls": 3,
+  "edge_counts": {
+    "imports_unresolved": 1570,
+    "contains_resolved": 5684,
+    "exports_resolved": 5,
+    "calls_unresolved": 13064,
+    "imports_resolved": 98,
+    "implements_unresolved": 83,
+    "implements_resolved": 53,
+    "type_uses_unresolved": 1485,
+    "calls_resolved": 3712,
+    "type_uses_resolved": 906
+  },
+  "queries": [
+    {
+      "elapsed_us": 284048,
+      "request": {
+        "category": "exact",
+        "expected_path": "crates/nanus-bundle/src/agent_loop.rs",
+        "mode": "explore",
+        "query": "render_content"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 0,
+          "unresolved": 0
+        },
+        "edges": [],
+        "items": [
+          {
+            "impact": {
+              "direct_callers": 2,
+              "total_callers": 2
+            },
+            "node": {
+              "end_line": 898,
+              "id": "sym:crates/nanus-bundle/src/agent_loop.rs#function:render_content",
+              "kind": "function",
+              "name": "render_content",
+              "path": "crates/nanus-bundle/src/agent_loop.rs",
+              "qualified_name": "render_content",
+              "start_line": 877
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 783,
+              "id": "file:crates/nanus-bundle/src/agent_loop.rs",
+              "kind": "file",
+              "name": "crates/nanus-bundle/src/agent_loop.rs",
+              "path": "crates/nanus-bundle/src/agent_loop.rs",
+              "qualified_name": "crates/nanus-bundle/src/agent_loop.rs",
+              "start_line": 783
+            }
+          }
+        ],
+        "stats": {
+          "candidates": 2,
+          "elapsed_ms": 283,
+          "files_scanned": 184,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 294749,
+      "request": {
+        "category": "natural_or_split",
+        "expected_path": "crates/nanus-bundle/src/agent_loop.rs",
+        "mode": "explore",
+        "query": "render content"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 0,
+          "unresolved": 0
+        },
+        "edges": [],
+        "items": [
+          {
+            "impact": null,
+            "node": {
+              "end_line": 521,
+              "id": "sym:crates/nanus-domain/src/message.rs#field:MessageFields::content",
+              "kind": "field",
+              "name": "content",
+              "path": "crates/nanus-domain/src/message.rs",
+              "qualified_name": "MessageFields::content",
+              "start_line": 521
+            }
+          },
+          {
+            "impact": {
+              "direct_callers": 0,
+              "total_callers": 0
+            },
+            "node": {
+              "end_line": 204,
+              "id": "sym:crates/nanus-domain/src/prompt.rs#method:PromptBuilder::render",
+              "kind": "method",
+              "name": "render",
+              "path": "crates/nanus-domain/src/prompt.rs",
+              "qualified_name": "PromptBuilder::render",
+              "start_line": 181
+            }
+          },
+          {
+            "impact": {
+              "direct_callers": 1,
+              "total_callers": 1
+            },
+            "node": {
+              "end_line": 419,
+              "id": "sym:crates/nanus-domain/src/tool.rs#method:ToolOutcome::content",
+              "kind": "method",
+              "name": "content",
+              "path": "crates/nanus-domain/src/tool.rs",
+              "qualified_name": "ToolOutcome::content",
+              "start_line": 415
+            }
+          },
+          {
+            "impact": {
+              "direct_callers": 0,
+              "total_callers": 0
+            },
+            "node": {
+              "end_line": 98,
+              "id": "sym:crates/nanus-tui/src/markdown/mermaid/class.rs#function:render",
+              "kind": "function",
+              "name": "render",
+              "path": "crates/nanus-tui/src/markdown/mermaid/class.rs",
+              "qualified_name": "render",
+              "start_line": 40
+            }
+          },
+          {
+            "impact": {
+              "direct_callers": 2,
+              "total_callers": 2
+            },
+            "node": {
+              "end_line": 51,
+              "id": "sym:crates/nanus-tui/src/markdown/mermaid/mod.rs#function:render",
+              "kind": "function",
+              "name": "render",
+              "path": "crates/nanus-tui/src/markdown/mermaid/mod.rs",
+              "qualified_name": "render",
+              "start_line": 26
+            }
+          },
+          {
+            "impact": {
+              "direct_callers": 0,
+              "total_callers": 0
+            },
+            "node": {
+              "end_line": 93,
+              "id": "sym:crates/nanus-tui/src/markdown/mermaid/sequence.rs#function:render",
+              "kind": "function",
+              "name": "render",
+              "path": "crates/nanus-tui/src/markdown/mermaid/sequence.rs",
+              "qualified_name": "render",
+              "start_line": 32
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 34,
+              "id": "sym:crates/nanus-tui/src/markdown/mod.rs#module:render",
+              "kind": "module",
+              "name": "render",
+              "path": "crates/nanus-tui/src/markdown/mod.rs",
+              "qualified_name": "render",
+              "start_line": 34
+            }
+          },
+          {
+            "impact": {
+              "direct_callers": 0,
+              "total_callers": 0
+            },
+            "node": {
+              "end_line": 57,
+              "id": "sym:crates/nanus-tui/src/markdown/mod.rs#function:render",
+              "kind": "function",
+              "name": "render",
+              "path": "crates/nanus-tui/src/markdown/mod.rs",
+              "qualified_name": "render",
+              "start_line": 49
+            }
+          }
+        ],
+        "stats": {
+          "candidates": 203,
+          "elapsed_ms": 294,
+          "files_scanned": 184,
+          "matches": 0
+        },
+        "truncations": [
+          {
+            "cap": 8,
+            "dropped": true,
+            "kind": "results",
+            "message": "matching nodes exceeded the result cap"
+          }
+        ]
+      }
+    },
+    {
+      "elapsed_us": 304789,
+      "request": {
+        "category": "natural_or_split",
+        "expected_path": "crates/nanus-bundle/src/agent_loop.rs",
+        "mode": "explore",
+        "query": "How does the agent run tools in parallel?"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 0,
+          "unresolved": 0
+        },
+        "edges": [],
+        "items": [
+          {
+            "impact": {
+              "direct_callers": 0,
+              "total_callers": 0
+            },
+            "node": {
+              "end_line": 528,
+              "id": "sym:crates/nanus-adapter-local/src/shell.rs#method:LocalShell::run",
+              "kind": "method",
+              "name": "run",
+              "path": "crates/nanus-adapter-local/src/shell.rs",
+              "qualified_name": "LocalShell::run",
+              "start_line": 522
+            }
+          },
+          {
+            "impact": {
+              "direct_callers": 3,
+              "total_callers": 3
+            },
+            "node": {
+              "end_line": 158,
+              "id": "sym:crates/nanus-adapter-secret/src/keychain.rs#method:KeychainBackend::run",
+              "kind": "method",
+              "name": "run",
+              "path": "crates/nanus-adapter-secret/src/keychain.rs",
+              "qualified_name": "KeychainBackend::run",
+              "start_line": 148
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 261,
+              "id": "sym:crates/nanus-bundle/src/agent_loop.rs#field:AgentRunner::tools",
+              "kind": "field",
+              "name": "tools",
+              "path": "crates/nanus-bundle/src/agent_loop.rs",
+              "qualified_name": "AgentRunner::tools",
+              "start_line": 261
+            }
+          },
+          {
+            "impact": {
+              "direct_callers": 0,
+              "total_callers": 0
+            },
+            "node": {
+              "end_line": 422,
+              "id": "sym:crates/nanus-bundle/src/agent_loop.rs#method:AgentRunner::tools",
+              "kind": "method",
+              "name": "tools",
+              "path": "crates/nanus-bundle/src/agent_loop.rs",
+              "qualified_name": "AgentRunner::tools",
+              "start_line": 420
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 158,
+              "id": "sym:crates/nanus-bundle/src/compose.rs#field:Pending::tools",
+              "kind": "field",
+              "name": "tools",
+              "path": "crates/nanus-bundle/src/compose.rs",
+              "qualified_name": "Pending::tools",
+              "start_line": 158
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 62,
+              "id": "sym:crates/nanus-bundle/src/lib.rs#module:tools",
+              "kind": "module",
+              "name": "tools",
+              "path": "crates/nanus-bundle/src/lib.rs",
+              "qualified_name": "tools",
+              "start_line": 62
+            }
+          },
+          {
+            "impact": {
+              "direct_callers": 0,
+              "total_callers": 0
+            },
+            "node": {
+              "end_line": 106,
+              "id": "sym:crates/nanus-bundle/src/tests_support.rs#method:UnusedShell::run",
+              "kind": "method",
+              "name": "run",
+              "path": "crates/nanus-bundle/src/tests_support.rs",
+              "qualified_name": "UnusedShell::run",
+              "start_line": 94
+            }
+          },
+          {
+            "impact": {
+              "direct_callers": 11,
+              "total_callers": 11
+            },
+            "node": {
+              "end_line": 161,
+              "id": "sym:crates/nanus-bundle/tests/end_to_end.rs#function:run",
+              "kind": "function",
+              "name": "run",
+              "path": "crates/nanus-bundle/tests/end_to_end.rs",
+              "qualified_name": "run",
+              "start_line": 149
+            }
+          }
+        ],
+        "stats": {
+          "candidates": 1390,
+          "elapsed_ms": 304,
+          "files_scanned": 184,
+          "matches": 0
+        },
+        "truncations": [
+          {
+            "cap": 8,
+            "dropped": true,
+            "kind": "results",
+            "message": "matching nodes exceeded the result cap"
+          }
+        ]
+      }
+    },
+    {
+      "elapsed_us": 281726,
+      "request": {
+        "category": "exact",
+        "expected_path": "crates/nanus-bundle/src/agent_loop.rs",
+        "mode": "explore",
+        "query": "approval_reason"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 0,
+          "unresolved": 0
+        },
+        "edges": [],
+        "items": [
+          {
+            "impact": {
+              "direct_callers": 1,
+              "total_callers": 1
+            },
+            "node": {
+              "end_line": 205,
+              "id": "sym:crates/nanus-bundle/src/agent_loop.rs#function:approval_reason",
+              "kind": "function",
+              "name": "approval_reason",
+              "path": "crates/nanus-bundle/src/agent_loop.rs",
+              "qualified_name": "approval_reason",
+              "start_line": 195
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 195,
+              "id": "file:crates/nanus-bundle/src/agent_loop.rs",
+              "kind": "file",
+              "name": "crates/nanus-bundle/src/agent_loop.rs",
+              "path": "crates/nanus-bundle/src/agent_loop.rs",
+              "qualified_name": "crates/nanus-bundle/src/agent_loop.rs",
+              "start_line": 195
+            }
+          }
+        ],
+        "stats": {
+          "candidates": 2,
+          "elapsed_ms": 281,
+          "files_scanned": 184,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 293123,
+      "request": {
+        "category": "natural_or_split",
+        "expected_path": "crates/nanus-bundle/src/agent_loop.rs",
+        "mode": "explore",
+        "query": "approval reason sandbox destructive"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 0,
+          "unresolved": 0
+        },
+        "edges": [],
+        "items": [
+          {
+            "impact": {
+              "direct_callers": 0,
+              "total_callers": 0
+            },
+            "node": {
+              "end_line": 587,
+              "id": "sym:crates/nanus-adapter-local/src/shell.rs#method:LocalShell::sandbox",
+              "kind": "method",
+              "name": "sandbox",
+              "path": "crates/nanus-adapter-local/src/shell.rs",
+              "qualified_name": "LocalShell::sandbox",
+              "start_line": 585
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 56,
+              "id": "sym:crates/nanus-bundle/src/agent_loop.rs#field:RunOutcome::reason",
+              "kind": "field",
+              "name": "reason",
+              "path": "crates/nanus-bundle/src/agent_loop.rs",
+              "qualified_name": "RunOutcome::reason",
+              "start_line": 56
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 271,
+              "id": "sym:crates/nanus-bundle/src/agent_loop.rs#field:AgentRunner::approval",
+              "kind": "field",
+              "name": "approval",
+              "path": "crates/nanus-bundle/src/agent_loop.rs",
+              "qualified_name": "AgentRunner::approval",
+              "start_line": 271
+            }
+          },
+          {
+            "impact": {
+              "direct_callers": 1,
+              "total_callers": 1
+            },
+            "node": {
+              "end_line": 348,
+              "id": "sym:crates/nanus-bundle/src/agent_loop.rs#method:AgentRunner::approval",
+              "kind": "method",
+              "name": "approval",
+              "path": "crates/nanus-bundle/src/agent_loop.rs",
+              "qualified_name": "AgentRunner::approval",
+              "start_line": 346
+            }
+          },
+          {
+            "impact": {
+              "direct_callers": 0,
+              "total_callers": 0
+            },
+            "node": {
+              "end_line": 126,
+              "id": "sym:crates/nanus-bundle/src/tests_support.rs#method:UnusedShell::sandbox",
+              "kind": "method",
+              "name": "sandbox",
+              "path": "crates/nanus-bundle/src/tests_support.rs",
+              "qualified_name": "UnusedShell::sandbox",
+              "start_line": 124
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 84,
+              "id": "sym:crates/nanus-cli/src/cli.rs#field:Args::approval",
+              "kind": "field",
+              "name": "approval",
+              "path": "crates/nanus-cli/src/cli.rs",
+              "qualified_name": "Args::approval",
+              "start_line": 84
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 591,
+              "id": "sym:crates/nanus-cli/src/cli.rs#field:Options::approval",
+              "kind": "field",
+              "name": "approval",
+              "path": "crates/nanus-cli/src/cli.rs",
+              "qualified_name": "Options::approval",
+              "start_line": 591
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 320,
+              "id": "sym:crates/nanus-domain/src/approval.rs#field:ApprovalRequest::reason",
+              "kind": "field",
+              "name": "reason",
+              "path": "crates/nanus-domain/src/approval.rs",
+              "qualified_name": "ApprovalRequest::reason",
+              "start_line": 320
+            }
+          }
+        ],
+        "stats": {
+          "candidates": 298,
+          "elapsed_ms": 292,
+          "files_scanned": 184,
+          "matches": 0
+        },
+        "truncations": [
+          {
+            "cap": 8,
+            "dropped": true,
+            "kind": "results",
+            "message": "matching nodes exceeded the result cap"
+          }
+        ]
+      }
+    },
+    {
+      "elapsed_us": 302174,
+      "request": {
+        "category": "natural_or_split",
+        "expected_path": "crates/nanus-bundle/src/agent_loop.rs",
+        "mode": "explore",
+        "query": "How is the step budget added to the prompt?"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 0,
+          "unresolved": 0
+        },
+        "edges": [],
+        "items": [
+          {
+            "impact": {
+              "direct_callers": 0,
+              "total_callers": 0
+            },
+            "node": {
+              "end_line": 503,
+              "id": "sym:crates/nanus-domain/src/agent.rs#function:tests::the_step_budget_closes_a_runaway_turn",
+              "kind": "function",
+              "name": "the_step_budget_closes_a_runaway_turn",
+              "path": "crates/nanus-domain/src/agent.rs",
+              "qualified_name": "tests::the_step_budget_closes_a_runaway_turn",
+              "start_line": 482
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 55,
+              "id": "sym:crates/nanus-domain/src/context.rs#field:Elision::budget",
+              "kind": "field",
+              "name": "budget",
+              "path": "crates/nanus-domain/src/context.rs",
+              "qualified_name": "Elision::budget",
+              "start_line": 55
+            }
+          },
+          {
+            "impact": {
+              "direct_callers": 2,
+              "total_callers": 2
+            },
+            "node": {
+              "end_line": 70,
+              "id": "sym:crates/nanus-kernel/src/event.rs#method:Next::step",
+              "kind": "method",
+              "name": "step",
+              "path": "crates/nanus-kernel/src/event.rs",
+              "qualified_name": "Next::step",
+              "start_line": 65
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 752,
+              "id": "sym:crates/nanus-kernel/tests/composition.rs#field:StepPayload::step",
+              "kind": "field",
+              "name": "step",
+              "path": "crates/nanus-kernel/tests/composition.rs",
+              "qualified_name": "StepPayload::step",
+              "start_line": 752
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 755,
+              "id": "sym:crates/nanus-kernel/tests/composition.rs#const:STEP",
+              "kind": "const",
+              "name": "STEP",
+              "path": "crates/nanus-kernel/tests/composition.rs",
+              "qualified_name": "STEP",
+              "start_line": 755
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 290,
+              "id": "sym:crates/nanus-link/src/protocol.rs#variant:Frame::Step",
+              "kind": "variant",
+              "name": "Step",
+              "path": "crates/nanus-link/src/protocol.rs",
+              "qualified_name": "Frame::Step",
+              "start_line": 287
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 122,
+              "id": "sym:crates/nanus-link/tests/link.rs#field:MeteredLlm::step",
+              "kind": "field",
+              "name": "step",
+              "path": "crates/nanus-link/tests/link.rs",
+              "qualified_name": "MeteredLlm::step",
+              "start_line": 122
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 212,
+              "id": "sym:crates/nanus-link/tests/link.rs#field:OneToolLlm::step",
+              "kind": "field",
+              "name": "step",
+              "path": "crates/nanus-link/tests/link.rs",
+              "qualified_name": "OneToolLlm::step",
+              "start_line": 212
+            }
+          }
+        ],
+        "stats": {
+          "candidates": 715,
+          "elapsed_ms": 301,
+          "files_scanned": 184,
+          "matches": 0
+        },
+        "truncations": [
+          {
+            "cap": 8,
+            "dropped": true,
+            "kind": "results",
+            "message": "matching nodes exceeded the result cap"
+          }
+        ]
+      }
+    },
+    {
+      "elapsed_us": 280891,
+      "request": {
+        "category": "exact",
+        "expected_path": "crates/nanus-bundle/src/agent_loop.rs",
+        "mode": "explore",
+        "query": "AgentRunner::run_turn"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 0,
+          "unresolved": 0
+        },
+        "edges": [],
+        "items": [
+          {
+            "impact": {
+              "direct_callers": 0,
+              "total_callers": 0
+            },
+            "node": {
+              "end_line": 535,
+              "id": "sym:crates/nanus-bundle/src/agent_loop.rs#method:AgentRunner::run_turn",
+              "kind": "method",
+              "name": "run_turn",
+              "path": "crates/nanus-bundle/src/agent_loop.rs",
+              "qualified_name": "AgentRunner::run_turn",
+              "start_line": 447
+            }
+          }
+        ],
+        "stats": {
+          "candidates": 1,
+          "elapsed_ms": 280,
+          "files_scanned": 184,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 290644,
+      "request": {
+        "category": "natural_or_split",
+        "expected_path": "crates/nanus-bundle/src/agent_loop.rs",
+        "mode": "explore",
+        "query": "run_turn()"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 0,
+          "unresolved": 0
+        },
+        "edges": [],
+        "items": [
+          {
+            "impact": {
+              "direct_callers": 0,
+              "total_callers": 0
+            },
+            "node": {
+              "end_line": 535,
+              "id": "sym:crates/nanus-bundle/src/agent_loop.rs#method:AgentRunner::run_turn",
+              "kind": "method",
+              "name": "run_turn",
+              "path": "crates/nanus-bundle/src/agent_loop.rs",
+              "qualified_name": "AgentRunner::run_turn",
+              "start_line": 447
+            }
+          },
+          {
+            "impact": {
+              "direct_callers": 1,
+              "total_callers": 1
+            },
+            "node": {
+              "end_line": 924,
+              "id": "sym:crates/nanus-cli/src/cli.rs#function:run_turn",
+              "kind": "function",
+              "name": "run_turn",
+              "path": "crates/nanus-cli/src/cli.rs",
+              "qualified_name": "run_turn",
+              "start_line": 842
+            }
+          },
+          {
+            "impact": {
+              "direct_callers": 1,
+              "total_callers": 1
+            },
+            "node": {
+              "end_line": 1020,
+              "id": "sym:crates/nanus-link/src/server.rs#function:run_turn",
+              "kind": "function",
+              "name": "run_turn",
+              "path": "crates/nanus-link/src/server.rs",
+              "qualified_name": "run_turn",
+              "start_line": 954
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 395,
+              "id": "file:AGENTS.md",
+              "kind": "file",
+              "name": "AGENTS.md",
+              "path": "AGENTS.md",
+              "qualified_name": "AGENTS.md",
+              "start_line": 395
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 447,
+              "id": "file:crates/nanus-bundle/src/agent_loop.rs",
+              "kind": "file",
+              "name": "crates/nanus-bundle/src/agent_loop.rs",
+              "path": "crates/nanus-bundle/src/agent_loop.rs",
+              "qualified_name": "crates/nanus-bundle/src/agent_loop.rs",
+              "start_line": 447
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 158,
+              "id": "file:crates/nanus-bundle/tests/end_to_end.rs",
+              "kind": "file",
+              "name": "crates/nanus-bundle/tests/end_to_end.rs",
+              "path": "crates/nanus-bundle/tests/end_to_end.rs",
+              "qualified_name": "crates/nanus-bundle/tests/end_to_end.rs",
+              "start_line": 158
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 260,
+              "id": "file:crates/nanus-bundle/tests/live_wire.rs",
+              "kind": "file",
+              "name": "crates/nanus-bundle/tests/live_wire.rs",
+              "path": "crates/nanus-bundle/tests/live_wire.rs",
+              "qualified_name": "crates/nanus-bundle/tests/live_wire.rs",
+              "start_line": 260
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 545,
+              "id": "file:crates/nanus-cli/src/cli.rs",
+              "kind": "file",
+              "name": "crates/nanus-cli/src/cli.rs",
+              "path": "crates/nanus-cli/src/cli.rs",
+              "qualified_name": "crates/nanus-cli/src/cli.rs",
+              "start_line": 545
+            }
+          }
+        ],
+        "stats": {
+          "candidates": 9,
+          "elapsed_ms": 290,
+          "files_scanned": 184,
+          "matches": 0
+        },
+        "truncations": [
+          {
+            "cap": 8,
+            "dropped": true,
+            "kind": "results",
+            "message": "matching nodes exceeded the result cap"
+          }
+        ]
+      }
+    },
+    {
+      "elapsed_us": 295055,
+      "request": {
+        "category": "natural_or_split",
+        "expected_path": "crates/nanus-bundle/src/agent_loop.rs",
+        "mode": "explore",
+        "query": "last assistant text"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 0,
+          "unresolved": 0
+        },
+        "edges": [],
+        "items": [
+          {
+            "impact": {
+              "direct_callers": 0,
+              "total_callers": 0
+            },
+            "node": {
+              "end_line": 85,
+              "id": "sym:crates/nanus-bundle/src/agent_loop.rs#function:Progress::text",
+              "kind": "function",
+              "name": "text",
+              "path": "crates/nanus-bundle/src/agent_loop.rs",
+              "qualified_name": "Progress::text",
+              "start_line": 85
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 937,
+              "id": "sym:crates/nanus-bundle/src/agent_loop.rs#field:Assembled::text",
+              "kind": "field",
+              "name": "text",
+              "path": "crates/nanus-bundle/src/agent_loop.rs",
+              "qualified_name": "Assembled::text",
+              "start_line": 937
+            }
+          },
+          {
+            "impact": {
+              "direct_callers": 0,
+              "total_callers": 0
+            },
+            "node": {
+              "end_line": 1248,
+              "id": "sym:crates/nanus-bundle/src/agent_loop.rs#function:StopAfterFirstWord::text",
+              "kind": "function",
+              "name": "text",
+              "path": "crates/nanus-bundle/src/agent_loop.rs",
+              "qualified_name": "StopAfterFirstWord::text",
+              "start_line": 1246
+            }
+          },
+          {
+            "impact": {
+              "direct_callers": 0,
+              "total_callers": 0
+            },
+            "node": {
+              "end_line": 1282,
+              "id": "sym:crates/nanus-bundle/src/agent_loop.rs#function:Recorder::text",
+              "kind": "function",
+              "name": "text",
+              "path": "crates/nanus-bundle/src/agent_loop.rs",
+              "qualified_name": "Recorder::text",
+              "start_line": 1280
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 173,
+              "id": "sym:crates/nanus-bundle/src/tools/read.rs#field:Window::text",
+              "kind": "field",
+              "name": "text",
+              "path": "crates/nanus-bundle/src/tools/read.rs",
+              "qualified_name": "Window::text",
+              "start_line": 173
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 643,
+              "id": "sym:crates/nanus-bundle/tests/end_to_end.rs#field:progress_reports_every_step_and_tool::Recorder::text",
+              "kind": "field",
+              "name": "text",
+              "path": "crates/nanus-bundle/tests/end_to_end.rs",
+              "qualified_name": "progress_reports_every_step_and_tool::Recorder::text",
+              "start_line": 643
+            }
+          },
+          {
+            "impact": {
+              "direct_callers": 0,
+              "total_callers": 0
+            },
+            "node": {
+              "end_line": 649,
+              "id": "sym:crates/nanus-bundle/tests/end_to_end.rs#function:Recorder::text",
+              "kind": "function",
+              "name": "text",
+              "path": "crates/nanus-bundle/tests/end_to_end.rs",
+              "qualified_name": "Recorder::text",
+              "start_line": 647
+            }
+          },
+          {
+            "impact": {
+              "direct_callers": 0,
+              "total_callers": 0
+            },
+            "node": {
+              "end_line": 86,
+              "id": "sym:crates/nanus-cli/src/progress.rs#method:StderrProgress::text",
+              "kind": "method",
+              "name": "text",
+              "path": "crates/nanus-cli/src/progress.rs",
+              "qualified_name": "StderrProgress::text",
+              "start_line": 83
+            }
+          }
+        ],
+        "stats": {
+          "candidates": 316,
+          "elapsed_ms": 294,
+          "files_scanned": 184,
+          "matches": 0
+        },
+        "truncations": [
+          {
+            "cap": 8,
+            "dropped": true,
+            "kind": "results",
+            "message": "matching nodes exceeded the result cap"
+          }
+        ]
+      }
+    },
+    {
+      "elapsed_us": 282496,
+      "request": {
+        "category": "exact",
+        "expected_path": "crates/nanus-bundle/src/agent_loop.rs",
+        "mode": "explore",
+        "query": "with_step_budget"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 0,
+          "unresolved": 0
+        },
+        "edges": [],
+        "items": [
+          {
+            "impact": {
+              "direct_callers": 3,
+              "total_callers": 3
+            },
+            "node": {
+              "end_line": 245,
+              "id": "sym:crates/nanus-bundle/src/agent_loop.rs#function:with_step_budget",
+              "kind": "function",
+              "name": "with_step_budget",
+              "path": "crates/nanus-bundle/src/agent_loop.rs",
+              "qualified_name": "with_step_budget",
+              "start_line": 238
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 238,
+              "id": "file:crates/nanus-bundle/src/agent_loop.rs",
+              "kind": "file",
+              "name": "crates/nanus-bundle/src/agent_loop.rs",
+              "path": "crates/nanus-bundle/src/agent_loop.rs",
+              "qualified_name": "crates/nanus-bundle/src/agent_loop.rs",
+              "start_line": 238
+            }
+          }
+        ],
+        "stats": {
+          "candidates": 2,
+          "elapsed_ms": 282,
+          "files_scanned": 184,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 145837,
+      "request": {
+        "mode": "symbol",
+        "query": "render_content"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 0,
+          "unresolved": 0
+        },
+        "edges": [],
+        "nodes": [
+          {
+            "end_line": 898,
+            "id": "sym:crates/nanus-bundle/src/agent_loop.rs#function:render_content",
+            "kind": "function",
+            "name": "render_content",
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "qualified_name": "render_content",
+            "start_line": 877
+          }
+        ],
+        "stats": {
+          "candidates": 1,
+          "elapsed_ms": 145,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 146172,
+      "request": {
+        "mode": "callers",
+        "query": "render_content"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 2,
+          "unresolved": 0
+        },
+        "edges": [
+          {
+            "from": "sym:crates/nanus-bundle/src/agent_loop.rs#function:tests::content_rendering_names_images_rather_than_inlining_them",
+            "kind": "calls",
+            "line": 1964,
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "resolved": true,
+            "to": "sym:crates/nanus-bundle/src/agent_loop.rs#function:render_content",
+            "to_name": "render_content"
+          },
+          {
+            "from": "sym:crates/nanus-bundle/src/agent_loop.rs#method:AgentRunner::run_tools",
+            "kind": "calls",
+            "line": 783,
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "resolved": true,
+            "to": "sym:crates/nanus-bundle/src/agent_loop.rs#function:render_content",
+            "to_name": "render_content"
+          }
+        ],
+        "nodes": [
+          {
+            "end_line": 796,
+            "id": "sym:crates/nanus-bundle/src/agent_loop.rs#method:AgentRunner::run_tools",
+            "kind": "method",
+            "name": "run_tools",
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "qualified_name": "AgentRunner::run_tools",
+            "start_line": 721
+          },
+          {
+            "end_line": 898,
+            "id": "sym:crates/nanus-bundle/src/agent_loop.rs#function:render_content",
+            "kind": "function",
+            "name": "render_content",
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "qualified_name": "render_content",
+            "start_line": 877
+          },
+          {
+            "end_line": 1970,
+            "id": "sym:crates/nanus-bundle/src/agent_loop.rs#function:tests::content_rendering_names_images_rather_than_inlining_them",
+            "kind": "function",
+            "name": "content_rendering_names_images_rather_than_inlining_them",
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "qualified_name": "tests::content_rendering_names_images_rather_than_inlining_them",
+            "start_line": 1956
+          }
+        ],
+        "stats": {
+          "candidates": 3,
+          "elapsed_ms": 146,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 145490,
+      "request": {
+        "mode": "callees",
+        "query": "render_content"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 0,
+          "unresolved": 5
+        },
+        "edges": [
+          {
+            "from": "sym:crates/nanus-bundle/src/agent_loop.rs#function:render_content",
+            "kind": "calls",
+            "line": 878,
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "resolved": false,
+            "to": null,
+            "to_name": "String::new"
+          },
+          {
+            "from": "sym:crates/nanus-bundle/src/agent_loop.rs#function:render_content",
+            "kind": "calls",
+            "line": 892,
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "resolved": false,
+            "to": null,
+            "to_name": "rendered.is_empty"
+          },
+          {
+            "from": "sym:crates/nanus-bundle/src/agent_loop.rs#function:render_content",
+            "kind": "calls",
+            "line": 884,
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "resolved": false,
+            "to": null,
+            "to_name": "rendered.push"
+          },
+          {
+            "from": "sym:crates/nanus-bundle/src/agent_loop.rs#function:render_content",
+            "kind": "calls",
+            "line": 882,
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "resolved": false,
+            "to": null,
+            "to_name": "rendered.push_str"
+          },
+          {
+            "from": "sym:crates/nanus-bundle/src/agent_loop.rs#function:render_content",
+            "kind": "calls",
+            "line": 883,
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "resolved": false,
+            "to": null,
+            "to_name": "text.ends_with"
+          }
+        ],
+        "nodes": [
+          {
+            "end_line": 898,
+            "id": "sym:crates/nanus-bundle/src/agent_loop.rs#function:render_content",
+            "kind": "function",
+            "name": "render_content",
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "qualified_name": "render_content",
+            "start_line": 877
+          }
+        ],
+        "stats": {
+          "candidates": 1,
+          "elapsed_ms": 145,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 145695,
+      "request": {
+        "mode": "refs",
+        "query": "render_content"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 2,
+          "unresolved": 0
+        },
+        "edges": [
+          {
+            "from": "sym:crates/nanus-bundle/src/agent_loop.rs#function:tests::content_rendering_names_images_rather_than_inlining_them",
+            "kind": "calls",
+            "line": 1964,
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "resolved": true,
+            "to": "sym:crates/nanus-bundle/src/agent_loop.rs#function:render_content",
+            "to_name": "render_content"
+          },
+          {
+            "from": "sym:crates/nanus-bundle/src/agent_loop.rs#method:AgentRunner::run_tools",
+            "kind": "calls",
+            "line": 783,
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "resolved": true,
+            "to": "sym:crates/nanus-bundle/src/agent_loop.rs#function:render_content",
+            "to_name": "render_content"
+          }
+        ],
+        "nodes": [
+          {
+            "end_line": 796,
+            "id": "sym:crates/nanus-bundle/src/agent_loop.rs#method:AgentRunner::run_tools",
+            "kind": "method",
+            "name": "run_tools",
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "qualified_name": "AgentRunner::run_tools",
+            "start_line": 721
+          },
+          {
+            "end_line": 898,
+            "id": "sym:crates/nanus-bundle/src/agent_loop.rs#function:render_content",
+            "kind": "function",
+            "name": "render_content",
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "qualified_name": "render_content",
+            "start_line": 877
+          },
+          {
+            "end_line": 1970,
+            "id": "sym:crates/nanus-bundle/src/agent_loop.rs#function:tests::content_rendering_names_images_rather_than_inlining_them",
+            "kind": "function",
+            "name": "content_rendering_names_images_rather_than_inlining_them",
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "qualified_name": "tests::content_rendering_names_images_rather_than_inlining_them",
+            "start_line": 1956
+          }
+        ],
+        "stats": {
+          "candidates": 3,
+          "elapsed_ms": 145,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 146975,
+      "request": {
+        "mode": "impact",
+        "query": "render_content"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 2,
+          "unresolved": 0
+        },
+        "by_depth": [
+          {
+            "by_kind": {
+              "function": 1,
+              "method": 1
+            },
+            "depth": 1,
+            "total": 2
+          }
+        ],
+        "edges": [
+          {
+            "from": "sym:crates/nanus-bundle/src/agent_loop.rs#function:tests::content_rendering_names_images_rather_than_inlining_them",
+            "kind": "calls",
+            "line": 1964,
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "resolved": true,
+            "to": "sym:crates/nanus-bundle/src/agent_loop.rs#function:render_content",
+            "to_name": "render_content"
+          },
+          {
+            "from": "sym:crates/nanus-bundle/src/agent_loop.rs#method:AgentRunner::run_tools",
+            "kind": "calls",
+            "line": 783,
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "resolved": true,
+            "to": "sym:crates/nanus-bundle/src/agent_loop.rs#function:render_content",
+            "to_name": "render_content"
+          }
+        ],
+        "stats": {
+          "candidates": 2,
+          "elapsed_ms": 146,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "top": [
+          {
+            "end_line": 796,
+            "id": "sym:crates/nanus-bundle/src/agent_loop.rs#method:AgentRunner::run_tools",
+            "kind": "method",
+            "name": "run_tools",
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "qualified_name": "AgentRunner::run_tools",
+            "start_line": 721
+          },
+          {
+            "end_line": 1970,
+            "id": "sym:crates/nanus-bundle/src/agent_loop.rs#function:tests::content_rendering_names_images_rather_than_inlining_them",
+            "kind": "function",
+            "name": "content_rendering_names_images_rather_than_inlining_them",
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "qualified_name": "tests::content_rendering_names_images_rather_than_inlining_them",
+            "start_line": 1956
+          }
+        ],
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 146871,
+      "request": {
+        "mode": "symbol",
+        "query": "approval_reason"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 0,
+          "unresolved": 0
+        },
+        "edges": [],
+        "nodes": [
+          {
+            "end_line": 205,
+            "id": "sym:crates/nanus-bundle/src/agent_loop.rs#function:approval_reason",
+            "kind": "function",
+            "name": "approval_reason",
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "qualified_name": "approval_reason",
+            "start_line": 195
+          }
+        ],
+        "stats": {
+          "candidates": 1,
+          "elapsed_ms": 146,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 145585,
+      "request": {
+        "mode": "callers",
+        "query": "approval_reason"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 1,
+          "unresolved": 0
+        },
+        "edges": [
+          {
+            "from": "sym:crates/nanus-bundle/src/agent_loop.rs#method:AgentRunner::gate",
+            "kind": "calls",
+            "line": 838,
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "resolved": true,
+            "to": "sym:crates/nanus-bundle/src/agent_loop.rs#function:approval_reason",
+            "to_name": "approval_reason"
+          }
+        ],
+        "nodes": [
+          {
+            "end_line": 205,
+            "id": "sym:crates/nanus-bundle/src/agent_loop.rs#function:approval_reason",
+            "kind": "function",
+            "name": "approval_reason",
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "qualified_name": "approval_reason",
+            "start_line": 195
+          },
+          {
+            "end_line": 852,
+            "id": "sym:crates/nanus-bundle/src/agent_loop.rs#method:AgentRunner::gate",
+            "kind": "method",
+            "name": "gate",
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "qualified_name": "AgentRunner::gate",
+            "start_line": 822
+          }
+        ],
+        "stats": {
+          "candidates": 2,
+          "elapsed_ms": 145,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 146332,
+      "request": {
+        "mode": "callees",
+        "query": "approval_reason"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 0,
+          "unresolved": 0
+        },
+        "edges": [],
+        "nodes": [
+          {
+            "end_line": 205,
+            "id": "sym:crates/nanus-bundle/src/agent_loop.rs#function:approval_reason",
+            "kind": "function",
+            "name": "approval_reason",
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "qualified_name": "approval_reason",
+            "start_line": 195
+          }
+        ],
+        "stats": {
+          "candidates": 1,
+          "elapsed_ms": 146,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 146206,
+      "request": {
+        "mode": "refs",
+        "query": "approval_reason"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 1,
+          "unresolved": 0
+        },
+        "edges": [
+          {
+            "from": "sym:crates/nanus-bundle/src/agent_loop.rs#method:AgentRunner::gate",
+            "kind": "calls",
+            "line": 838,
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "resolved": true,
+            "to": "sym:crates/nanus-bundle/src/agent_loop.rs#function:approval_reason",
+            "to_name": "approval_reason"
+          }
+        ],
+        "nodes": [
+          {
+            "end_line": 205,
+            "id": "sym:crates/nanus-bundle/src/agent_loop.rs#function:approval_reason",
+            "kind": "function",
+            "name": "approval_reason",
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "qualified_name": "approval_reason",
+            "start_line": 195
+          },
+          {
+            "end_line": 852,
+            "id": "sym:crates/nanus-bundle/src/agent_loop.rs#method:AgentRunner::gate",
+            "kind": "method",
+            "name": "gate",
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "qualified_name": "AgentRunner::gate",
+            "start_line": 822
+          }
+        ],
+        "stats": {
+          "candidates": 2,
+          "elapsed_ms": 146,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 145940,
+      "request": {
+        "mode": "impact",
+        "query": "approval_reason"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 1,
+          "unresolved": 0
+        },
+        "by_depth": [
+          {
+            "by_kind": {
+              "method": 1
+            },
+            "depth": 1,
+            "total": 1
+          }
+        ],
+        "edges": [
+          {
+            "from": "sym:crates/nanus-bundle/src/agent_loop.rs#method:AgentRunner::gate",
+            "kind": "calls",
+            "line": 838,
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "resolved": true,
+            "to": "sym:crates/nanus-bundle/src/agent_loop.rs#function:approval_reason",
+            "to_name": "approval_reason"
+          }
+        ],
+        "stats": {
+          "candidates": 1,
+          "elapsed_ms": 145,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "top": [
+          {
+            "end_line": 852,
+            "id": "sym:crates/nanus-bundle/src/agent_loop.rs#method:AgentRunner::gate",
+            "kind": "method",
+            "name": "gate",
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "qualified_name": "AgentRunner::gate",
+            "start_line": 822
+          }
+        ],
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 144849,
+      "request": {
+        "mode": "symbol",
+        "query": "AgentRunner::run_turn"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 0,
+          "unresolved": 0
+        },
+        "edges": [],
+        "nodes": [
+          {
+            "end_line": 535,
+            "id": "sym:crates/nanus-bundle/src/agent_loop.rs#method:AgentRunner::run_turn",
+            "kind": "method",
+            "name": "run_turn",
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "qualified_name": "AgentRunner::run_turn",
+            "start_line": 447
+          }
+        ],
+        "stats": {
+          "candidates": 1,
+          "elapsed_ms": 144,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 146326,
+      "request": {
+        "mode": "callers",
+        "query": "AgentRunner::run_turn"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 0,
+          "unresolved": 0
+        },
+        "edges": [],
+        "nodes": [
+          {
+            "end_line": 535,
+            "id": "sym:crates/nanus-bundle/src/agent_loop.rs#method:AgentRunner::run_turn",
+            "kind": "method",
+            "name": "run_turn",
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "qualified_name": "AgentRunner::run_turn",
+            "start_line": 447
+          }
+        ],
+        "stats": {
+          "candidates": 1,
+          "elapsed_ms": 146,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 146573,
+      "request": {
+        "mode": "callees",
+        "query": "AgentRunner::run_turn"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 3,
+          "unresolved": 27
+        },
+        "edges": [
+          {
+            "from": "sym:crates/nanus-bundle/src/agent_loop.rs#method:AgentRunner::run_turn",
+            "kind": "calls",
+            "line": 455,
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "resolved": false,
+            "to": null,
+            "to_name": "BundleError::Config"
+          },
+          {
+            "from": "sym:crates/nanus-bundle/src/agent_loop.rs#method:AgentRunner::run_turn",
+            "kind": "calls",
+            "line": 499,
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "resolved": false,
+            "to": null,
+            "to_name": "Err"
+          },
+          {
+            "from": "sym:crates/nanus-bundle/src/agent_loop.rs#method:AgentRunner::run_turn",
+            "kind": "calls",
+            "line": 534,
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "resolved": false,
+            "to": null,
+            "to_name": "Ok"
+          },
+          {
+            "from": "sym:crates/nanus-bundle/src/agent_loop.rs#method:AgentRunner::run_turn",
+            "kind": "calls",
+            "line": 462,
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "resolved": false,
+            "to": null,
+            "to_name": "String::new"
+          },
+          {
+            "from": "sym:crates/nanus-bundle/src/agent_loop.rs#method:AgentRunner::run_turn",
+            "kind": "calls",
+            "line": 454,
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "resolved": false,
+            "to": null,
+            "to_name": "TurnMachine::new(self.config.clone())\n            .map_err"
+          },
+          {
+            "from": "sym:crates/nanus-bundle/src/agent_loop.rs#method:AgentRunner::run_turn",
+            "kind": "calls",
+            "line": 516,
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "resolved": false,
+            "to": null,
+            "to_name": "answer.push_str"
+          },
+          {
+            "from": "sym:crates/nanus-bundle/src/agent_loop.rs#method:AgentRunner::run_turn",
+            "kind": "calls",
+            "line": 506,
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "resolved": false,
+            "to": null,
+            "to_name": "decision.turn_end_reason"
+          },
+          {
+            "from": "sym:crates/nanus-bundle/src/agent_loop.rs#method:AgentRunner::run_turn",
+            "kind": "calls",
+            "line": 455,
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "resolved": false,
+            "to": null,
+            "to_name": "error.to_string"
+          },
+          {
+            "from": "sym:crates/nanus-bundle/src/agent_loop.rs#method:AgentRunner::run_turn",
+            "kind": "calls",
+            "line": 484,
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "resolved": false,
+            "to": null,
+            "to_name": "machine\n                            .decide"
+          },
+          {
+            "from": "sym:crates/nanus-bundle/src/agent_loop.rs#method:AgentRunner::run_turn",
+            "kind": "calls",
+            "line": 484,
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "resolved": false,
+            "to": null,
+            "to_name": "machine\n                            .decide(\n                                session.log(),\n                                &StepOutcome::Error {\n                                    message: error.to_string(),\n                                },\n                            )\n                            .turn_end_reason"
+          },
+          {
+            "from": "sym:crates/nanus-bundle/src/agent_loop.rs#method:AgentRunner::run_turn",
+            "kind": "calls",
+            "line": 503,
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "resolved": false,
+            "to": null,
+            "to_name": "machine.decide"
+          },
+          {
+            "from": "sym:crates/nanus-bundle/src/agent_loop.rs#method:AgentRunner::run_turn",
+            "kind": "calls",
+            "line": 459,
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "resolved": false,
+            "to": null,
+            "to_name": "message.to_owned"
+          },
+          {
+            "from": "sym:crates/nanus-bundle/src/agent_loop.rs#method:AgentRunner::run_turn",
+            "kind": "calls",
+            "line": 469,
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "resolved": false,
+            "to": null,
+            "to_name": "progress.cancelled"
+          },
+          {
+            "from": "sym:crates/nanus-bundle/src/agent_loop.rs#method:AgentRunner::run_turn",
+            "kind": "calls",
+            "line": 474,
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "resolved": false,
+            "to": null,
+            "to_name": "progress.step_started"
+          },
+          {
+            "from": "sym:crates/nanus-bundle/src/agent_loop.rs#method:AgentRunner::run_turn",
+            "kind": "calls",
+            "line": 454,
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "resolved": false,
+            "to": null,
+            "to_name": "self.config.clone"
+          },
+          {
+            "from": "sym:crates/nanus-bundle/src/agent_loop.rs#method:AgentRunner::run_turn",
+            "kind": "calls",
+            "line": 520,
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "resolved": false,
+            "to": null,
+            "to_name": "session\n                .log"
+          },
+          {
+            "from": "sym:crates/nanus-bundle/src/agent_loop.rs#method:AgentRunner::run_turn",
+            "kind": "calls",
+            "line": 520,
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "resolved": false,
+            "to": null,
+            "to_name": "session\n                .log()\n                .last_turn_end"
+          },
+          {
+            "from": "sym:crates/nanus-bundle/src/agent_loop.rs#method:AgentRunner::run_turn",
+            "kind": "calls",
+            "line": 520,
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "resolved": false,
+            "to": null,
+            "to_name": "session\n                .log()\n                .last_turn_end()\n                .cloned"
+          },
+          {
+            "from": "sym:crates/nanus-bundle/src/agent_loop.rs#method:AgentRunner::run_turn",
+            "kind": "calls",
+            "line": 520,
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "resolved": false,
+            "to": null,
+            "to_name": "session\n                .log()\n                .last_turn_end()\n                .cloned()\n                .unwrap_or"
+          },
+          {
+            "from": "sym:crates/nanus-bundle/src/agent_loop.rs#method:AgentRunner::run_turn",
+            "kind": "calls",
+            "line": 457,
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "resolved": false,
+            "to": null,
+            "to_name": "session.append"
+          },
+          {
+            "from": "sym:crates/nanus-bundle/src/agent_loop.rs#method:AgentRunner::run_turn",
+            "kind": "calls",
+            "line": 518,
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "resolved": false,
+            "to": null,
+            "to_name": "session.id"
+          },
+          {
+            "from": "sym:crates/nanus-bundle/src/agent_loop.rs#method:AgentRunner::run_turn",
+            "kind": "calls",
+            "line": 518,
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "resolved": false,
+            "to": null,
+            "to_name": "session.id().clone"
+          },
+          {
+            "from": "sym:crates/nanus-bundle/src/agent_loop.rs#method:AgentRunner::run_turn",
+            "kind": "calls",
+            "line": 456,
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "resolved": false,
+            "to": null,
+            "to_name": "session.log"
+          },
+          {
+            "from": "sym:crates/nanus-bundle/src/agent_loop.rs#method:AgentRunner::run_turn",
+            "kind": "calls",
+            "line": 456,
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "resolved": false,
+            "to": null,
+            "to_name": "session.log().current_turn"
+          },
+          {
+            "from": "sym:crates/nanus-bundle/src/agent_loop.rs#method:AgentRunner::run_turn",
+            "kind": "calls",
+            "line": 456,
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "resolved": false,
+            "to": null,
+            "to_name": "session.log().current_turn().saturating_add"
+          },
+          {
+            "from": "sym:crates/nanus-bundle/src/agent_loop.rs#method:AgentRunner::run_turn",
+            "kind": "calls",
+            "line": 526,
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "resolved": false,
+            "to": null,
+            "to_name": "session.usage_totals"
+          },
+          {
+            "from": "sym:crates/nanus-bundle/src/agent_loop.rs#method:AgentRunner::run_turn",
+            "kind": "calls",
+            "line": 472,
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "resolved": false,
+            "to": null,
+            "to_name": "steps.saturating_add"
+          },
+          {
+            "from": "sym:crates/nanus-bundle/src/agent_loop.rs#method:AgentRunner::run_turn",
+            "kind": "calls",
+            "line": 516,
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "resolved": true,
+            "to": "sym:crates/nanus-bundle/src/agent_loop.rs#function:last_assistant_text",
+            "to_name": "last_assistant_text"
+          },
+          {
+            "from": "sym:crates/nanus-bundle/src/agent_loop.rs#method:AgentRunner::run_turn",
+            "kind": "calls",
+            "line": 475,
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "resolved": true,
+            "to": "sym:crates/nanus-bundle/src/agent_loop.rs#method:AgentRunner::run_step",
+            "to_name": "AgentRunner::run_step"
+          },
+          {
+            "from": "sym:crates/nanus-bundle/src/agent_loop.rs#method:AgentRunner::run_turn",
+            "kind": "calls",
+            "line": 454,
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "resolved": true,
+            "to": "sym:crates/nanus-domain/src/agent.rs#method:TurnMachine::new",
+            "to_name": "TurnMachine::new"
+          }
+        ],
+        "nodes": [
+          {
+            "end_line": 535,
+            "id": "sym:crates/nanus-bundle/src/agent_loop.rs#method:AgentRunner::run_turn",
+            "kind": "method",
+            "name": "run_turn",
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "qualified_name": "AgentRunner::run_turn",
+            "start_line": 447
+          },
+          {
+            "end_line": 603,
+            "id": "sym:crates/nanus-bundle/src/agent_loop.rs#method:AgentRunner::run_step",
+            "kind": "method",
+            "name": "run_step",
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "qualified_name": "AgentRunner::run_step",
+            "start_line": 538
+          },
+          {
+            "end_line": 926,
+            "id": "sym:crates/nanus-bundle/src/agent_loop.rs#function:last_assistant_text",
+            "kind": "function",
+            "name": "last_assistant_text",
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "qualified_name": "last_assistant_text",
+            "start_line": 913
+          },
+          {
+            "end_line": 328,
+            "id": "sym:crates/nanus-domain/src/agent.rs#method:TurnMachine::new",
+            "kind": "method",
+            "name": "new",
+            "path": "crates/nanus-domain/src/agent.rs",
+            "qualified_name": "TurnMachine::new",
+            "start_line": 325
+          }
+        ],
+        "stats": {
+          "candidates": 4,
+          "elapsed_ms": 146,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 145576,
+      "request": {
+        "mode": "refs",
+        "query": "AgentRunner::run_turn"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 0,
+          "unresolved": 0
+        },
+        "edges": [],
+        "nodes": [
+          {
+            "end_line": 535,
+            "id": "sym:crates/nanus-bundle/src/agent_loop.rs#method:AgentRunner::run_turn",
+            "kind": "method",
+            "name": "run_turn",
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "qualified_name": "AgentRunner::run_turn",
+            "start_line": 447
+          }
+        ],
+        "stats": {
+          "candidates": 1,
+          "elapsed_ms": 145,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 146157,
+      "request": {
+        "mode": "impact",
+        "query": "AgentRunner::run_turn"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 0,
+          "unresolved": 0
+        },
+        "by_depth": [
+          {
+            "by_kind": {},
+            "depth": 1,
+            "total": 0
+          }
+        ],
+        "edges": [],
+        "stats": {
+          "candidates": 0,
+          "elapsed_ms": 146,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "top": [],
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 145488,
+      "request": {
+        "mode": "symbol",
+        "query": "with_step_budget"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 0,
+          "unresolved": 0
+        },
+        "edges": [],
+        "nodes": [
+          {
+            "end_line": 245,
+            "id": "sym:crates/nanus-bundle/src/agent_loop.rs#function:with_step_budget",
+            "kind": "function",
+            "name": "with_step_budget",
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "qualified_name": "with_step_budget",
+            "start_line": 238
+          }
+        ],
+        "stats": {
+          "candidates": 1,
+          "elapsed_ms": 145,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 145812,
+      "request": {
+        "mode": "callers",
+        "query": "with_step_budget"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 3,
+          "unresolved": 0
+        },
+        "edges": [
+          {
+            "from": "sym:crates/nanus-bundle/src/agent_loop.rs#function:tests::a_prompt_that_only_fits_without_the_budget_sentence_is_refused",
+            "kind": "calls",
+            "line": 1188,
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "resolved": true,
+            "to": "sym:crates/nanus-bundle/src/agent_loop.rs#function:with_step_budget",
+            "to_name": "with_step_budget"
+          },
+          {
+            "from": "sym:crates/nanus-bundle/src/agent_loop.rs#function:tests::the_system_prompt_states_the_budget_it_will_be_held_to",
+            "kind": "calls",
+            "line": 1163,
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "resolved": true,
+            "to": "sym:crates/nanus-bundle/src/agent_loop.rs#function:with_step_budget",
+            "to_name": "with_step_budget"
+          },
+          {
+            "from": "sym:crates/nanus-bundle/src/agent_loop.rs#method:AgentRunner::new",
+            "kind": "calls",
+            "line": 321,
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "resolved": true,
+            "to": "sym:crates/nanus-bundle/src/agent_loop.rs#function:with_step_budget",
+            "to_name": "with_step_budget"
+          }
+        ],
+        "nodes": [
+          {
+            "end_line": 245,
+            "id": "sym:crates/nanus-bundle/src/agent_loop.rs#function:with_step_budget",
+            "kind": "function",
+            "name": "with_step_budget",
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "qualified_name": "with_step_budget",
+            "start_line": 238
+          },
+          {
+            "end_line": 336,
+            "id": "sym:crates/nanus-bundle/src/agent_loop.rs#method:AgentRunner::new",
+            "kind": "method",
+            "name": "new",
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "qualified_name": "AgentRunner::new",
+            "start_line": 307
+          },
+          {
+            "end_line": 1179,
+            "id": "sym:crates/nanus-bundle/src/agent_loop.rs#function:tests::the_system_prompt_states_the_budget_it_will_be_held_to",
+            "kind": "function",
+            "name": "the_system_prompt_states_the_budget_it_will_be_held_to",
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "qualified_name": "tests::the_system_prompt_states_the_budget_it_will_be_held_to",
+            "start_line": 1162
+          },
+          {
+            "end_line": 1208,
+            "id": "sym:crates/nanus-bundle/src/agent_loop.rs#function:tests::a_prompt_that_only_fits_without_the_budget_sentence_is_refused",
+            "kind": "function",
+            "name": "a_prompt_that_only_fits_without_the_budget_sentence_is_refused",
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "qualified_name": "tests::a_prompt_that_only_fits_without_the_budget_sentence_is_refused",
+            "start_line": 1187
+          }
+        ],
+        "stats": {
+          "candidates": 4,
+          "elapsed_ms": 145,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 145771,
+      "request": {
+        "mode": "callees",
+        "query": "with_step_budget"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 0,
+          "unresolved": 0
+        },
+        "edges": [],
+        "nodes": [
+          {
+            "end_line": 245,
+            "id": "sym:crates/nanus-bundle/src/agent_loop.rs#function:with_step_budget",
+            "kind": "function",
+            "name": "with_step_budget",
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "qualified_name": "with_step_budget",
+            "start_line": 238
+          }
+        ],
+        "stats": {
+          "candidates": 1,
+          "elapsed_ms": 145,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 151167,
+      "request": {
+        "mode": "refs",
+        "query": "with_step_budget"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 3,
+          "unresolved": 0
+        },
+        "edges": [
+          {
+            "from": "sym:crates/nanus-bundle/src/agent_loop.rs#function:tests::a_prompt_that_only_fits_without_the_budget_sentence_is_refused",
+            "kind": "calls",
+            "line": 1188,
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "resolved": true,
+            "to": "sym:crates/nanus-bundle/src/agent_loop.rs#function:with_step_budget",
+            "to_name": "with_step_budget"
+          },
+          {
+            "from": "sym:crates/nanus-bundle/src/agent_loop.rs#function:tests::the_system_prompt_states_the_budget_it_will_be_held_to",
+            "kind": "calls",
+            "line": 1163,
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "resolved": true,
+            "to": "sym:crates/nanus-bundle/src/agent_loop.rs#function:with_step_budget",
+            "to_name": "with_step_budget"
+          },
+          {
+            "from": "sym:crates/nanus-bundle/src/agent_loop.rs#method:AgentRunner::new",
+            "kind": "calls",
+            "line": 321,
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "resolved": true,
+            "to": "sym:crates/nanus-bundle/src/agent_loop.rs#function:with_step_budget",
+            "to_name": "with_step_budget"
+          }
+        ],
+        "nodes": [
+          {
+            "end_line": 245,
+            "id": "sym:crates/nanus-bundle/src/agent_loop.rs#function:with_step_budget",
+            "kind": "function",
+            "name": "with_step_budget",
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "qualified_name": "with_step_budget",
+            "start_line": 238
+          },
+          {
+            "end_line": 336,
+            "id": "sym:crates/nanus-bundle/src/agent_loop.rs#method:AgentRunner::new",
+            "kind": "method",
+            "name": "new",
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "qualified_name": "AgentRunner::new",
+            "start_line": 307
+          },
+          {
+            "end_line": 1179,
+            "id": "sym:crates/nanus-bundle/src/agent_loop.rs#function:tests::the_system_prompt_states_the_budget_it_will_be_held_to",
+            "kind": "function",
+            "name": "the_system_prompt_states_the_budget_it_will_be_held_to",
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "qualified_name": "tests::the_system_prompt_states_the_budget_it_will_be_held_to",
+            "start_line": 1162
+          },
+          {
+            "end_line": 1208,
+            "id": "sym:crates/nanus-bundle/src/agent_loop.rs#function:tests::a_prompt_that_only_fits_without_the_budget_sentence_is_refused",
+            "kind": "function",
+            "name": "a_prompt_that_only_fits_without_the_budget_sentence_is_refused",
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "qualified_name": "tests::a_prompt_that_only_fits_without_the_budget_sentence_is_refused",
+            "start_line": 1187
+          }
+        ],
+        "stats": {
+          "candidates": 4,
+          "elapsed_ms": 151,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 147847,
+      "request": {
+        "mode": "impact",
+        "query": "with_step_budget"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 3,
+          "unresolved": 0
+        },
+        "by_depth": [
+          {
+            "by_kind": {
+              "function": 2,
+              "method": 1
+            },
+            "depth": 1,
+            "total": 3
+          }
+        ],
+        "edges": [
+          {
+            "from": "sym:crates/nanus-bundle/src/agent_loop.rs#function:tests::a_prompt_that_only_fits_without_the_budget_sentence_is_refused",
+            "kind": "calls",
+            "line": 1188,
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "resolved": true,
+            "to": "sym:crates/nanus-bundle/src/agent_loop.rs#function:with_step_budget",
+            "to_name": "with_step_budget"
+          },
+          {
+            "from": "sym:crates/nanus-bundle/src/agent_loop.rs#function:tests::the_system_prompt_states_the_budget_it_will_be_held_to",
+            "kind": "calls",
+            "line": 1163,
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "resolved": true,
+            "to": "sym:crates/nanus-bundle/src/agent_loop.rs#function:with_step_budget",
+            "to_name": "with_step_budget"
+          },
+          {
+            "from": "sym:crates/nanus-bundle/src/agent_loop.rs#method:AgentRunner::new",
+            "kind": "calls",
+            "line": 321,
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "resolved": true,
+            "to": "sym:crates/nanus-bundle/src/agent_loop.rs#function:with_step_budget",
+            "to_name": "with_step_budget"
+          }
+        ],
+        "stats": {
+          "candidates": 3,
+          "elapsed_ms": 147,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "top": [
+          {
+            "end_line": 336,
+            "id": "sym:crates/nanus-bundle/src/agent_loop.rs#method:AgentRunner::new",
+            "kind": "method",
+            "name": "new",
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "qualified_name": "AgentRunner::new",
+            "start_line": 307
+          },
+          {
+            "end_line": 1179,
+            "id": "sym:crates/nanus-bundle/src/agent_loop.rs#function:tests::the_system_prompt_states_the_budget_it_will_be_held_to",
+            "kind": "function",
+            "name": "the_system_prompt_states_the_budget_it_will_be_held_to",
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "qualified_name": "tests::the_system_prompt_states_the_budget_it_will_be_held_to",
+            "start_line": 1162
+          },
+          {
+            "end_line": 1208,
+            "id": "sym:crates/nanus-bundle/src/agent_loop.rs#function:tests::a_prompt_that_only_fits_without_the_budget_sentence_is_refused",
+            "kind": "function",
+            "name": "a_prompt_that_only_fits_without_the_budget_sentence_is_refused",
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "qualified_name": "tests::a_prompt_that_only_fits_without_the_budget_sentence_is_refused",
+            "start_line": 1187
+          }
+        ],
+        "truncations": []
+      }
+    }
+  ]
+}

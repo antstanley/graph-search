@@ -1,0 +1,200 @@
+[
+  {
+    "repo": "nanus",
+    "path": "crates/nanus-bundle/src/agent_loop.rs",
+    "source": "AgentRunner::run_turn",
+    "target": "AgentRunner::run_step",
+    "baseline": {
+      "found": false,
+      "edges": []
+    },
+    "fixed": {
+      "found": true,
+      "edges": [
+        {
+          "source": "sym:crates/nanus-bundle/src/agent_loop.rs#method:AgentRunner::run_turn",
+          "target": "sym:crates/nanus-bundle/src/agent_loop.rs#method:AgentRunner::run_step",
+          "line": 475
+        }
+      ]
+    },
+    "source_occurrence_lines": [
+      475
+    ],
+    "source_sha256": "146198409260b6ec424020e3c9f34d144a3dcb24f0d773bdb83608209373836b"
+  },
+  {
+    "repo": "nanus",
+    "path": "crates/nanus-bundle/src/agent_loop.rs",
+    "source": "AgentRunner::run_step",
+    "target": "AgentRunner::run_tools",
+    "baseline": {
+      "found": false,
+      "edges": []
+    },
+    "fixed": {
+      "found": true,
+      "edges": [
+        {
+          "source": "sym:crates/nanus-bundle/src/agent_loop.rs#method:AgentRunner::run_step",
+          "target": "sym:crates/nanus-bundle/src/agent_loop.rs#method:AgentRunner::run_tools",
+          "line": 595
+        }
+      ]
+    },
+    "source_occurrence_lines": [
+      595
+    ],
+    "source_sha256": "146198409260b6ec424020e3c9f34d144a3dcb24f0d773bdb83608209373836b"
+  },
+  {
+    "repo": "nanus",
+    "path": "crates/nanus-bundle/src/agent_loop.rs",
+    "source": "AgentRunner::gate",
+    "target": "approval_reason",
+    "baseline": {
+      "found": true,
+      "edges": [
+        {
+          "source": "sym:crates/nanus-bundle/src/agent_loop.rs#method:AgentRunner::gate",
+          "target": "sym:crates/nanus-bundle/src/agent_loop.rs#function:approval_reason",
+          "line": 838
+        }
+      ]
+    },
+    "fixed": {
+      "found": true,
+      "edges": [
+        {
+          "source": "sym:crates/nanus-bundle/src/agent_loop.rs#method:AgentRunner::gate",
+          "target": "sym:crates/nanus-bundle/src/agent_loop.rs#function:approval_reason",
+          "line": 838
+        }
+      ]
+    },
+    "source_occurrence_lines": [
+      838
+    ],
+    "source_sha256": "146198409260b6ec424020e3c9f34d144a3dcb24f0d773bdb83608209373836b"
+  },
+  {
+    "repo": "blogwright",
+    "path": "packages/pds/src/sync.ts",
+    "source": "syncPds",
+    "target": "listPublishablePosts",
+    "baseline": {
+      "found": false,
+      "edges": []
+    },
+    "fixed": {
+      "found": true,
+      "edges": [
+        {
+          "source": "sym:packages/pds/src/sync.ts#function:syncPds",
+          "target": "sym:packages/pds/src/content.ts#function:listPublishablePosts",
+          "line": 239
+        }
+      ]
+    },
+    "source_occurrence_lines": [
+      239
+    ],
+    "source_sha256": "95b58bc129e3b6d5825008b1321942ba1742c8329093ff1154de729ef25e5dd5"
+  },
+  {
+    "repo": "blogwright",
+    "path": "packages/pds/src/sync.ts",
+    "source": "requirePdsConfig",
+    "target": "resolvePdsSecretName",
+    "baseline": {
+      "found": false,
+      "edges": []
+    },
+    "fixed": {
+      "found": true,
+      "edges": [
+        {
+          "source": "sym:packages/pds/src/sync.ts#function:requirePdsConfig",
+          "target": "sym:packages/pds/src/config.ts#function:resolvePdsSecretName",
+          "line": 69
+        }
+      ]
+    },
+    "source_occurrence_lines": [
+      69
+    ],
+    "source_sha256": "95b58bc129e3b6d5825008b1321942ba1742c8329093ff1154de729ef25e5dd5"
+  },
+  {
+    "repo": "blogwright",
+    "path": "packages/pds/src/secret.ts",
+    "source": "loadPdsSecret",
+    "target": "parsePdsSecret",
+    "baseline": {
+      "found": false,
+      "edges": []
+    },
+    "fixed": {
+      "found": true,
+      "edges": [
+        {
+          "source": "sym:packages/pds/src/secret.ts#function:loadPdsSecret",
+          "target": "sym:packages/pds/src/secret.ts#function:parsePdsSecret",
+          "line": 75
+        }
+      ]
+    },
+    "source_occurrence_lines": [
+      75
+    ],
+    "source_sha256": "da2877475f7ac10dd17e7ccb3352a4bfb7c7fda3be724b73c4fd09c31e795975"
+  },
+  {
+    "repo": "whatsurvey",
+    "path": "workspaces/backend/src/core/db/survey-versions.ts",
+    "source": "saveSurveyDraft",
+    "target": "requireSurvey",
+    "baseline": {
+      "found": false,
+      "edges": []
+    },
+    "fixed": {
+      "found": true,
+      "edges": [
+        {
+          "source": "sym:workspaces/backend/src/core/db/survey-versions.ts#function:saveSurveyDraft",
+          "target": "sym:workspaces/backend/src/core/db/survey-versions.ts#function:requireSurvey",
+          "line": 234
+        }
+      ]
+    },
+    "source_occurrence_lines": [
+      234
+    ],
+    "source_sha256": "064cce584de03438cd1496f16de0d620ebba0d6d9be07eb0ce8ac10d90ac7970"
+  },
+  {
+    "repo": "whatsurvey",
+    "path": "workspaces/backend/src/core/db/survey-versions.ts",
+    "source": "publishSurveyDraft",
+    "target": "requireSurvey",
+    "baseline": {
+      "found": false,
+      "edges": []
+    },
+    "fixed": {
+      "found": true,
+      "edges": [
+        {
+          "source": "sym:workspaces/backend/src/core/db/survey-versions.ts#function:publishSurveyDraft",
+          "target": "sym:workspaces/backend/src/core/db/survey-versions.ts#function:requireSurvey",
+          "line": 267
+        }
+      ]
+    },
+    "source_occurrence_lines": [
+      267
+    ],
+    "source_sha256": "064cce584de03438cd1496f16de0d620ebba0d6d9be07eb0ce8ac10d90ac7970"
+  }
+]

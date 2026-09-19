@@ -1,0 +1,1 @@
+<script lang="ts">function clickButton() { console.log("clicked"); }</script><button onclick={clickButton}>Go</button>

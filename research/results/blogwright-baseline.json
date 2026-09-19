@@ -1,0 +1,3207 @@
+{
+  "repo": "blogwright",
+  "revision": "8a364e3224f9cc47d59a7f270e9a762397760d79",
+  "dirty": false,
+  "file_owned_calls": 6091,
+  "nodes": 7450,
+  "files": 337,
+  "edges": 15419,
+  "edge_counts": {
+    "imports_unresolved": 2635,
+    "contains_resolved": 5025,
+    "exports_resolved": 485,
+    "calls_unresolved": 4547,
+    "type_uses_unresolved": 415,
+    "imports_resolved": 12,
+    "calls_resolved": 1544,
+    "type_uses_resolved": 747,
+    "extends_unresolved": 7,
+    "implements_unresolved": 2
+  },
+  "index_ms": 1960,
+  "quarantined": [],
+  "source_hashes": {
+    "docs/src/content.config.ts": "ee756dfba4122d2acc94a39b2555d9f200fff56a87a8c0b10f9cd01df26a8b62",
+    "docs/src/lib/markdown.ts": "e16a57f28d84eb2069123633928fe7bf1fd8555d40d395b4d55f49cb4fe49fe9",
+    "docs/src/pages/[...slug].md.ts": "659f4038734f0d033d15958678ab1424986eb0fc9d581bfd15839a7b77cdcdc2",
+    "docs/src/pages/llms.txt.ts": "8c1918a293b05d5f4ce772e9ddaf46e29cb326c00900eafdf56ca7db3ea60ff4",
+    "docs/src/styles/custom.css": "30b79f72be7cfe387defcd8c1c3b2ba9cf43c605e0158b3a158486b2fac47870",
+    "packages/analytics/app/src/app.css": "ce708d78a13cec69118f5c446d66f0158d29e867ba0e3ea1c0c4ab1a2627961c",
+    "packages/analytics/app/src/app.html": "bf7a9053f93f011285b89aef7982cac912b219b25cce8f8624b514d113ca1e32",
+    "packages/analytics/app/src/lib/api.ts": "0a36ef9f4cb6f67161628d075a867f13d3c5c42e87dc98b414c819bcfdc52804",
+    "packages/analytics/app/src/lib/country-request.test.ts": "c21e2de136d7614dc6bcec22b182a462c988fb9258fed8af67589a2b1f8b3274",
+    "packages/analytics/app/src/lib/country-search.test.ts": "fc76d0b1a05983b01b8135c01281745a92f15cb8d835fe41041795e04d07f686",
+    "packages/analytics/app/src/lib/country-search.ts": "4bfb54e90999ee6fbfd364bbce6a249217d5d99dd510cfc0461a5a165c22c872",
+    "packages/analytics/app/src/lib/format.ts": "c7622a4de033c44a7412d379e75e1757113b2542541e8befefc6ad1e58c1b11e",
+    "packages/analytics/app/src/lib/panels.ts": "7d88a9217c513d1a51fad1dff45002c430bd4b0aef47bc985702f241d9124520",
+    "packages/analytics/app/src/lib/picker-date.test.ts": "6e60e73bbf31cc5c60d36a4c161f5d52a0f065faabfce836123194e0acfd6c39",
+    "packages/analytics/app/src/lib/picker-date.ts": "debe51fe207f12a42a33dbd039aafe27f03c45c5029c456aca4a8fb54e861bda",
+    "packages/analytics/app/src/lib/traffic-series.ts": "49867727b035e8e57fc6eeaa18f8afdb3f18432d9ca7c530fc272e683e7b6e98",
+    "packages/analytics/app/src/lib/world-map.ts": "5993875f85688c421d85c3968285d70bfae31cf16561aa3698388cfcb561de85",
+    "packages/analytics/app/src/routes/+layout.ts": "e1a386843d8bd8a17087e40a4de20a4f4735ea3fe0f7d686eb5a781aaf601e95",
+    "packages/analytics/scripts/dev-dashboard.mjs": "83d5f12c1a5cfe60d2093fd5aeabfbd7b0baebec0a45c516bdd47e6ffd672f9e",
+    "packages/analytics/src/adapters/duckdb-ingest.test.ts": "12cb50753d7b7fe9151da3282ca28a2b2e17b146de0c8f3544af02081883b928",
+    "packages/analytics/src/adapters/duckdb-ingest.ts": "954d40162ec86600bbd7d672ecfd55f0b266cf37eebf17964d837c5fe9a9d9f7",
+    "packages/analytics/src/adapters/duckdb-query.test.ts": "44a84f8cc890e09e07b9fcf14440199526b1b8df4e7b61d9d721e9332fd069c4",
+    "packages/analytics/src/adapters/duckdb-query.ts": "40900cb5f7080b38e8fae8d21e8e83011c555a15decd44dbf4be010d224a9720",
+    "packages/analytics/src/adapters/duckdb-session.ts": "89e3ebfb2b040496fb853c589d38a84cfb75cd3cce1da00cf4bbc3a2bd06d0e0",
+    "packages/analytics/src/adapters/path-filter.test.ts": "ff48a122a1707b5b4874bf1e780fc9406ae0bc3c038bc8c063bd687a83a1d78e",
+    "packages/analytics/src/adapters/traffic-breakdown.test.ts": "eef9c3dd9b16b20ee05f027e6618b11a240ea22706f54657366c0cf133fc9ae7",
+    "packages/analytics/src/adapters/transform-diagnostics.ts": "7a3955b68191b6a8fafb7c58b5cd02a12ec793f3c7c9ea97f1e80cae1dac63cb",
+    "packages/analytics/src/adapters/view-granularity.test.ts": "02acadabe4795959012e3607ca6f62e7fe7840a6704eeacc886579c2aed5e343",
+    "packages/analytics/src/aws/clients.test.ts": "9e8b2e641a34effb3213ef82188741d920d679aaef4c90a0b765b706beda0141",
+    "packages/analytics/src/aws/clients.ts": "48ec5d1e5465649a378de2bca26dcb2d5427cb2829ad2da5ec401c497daca2f1",
+    "packages/analytics/src/aws/errors.ts": "0551ab66e63366f5c0ba4893da40bcd54386fd82d40660d6a9a343e92c708c1b",
+    "packages/analytics/src/aws/firehose.test.ts": "65277567d2af5d67a469eca81087df884b3ac5785139f3c4b0e796812c885f4e",
+    "packages/analytics/src/aws/firehose.ts": "2a36df8faf6d705c1932657bd902d8f8e78d8008019d34774831d6ff83ba492d",
+    "packages/analytics/src/aws/glue.test.ts": "a1697c33c44285282e63a60dcf4569b7241d1c635f27e34881838da4c984b3e8",
+    "packages/analytics/src/aws/glue.ts": "bd3a769f9710c6b1adbad377c7850164f75a12c5a3b983c535d26a4f1e583bfd",
+    "packages/analytics/src/aws/lambda.test.ts": "0e51d8c68d63894cb12613459f3bc0e0b49e928347afbe4c30f4b3e011d86694",
+    "packages/analytics/src/aws/lambda.ts": "192134aa5952cc6d9d2305e0b55d36166e2646e888f75a531ea902b9383f3966",
+    "packages/analytics/src/aws/s3tables.test.ts": "6c3521611171b5286915ef1cb31339034beb210090d3ff962902375264a3a2fb",
+    "packages/analytics/src/aws/s3tables.ts": "4ebde02c6e6daecb0ac5383ed1851270576a63fc967da2c27aa608ca7346b42d",
+    "packages/analytics/src/backfill.test.ts": "10deedb4c0350e36773c13e6fef320dbdddb0c08a1fd6731e3e65f8c5cd5fa69",
+    "packages/analytics/src/backfill.ts": "308b2e6dec57c449be9c3956f83bd8c558f4790bf23658419361dc0bbf8f8e23",
+    "packages/analytics/src/commands.test.ts": "f6e9819d14a3553ada179353aba58ce559d927a9f4db2246258cd803f3068841",
+    "packages/analytics/src/commands.ts": "4e2cae25b6c48704712d7aa15890faa460ad1452e8b49df50c451dd3e8a4faec",
+    "packages/analytics/src/config.test.ts": "cd05e2a2eb28683dff8ec4e86d5f1a3d84e03de07545573914f092c46c317dfc",
+    "packages/analytics/src/config.ts": "9a2179d59c121217cfbfbba40b3db8eaf68f49844a71cc23794a0521cc712b8e",
+    "packages/analytics/src/fixture-ingest.ts": "4922789c14593c780b8483f36be0a706f8808fa8f43c4e11d70bd8dc5c61a2cc",
+    "packages/analytics/src/fixture-query.ts": "267144ea7d0d5e1516c66cc77b850e414f74b5ee4160139fd403f2f84e03d4d7",
+    "packages/analytics/src/nodes.test.ts": "e14c62e8fdbd99ef1ba0a9345ef839e648df385d10d97607d87d7812e54af417",
+    "packages/analytics/src/nodes.ts": "aa3fcc35778f4d8fdcec78bef3e7de331e63aaf7b6206fcc9e213eb3fee63e5b",
+    "packages/analytics/src/path-filter.ts": "6c20c0c931e3ab7146ced37ff471a361f70a37c428b0b9728111b587fba02297",
+    "packages/analytics/src/paths.ts": "6d85ae08f4610a0b9c518e5a5d7bbccb0e39783c2be7db4bd0efc03e8f73fd7c",
+    "packages/analytics/src/plugin.test.ts": "245b232af5bce9460f4751744e2ae4fbe535fa3d400debf7824aa1e77eee6976",
+    "packages/analytics/src/plugin.ts": "8464588e7283eed4d87542c40c5b064486ee2f193a5055b32f6485a83b5468f9",
+    "packages/analytics/src/ports.ts": "4c87e1f80f819da67c2589190fc6f8498d2ee37ed61658e8f0ade8105c37abc0",
+    "packages/analytics/src/queries.test.ts": "008ba411e868d0f3ac1c337913edaf5d6199b2a219eedc554aea59ab02dc7552",
+    "packages/analytics/src/queries.ts": "ea26f2d53fa45dd73a286c4b3d106985db228a250d2453290e248d0a2992ef23",
+    "packages/analytics/src/reporting-range.test.ts": "9c77c2cd4c19792fef447449317ae5bdf027ee01d8905b4ed7c55e7c7664c4cb",
+    "packages/analytics/src/reporting-range.ts": "79d10f59db5d151690b0f13c71c65c435032a00f2419f81a0662390d602ba2a8",
+    "packages/analytics/src/schema.test.ts": "875d3e0d636949bd6687d716d26fea139b797aa6d82639ef33d0e04df606b755",
+    "packages/analytics/src/schema.ts": "6010c11a5ce552166712c5cef18385288c8bfde3e70aad6c312262fbe37e8410",
+    "packages/analytics/src/server.test.ts": "80db7791802505e664775a2e1479f9029d283e192fbf55060b2d302eb836ae4a",
+    "packages/analytics/src/server.ts": "086d851a5336bfd3f1dc714d9453a3a812fe0a3b1abb444ddd3b16ae47899f61",
+    "packages/analytics/src/traffic-breakdown.ts": "34d2f48a4ac76a0f6957114e235537b668cb332e87e1685b68775d591461892c",
+    "packages/analytics/src/transform-hash.test.ts": "3adedd9865248fc0b5ce123d7ba5e14690d204acd6259011faf159ce4da22f34",
+    "packages/analytics/src/transform-hash.ts": "86cf12886f3eb2c10e4ae3668b3f4cd0c3c8be49e4fd6771ce77895c823bcca9",
+    "packages/analytics/src/transform/bots.test.ts": "b2981ae11185ccfc70e11dd0fc452ae72b3859872c88febdd4573e66efc362c2",
+    "packages/analytics/src/transform/bots.ts": "91c71fac784cf5870efac9ab97428607e7be08b96eae62e69272c158cb6462fd",
+    "packages/analytics/src/transform/diagnostics.ts": "8113260716d1b045c9bb79080b781c1d000a6e2b866c2691fec491e6f2de91cd",
+    "packages/analytics/src/transform/entry.test.ts": "d3a9ce1c09793f314359f2fbeaaf78c88ef7431a1d2670a0265a11474dde6e1d",
+    "packages/analytics/src/transform/entry.ts": "3134321f0f67d22654aed40511872017254d8c1f6af56fe6d84a01072d0cc67f",
+    "packages/analytics/src/transform/handler.test.ts": "d613500f6717057c47fa73f3fc8f1ee2df137af50952e2e481ed9bf7ac415e48",
+    "packages/analytics/src/transform/handler.ts": "c017e99ce409152fab2724cf0508aa8e19d3e08e6a2aaaf23c6dcff35f4e9e39",
+    "packages/analytics/src/transform/map-record.test.ts": "b68fcd95a6e5dd3b64b9d6c14bfb92ff6f4fec9332779b594d86ae65815fb646",
+    "packages/analytics/src/transform/map-record.ts": "6c4117dc5051d3569b3a6c4289eb69e2868961a794af12af1799a30e3e7f5757",
+    "packages/analytics/src/transform/visitor-key.test.ts": "9f7a870e46f446f9482faf110736fa6cd502b96c59888742629b6a3fad970365",
+    "packages/analytics/src/transform/visitor-key.ts": "f2b3b1661ed23bab0d6cee944d627f0154e06085e277ef358ed96152237a1d92",
+    "packages/analytics/src/transform/write-manifest.ts": "515de4cdc311ff1bd3f53214407727dd6a25b2a8bb9b4906e5a7c7c15f3d43ec",
+    "packages/analytics/src/view-granularity.test.ts": "987ceb965009320750478c28556c7661dff1d61b42a5b85e9b8431819b8e60c4",
+    "packages/analytics/src/view-granularity.ts": "63ad66f53c2835580fd05a1db2a326c5c7ff897cc6226b5e98c13f4efb46ab06",
+    "packages/build-agent/src/agent-hash.test.ts": "c95681628792856e283861ed27789729003a244753c1a84bd2a63602554b20a6",
+    "packages/build-agent/src/agent-hash.ts": "4e1ed3b3fb33ec7383cf0dd4835f60c8f228564454afc2a71cda2c14ecb986bc",
+    "packages/build-agent/src/build.test.ts": "47f7f45da2903a96fe033fc739812e3543796065735bd379cf57d29298318851",
+    "packages/build-agent/src/build.ts": "eace4be32144893b99f31fcb4f99236c99cecb670850e1eb9a8e284bbc59d1fb",
+    "packages/build-agent/src/server.ts": "91a91110ac79152744983e500def3578ce2e7d5a1560e3420bee45f4bed62006",
+    "packages/build-agent/src/write-manifest.ts": "6a85556977b1a621e30bcc8e1a18d46e2221c747cf7dfd16937597cd381d2b56",
+    "packages/cli/scripts/copy-agent.mjs": "6d5fc14a798fa883200dc78ecd00cb0a7c77113c10a7c7ca91ae512d79057b43",
+    "packages/cli/src/adapters/fetch-ping.test.ts": "40639134dd7eaabca3da5f35ab7ab6c066b3cdeb9fea791732a3f4cab316aa9d",
+    "packages/cli/src/adapters/fetch-ping.ts": "690a440c53b261d8decce43150e63187328004fc7e4b76e5021080178d79c63e",
+    "packages/cli/src/adapters/node-module-loader.test.ts": "5befa34afa89ebba467074f6b4cd3d2c618853b28bbd8e9c34b4133e64477cf7",
+    "packages/cli/src/adapters/node-module-loader.ts": "4264aa8a665a8a47fef6c3b449fe847193509bc02891aec07f7355165841563d",
+    "packages/cli/src/adapters/process-package-manager.test.ts": "e39633ecc2466cec2004e3023a81ac433c51710ac5db4f0a4d948874cb69086e",
+    "packages/cli/src/adapters/process-package-manager.ts": "b9e07674d2245da7c57bd18cc811051c9c2a61e50044ac5411cfdbd358f92cab",
+    "packages/cli/src/adapters/process-vcs.test.ts": "cbb4450472ff01d3ee207a8f7faa61d6f8a59372532990ec3629f36f1c588b7b",
+    "packages/cli/src/adapters/process-vcs.ts": "103a329834231e48e288aeaafdc3ebedf02282edb02aea02c5b2556049ca2f49",
+    "packages/cli/src/agent-package.test.ts": "31cf04a6654c78a36ae606bc25040d99b5ac52092374f91a48904c5e6ec2c598",
+    "packages/cli/src/agent-package.ts": "9ba3ed009502cbec9d895587555bf000a99033e831ab700481ef6e87cd6808a3",
+    "packages/cli/src/bin.ts": "08e283f74db7987a15d4f455f9121f22e2babd344d9d808a898e8560b37ad349",
+    "packages/cli/src/cli.test.ts": "419109059885fb215788979593bcd2fe3264220804d1b102c536f4cc7a1dbe77",
+    "packages/cli/src/cli.ts": "516b2c267a16806206f6ea5de2a3ef90d1334551b42e5412687e886d404e0f1d",
+    "packages/cli/src/commands.test.ts": "17f48e417790c47174e27e0fddf49ccfb3791ec6c77efd58af104e6afa907d4b",
+    "packages/cli/src/commands.ts": "91c3e6a3dab2364c81c5d680296dffb76620dacbbe4d4792827e36b241c30e1f",
+    "packages/cli/src/config-block.test.ts": "8f5836d1b160dd24aff52ebc5082fa04ec2e3ba0c4299c4c658c7d7738e8d9f9",
+    "packages/cli/src/config-block.ts": "feab7d69cf89f4a4099413120d9a6349753f92d439f25283a66848c0fc34c27c",
+    "packages/cli/src/context.test.ts": "b29d7fc6f76b83301d64e061b49214d010eee41a1bcee9c0df23d554f63c3814",
+    "packages/cli/src/context.ts": "5960ee088b5a92171900444e6258cffeb9cb09cdfbd4b45588421631ce6b8a0c",
+    "packages/cli/src/deploy.test.ts": "b205eaac8d65025a928f22228b032349ff54d74e418bd26e5fded3f31368f69a",
+    "packages/cli/src/deploy.ts": "e19d382b1a53ff3822f47f6a0976322f88c3336a0e7ab01b6743d8fa0c9e271a",
+    "packages/cli/src/graph.test.ts": "7e05d0ef0dd72bc65c596011205b7cca313c96d0609575421f59b380fa5993bc",
+    "packages/cli/src/graph.ts": "c247ec75cc083961a6be5b709fc035ff3d7f58a5af7ebeb482441169fad028a9",
+    "packages/cli/src/init.test.ts": "a1a3a063f2aa5f20765ffe6a2b973e31908901e87cd1acf1b9f315cb12897a39",
+    "packages/cli/src/init.ts": "f298048c56ec3b1f8467d746646d96b3198360909ce0c1da7fc782885de22f91",
+    "packages/cli/src/known-commands.ts": "dba7480d32a89b64e70684232aa617fb6402e4e0c403d8a61c12fa5112a40e98",
+    "packages/cli/src/logger.test.ts": "e114140a0000fe336f829f3acb14a6ac9dcf1965dbc4701c1776da612a03692e",
+    "packages/cli/src/logger.ts": "657f90a377a983a7f0e1d799cbd213988ef8f15e26594f2d703edd5621230146",
+    "packages/cli/src/microvms.test.ts": "46a8fbdd692ad1052cdf4d275095d3c6258163e6571baf9524faf5136fa833cd",
+    "packages/cli/src/microvms.ts": "88c8eb66f6c011a6c0dc94a537f897500247e1a176baa8dab8fd783d5e37336c",
+    "packages/cli/src/nodes.test.ts": "12ed0bcac7581a15508eb5c8e9e290885970fd60cb4f21a97a4e45ae4645a0cb",
+    "packages/cli/src/nodes.ts": "02a0b006161bf7b6dcf6be6cdbd6862c1eaca5f33c73223a209583e709ba15b4",
+    "packages/cli/src/plugin-commands.test.ts": "8c2803fbd9d44180d88c441f6093e3ac4ec545349f9930696d55094d68814f9e",
+    "packages/cli/src/plugin-commands.ts": "93c7c327982b1b01dd90635a7ef27952d9aee1e7f112999220b98f233415bfb0",
+    "packages/cli/src/plugins.test.ts": "3f9ef141da8408430406d39de0a72129dd127f22de2db5f820268ad418dec7b1",
+    "packages/cli/src/plugins.ts": "be5707b2c800699b5263ec31a80760b1f180a3f5ea0c352cf6b6d1c47bcd3a7e",
+    "packages/cli/src/ports.ts": "12d1955e46631431387dbf6768a253533328b5afb85c80a12d666211c9771b71",
+    "packages/cli/src/render.test.ts": "231d4784e7d8964f61e6a8b9e2d59265a6ecc7b9583af08f60cc2834c27190cf",
+    "packages/cli/src/render.ts": "5797bd5f7ed9330345158fcbc4cc0ffab2c297d5ac35cea146a21762d217e353",
+    "packages/cli/src/repo.test.ts": "fbed5adb24d1a0a2cc15909da8468430de392a6f19bc5b7d1ea8d8f2f6d118db",
+    "packages/cli/src/repo.ts": "57bcfe37b360610e2c0ab5eca84c4fce7ea3caa89f31cf9f14e6f8c710ee776e",
+    "packages/cli/src/seo.test.ts": "3ff626eef2dfbfd60eeaef460765d4029966dada276744e1e1df5ba1d6811535",
+    "packages/cli/src/seo.ts": "ab685216799be910579c5f9708bdc663b62d9b51df862df046439815ae802442",
+    "packages/cli/src/test-support.test.ts": "3e1509f0325d473e87362f1e0da1a3497515b2c8f7556e34f0228a9dab14dff7",
+    "packages/cli/src/test-support.ts": "65a04798a66a232500244320940bbb79857642aa55c1226c9de319d347df722e",
+    "packages/core/src/adapters/memory-fs.test.ts": "c68709763116173c0559b0cd3d16f9fcd7db4ece8647f4cd0cd2ee4c35a4968e",
+    "packages/core/src/adapters/memory-fs.ts": "ba21b6b9b0a2b4e54c902d8fab187eb239efb516e8244b4dc9e8a887b5b76bf5",
+    "packages/core/src/adapters/node-fs.test.ts": "4e5846ae64be9ac8f3a49019827d04eb391fb767933f6668fffff1ad659f98f4",
+    "packages/core/src/adapters/node-fs.ts": "629a6b38de08b4fcf95892fe6549fdebe32e6232c9a5b5cffd051350558851c1",
+    "packages/core/src/adapters/node-terminal.test.ts": "4451eeee5f829928c871419c4b9fc77d949f3c335606c58eb38055698ebc3c54",
+    "packages/core/src/adapters/node-terminal.ts": "c8574b4a54d9bf12c972264a974ed891a0ca5315bd16861d55df29777def4b91",
+    "packages/core/src/adapters/script-terminal.test.ts": "7e55ab61d3ea7cca05b67d69577ab417a6b62603bda2326f582a1bf13c8e086f",
+    "packages/core/src/adapters/script-terminal.ts": "33f8db3f1492274daade6a7d171a8a5f7149b013de7dfef9184633a22ada3ac0",
+    "packages/core/src/aws/acm.ts": "356281c7bba8faaf4cf06b5627e57aea54c00b701d30728e840026794af48161",
+    "packages/core/src/aws/cloudfront.test.ts": "9af1d3b89a1dd561daff519e661a52c54e58f0d4c21318dc6fbc4866af2304c7",
+    "packages/core/src/aws/cloudfront.ts": "9a76d82d84019294b665b5374c746bc338f710ee37344294543b1aa4af475939",
+    "packages/core/src/aws/credentials.ts": "d18330c558aec088de6c8014492adc3009608678ff199896fbde4f64317919cf",
+    "packages/core/src/aws/endpoint.test.ts": "553d0bd590b6f31740b467a866dfb3a912e34cf8186bd2e2573470e8f174fdd6",
+    "packages/core/src/aws/endpoint.ts": "e96c9cd4037461db92e078bc52669ed22e3d21ee5a874268c1feb8614fbf780f",
+    "packages/core/src/aws/errors.ts": "1c4e724d8049a75b3e83e7efd2e78547c606553b94e2a262c92662fd0001c595",
+    "packages/core/src/aws/form.ts": "c911bf1e5b43e8ce83bfc8ac73f06ccfff70ccd636f3ec1fe858c64b40f7138d",
+    "packages/core/src/aws/iam.test.ts": "91309e6a0ea10a125f1911a13984e543c3e25e2cde1171ce0127adaa3ea3c11b",
+    "packages/core/src/aws/iam.ts": "c1de5e18056444a66f5050cdb869bf72d794b571db5051d9db0343f03046e0e2",
+    "packages/core/src/aws/logs.test.ts": "72d90d1725e2d3cf2a791a2126178a97494f54f3b81eafaa68d5d538a8030abc",
+    "packages/core/src/aws/logs.ts": "605df85fd1a25e0b1a675abaabe5e1077a93bb266af3d94f7b573b34386cb426",
+    "packages/core/src/aws/microvms.ts": "d9cb3e92d72af2ac551911fb5de1c56a5c50c4d76afc7705f72746c1d4139f34",
+    "packages/core/src/aws/route53.test.ts": "6042dccd10511ab96c804c4d824fcc7b6cc8f9ec4e1af8fd71633b9f1c42f3df",
+    "packages/core/src/aws/route53.ts": "7165f3e74029d68f094dbfbf520fc0a257a9df6b6e577aeda2797a7787e15d31",
+    "packages/core/src/aws/s3.floci.test.ts": "332b90d325e3b8fabd08fe3085ff1481d2760f13e06375ea28e3e935f6d8940d",
+    "packages/core/src/aws/s3.test.ts": "6aaf38597b67f7b6ff6943b4fff2e95731b7a2dca4ecbd49edc4a7aa651ad9ea",
+    "packages/core/src/aws/s3.ts": "ac072b38d3b9bb926af6116fc4f8c6c47e6a923de564494215c2d26ad77600db",
+    "packages/core/src/aws/secretsmanager.test.ts": "5c7fe77bad4de4d29659b389fb295834c79bbff0165bafb450ffd93480d37c57",
+    "packages/core/src/aws/secretsmanager.ts": "af0246500c781b86688bb05c401ac6b6afc6a24d55f2060224adbd099eb8d76a",
+    "packages/core/src/aws/signer.test.ts": "595f853b41f61662e3438e4be204bc8f5df1ce47659376465c936f722feb636c",
+    "packages/core/src/aws/signer.ts": "75296deb43ac7c8463ac7be15c30d9f8dda7cc8c070915f98756f4a0a2e81b3b",
+    "packages/core/src/aws/sts.ts": "a46cce4a4dbc1762d9547c1dae5859634c875df0b46f6a4a779b96c5d3b28e8b",
+    "packages/core/src/aws/xml.test.ts": "1db656fa8ea2f692cf232a17de21f1ac06020ae18a3e62ccc2034e915ecc441a",
+    "packages/core/src/aws/xml.ts": "0e912e4fe55f474187abb49066d6133481e89f2ac25d6ec74f3f2c4f6a592fc7",
+    "packages/core/src/clients.test.ts": "497422b58fcdd0ccb3b126f1558d2b76b5bfa6183aac77d67f7038aefa84a149",
+    "packages/core/src/clients.ts": "520efd4cffcda5d9af4cecb3b68d019fe6170d2ecd1171b47c271da3a04d5348",
+    "packages/core/src/colors.test.ts": "aff6ee8bff93377ff46455f399570479e4477aae8326e8b5400e0b61cb5bcc06",
+    "packages/core/src/colors.ts": "7f9a04caa0341e779374035752da424395009427098f242ec9f768f78dcf8bc6",
+    "packages/core/src/config.test.ts": "3de91b5826165a5c699a85b86ff6980653c995930d0858d151969bd6da88c56e",
+    "packages/core/src/config.ts": "28076eb5d5f9779d76cc0a8e3732b6d5b86e8af09bd18dca8735c15328157b28",
+    "packages/core/src/plugin.test.ts": "6f75f4a29278fd1a28ce86dd28ce91649aad9bc6acd5c5c3f3b0ce9bdf56f52c",
+    "packages/core/src/plugin.ts": "c2cc74ccedfeba65fe983b85b6507288d0cde35b5eff76f9f14783e81a6621ac",
+    "packages/core/src/ports.ts": "701cdaa5c1e1022e29b3c2f4b5bbc9f7ef44edd6310b6d09d3f0cd76a2f7fb79",
+    "packages/core/src/repo-root.test.ts": "acb388d8bfd59bc0e79a2505b0cb582baafef3166a491f8350304931eeb65971",
+    "packages/core/src/repo-root.ts": "bf7214d6c001ce77b251714dd6585468bd7323270748024286bd28ea76925023",
+    "packages/core/src/state.test.ts": "69de2f1df073cb66acfef4e1def8e899d67c6f30aaf2f5776d5998605bd54fca",
+    "packages/core/src/state.ts": "72e7f4c8406363e40b289ce26c480dc1b289d92f54542dba8a27e514ff02819d",
+    "packages/core/src/tags.ts": "3fc8647499175c37077e6bafc8560f5483229dab96eaeb8cf4a93b2fb21c19d0",
+    "packages/core/src/util.test.ts": "2f33cc70be024172b9e6a9201c3a85c6d1613f0f97e8abb8b3f7d4ba092a015c",
+    "packages/core/src/util.ts": "3418e72d4f148d1edb24bd4604fe4f5608fde361e233e55fa2196f61f726bad9",
+    "packages/pds/src/client-metadata.test.ts": "692247ab5d149c33680de1c3bcfc865fa4dc73649ac1930ac8c5effbf94f4701",
+    "packages/pds/src/client-metadata.ts": "9d1bc2e22152d9950b6d6b48c067d4fc8683d46e2303e487569912bd5186f725",
+    "packages/pds/src/commands.test.ts": "e0a1676d9e70f7cdc448a0076c3219040e60261bbd0ef4f5f6bf3ccd63fcefa7",
+    "packages/pds/src/commands.ts": "f222507ba3c545ecd89d1ae03254131115ec18a84b50e290d0c0f7ba59bf1bd1",
+    "packages/pds/src/config.test.ts": "c5a844dc4c7f3bbbae3665d8e3f74f5fd4d10b73044019322b799ec7eb01c1d0",
+    "packages/pds/src/config.ts": "d84e2ff998d46b4a0f4947f881d29028f5ef144dce8b7c0dac7969b12f94821f",
+    "packages/pds/src/content.test.ts": "18cb0dafd568658ddf88f43998b860be6abf62fc8a61ac84b97c108a318a5f39",
+    "packages/pds/src/content.ts": "7bea1f11f23a5f726656668b97414a7404e0743395540b483097d971005a518f",
+    "packages/pds/src/context.ts": "bde7c304edf39f122073ff1f3000dbc8a397187f8e29e534165c0ee8c2f08d30",
+    "packages/pds/src/nodes.test.ts": "e4c56d5ebe07aa320c66d04f8e9ef10659ffef671a06f27a3abe10979e9deb52",
+    "packages/pds/src/nodes.ts": "5b643592a231f226e13c9cf108f88cf551948c44a5d3e40baec9f96f34133f2f",
+    "packages/pds/src/oauth.test.ts": "30ad65d0e425615d670cfbe2bb104c1cf2f50f24852ff0399441aa748ae7e4f1",
+    "packages/pds/src/oauth.ts": "148ae1747e1253cf49ca602b18326eec03298392f0c6e7a91f03c223d13cf313",
+    "packages/pds/src/plugin.test.ts": "76a7d63390016dbef84e3edeee2931b1a1e8303a6cd1f1f3d678346c68bad53c",
+    "packages/pds/src/plugin.ts": "b7672eb9b529bb7860bb3be2e131f967101824954687e65f9c3d01e852d65a79",
+    "packages/pds/src/rkey.test.ts": "880fc1442f2d1af6745494e09ed60788b5906a9cd1727febab953d62efb4d1fe",
+    "packages/pds/src/rkey.ts": "7ff97b85a7b35e92b80bddc8c56262206d2b29d9f1da70c7b1b3c6028123d4b9",
+    "packages/pds/src/secret.test.ts": "755d1775af5b0ab6dbd63c42359fdd35b1f5fc14347970188f8659a183687620",
+    "packages/pds/src/secret.ts": "da2877475f7ac10dd17e7ccb3352a4bfb7c7fda3be724b73c4fd09c31e795975",
+    "packages/pds/src/sync.test.ts": "7a9c2302a096d90a5d2f8da535ea4ef95c7163d1a8e2b4e0d0bb70c15831b864",
+    "packages/pds/src/sync.ts": "95b58bc129e3b6d5825008b1321942ba1742c8329093ff1154de729ef25e5dd5",
+    "packages/pds/src/test-support.test.ts": "56c005b6fca8714f1e5073147d445339bcc861b6663d629c360bcf6055c8999a",
+    "packages/pds/src/test-support.ts": "bdec70a4514452d725770e5821bc9a771aafab8e7f2884cfbc5a4542fc484481",
+    "packages/pds/src/xrpc.test.ts": "74fd462ef8b4d829062b54532d2fead185a91fd97dc2ab5baaf179527a24c352",
+    "packages/pds/src/xrpc.ts": "d7fd38b554cb898287d959d12c763023a0f82dd2d50e518975f5c61fd26c74f1",
+    "playwright.config.ts": "74877d2e77bda4f3d5924ca7f572e6203752f924f65334900cc17555e9c92fda",
+    "tests/browser/dashboard.acceptance.ts": "275d43416196f227024382f842618550181b427967e87fdc80e62489188320a1",
+    "tests/browser/dashboard.spec.ts": "c91fdbb97fab4905afe81e2f22201997e8445f5b026bb31a05169105dfaa5ef0",
+    "tests/browser/docs.acceptance.ts": "7925c45ee1a38ca422b5ffce9bf932b1ccce7da9263b6b430861d7e42c116e0a",
+    "tests/browser/docs.spec.ts": "b05f6341b36d3de2b58a3e2eb054f06477e19a5ae08e4f1bda147c9749c211b5",
+    "tests/browser/helpers.ts": "bcfac746534d421b95970a242efda70e56de47ccafae0b3316ef8f2a0d2566ad",
+    "tests/browser/server.mjs": "64d5f42d731867413abaefbd0ee99cdeb49c298938f04a4ec29ff36512f5dd55"
+  },
+  "queries": [
+    {
+      "elapsed_us": 355472,
+      "request": {
+        "category": "exact",
+        "expected_path": "packages/pds/src/content.ts",
+        "mode": "explore",
+        "query": "listPublishablePosts"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 8,
+          "unresolved": 0
+        },
+        "edges": [
+          {
+            "from": "file:packages/pds/src/content.test.ts",
+            "kind": "calls",
+            "line": 47,
+            "path": "packages/pds/src/content.test.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/content.ts#function:listPublishablePosts",
+            "to_name": "listPublishablePosts"
+          },
+          {
+            "from": "file:packages/pds/src/content.ts",
+            "kind": "contains",
+            "line": 54,
+            "path": "packages/pds/src/content.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/content.ts#function:listPublishablePosts",
+            "to_name": "listPublishablePosts"
+          },
+          {
+            "from": "file:packages/pds/src/content.ts",
+            "kind": "exports",
+            "line": 54,
+            "path": "packages/pds/src/content.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/content.ts#function:listPublishablePosts",
+            "to_name": "listPublishablePosts"
+          },
+          {
+            "from": "file:packages/pds/src/sync.ts",
+            "kind": "calls",
+            "line": 239,
+            "path": "packages/pds/src/sync.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/content.ts#function:listPublishablePosts",
+            "to_name": "listPublishablePosts"
+          },
+          {
+            "from": "sym:packages/pds/src/content.ts#function:listPublishablePosts",
+            "kind": "contains",
+            "line": 64,
+            "path": "packages/pds/src/content.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/content.ts#const:listPublishablePosts.base",
+            "to_name": "listPublishablePosts.base"
+          },
+          {
+            "from": "sym:packages/pds/src/content.ts#function:listPublishablePosts",
+            "kind": "contains",
+            "line": 59,
+            "path": "packages/pds/src/content.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/content.ts#const:listPublishablePosts.dir",
+            "to_name": "listPublishablePosts.dir"
+          },
+          {
+            "from": "sym:packages/pds/src/content.ts#function:listPublishablePosts",
+            "kind": "contains",
+            "line": 60,
+            "path": "packages/pds/src/content.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/content.ts#const:listPublishablePosts.posts",
+            "to_name": "listPublishablePosts.posts"
+          },
+          {
+            "from": "sym:packages/pds/src/content.ts#function:listPublishablePosts",
+            "kind": "contains",
+            "line": 62,
+            "path": "packages/pds/src/content.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/content.ts#const:listPublishablePosts.rel",
+            "to_name": "listPublishablePosts.rel"
+          }
+        ],
+        "items": [
+          {
+            "impact": {
+              "direct_callers": 2,
+              "total_callers": 2
+            },
+            "node": {
+              "end_line": 84,
+              "id": "sym:packages/pds/src/content.ts#function:listPublishablePosts",
+              "kind": "function",
+              "name": "listPublishablePosts",
+              "path": "packages/pds/src/content.ts",
+              "qualified_name": "listPublishablePosts",
+              "start_line": 54
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 0,
+              "id": "file:packages/pds/src/content.test.ts",
+              "kind": "file",
+              "name": "packages/pds/src/content.test.ts",
+              "path": "packages/pds/src/content.test.ts",
+              "qualified_name": "packages/pds/src/content.test.ts",
+              "start_line": 0
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 0,
+              "id": "file:packages/pds/src/content.ts",
+              "kind": "file",
+              "name": "packages/pds/src/content.ts",
+              "path": "packages/pds/src/content.ts",
+              "qualified_name": "packages/pds/src/content.ts",
+              "start_line": 0
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 0,
+              "id": "file:packages/pds/src/sync.ts",
+              "kind": "file",
+              "name": "packages/pds/src/sync.ts",
+              "path": "packages/pds/src/sync.ts",
+              "qualified_name": "packages/pds/src/sync.ts",
+              "start_line": 0
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 59,
+              "id": "sym:packages/pds/src/content.ts#const:listPublishablePosts.dir",
+              "kind": "const",
+              "name": "dir",
+              "path": "packages/pds/src/content.ts",
+              "qualified_name": "listPublishablePosts.dir",
+              "start_line": 59
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 60,
+              "id": "sym:packages/pds/src/content.ts#const:listPublishablePosts.posts",
+              "kind": "const",
+              "name": "posts",
+              "path": "packages/pds/src/content.ts",
+              "qualified_name": "listPublishablePosts.posts",
+              "start_line": 60
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 62,
+              "id": "sym:packages/pds/src/content.ts#const:listPublishablePosts.rel",
+              "kind": "const",
+              "name": "rel",
+              "path": "packages/pds/src/content.ts",
+              "qualified_name": "listPublishablePosts.rel",
+              "start_line": 62
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 64,
+              "id": "sym:packages/pds/src/content.ts#const:listPublishablePosts.base",
+              "kind": "const",
+              "name": "base",
+              "path": "packages/pds/src/content.ts",
+              "qualified_name": "listPublishablePosts.base",
+              "start_line": 64
+            }
+          }
+        ],
+        "stats": {
+          "candidates": 8,
+          "elapsed_ms": 355,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 355745,
+      "request": {
+        "category": "natural_or_split",
+        "expected_path": "packages/pds/src/content.ts",
+        "mode": "explore",
+        "query": "list publishable posts"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 1,
+          "unresolved": 0
+        },
+        "edges": [
+          {
+            "from": "sym:packages/pds/src/content.ts#function:listPublishablePosts",
+            "kind": "contains",
+            "line": 60,
+            "path": "packages/pds/src/content.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/content.ts#const:listPublishablePosts.posts",
+            "to_name": "listPublishablePosts.posts"
+          }
+        ],
+        "items": [
+          {
+            "impact": null,
+            "node": {
+              "end_line": 47,
+              "id": "sym:packages/pds/src/content.test.ts#const:posts",
+              "kind": "const",
+              "name": "posts",
+              "path": "packages/pds/src/content.test.ts",
+              "qualified_name": "posts",
+              "start_line": 47
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 62,
+              "id": "sym:packages/pds/src/content.test.ts#const:posts@62",
+              "kind": "const",
+              "name": "posts",
+              "path": "packages/pds/src/content.test.ts",
+              "qualified_name": "posts",
+              "start_line": 62
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 72,
+              "id": "sym:packages/pds/src/content.test.ts#const:posts@72",
+              "kind": "const",
+              "name": "posts",
+              "path": "packages/pds/src/content.test.ts",
+              "qualified_name": "posts",
+              "start_line": 72
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 119,
+              "id": "sym:packages/pds/src/content.test.ts#const:posts@119",
+              "kind": "const",
+              "name": "posts",
+              "path": "packages/pds/src/content.test.ts",
+              "qualified_name": "posts",
+              "start_line": 119
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 60,
+              "id": "sym:packages/pds/src/content.ts#const:listPublishablePosts.posts",
+              "kind": "const",
+              "name": "posts",
+              "path": "packages/pds/src/content.ts",
+              "qualified_name": "listPublishablePosts.posts",
+              "start_line": 60
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 59,
+              "id": "sym:packages/pds/src/sync.test.ts#const:POSTS",
+              "kind": "const",
+              "name": "POSTS",
+              "path": "packages/pds/src/sync.test.ts",
+              "qualified_name": "POSTS",
+              "start_line": 56
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 239,
+              "id": "sym:packages/pds/src/sync.ts#const:syncPds.posts",
+              "kind": "const",
+              "name": "posts",
+              "path": "packages/pds/src/sync.ts",
+              "qualified_name": "syncPds.posts",
+              "start_line": 239
+            }
+          },
+          {
+            "impact": {
+              "direct_callers": 2,
+              "total_callers": 2
+            },
+            "node": {
+              "end_line": 84,
+              "id": "sym:packages/pds/src/content.ts#function:listPublishablePosts",
+              "kind": "function",
+              "name": "listPublishablePosts",
+              "path": "packages/pds/src/content.ts",
+              "qualified_name": "listPublishablePosts",
+              "start_line": 54
+            }
+          }
+        ],
+        "stats": {
+          "candidates": 8,
+          "elapsed_ms": 355,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 358242,
+      "request": {
+        "category": "natural_or_split",
+        "expected_path": "packages/pds/src/content.ts",
+        "mode": "explore",
+        "query": "How are publishable posts selected?"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 1,
+          "unresolved": 0
+        },
+        "edges": [
+          {
+            "from": "sym:packages/pds/src/content.ts#function:listPublishablePosts",
+            "kind": "contains",
+            "line": 60,
+            "path": "packages/pds/src/content.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/content.ts#const:listPublishablePosts.posts",
+            "to_name": "listPublishablePosts.posts"
+          }
+        ],
+        "items": [
+          {
+            "impact": null,
+            "node": {
+              "end_line": 47,
+              "id": "sym:packages/pds/src/content.test.ts#const:posts",
+              "kind": "const",
+              "name": "posts",
+              "path": "packages/pds/src/content.test.ts",
+              "qualified_name": "posts",
+              "start_line": 47
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 62,
+              "id": "sym:packages/pds/src/content.test.ts#const:posts@62",
+              "kind": "const",
+              "name": "posts",
+              "path": "packages/pds/src/content.test.ts",
+              "qualified_name": "posts",
+              "start_line": 62
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 72,
+              "id": "sym:packages/pds/src/content.test.ts#const:posts@72",
+              "kind": "const",
+              "name": "posts",
+              "path": "packages/pds/src/content.test.ts",
+              "qualified_name": "posts",
+              "start_line": 72
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 119,
+              "id": "sym:packages/pds/src/content.test.ts#const:posts@119",
+              "kind": "const",
+              "name": "posts",
+              "path": "packages/pds/src/content.test.ts",
+              "qualified_name": "posts",
+              "start_line": 119
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 60,
+              "id": "sym:packages/pds/src/content.ts#const:listPublishablePosts.posts",
+              "kind": "const",
+              "name": "posts",
+              "path": "packages/pds/src/content.ts",
+              "qualified_name": "listPublishablePosts.posts",
+              "start_line": 60
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 59,
+              "id": "sym:packages/pds/src/sync.test.ts#const:POSTS",
+              "kind": "const",
+              "name": "POSTS",
+              "path": "packages/pds/src/sync.test.ts",
+              "qualified_name": "POSTS",
+              "start_line": 56
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 239,
+              "id": "sym:packages/pds/src/sync.ts#const:syncPds.posts",
+              "kind": "const",
+              "name": "posts",
+              "path": "packages/pds/src/sync.ts",
+              "qualified_name": "syncPds.posts",
+              "start_line": 239
+            }
+          },
+          {
+            "impact": {
+              "direct_callers": 2,
+              "total_callers": 2
+            },
+            "node": {
+              "end_line": 84,
+              "id": "sym:packages/pds/src/content.ts#function:listPublishablePosts",
+              "kind": "function",
+              "name": "listPublishablePosts",
+              "path": "packages/pds/src/content.ts",
+              "qualified_name": "listPublishablePosts",
+              "start_line": 54
+            }
+          }
+        ],
+        "stats": {
+          "candidates": 8,
+          "elapsed_ms": 358,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 353294,
+      "request": {
+        "category": "exact",
+        "expected_path": "packages/pds/src/sync.ts",
+        "mode": "explore",
+        "query": "syncDocuments"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 9,
+          "unresolved": 0
+        },
+        "edges": [
+          {
+            "from": "file:packages/pds/src/sync.test.ts",
+            "kind": "calls",
+            "line": 94,
+            "path": "packages/pds/src/sync.test.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/sync.ts#function:syncDocuments",
+            "to_name": "syncDocuments"
+          },
+          {
+            "from": "file:packages/pds/src/sync.ts",
+            "kind": "contains",
+            "line": 170,
+            "path": "packages/pds/src/sync.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/sync.ts#function:syncDocuments",
+            "to_name": "syncDocuments"
+          },
+          {
+            "from": "file:packages/pds/src/sync.ts",
+            "kind": "exports",
+            "line": 170,
+            "path": "packages/pds/src/sync.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/sync.ts#function:syncDocuments",
+            "to_name": "syncDocuments"
+          },
+          {
+            "from": "file:packages/pds/src/sync.ts",
+            "kind": "calls",
+            "line": 245,
+            "path": "packages/pds/src/sync.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/sync.ts#function:syncDocuments",
+            "to_name": "syncDocuments"
+          },
+          {
+            "from": "sym:packages/pds/src/sync.ts#function:syncDocuments",
+            "kind": "contains",
+            "line": 191,
+            "path": "packages/pds/src/sync.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/sync.ts#const:syncDocuments.desired",
+            "to_name": "syncDocuments.desired"
+          },
+          {
+            "from": "sym:packages/pds/src/sync.ts#function:syncDocuments",
+            "kind": "contains",
+            "line": 175,
+            "path": "packages/pds/src/sync.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/sync.ts#const:syncDocuments.existing",
+            "to_name": "syncDocuments.existing"
+          },
+          {
+            "from": "sym:packages/pds/src/sync.ts#function:syncDocuments",
+            "kind": "contains",
+            "line": 186,
+            "path": "packages/pds/src/sync.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/sync.ts#const:syncDocuments.localRkeys",
+            "to_name": "syncDocuments.localRkeys"
+          },
+          {
+            "from": "sym:packages/pds/src/sync.ts#function:syncDocuments",
+            "kind": "contains",
+            "line": 188,
+            "path": "packages/pds/src/sync.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/sync.ts#const:syncDocuments.rkey",
+            "to_name": "syncDocuments.rkey"
+          },
+          {
+            "from": "sym:packages/pds/src/sync.ts#function:syncDocuments",
+            "kind": "contains",
+            "line": 180,
+            "path": "packages/pds/src/sync.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/sync.ts#const:syncDocuments.summary",
+            "to_name": "syncDocuments.summary"
+          }
+        ],
+        "items": [
+          {
+            "impact": {
+              "direct_callers": 2,
+              "total_callers": 2
+            },
+            "node": {
+              "end_line": 207,
+              "id": "sym:packages/pds/src/sync.ts#function:syncDocuments",
+              "kind": "function",
+              "name": "syncDocuments",
+              "path": "packages/pds/src/sync.ts",
+              "qualified_name": "syncDocuments",
+              "start_line": 170
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 0,
+              "id": "file:packages/pds/src/sync.test.ts",
+              "kind": "file",
+              "name": "packages/pds/src/sync.test.ts",
+              "path": "packages/pds/src/sync.test.ts",
+              "qualified_name": "packages/pds/src/sync.test.ts",
+              "start_line": 0
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 0,
+              "id": "file:packages/pds/src/sync.ts",
+              "kind": "file",
+              "name": "packages/pds/src/sync.ts",
+              "path": "packages/pds/src/sync.ts",
+              "qualified_name": "packages/pds/src/sync.ts",
+              "start_line": 0
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 175,
+              "id": "sym:packages/pds/src/sync.ts#const:syncDocuments.existing",
+              "kind": "const",
+              "name": "existing",
+              "path": "packages/pds/src/sync.ts",
+              "qualified_name": "syncDocuments.existing",
+              "start_line": 175
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 185,
+              "id": "sym:packages/pds/src/sync.ts#const:syncDocuments.summary",
+              "kind": "const",
+              "name": "summary",
+              "path": "packages/pds/src/sync.ts",
+              "qualified_name": "syncDocuments.summary",
+              "start_line": 180
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 186,
+              "id": "sym:packages/pds/src/sync.ts#const:syncDocuments.localRkeys",
+              "kind": "const",
+              "name": "localRkeys",
+              "path": "packages/pds/src/sync.ts",
+              "qualified_name": "syncDocuments.localRkeys",
+              "start_line": 186
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 188,
+              "id": "sym:packages/pds/src/sync.ts#const:syncDocuments.rkey",
+              "kind": "const",
+              "name": "rkey",
+              "path": "packages/pds/src/sync.ts",
+              "qualified_name": "syncDocuments.rkey",
+              "start_line": 188
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 191,
+              "id": "sym:packages/pds/src/sync.ts#const:syncDocuments.desired",
+              "kind": "const",
+              "name": "desired",
+              "path": "packages/pds/src/sync.ts",
+              "qualified_name": "syncDocuments.desired",
+              "start_line": 191
+            }
+          }
+        ],
+        "stats": {
+          "candidates": 8,
+          "elapsed_ms": 353,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 352743,
+      "request": {
+        "category": "natural_or_split",
+        "expected_path": "packages/pds/src/sync.ts",
+        "mode": "explore",
+        "query": "sync documents"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 0,
+          "unresolved": 0
+        },
+        "edges": [],
+        "items": [
+          {
+            "impact": null,
+            "node": {
+              "end_line": 55,
+              "id": "sym:packages/pds/src/commands.ts#const:keygen.documents",
+              "kind": "const",
+              "name": "documents",
+              "path": "packages/pds/src/commands.ts",
+              "qualified_name": "keygen.documents",
+              "start_line": 52
+            }
+          },
+          {
+            "impact": {
+              "direct_callers": 1,
+              "total_callers": 1
+            },
+            "node": {
+              "end_line": 182,
+              "id": "sym:packages/pds/src/commands.ts#function:sync",
+              "kind": "function",
+              "name": "sync",
+              "path": "packages/pds/src/commands.ts",
+              "qualified_name": "sync",
+              "start_line": 169
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 245,
+              "id": "sym:packages/pds/src/sync.ts#const:syncPds.documents",
+              "kind": "const",
+              "name": "documents",
+              "path": "packages/pds/src/sync.ts",
+              "qualified_name": "syncPds.documents",
+              "start_line": 245
+            }
+          },
+          {
+            "impact": {
+              "direct_callers": 2,
+              "total_callers": 2
+            },
+            "node": {
+              "end_line": 207,
+              "id": "sym:packages/pds/src/sync.ts#function:syncDocuments",
+              "kind": "function",
+              "name": "syncDocuments",
+              "path": "packages/pds/src/sync.ts",
+              "qualified_name": "syncDocuments",
+              "start_line": 170
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 29,
+              "id": "sym:packages/cli/src/adapters/process-package-manager.ts#type_alias:ExecFileAsync",
+              "kind": "type_alias",
+              "name": "ExecFileAsync",
+              "path": "packages/cli/src/adapters/process-package-manager.ts",
+              "qualified_name": "ExecFileAsync",
+              "start_line": 25
+            }
+          },
+          {
+            "impact": {
+              "direct_callers": 2,
+              "total_callers": 2
+            },
+            "node": {
+              "end_line": 223,
+              "id": "sym:packages/pds/src/commands.ts#function:syncAfterDeploy",
+              "kind": "function",
+              "name": "syncAfterDeploy",
+              "path": "packages/pds/src/commands.ts",
+              "qualified_name": "syncAfterDeploy",
+              "start_line": 204
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 49,
+              "id": "sym:packages/pds/src/sync.ts#interface:SyncSummary",
+              "kind": "interface",
+              "name": "SyncSummary",
+              "path": "packages/pds/src/sync.ts",
+              "qualified_name": "SyncSummary",
+              "start_line": 42
+            }
+          },
+          {
+            "impact": {
+              "direct_callers": 2,
+              "total_callers": 2
+            },
+            "node": {
+              "end_line": 163,
+              "id": "sym:packages/pds/src/sync.ts#function:syncPublication",
+              "kind": "function",
+              "name": "syncPublication",
+              "path": "packages/pds/src/sync.ts",
+              "qualified_name": "syncPublication",
+              "start_line": 145
+            }
+          }
+        ],
+        "stats": {
+          "candidates": 8,
+          "elapsed_ms": 352,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 351612,
+      "request": {
+        "category": "exact",
+        "expected_path": "packages/pds/src/config.ts",
+        "mode": "explore",
+        "query": "resolvePdsSecretName"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 3,
+          "unresolved": 0
+        },
+        "edges": [
+          {
+            "from": "file:packages/pds/src/config.ts",
+            "kind": "contains",
+            "line": 108,
+            "path": "packages/pds/src/config.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/config.ts#function:resolvePdsSecretName",
+            "to_name": "resolvePdsSecretName"
+          },
+          {
+            "from": "file:packages/pds/src/config.ts",
+            "kind": "exports",
+            "line": 108,
+            "path": "packages/pds/src/config.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/config.ts#function:resolvePdsSecretName",
+            "to_name": "resolvePdsSecretName"
+          },
+          {
+            "from": "file:packages/pds/src/nodes.ts",
+            "kind": "calls",
+            "line": 198,
+            "path": "packages/pds/src/nodes.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/config.ts#function:resolvePdsSecretName",
+            "to_name": "resolvePdsSecretName"
+          }
+        ],
+        "items": [
+          {
+            "impact": {
+              "direct_callers": 3,
+              "total_callers": 3
+            },
+            "node": {
+              "end_line": 110,
+              "id": "sym:packages/pds/src/config.ts#function:resolvePdsSecretName",
+              "kind": "function",
+              "name": "resolvePdsSecretName",
+              "path": "packages/pds/src/config.ts",
+              "qualified_name": "resolvePdsSecretName",
+              "start_line": 108
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 0,
+              "id": "file:packages/cli/CHANGELOG.md",
+              "kind": "file",
+              "name": "packages/cli/CHANGELOG.md",
+              "path": "packages/cli/CHANGELOG.md",
+              "qualified_name": "packages/cli/CHANGELOG.md",
+              "start_line": 0
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 0,
+              "id": "file:packages/core/CHANGELOG.md",
+              "kind": "file",
+              "name": "packages/core/CHANGELOG.md",
+              "path": "packages/core/CHANGELOG.md",
+              "qualified_name": "packages/core/CHANGELOG.md",
+              "start_line": 0
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 0,
+              "id": "file:packages/core/src/config.ts",
+              "kind": "file",
+              "name": "packages/core/src/config.ts",
+              "path": "packages/core/src/config.ts",
+              "qualified_name": "packages/core/src/config.ts",
+              "start_line": 0
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 0,
+              "id": "file:packages/pds/CHANGELOG.md",
+              "kind": "file",
+              "name": "packages/pds/CHANGELOG.md",
+              "path": "packages/pds/CHANGELOG.md",
+              "qualified_name": "packages/pds/CHANGELOG.md",
+              "start_line": 0
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 0,
+              "id": "file:packages/pds/src/config.test.ts",
+              "kind": "file",
+              "name": "packages/pds/src/config.test.ts",
+              "path": "packages/pds/src/config.test.ts",
+              "qualified_name": "packages/pds/src/config.test.ts",
+              "start_line": 0
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 0,
+              "id": "file:packages/pds/src/config.ts",
+              "kind": "file",
+              "name": "packages/pds/src/config.ts",
+              "path": "packages/pds/src/config.ts",
+              "qualified_name": "packages/pds/src/config.ts",
+              "start_line": 0
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 0,
+              "id": "file:packages/pds/src/nodes.ts",
+              "kind": "file",
+              "name": "packages/pds/src/nodes.ts",
+              "path": "packages/pds/src/nodes.ts",
+              "qualified_name": "packages/pds/src/nodes.ts",
+              "start_line": 0
+            }
+          }
+        ],
+        "stats": {
+          "candidates": 8,
+          "elapsed_ms": 351,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 357500,
+      "request": {
+        "category": "natural_or_split",
+        "expected_path": "packages/pds/src/config.ts",
+        "mode": "explore",
+        "query": "resolve pds secret name"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 0,
+          "unresolved": 0
+        },
+        "edges": [],
+        "items": [
+          {
+            "impact": null,
+            "node": {
+              "end_line": 123,
+              "id": "sym:packages/analytics/src/adapters/duckdb-ingest.ts#const:insertStatement.insertStatement.tuples.insertStatement.insertStatement.tuples.values.name",
+              "kind": "const",
+              "name": "name",
+              "path": "packages/analytics/src/adapters/duckdb-ingest.ts",
+              "qualified_name": "insertStatement.insertStatement.tuples.insertStatement.insertStatement.tuples.values.name",
+              "start_line": 123
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 177,
+              "id": "sym:packages/analytics/src/adapters/duckdb-query.test.ts#const:secret",
+              "kind": "const",
+              "name": "secret",
+              "path": "packages/analytics/src/adapters/duckdb-query.test.ts",
+              "qualified_name": "secret",
+              "start_line": 177
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 427,
+              "id": "sym:packages/analytics/src/adapters/duckdb-session.ts#const:createDuckDbSession.createDuckDbSession.openSession.secret",
+              "kind": "const",
+              "name": "secret",
+              "path": "packages/analytics/src/adapters/duckdb-session.ts",
+              "qualified_name": "createDuckDbSession.createDuckDbSession.openSession.secret",
+              "start_line": 427
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 14,
+              "id": "sym:packages/analytics/src/aws/lambda.test.ts#const:NAME",
+              "kind": "const",
+              "name": "NAME",
+              "path": "packages/analytics/src/aws/lambda.test.ts",
+              "qualified_name": "NAME",
+              "start_line": 14
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 229,
+              "id": "sym:packages/analytics/src/backfill.test.ts#const:analyticsWorld.secret",
+              "kind": "const",
+              "name": "secret",
+              "path": "packages/analytics/src/backfill.test.ts",
+              "qualified_name": "analyticsWorld.secret",
+              "start_line": 229
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 300,
+              "id": "sym:packages/analytics/src/backfill.ts#const:readSaltSecret.secret",
+              "kind": "const",
+              "name": "secret",
+              "path": "packages/analytics/src/backfill.ts",
+              "qualified_name": "readSaltSecret.secret",
+              "start_line": 300
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 489,
+              "id": "sym:packages/analytics/src/commands.test.ts#const:iamReply.name",
+              "kind": "const",
+              "name": "name",
+              "path": "packages/analytics/src/commands.test.ts",
+              "qualified_name": "iamReply.name",
+              "start_line": 489
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 129,
+              "id": "sym:packages/analytics/src/config.test.ts#const:name",
+              "kind": "const",
+              "name": "name",
+              "path": "packages/analytics/src/config.test.ts",
+              "qualified_name": "name",
+              "start_line": 129
+            }
+          }
+        ],
+        "stats": {
+          "candidates": 8,
+          "elapsed_ms": 357,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 355933,
+      "request": {
+        "category": "exact",
+        "expected_path": "packages/pds/src/secret.ts",
+        "mode": "explore",
+        "query": "loadPdsSecret"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 7,
+          "unresolved": 0
+        },
+        "edges": [
+          {
+            "from": "file:packages/pds/src/commands.ts",
+            "kind": "calls",
+            "line": 95,
+            "path": "packages/pds/src/commands.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/secret.ts#function:loadPdsSecret",
+            "to_name": "loadPdsSecret"
+          },
+          {
+            "from": "file:packages/pds/src/oauth.ts",
+            "kind": "calls",
+            "line": 120,
+            "path": "packages/pds/src/oauth.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/secret.ts#function:loadPdsSecret",
+            "to_name": "loadPdsSecret"
+          },
+          {
+            "from": "file:packages/pds/src/secret.test.ts",
+            "kind": "calls",
+            "line": 61,
+            "path": "packages/pds/src/secret.test.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/secret.ts#function:loadPdsSecret",
+            "to_name": "loadPdsSecret"
+          },
+          {
+            "from": "file:packages/pds/src/secret.ts",
+            "kind": "contains",
+            "line": 69,
+            "path": "packages/pds/src/secret.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/secret.ts#function:loadPdsSecret",
+            "to_name": "loadPdsSecret"
+          },
+          {
+            "from": "file:packages/pds/src/secret.ts",
+            "kind": "exports",
+            "line": 69,
+            "path": "packages/pds/src/secret.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/secret.ts#function:loadPdsSecret",
+            "to_name": "loadPdsSecret"
+          },
+          {
+            "from": "sym:packages/pds/src/secret.ts#function:loadPdsSecret",
+            "kind": "contains",
+            "line": 70,
+            "path": "packages/pds/src/secret.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/secret.ts#const:loadPdsSecret.pds",
+            "to_name": "loadPdsSecret.pds"
+          },
+          {
+            "from": "sym:packages/pds/src/secret.ts#function:loadPdsSecret",
+            "kind": "contains",
+            "line": 71,
+            "path": "packages/pds/src/secret.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/secret.ts#const:loadPdsSecret.raw",
+            "to_name": "loadPdsSecret.raw"
+          }
+        ],
+        "items": [
+          {
+            "impact": {
+              "direct_callers": 3,
+              "total_callers": 3
+            },
+            "node": {
+              "end_line": 76,
+              "id": "sym:packages/pds/src/secret.ts#function:loadPdsSecret",
+              "kind": "function",
+              "name": "loadPdsSecret",
+              "path": "packages/pds/src/secret.ts",
+              "qualified_name": "loadPdsSecret",
+              "start_line": 69
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 0,
+              "id": "file:packages/pds/src/commands.ts",
+              "kind": "file",
+              "name": "packages/pds/src/commands.ts",
+              "path": "packages/pds/src/commands.ts",
+              "qualified_name": "packages/pds/src/commands.ts",
+              "start_line": 0
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 0,
+              "id": "file:packages/pds/src/oauth.ts",
+              "kind": "file",
+              "name": "packages/pds/src/oauth.ts",
+              "path": "packages/pds/src/oauth.ts",
+              "qualified_name": "packages/pds/src/oauth.ts",
+              "start_line": 0
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 0,
+              "id": "file:packages/pds/src/secret.test.ts",
+              "kind": "file",
+              "name": "packages/pds/src/secret.test.ts",
+              "path": "packages/pds/src/secret.test.ts",
+              "qualified_name": "packages/pds/src/secret.test.ts",
+              "start_line": 0
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 0,
+              "id": "file:packages/pds/src/secret.ts",
+              "kind": "file",
+              "name": "packages/pds/src/secret.ts",
+              "path": "packages/pds/src/secret.ts",
+              "qualified_name": "packages/pds/src/secret.ts",
+              "start_line": 0
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 70,
+              "id": "sym:packages/pds/src/secret.ts#const:loadPdsSecret.pds",
+              "kind": "const",
+              "name": "pds",
+              "path": "packages/pds/src/secret.ts",
+              "qualified_name": "loadPdsSecret.pds",
+              "start_line": 70
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 71,
+              "id": "sym:packages/pds/src/secret.ts#const:loadPdsSecret.raw",
+              "kind": "const",
+              "name": "raw",
+              "path": "packages/pds/src/secret.ts",
+              "qualified_name": "loadPdsSecret.raw",
+              "start_line": 71
+            }
+          }
+        ],
+        "stats": {
+          "candidates": 7,
+          "elapsed_ms": 355,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 361497,
+      "request": {
+        "category": "natural_or_split",
+        "expected_path": "packages/pds/src/secret.ts",
+        "mode": "explore",
+        "query": "load pds secret"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 0,
+          "unresolved": 0
+        },
+        "edges": [],
+        "items": [
+          {
+            "impact": null,
+            "node": {
+              "end_line": 177,
+              "id": "sym:packages/analytics/src/adapters/duckdb-query.test.ts#const:secret",
+              "kind": "const",
+              "name": "secret",
+              "path": "packages/analytics/src/adapters/duckdb-query.test.ts",
+              "qualified_name": "secret",
+              "start_line": 177
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 427,
+              "id": "sym:packages/analytics/src/adapters/duckdb-session.ts#const:createDuckDbSession.createDuckDbSession.openSession.secret",
+              "kind": "const",
+              "name": "secret",
+              "path": "packages/analytics/src/adapters/duckdb-session.ts",
+              "qualified_name": "createDuckDbSession.createDuckDbSession.openSession.secret",
+              "start_line": 427
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 229,
+              "id": "sym:packages/analytics/src/backfill.test.ts#const:analyticsWorld.secret",
+              "kind": "const",
+              "name": "secret",
+              "path": "packages/analytics/src/backfill.test.ts",
+              "qualified_name": "analyticsWorld.secret",
+              "start_line": 229
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 300,
+              "id": "sym:packages/analytics/src/backfill.ts#const:readSaltSecret.secret",
+              "kind": "const",
+              "name": "secret",
+              "path": "packages/analytics/src/backfill.ts",
+              "qualified_name": "readSaltSecret.secret",
+              "start_line": 300
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 1190,
+              "id": "sym:packages/analytics/src/nodes.ts#const:analyticsSaltSecretNode.analyticsSaltSecretNode.read.secret",
+              "kind": "const",
+              "name": "secret",
+              "path": "packages/analytics/src/nodes.ts",
+              "qualified_name": "analyticsSaltSecretNode.analyticsSaltSecretNode.read.secret",
+              "start_line": 1190
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 160,
+              "id": "sym:packages/analytics/src/transform/handler.ts#const:loadSaltSecret.secret",
+              "kind": "const",
+              "name": "secret",
+              "path": "packages/analytics/src/transform/handler.ts",
+              "qualified_name": "loadSaltSecret.secret",
+              "start_line": 160
+            }
+          },
+          {
+            "impact": {
+              "direct_callers": 0,
+              "total_callers": 0
+            },
+            "node": {
+              "end_line": 159,
+              "id": "sym:packages/cli/src/adapters/node-module-loader.ts#method:createNodeModuleLoader.load",
+              "kind": "method",
+              "name": "load",
+              "path": "packages/cli/src/adapters/node-module-loader.ts",
+              "qualified_name": "createNodeModuleLoader.load",
+              "start_line": 151
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 23,
+              "id": "sym:packages/cli/src/nodes.test.ts#const:ctx.pds",
+              "kind": "const",
+              "name": "pds",
+              "path": "packages/cli/src/nodes.test.ts",
+              "qualified_name": "ctx.pds",
+              "start_line": 23
+            }
+          }
+        ],
+        "stats": {
+          "candidates": 8,
+          "elapsed_ms": 361,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 344691,
+      "request": {
+        "category": "natural_or_split",
+        "expected_path": "packages/pds/src/sync.ts",
+        "mode": "explore",
+        "query": "publicationRecord()"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 0,
+          "unresolved": 0
+        },
+        "edges": [],
+        "items": [],
+        "stats": {
+          "candidates": 0,
+          "elapsed_ms": 344,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 181406,
+      "request": {
+        "mode": "symbol",
+        "query": "listPublishablePosts"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 0,
+          "unresolved": 0
+        },
+        "edges": [],
+        "nodes": [
+          {
+            "end_line": 84,
+            "id": "sym:packages/pds/src/content.ts#function:listPublishablePosts",
+            "kind": "function",
+            "name": "listPublishablePosts",
+            "path": "packages/pds/src/content.ts",
+            "qualified_name": "listPublishablePosts",
+            "start_line": 54
+          }
+        ],
+        "stats": {
+          "candidates": 1,
+          "elapsed_ms": 181,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 181861,
+      "request": {
+        "mode": "callers",
+        "query": "listPublishablePosts"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 2,
+          "unresolved": 0
+        },
+        "edges": [
+          {
+            "from": "file:packages/pds/src/content.test.ts",
+            "kind": "calls",
+            "line": 47,
+            "path": "packages/pds/src/content.test.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/content.ts#function:listPublishablePosts",
+            "to_name": "listPublishablePosts"
+          },
+          {
+            "from": "file:packages/pds/src/sync.ts",
+            "kind": "calls",
+            "line": 239,
+            "path": "packages/pds/src/sync.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/content.ts#function:listPublishablePosts",
+            "to_name": "listPublishablePosts"
+          }
+        ],
+        "nodes": [
+          {
+            "end_line": 0,
+            "id": "file:packages/pds/src/content.test.ts",
+            "kind": "file",
+            "name": "packages/pds/src/content.test.ts",
+            "path": "packages/pds/src/content.test.ts",
+            "qualified_name": "packages/pds/src/content.test.ts",
+            "start_line": 0
+          },
+          {
+            "end_line": 0,
+            "id": "file:packages/pds/src/sync.ts",
+            "kind": "file",
+            "name": "packages/pds/src/sync.ts",
+            "path": "packages/pds/src/sync.ts",
+            "qualified_name": "packages/pds/src/sync.ts",
+            "start_line": 0
+          },
+          {
+            "end_line": 84,
+            "id": "sym:packages/pds/src/content.ts#function:listPublishablePosts",
+            "kind": "function",
+            "name": "listPublishablePosts",
+            "path": "packages/pds/src/content.ts",
+            "qualified_name": "listPublishablePosts",
+            "start_line": 54
+          }
+        ],
+        "stats": {
+          "candidates": 3,
+          "elapsed_ms": 181,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 180312,
+      "request": {
+        "mode": "callees",
+        "query": "listPublishablePosts"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 0,
+          "unresolved": 0
+        },
+        "edges": [],
+        "nodes": [
+          {
+            "end_line": 84,
+            "id": "sym:packages/pds/src/content.ts#function:listPublishablePosts",
+            "kind": "function",
+            "name": "listPublishablePosts",
+            "path": "packages/pds/src/content.ts",
+            "qualified_name": "listPublishablePosts",
+            "start_line": 54
+          }
+        ],
+        "stats": {
+          "candidates": 1,
+          "elapsed_ms": 180,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 181358,
+      "request": {
+        "mode": "refs",
+        "query": "listPublishablePosts"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 2,
+          "unresolved": 0
+        },
+        "edges": [
+          {
+            "from": "file:packages/pds/src/content.test.ts",
+            "kind": "calls",
+            "line": 47,
+            "path": "packages/pds/src/content.test.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/content.ts#function:listPublishablePosts",
+            "to_name": "listPublishablePosts"
+          },
+          {
+            "from": "file:packages/pds/src/sync.ts",
+            "kind": "calls",
+            "line": 239,
+            "path": "packages/pds/src/sync.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/content.ts#function:listPublishablePosts",
+            "to_name": "listPublishablePosts"
+          }
+        ],
+        "nodes": [
+          {
+            "end_line": 0,
+            "id": "file:packages/pds/src/content.test.ts",
+            "kind": "file",
+            "name": "packages/pds/src/content.test.ts",
+            "path": "packages/pds/src/content.test.ts",
+            "qualified_name": "packages/pds/src/content.test.ts",
+            "start_line": 0
+          },
+          {
+            "end_line": 0,
+            "id": "file:packages/pds/src/sync.ts",
+            "kind": "file",
+            "name": "packages/pds/src/sync.ts",
+            "path": "packages/pds/src/sync.ts",
+            "qualified_name": "packages/pds/src/sync.ts",
+            "start_line": 0
+          },
+          {
+            "end_line": 84,
+            "id": "sym:packages/pds/src/content.ts#function:listPublishablePosts",
+            "kind": "function",
+            "name": "listPublishablePosts",
+            "path": "packages/pds/src/content.ts",
+            "qualified_name": "listPublishablePosts",
+            "start_line": 54
+          }
+        ],
+        "stats": {
+          "candidates": 3,
+          "elapsed_ms": 181,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 181280,
+      "request": {
+        "mode": "impact",
+        "query": "listPublishablePosts"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 2,
+          "unresolved": 0
+        },
+        "by_depth": [
+          {
+            "by_kind": {
+              "file": 2
+            },
+            "depth": 1,
+            "total": 2
+          }
+        ],
+        "edges": [
+          {
+            "from": "file:packages/pds/src/content.test.ts",
+            "kind": "calls",
+            "line": 47,
+            "path": "packages/pds/src/content.test.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/content.ts#function:listPublishablePosts",
+            "to_name": "listPublishablePosts"
+          },
+          {
+            "from": "file:packages/pds/src/sync.ts",
+            "kind": "calls",
+            "line": 239,
+            "path": "packages/pds/src/sync.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/content.ts#function:listPublishablePosts",
+            "to_name": "listPublishablePosts"
+          }
+        ],
+        "stats": {
+          "candidates": 3,
+          "elapsed_ms": 181,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "top": [
+          {
+            "end_line": 0,
+            "id": "file:packages/pds/src/content.test.ts",
+            "kind": "file",
+            "name": "packages/pds/src/content.test.ts",
+            "path": "packages/pds/src/content.test.ts",
+            "qualified_name": "packages/pds/src/content.test.ts",
+            "start_line": 0
+          },
+          {
+            "end_line": 0,
+            "id": "file:packages/pds/src/sync.ts",
+            "kind": "file",
+            "name": "packages/pds/src/sync.ts",
+            "path": "packages/pds/src/sync.ts",
+            "qualified_name": "packages/pds/src/sync.ts",
+            "start_line": 0
+          }
+        ],
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 181220,
+      "request": {
+        "mode": "symbol",
+        "query": "syncDocuments"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 0,
+          "unresolved": 0
+        },
+        "edges": [],
+        "nodes": [
+          {
+            "end_line": 207,
+            "id": "sym:packages/pds/src/sync.ts#function:syncDocuments",
+            "kind": "function",
+            "name": "syncDocuments",
+            "path": "packages/pds/src/sync.ts",
+            "qualified_name": "syncDocuments",
+            "start_line": 170
+          }
+        ],
+        "stats": {
+          "candidates": 1,
+          "elapsed_ms": 181,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 181939,
+      "request": {
+        "mode": "callers",
+        "query": "syncDocuments"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 2,
+          "unresolved": 0
+        },
+        "edges": [
+          {
+            "from": "file:packages/pds/src/sync.test.ts",
+            "kind": "calls",
+            "line": 94,
+            "path": "packages/pds/src/sync.test.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/sync.ts#function:syncDocuments",
+            "to_name": "syncDocuments"
+          },
+          {
+            "from": "file:packages/pds/src/sync.ts",
+            "kind": "calls",
+            "line": 245,
+            "path": "packages/pds/src/sync.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/sync.ts#function:syncDocuments",
+            "to_name": "syncDocuments"
+          }
+        ],
+        "nodes": [
+          {
+            "end_line": 0,
+            "id": "file:packages/pds/src/sync.test.ts",
+            "kind": "file",
+            "name": "packages/pds/src/sync.test.ts",
+            "path": "packages/pds/src/sync.test.ts",
+            "qualified_name": "packages/pds/src/sync.test.ts",
+            "start_line": 0
+          },
+          {
+            "end_line": 0,
+            "id": "file:packages/pds/src/sync.ts",
+            "kind": "file",
+            "name": "packages/pds/src/sync.ts",
+            "path": "packages/pds/src/sync.ts",
+            "qualified_name": "packages/pds/src/sync.ts",
+            "start_line": 0
+          },
+          {
+            "end_line": 207,
+            "id": "sym:packages/pds/src/sync.ts#function:syncDocuments",
+            "kind": "function",
+            "name": "syncDocuments",
+            "path": "packages/pds/src/sync.ts",
+            "qualified_name": "syncDocuments",
+            "start_line": 170
+          }
+        ],
+        "stats": {
+          "candidates": 3,
+          "elapsed_ms": 181,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 180932,
+      "request": {
+        "mode": "callees",
+        "query": "syncDocuments"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 0,
+          "unresolved": 0
+        },
+        "edges": [],
+        "nodes": [
+          {
+            "end_line": 207,
+            "id": "sym:packages/pds/src/sync.ts#function:syncDocuments",
+            "kind": "function",
+            "name": "syncDocuments",
+            "path": "packages/pds/src/sync.ts",
+            "qualified_name": "syncDocuments",
+            "start_line": 170
+          }
+        ],
+        "stats": {
+          "candidates": 1,
+          "elapsed_ms": 180,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 180606,
+      "request": {
+        "mode": "refs",
+        "query": "syncDocuments"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 2,
+          "unresolved": 0
+        },
+        "edges": [
+          {
+            "from": "file:packages/pds/src/sync.test.ts",
+            "kind": "calls",
+            "line": 94,
+            "path": "packages/pds/src/sync.test.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/sync.ts#function:syncDocuments",
+            "to_name": "syncDocuments"
+          },
+          {
+            "from": "file:packages/pds/src/sync.ts",
+            "kind": "calls",
+            "line": 245,
+            "path": "packages/pds/src/sync.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/sync.ts#function:syncDocuments",
+            "to_name": "syncDocuments"
+          }
+        ],
+        "nodes": [
+          {
+            "end_line": 0,
+            "id": "file:packages/pds/src/sync.test.ts",
+            "kind": "file",
+            "name": "packages/pds/src/sync.test.ts",
+            "path": "packages/pds/src/sync.test.ts",
+            "qualified_name": "packages/pds/src/sync.test.ts",
+            "start_line": 0
+          },
+          {
+            "end_line": 0,
+            "id": "file:packages/pds/src/sync.ts",
+            "kind": "file",
+            "name": "packages/pds/src/sync.ts",
+            "path": "packages/pds/src/sync.ts",
+            "qualified_name": "packages/pds/src/sync.ts",
+            "start_line": 0
+          },
+          {
+            "end_line": 207,
+            "id": "sym:packages/pds/src/sync.ts#function:syncDocuments",
+            "kind": "function",
+            "name": "syncDocuments",
+            "path": "packages/pds/src/sync.ts",
+            "qualified_name": "syncDocuments",
+            "start_line": 170
+          }
+        ],
+        "stats": {
+          "candidates": 3,
+          "elapsed_ms": 180,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 181201,
+      "request": {
+        "mode": "impact",
+        "query": "syncDocuments"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 2,
+          "unresolved": 0
+        },
+        "by_depth": [
+          {
+            "by_kind": {
+              "file": 2
+            },
+            "depth": 1,
+            "total": 2
+          }
+        ],
+        "edges": [
+          {
+            "from": "file:packages/pds/src/sync.test.ts",
+            "kind": "calls",
+            "line": 94,
+            "path": "packages/pds/src/sync.test.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/sync.ts#function:syncDocuments",
+            "to_name": "syncDocuments"
+          },
+          {
+            "from": "file:packages/pds/src/sync.ts",
+            "kind": "calls",
+            "line": 245,
+            "path": "packages/pds/src/sync.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/sync.ts#function:syncDocuments",
+            "to_name": "syncDocuments"
+          }
+        ],
+        "stats": {
+          "candidates": 3,
+          "elapsed_ms": 181,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "top": [
+          {
+            "end_line": 0,
+            "id": "file:packages/pds/src/sync.test.ts",
+            "kind": "file",
+            "name": "packages/pds/src/sync.test.ts",
+            "path": "packages/pds/src/sync.test.ts",
+            "qualified_name": "packages/pds/src/sync.test.ts",
+            "start_line": 0
+          },
+          {
+            "end_line": 0,
+            "id": "file:packages/pds/src/sync.ts",
+            "kind": "file",
+            "name": "packages/pds/src/sync.ts",
+            "path": "packages/pds/src/sync.ts",
+            "qualified_name": "packages/pds/src/sync.ts",
+            "start_line": 0
+          }
+        ],
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 180056,
+      "request": {
+        "mode": "symbol",
+        "query": "resolvePdsSecretName"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 0,
+          "unresolved": 0
+        },
+        "edges": [],
+        "nodes": [
+          {
+            "end_line": 110,
+            "id": "sym:packages/pds/src/config.ts#function:resolvePdsSecretName",
+            "kind": "function",
+            "name": "resolvePdsSecretName",
+            "path": "packages/pds/src/config.ts",
+            "qualified_name": "resolvePdsSecretName",
+            "start_line": 108
+          }
+        ],
+        "stats": {
+          "candidates": 1,
+          "elapsed_ms": 180,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 181042,
+      "request": {
+        "mode": "callers",
+        "query": "resolvePdsSecretName"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 3,
+          "unresolved": 0
+        },
+        "edges": [
+          {
+            "from": "file:packages/pds/src/nodes.ts",
+            "kind": "calls",
+            "line": 198,
+            "path": "packages/pds/src/nodes.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/config.ts#function:resolvePdsSecretName",
+            "to_name": "resolvePdsSecretName"
+          },
+          {
+            "from": "file:packages/pds/src/sync.ts",
+            "kind": "calls",
+            "line": 69,
+            "path": "packages/pds/src/sync.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/config.ts#function:resolvePdsSecretName",
+            "to_name": "resolvePdsSecretName"
+          },
+          {
+            "from": "file:packages/pds/src/test-support.ts",
+            "kind": "calls",
+            "line": 103,
+            "path": "packages/pds/src/test-support.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/config.ts#function:resolvePdsSecretName",
+            "to_name": "resolvePdsSecretName"
+          }
+        ],
+        "nodes": [
+          {
+            "end_line": 0,
+            "id": "file:packages/pds/src/nodes.ts",
+            "kind": "file",
+            "name": "packages/pds/src/nodes.ts",
+            "path": "packages/pds/src/nodes.ts",
+            "qualified_name": "packages/pds/src/nodes.ts",
+            "start_line": 0
+          },
+          {
+            "end_line": 0,
+            "id": "file:packages/pds/src/sync.ts",
+            "kind": "file",
+            "name": "packages/pds/src/sync.ts",
+            "path": "packages/pds/src/sync.ts",
+            "qualified_name": "packages/pds/src/sync.ts",
+            "start_line": 0
+          },
+          {
+            "end_line": 0,
+            "id": "file:packages/pds/src/test-support.ts",
+            "kind": "file",
+            "name": "packages/pds/src/test-support.ts",
+            "path": "packages/pds/src/test-support.ts",
+            "qualified_name": "packages/pds/src/test-support.ts",
+            "start_line": 0
+          },
+          {
+            "end_line": 110,
+            "id": "sym:packages/pds/src/config.ts#function:resolvePdsSecretName",
+            "kind": "function",
+            "name": "resolvePdsSecretName",
+            "path": "packages/pds/src/config.ts",
+            "qualified_name": "resolvePdsSecretName",
+            "start_line": 108
+          }
+        ],
+        "stats": {
+          "candidates": 4,
+          "elapsed_ms": 181,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 181008,
+      "request": {
+        "mode": "callees",
+        "query": "resolvePdsSecretName"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 0,
+          "unresolved": 0
+        },
+        "edges": [],
+        "nodes": [
+          {
+            "end_line": 110,
+            "id": "sym:packages/pds/src/config.ts#function:resolvePdsSecretName",
+            "kind": "function",
+            "name": "resolvePdsSecretName",
+            "path": "packages/pds/src/config.ts",
+            "qualified_name": "resolvePdsSecretName",
+            "start_line": 108
+          }
+        ],
+        "stats": {
+          "candidates": 1,
+          "elapsed_ms": 180,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 180530,
+      "request": {
+        "mode": "refs",
+        "query": "resolvePdsSecretName"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 3,
+          "unresolved": 0
+        },
+        "edges": [
+          {
+            "from": "file:packages/pds/src/nodes.ts",
+            "kind": "calls",
+            "line": 198,
+            "path": "packages/pds/src/nodes.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/config.ts#function:resolvePdsSecretName",
+            "to_name": "resolvePdsSecretName"
+          },
+          {
+            "from": "file:packages/pds/src/sync.ts",
+            "kind": "calls",
+            "line": 69,
+            "path": "packages/pds/src/sync.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/config.ts#function:resolvePdsSecretName",
+            "to_name": "resolvePdsSecretName"
+          },
+          {
+            "from": "file:packages/pds/src/test-support.ts",
+            "kind": "calls",
+            "line": 103,
+            "path": "packages/pds/src/test-support.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/config.ts#function:resolvePdsSecretName",
+            "to_name": "resolvePdsSecretName"
+          }
+        ],
+        "nodes": [
+          {
+            "end_line": 0,
+            "id": "file:packages/pds/src/nodes.ts",
+            "kind": "file",
+            "name": "packages/pds/src/nodes.ts",
+            "path": "packages/pds/src/nodes.ts",
+            "qualified_name": "packages/pds/src/nodes.ts",
+            "start_line": 0
+          },
+          {
+            "end_line": 0,
+            "id": "file:packages/pds/src/sync.ts",
+            "kind": "file",
+            "name": "packages/pds/src/sync.ts",
+            "path": "packages/pds/src/sync.ts",
+            "qualified_name": "packages/pds/src/sync.ts",
+            "start_line": 0
+          },
+          {
+            "end_line": 0,
+            "id": "file:packages/pds/src/test-support.ts",
+            "kind": "file",
+            "name": "packages/pds/src/test-support.ts",
+            "path": "packages/pds/src/test-support.ts",
+            "qualified_name": "packages/pds/src/test-support.ts",
+            "start_line": 0
+          },
+          {
+            "end_line": 110,
+            "id": "sym:packages/pds/src/config.ts#function:resolvePdsSecretName",
+            "kind": "function",
+            "name": "resolvePdsSecretName",
+            "path": "packages/pds/src/config.ts",
+            "qualified_name": "resolvePdsSecretName",
+            "start_line": 108
+          }
+        ],
+        "stats": {
+          "candidates": 4,
+          "elapsed_ms": 180,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 181073,
+      "request": {
+        "mode": "impact",
+        "query": "resolvePdsSecretName"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 3,
+          "unresolved": 0
+        },
+        "by_depth": [
+          {
+            "by_kind": {
+              "file": 3
+            },
+            "depth": 1,
+            "total": 3
+          }
+        ],
+        "edges": [
+          {
+            "from": "file:packages/pds/src/nodes.ts",
+            "kind": "calls",
+            "line": 198,
+            "path": "packages/pds/src/nodes.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/config.ts#function:resolvePdsSecretName",
+            "to_name": "resolvePdsSecretName"
+          },
+          {
+            "from": "file:packages/pds/src/sync.ts",
+            "kind": "calls",
+            "line": 69,
+            "path": "packages/pds/src/sync.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/config.ts#function:resolvePdsSecretName",
+            "to_name": "resolvePdsSecretName"
+          },
+          {
+            "from": "file:packages/pds/src/test-support.ts",
+            "kind": "calls",
+            "line": 103,
+            "path": "packages/pds/src/test-support.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/config.ts#function:resolvePdsSecretName",
+            "to_name": "resolvePdsSecretName"
+          }
+        ],
+        "stats": {
+          "candidates": 4,
+          "elapsed_ms": 181,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "top": [
+          {
+            "end_line": 0,
+            "id": "file:packages/pds/src/nodes.ts",
+            "kind": "file",
+            "name": "packages/pds/src/nodes.ts",
+            "path": "packages/pds/src/nodes.ts",
+            "qualified_name": "packages/pds/src/nodes.ts",
+            "start_line": 0
+          },
+          {
+            "end_line": 0,
+            "id": "file:packages/pds/src/sync.ts",
+            "kind": "file",
+            "name": "packages/pds/src/sync.ts",
+            "path": "packages/pds/src/sync.ts",
+            "qualified_name": "packages/pds/src/sync.ts",
+            "start_line": 0
+          },
+          {
+            "end_line": 0,
+            "id": "file:packages/pds/src/test-support.ts",
+            "kind": "file",
+            "name": "packages/pds/src/test-support.ts",
+            "path": "packages/pds/src/test-support.ts",
+            "qualified_name": "packages/pds/src/test-support.ts",
+            "start_line": 0
+          }
+        ],
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 180300,
+      "request": {
+        "mode": "symbol",
+        "query": "loadPdsSecret"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 0,
+          "unresolved": 0
+        },
+        "edges": [],
+        "nodes": [
+          {
+            "end_line": 76,
+            "id": "sym:packages/pds/src/secret.ts#function:loadPdsSecret",
+            "kind": "function",
+            "name": "loadPdsSecret",
+            "path": "packages/pds/src/secret.ts",
+            "qualified_name": "loadPdsSecret",
+            "start_line": 69
+          }
+        ],
+        "stats": {
+          "candidates": 1,
+          "elapsed_ms": 180,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 182161,
+      "request": {
+        "mode": "callers",
+        "query": "loadPdsSecret"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 3,
+          "unresolved": 0
+        },
+        "edges": [
+          {
+            "from": "file:packages/pds/src/commands.ts",
+            "kind": "calls",
+            "line": 95,
+            "path": "packages/pds/src/commands.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/secret.ts#function:loadPdsSecret",
+            "to_name": "loadPdsSecret"
+          },
+          {
+            "from": "file:packages/pds/src/oauth.ts",
+            "kind": "calls",
+            "line": 120,
+            "path": "packages/pds/src/oauth.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/secret.ts#function:loadPdsSecret",
+            "to_name": "loadPdsSecret"
+          },
+          {
+            "from": "file:packages/pds/src/secret.test.ts",
+            "kind": "calls",
+            "line": 61,
+            "path": "packages/pds/src/secret.test.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/secret.ts#function:loadPdsSecret",
+            "to_name": "loadPdsSecret"
+          }
+        ],
+        "nodes": [
+          {
+            "end_line": 0,
+            "id": "file:packages/pds/src/commands.ts",
+            "kind": "file",
+            "name": "packages/pds/src/commands.ts",
+            "path": "packages/pds/src/commands.ts",
+            "qualified_name": "packages/pds/src/commands.ts",
+            "start_line": 0
+          },
+          {
+            "end_line": 0,
+            "id": "file:packages/pds/src/oauth.ts",
+            "kind": "file",
+            "name": "packages/pds/src/oauth.ts",
+            "path": "packages/pds/src/oauth.ts",
+            "qualified_name": "packages/pds/src/oauth.ts",
+            "start_line": 0
+          },
+          {
+            "end_line": 0,
+            "id": "file:packages/pds/src/secret.test.ts",
+            "kind": "file",
+            "name": "packages/pds/src/secret.test.ts",
+            "path": "packages/pds/src/secret.test.ts",
+            "qualified_name": "packages/pds/src/secret.test.ts",
+            "start_line": 0
+          },
+          {
+            "end_line": 76,
+            "id": "sym:packages/pds/src/secret.ts#function:loadPdsSecret",
+            "kind": "function",
+            "name": "loadPdsSecret",
+            "path": "packages/pds/src/secret.ts",
+            "qualified_name": "loadPdsSecret",
+            "start_line": 69
+          }
+        ],
+        "stats": {
+          "candidates": 4,
+          "elapsed_ms": 182,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 181160,
+      "request": {
+        "mode": "callees",
+        "query": "loadPdsSecret"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 0,
+          "unresolved": 0
+        },
+        "edges": [],
+        "nodes": [
+          {
+            "end_line": 76,
+            "id": "sym:packages/pds/src/secret.ts#function:loadPdsSecret",
+            "kind": "function",
+            "name": "loadPdsSecret",
+            "path": "packages/pds/src/secret.ts",
+            "qualified_name": "loadPdsSecret",
+            "start_line": 69
+          }
+        ],
+        "stats": {
+          "candidates": 1,
+          "elapsed_ms": 181,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 180863,
+      "request": {
+        "mode": "refs",
+        "query": "loadPdsSecret"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 3,
+          "unresolved": 0
+        },
+        "edges": [
+          {
+            "from": "file:packages/pds/src/commands.ts",
+            "kind": "calls",
+            "line": 95,
+            "path": "packages/pds/src/commands.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/secret.ts#function:loadPdsSecret",
+            "to_name": "loadPdsSecret"
+          },
+          {
+            "from": "file:packages/pds/src/oauth.ts",
+            "kind": "calls",
+            "line": 120,
+            "path": "packages/pds/src/oauth.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/secret.ts#function:loadPdsSecret",
+            "to_name": "loadPdsSecret"
+          },
+          {
+            "from": "file:packages/pds/src/secret.test.ts",
+            "kind": "calls",
+            "line": 61,
+            "path": "packages/pds/src/secret.test.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/secret.ts#function:loadPdsSecret",
+            "to_name": "loadPdsSecret"
+          }
+        ],
+        "nodes": [
+          {
+            "end_line": 0,
+            "id": "file:packages/pds/src/commands.ts",
+            "kind": "file",
+            "name": "packages/pds/src/commands.ts",
+            "path": "packages/pds/src/commands.ts",
+            "qualified_name": "packages/pds/src/commands.ts",
+            "start_line": 0
+          },
+          {
+            "end_line": 0,
+            "id": "file:packages/pds/src/oauth.ts",
+            "kind": "file",
+            "name": "packages/pds/src/oauth.ts",
+            "path": "packages/pds/src/oauth.ts",
+            "qualified_name": "packages/pds/src/oauth.ts",
+            "start_line": 0
+          },
+          {
+            "end_line": 0,
+            "id": "file:packages/pds/src/secret.test.ts",
+            "kind": "file",
+            "name": "packages/pds/src/secret.test.ts",
+            "path": "packages/pds/src/secret.test.ts",
+            "qualified_name": "packages/pds/src/secret.test.ts",
+            "start_line": 0
+          },
+          {
+            "end_line": 76,
+            "id": "sym:packages/pds/src/secret.ts#function:loadPdsSecret",
+            "kind": "function",
+            "name": "loadPdsSecret",
+            "path": "packages/pds/src/secret.ts",
+            "qualified_name": "loadPdsSecret",
+            "start_line": 69
+          }
+        ],
+        "stats": {
+          "candidates": 4,
+          "elapsed_ms": 180,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 180437,
+      "request": {
+        "mode": "impact",
+        "query": "loadPdsSecret"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 3,
+          "unresolved": 0
+        },
+        "by_depth": [
+          {
+            "by_kind": {
+              "file": 3
+            },
+            "depth": 1,
+            "total": 3
+          }
+        ],
+        "edges": [
+          {
+            "from": "file:packages/pds/src/commands.ts",
+            "kind": "calls",
+            "line": 95,
+            "path": "packages/pds/src/commands.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/secret.ts#function:loadPdsSecret",
+            "to_name": "loadPdsSecret"
+          },
+          {
+            "from": "file:packages/pds/src/oauth.ts",
+            "kind": "calls",
+            "line": 120,
+            "path": "packages/pds/src/oauth.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/secret.ts#function:loadPdsSecret",
+            "to_name": "loadPdsSecret"
+          },
+          {
+            "from": "file:packages/pds/src/secret.test.ts",
+            "kind": "calls",
+            "line": 61,
+            "path": "packages/pds/src/secret.test.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/secret.ts#function:loadPdsSecret",
+            "to_name": "loadPdsSecret"
+          }
+        ],
+        "stats": {
+          "candidates": 4,
+          "elapsed_ms": 180,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "top": [
+          {
+            "end_line": 0,
+            "id": "file:packages/pds/src/commands.ts",
+            "kind": "file",
+            "name": "packages/pds/src/commands.ts",
+            "path": "packages/pds/src/commands.ts",
+            "qualified_name": "packages/pds/src/commands.ts",
+            "start_line": 0
+          },
+          {
+            "end_line": 0,
+            "id": "file:packages/pds/src/oauth.ts",
+            "kind": "file",
+            "name": "packages/pds/src/oauth.ts",
+            "path": "packages/pds/src/oauth.ts",
+            "qualified_name": "packages/pds/src/oauth.ts",
+            "start_line": 0
+          },
+          {
+            "end_line": 0,
+            "id": "file:packages/pds/src/secret.test.ts",
+            "kind": "file",
+            "name": "packages/pds/src/secret.test.ts",
+            "path": "packages/pds/src/secret.test.ts",
+            "qualified_name": "packages/pds/src/secret.test.ts",
+            "start_line": 0
+          }
+        ],
+        "truncations": []
+      }
+    }
+  ],
+  "codegraph": {
+    "nodes": 3245,
+    "edges": 14482,
+    "files": 247,
+    "max_indexed_at": 1788684506750
+  },
+  "walked_file_hashes": {
+    "DEVELOPMENT.md": "0349ad34d8df20a179a60ac701002d68c22dffe5577cfbe8bf09f11bdf13bae9",
+    "LICENSE": "1de773135458e3fc24e8667a5becb873cd6aeecc5439e6bee8ceff08d48ae44c",
+    "README.md": "02b2fdc1ff9b833320d15e5d67fb75a07672a11654efce75712b18c20b0b9fe1",
+    "config/preview.jsonc": "e0ec8bb96d314e51b08d070b4379b689da6424be761fccc3286ee64551543b39",
+    "config/production.jsonc": "ff9b755f52250d37ed4682ffb8aaaf3f1c1bf48d2ca76b69322ee4f763d4fd54",
+    "docs/astro.config.mjs": "5d76e0aeb66f3c453134a2674921611c5252e5d1e51205c3a3dae07726a772dc",
+    "docs/package.json": "f37003416c4d9dd44143588667b8cf56c33c76495646ecf72f9bdf066b898ca6",
+    "docs/public/apple-touch-icon.png": "81880949110ebba8e9bace6c3afdd612b37d956a1d574bdb10e851a046fea1fc",
+    "docs/public/favicon.png": "d57acbdccf17a45080e31dc88787e91726aede17d2cbf5eda9a19fb2b72328d6",
+    "docs/public/favicon.svg": "a6de6bb8d13023f4abf855e39f060769dc7d22b5e5c0271a380af7efa2f8ccb3",
+    "docs/src/assets/logo.svg": "a6de6bb8d13023f4abf855e39f060769dc7d22b5e5c0271a380af7efa2f8ccb3",
+    "docs/src/components/MarkdownContent.astro": "15d0206cc83057c17281669dd5f728dfb936a9b317d7f57330e006c0fcf18f8f",
+    "docs/src/components/MobileMenuToggle.astro": "2b54cd68c4fe3cbc655c31972b267005aafd8d2d4d346ee829ef944976d3a5f1",
+    "docs/src/content.config.ts": "ee756dfba4122d2acc94a39b2555d9f200fff56a87a8c0b10f9cd01df26a8b62",
+    "docs/src/content/docs/getting-started/installation.md": "994754461751ab387c46d11d444b707018e40720d890409e54be24d435aa3255",
+    "docs/src/content/docs/getting-started/introduction.md": "6cc9367813648824b199a368854af45e1f7ad8fc01620eb7ed5dc7cdc0c0c201",
+    "docs/src/content/docs/getting-started/quickstart.md": "12055815108d10953756d08d528ef252ee337b8d968beafb6fc79ff68abb358b",
+    "docs/src/content/docs/guides/ci-github-oidc.md": "03fa1f69222950c6e72c8cfd571e22025902f6ed8bd72d594b3334965702e149",
+    "docs/src/content/docs/guides/custom-domains.md": "b5fa815f99f87a52a193175f6a9ec0f3edf427789bc9feeb2edbde2d6d50b70e",
+    "docs/src/content/docs/guides/deploying.md": "b945037cbf970746e0715a1edf024f71dd5d4b0b06d5f44452567632c015e825",
+    "docs/src/content/docs/guides/environments.md": "803f4fd2afac55a8b9abd76e08b9ed240a4aedf465c4bd8df8bedcc299c85c3c",
+    "docs/src/content/docs/guides/non-astro-sites.md": "3eeac996e9b647f43a591ae0e74ac92fbd0f797ab17c35b36519184e4757ad21",
+    "docs/src/content/docs/guides/operations.md": "9fe7382629775b8dd697531ed1b3225c8a7682b6a1182b295cf0c68d44b16623",
+    "docs/src/content/docs/guides/pr-previews.md": "770fbef0f7e32f09af6c15b08ea002d17314a1f2abc0275035a7b6a7180fe679",
+    "docs/src/content/docs/guides/publishing-standard-site.md": "cae409a581fd90d4a506442386c00fc2d8f5d67a4ebe708bea48a5f92b7fba9e",
+    "docs/src/content/docs/guides/troubleshooting.md": "cb7a98262b6f61d6591a0f62b602ddab4f76d5a96c11ac659ae3b333f745d7a2",
+    "docs/src/content/docs/index.mdx": "75db9ebda9d8248ae1fe0ad55f9441bf32a5e03184a39e452ff8ebebc5abb972",
+    "docs/src/content/docs/reference/architecture.md": "f20e7469288b14b20f7179bccdfd8ff50081999524b13095b6b0c0f264ed633b",
+    "docs/src/content/docs/reference/cli.md": "d15959d1d90ffeeba2928a609b4a069b535d1be3d23eeddddf772fd96764b616",
+    "docs/src/content/docs/reference/configuration.md": "4e950b3c4ee9f73ba95d46064634fd64e5d809e00e54cfc2da8386537aeff803",
+    "docs/src/content/docs/reference/rkey.md": "92b8bc84d362727d6bba4b47d7a52eb47511c08d41a45ec8dd03c876f54d821c",
+    "docs/src/lib/markdown.ts": "e16a57f28d84eb2069123633928fe7bf1fd8555d40d395b4d55f49cb4fe49fe9",
+    "docs/src/pages/[...slug].md.ts": "659f4038734f0d033d15958678ab1424986eb0fc9d581bfd15839a7b77cdcdc2",
+    "docs/src/pages/llms.txt.ts": "8c1918a293b05d5f4ce772e9ddaf46e29cb326c00900eafdf56ca7db3ea60ff4",
+    "docs/src/styles/custom.css": "30b79f72be7cfe387defcd8c1c3b2ba9cf43c605e0158b3a158486b2fac47870",
+    "docs/tsconfig.json": "63b7bd508590eb4995f1f07f830c0a902963c1d1300844ad7ae34de5342a3806",
+    "knip.json": "6ff1916ec2b0b054867a6d06a6e595d9c4dbbb04175296e06624dfcc9715cc00",
+    "package.json": "0c27f2ea63359f457ca3baeeff4df643a9a6ec3a91b7336570c107b5d047b69a",
+    "packages/analytics/CHANGELOG.md": "64814157b0df139a46eba06b2b759f081b304b9bbb75939eac74403488d4a380",
+    "packages/analytics/README.md": "6ce8a98db3f4a393e3b1dce9f697ffabe44ebd0681b7a681526e1c3fa8c799b5",
+    "packages/analytics/app/src/app.css": "ce708d78a13cec69118f5c446d66f0158d29e867ba0e3ea1c0c4ab1a2627961c",
+    "packages/analytics/app/src/app.d.ts": "b146a536afb5085cfcce6869e4ac0d067ae0dbf01b6da7716b208e20646a92f1",
+    "packages/analytics/app/src/app.html": "bf7a9053f93f011285b89aef7982cac912b219b25cce8f8624b514d113ca1e32",
+    "packages/analytics/app/src/lib/CountryDetails.svelte": "711178859113c2e81168aae51c4b35e98be10c1c72661de1a2435e3f728a7b55",
+    "packages/analytics/app/src/lib/CountryMap.svelte": "57028be88437b666b8d36d6666b4e8e4ac8eb1f94fcc07752f6d054a567ad126",
+    "packages/analytics/app/src/lib/DateTimePicker.svelte": "c8abfc1b808ea6aee4e2f6c71411ad2a2c17bd901fcd5c6cd8ecd448ad695064",
+    "packages/analytics/app/src/lib/PathsPie.svelte": "63179d4b644afafd6ef20f8f4bb0473f615405b0a564a5d856788bbff843bb93",
+    "packages/analytics/app/src/lib/PillRadio.svelte": "78a6aa1591a6d4b782261e634f11dc71fadf3b0b47446fb44ee9aabecd9f8479",
+    "packages/analytics/app/src/lib/QueryPanel.svelte": "56a3b69430633d0c354d93a18e7cd8d8d301f945ef9fbc9687bb1240b37bea8f",
+    "packages/analytics/app/src/lib/ThemeToggle.svelte": "ebec2b2ceef142917a7cef9a242ca6d04374e1e52c3f2d56f9cd3a7e1d87a912",
+    "packages/analytics/app/src/lib/TrafficLegend.svelte": "6c65f1f9e7a474e855c32f3fe8cf26c7b114198d338a3da4d42514a5c119adac",
+    "packages/analytics/app/src/lib/ViewsArea.svelte": "3713c939a7046d2b9b6652f196f815d1a0ed2f5ce67dafe4b25a518e249c56dd",
+    "packages/analytics/app/src/lib/api.ts": "0a36ef9f4cb6f67161628d075a867f13d3c5c42e87dc98b414c819bcfdc52804",
+    "packages/analytics/app/src/lib/country-request.test.ts": "c21e2de136d7614dc6bcec22b182a462c988fb9258fed8af67589a2b1f8b3274",
+    "packages/analytics/app/src/lib/country-search.test.ts": "fc76d0b1a05983b01b8135c01281745a92f15cb8d835fe41041795e04d07f686",
+    "packages/analytics/app/src/lib/country-search.ts": "4bfb54e90999ee6fbfd364bbce6a249217d5d99dd510cfc0461a5a165c22c872",
+    "packages/analytics/app/src/lib/format.ts": "c7622a4de033c44a7412d379e75e1757113b2542541e8befefc6ad1e58c1b11e",
+    "packages/analytics/app/src/lib/panels.ts": "7d88a9217c513d1a51fad1dff45002c430bd4b0aef47bc985702f241d9124520",
+    "packages/analytics/app/src/lib/picker-date.test.ts": "6e60e73bbf31cc5c60d36a4c161f5d52a0f065faabfce836123194e0acfd6c39",
+    "packages/analytics/app/src/lib/picker-date.ts": "debe51fe207f12a42a33dbd039aafe27f03c45c5029c456aca4a8fb54e861bda",
+    "packages/analytics/app/src/lib/traffic-series.ts": "49867727b035e8e57fc6eeaa18f8afdb3f18432d9ca7c530fc272e683e7b6e98",
+    "packages/analytics/app/src/lib/world-map.md": "57f2eab277dddcec7da48e331fce27673ac04dcd0b659f75d1f7f16b44d9b5d4",
+    "packages/analytics/app/src/lib/world-map.ts": "5993875f85688c421d85c3968285d70bfae31cf16561aa3698388cfcb561de85",
+    "packages/analytics/app/src/routes/+layout.svelte": "6a4ad72bfcae2bbb85f2900167e73acb41c68e026b7da693e39139c13579d58f",
+    "packages/analytics/app/src/routes/+layout.ts": "e1a386843d8bd8a17087e40a4de20a4f4735ea3fe0f7d686eb5a781aaf601e95",
+    "packages/analytics/app/src/routes/+page.svelte": "48e0a98ebf14d2b1f8153d6bf52a3ddc527cfc52f0b9d01f72349a5386126c28",
+    "packages/analytics/app/svelte.config.js": "416c863b6013794df18fc071524f8e5d6209e65aea7e2d37e810c0f1103090a9",
+    "packages/analytics/app/tsconfig.json": "d93fc98e8bc6023eb007f52ff69c8fd318133de3b913f0071615b377ac71bb11",
+    "packages/analytics/app/vite.config.ts": "a8c24c59e0493f242e6b15579cd9d8b718c3f9b888b66a729e8bc29232066c3e",
+    "packages/analytics/package.json": "a08833936b61e9dffa5fe143861c16d12a9cafed182522760516321386ffdf37",
+    "packages/analytics/scripts/dev-dashboard.mjs": "83d5f12c1a5cfe60d2093fd5aeabfbd7b0baebec0a45c516bdd47e6ffd672f9e",
+    "packages/analytics/src/adapters/duckdb-ingest.test.ts": "12cb50753d7b7fe9151da3282ca28a2b2e17b146de0c8f3544af02081883b928",
+    "packages/analytics/src/adapters/duckdb-ingest.ts": "954d40162ec86600bbd7d672ecfd55f0b266cf37eebf17964d837c5fe9a9d9f7",
+    "packages/analytics/src/adapters/duckdb-query.test.ts": "44a84f8cc890e09e07b9fcf14440199526b1b8df4e7b61d9d721e9332fd069c4",
+    "packages/analytics/src/adapters/duckdb-query.ts": "40900cb5f7080b38e8fae8d21e8e83011c555a15decd44dbf4be010d224a9720",
+    "packages/analytics/src/adapters/duckdb-session.ts": "89e3ebfb2b040496fb853c589d38a84cfb75cd3cce1da00cf4bbc3a2bd06d0e0",
+    "packages/analytics/src/adapters/path-filter.test.ts": "ff48a122a1707b5b4874bf1e780fc9406ae0bc3c038bc8c063bd687a83a1d78e",
+    "packages/analytics/src/adapters/traffic-breakdown.test.ts": "eef9c3dd9b16b20ee05f027e6618b11a240ea22706f54657366c0cf133fc9ae7",
+    "packages/analytics/src/adapters/transform-diagnostics.ts": "7a3955b68191b6a8fafb7c58b5cd02a12ec793f3c7c9ea97f1e80cae1dac63cb",
+    "packages/analytics/src/adapters/view-granularity.test.ts": "02acadabe4795959012e3607ca6f62e7fe7840a6704eeacc886579c2aed5e343",
+    "packages/analytics/src/aws/clients.test.ts": "9e8b2e641a34effb3213ef82188741d920d679aaef4c90a0b765b706beda0141",
+    "packages/analytics/src/aws/clients.ts": "48ec5d1e5465649a378de2bca26dcb2d5427cb2829ad2da5ec401c497daca2f1",
+    "packages/analytics/src/aws/errors.ts": "0551ab66e63366f5c0ba4893da40bcd54386fd82d40660d6a9a343e92c708c1b",
+    "packages/analytics/src/aws/firehose.test.ts": "65277567d2af5d67a469eca81087df884b3ac5785139f3c4b0e796812c885f4e",
+    "packages/analytics/src/aws/firehose.ts": "2a36df8faf6d705c1932657bd902d8f8e78d8008019d34774831d6ff83ba492d",
+    "packages/analytics/src/aws/glue.test.ts": "a1697c33c44285282e63a60dcf4569b7241d1c635f27e34881838da4c984b3e8",
+    "packages/analytics/src/aws/glue.ts": "bd3a769f9710c6b1adbad377c7850164f75a12c5a3b983c535d26a4f1e583bfd",
+    "packages/analytics/src/aws/lambda.test.ts": "0e51d8c68d63894cb12613459f3bc0e0b49e928347afbe4c30f4b3e011d86694",
+    "packages/analytics/src/aws/lambda.ts": "192134aa5952cc6d9d2305e0b55d36166e2646e888f75a531ea902b9383f3966",
+    "packages/analytics/src/aws/s3tables.test.ts": "6c3521611171b5286915ef1cb31339034beb210090d3ff962902375264a3a2fb",
+    "packages/analytics/src/aws/s3tables.ts": "4ebde02c6e6daecb0ac5383ed1851270576a63fc967da2c27aa608ca7346b42d",
+    "packages/analytics/src/backfill.test.ts": "10deedb4c0350e36773c13e6fef320dbdddb0c08a1fd6731e3e65f8c5cd5fa69",
+    "packages/analytics/src/backfill.ts": "308b2e6dec57c449be9c3956f83bd8c558f4790bf23658419361dc0bbf8f8e23",
+    "packages/analytics/src/commands.test.ts": "f6e9819d14a3553ada179353aba58ce559d927a9f4db2246258cd803f3068841",
+    "packages/analytics/src/commands.ts": "4e2cae25b6c48704712d7aa15890faa460ad1452e8b49df50c451dd3e8a4faec",
+    "packages/analytics/src/config.test.ts": "cd05e2a2eb28683dff8ec4e86d5f1a3d84e03de07545573914f092c46c317dfc",
+    "packages/analytics/src/config.ts": "9a2179d59c121217cfbfbba40b3db8eaf68f49844a71cc23794a0521cc712b8e",
+    "packages/analytics/src/fixture-ingest.ts": "4922789c14593c780b8483f36be0a706f8808fa8f43c4e11d70bd8dc5c61a2cc",
+    "packages/analytics/src/fixture-query.ts": "267144ea7d0d5e1516c66cc77b850e414f74b5ee4160139fd403f2f84e03d4d7",
+    "packages/analytics/src/index.test.ts": "7f0e2f97918e93407eea9e5df141066e4b89f0a7c6a8b09db3fd8fdba3585f6f",
+    "packages/analytics/src/index.ts": "b2f1405f2596e428ad08b09bd013d1129a332f42b365608ead79074c34d85092",
+    "packages/analytics/src/nodes.test.ts": "e14c62e8fdbd99ef1ba0a9345ef839e648df385d10d97607d87d7812e54af417",
+    "packages/analytics/src/nodes.ts": "aa3fcc35778f4d8fdcec78bef3e7de331e63aaf7b6206fcc9e213eb3fee63e5b",
+    "packages/analytics/src/path-filter.test.ts": "66ea92e5772b570afdc8c333385f26b35100526910653a75693cb2b1814c7559",
+    "packages/analytics/src/path-filter.ts": "6c20c0c931e3ab7146ced37ff471a361f70a37c428b0b9728111b587fba02297",
+    "packages/analytics/src/paths.ts": "6d85ae08f4610a0b9c518e5a5d7bbccb0e39783c2be7db4bd0efc03e8f73fd7c",
+    "packages/analytics/src/plugin.test.ts": "245b232af5bce9460f4751744e2ae4fbe535fa3d400debf7824aa1e77eee6976",
+    "packages/analytics/src/plugin.ts": "8464588e7283eed4d87542c40c5b064486ee2f193a5055b32f6485a83b5468f9",
+    "packages/analytics/src/ports.ts": "4c87e1f80f819da67c2589190fc6f8498d2ee37ed61658e8f0ade8105c37abc0",
+    "packages/analytics/src/queries.test.ts": "008ba411e868d0f3ac1c337913edaf5d6199b2a219eedc554aea59ab02dc7552",
+    "packages/analytics/src/queries.ts": "ea26f2d53fa45dd73a286c4b3d106985db228a250d2453290e248d0a2992ef23",
+    "packages/analytics/src/reporting-range.test.ts": "9c77c2cd4c19792fef447449317ae5bdf027ee01d8905b4ed7c55e7c7664c4cb",
+    "packages/analytics/src/reporting-range.ts": "79d10f59db5d151690b0f13c71c65c435032a00f2419f81a0662390d602ba2a8",
+    "packages/analytics/src/schema.test.ts": "875d3e0d636949bd6687d716d26fea139b797aa6d82639ef33d0e04df606b755",
+    "packages/analytics/src/schema.ts": "6010c11a5ce552166712c5cef18385288c8bfde3e70aad6c312262fbe37e8410",
+    "packages/analytics/src/server.test.ts": "80db7791802505e664775a2e1479f9029d283e192fbf55060b2d302eb836ae4a",
+    "packages/analytics/src/server.ts": "086d851a5336bfd3f1dc714d9453a3a812fe0a3b1abb444ddd3b16ae47899f61",
+    "packages/analytics/src/traffic-breakdown.ts": "34d2f48a4ac76a0f6957114e235537b668cb332e87e1685b68775d591461892c",
+    "packages/analytics/src/transform-hash.test.ts": "3adedd9865248fc0b5ce123d7ba5e14690d204acd6259011faf159ce4da22f34",
+    "packages/analytics/src/transform-hash.ts": "86cf12886f3eb2c10e4ae3668b3f4cd0c3c8be49e4fd6771ce77895c823bcca9",
+    "packages/analytics/src/transform/bots.test.ts": "b2981ae11185ccfc70e11dd0fc452ae72b3859872c88febdd4573e66efc362c2",
+    "packages/analytics/src/transform/bots.ts": "91c71fac784cf5870efac9ab97428607e7be08b96eae62e69272c158cb6462fd",
+    "packages/analytics/src/transform/diagnostics.ts": "8113260716d1b045c9bb79080b781c1d000a6e2b866c2691fec491e6f2de91cd",
+    "packages/analytics/src/transform/entry.test.ts": "d3a9ce1c09793f314359f2fbeaaf78c88ef7431a1d2670a0265a11474dde6e1d",
+    "packages/analytics/src/transform/entry.ts": "3134321f0f67d22654aed40511872017254d8c1f6af56fe6d84a01072d0cc67f",
+    "packages/analytics/src/transform/handler.test.ts": "d613500f6717057c47fa73f3fc8f1ee2df137af50952e2e481ed9bf7ac415e48",
+    "packages/analytics/src/transform/handler.ts": "c017e99ce409152fab2724cf0508aa8e19d3e08e6a2aaaf23c6dcff35f4e9e39",
+    "packages/analytics/src/transform/map-record.test.ts": "b68fcd95a6e5dd3b64b9d6c14bfb92ff6f4fec9332779b594d86ae65815fb646",
+    "packages/analytics/src/transform/map-record.ts": "6c4117dc5051d3569b3a6c4289eb69e2868961a794af12af1799a30e3e7f5757",
+    "packages/analytics/src/transform/rolldown.config.ts": "c7f9f0ec087d264efc24153d9a6806c67caf939902a65408024574d41fecd206",
+    "packages/analytics/src/transform/visitor-key.test.ts": "9f7a870e46f446f9482faf110736fa6cd502b96c59888742629b6a3fad970365",
+    "packages/analytics/src/transform/visitor-key.ts": "f2b3b1661ed23bab0d6cee944d627f0154e06085e277ef358ed96152237a1d92",
+    "packages/analytics/src/transform/write-manifest.ts": "515de4cdc311ff1bd3f53214407727dd6a25b2a8bb9b4906e5a7c7c15f3d43ec",
+    "packages/analytics/src/view-granularity.test.ts": "987ceb965009320750478c28556c7661dff1d61b42a5b85e9b8431819b8e60c4",
+    "packages/analytics/src/view-granularity.ts": "63ad66f53c2835580fd05a1db2a326c5c7ff897cc6226b5e98c13f4efb46ab06",
+    "packages/analytics/tsconfig.json": "0ad285330ab8acbfba603fb070e3986404057f70fa5d3abf17c567a07410c4e3",
+    "packages/analytics/tsconfig.typecheck.json": "962a9ba9571162779c49c55f04d9a837fdaa1cbd8b41b80b163e7c5ffcfdd5f6",
+    "packages/analytics/vitest.config.ts": "2920db233aef80ffde895049aee7187b300bfc8507b7d121dc105b999d3b0b4f",
+    "packages/build-agent/Dockerfile": "c7f2b468b444b7b1083d89e854d4c7ccf8ab777c179355f381724c13d6f4af21",
+    "packages/build-agent/package.json": "fb316808f8ee97268996c0e5843d25a392f7a277d353b38db5fbae0542b8dc3a",
+    "packages/build-agent/rolldown.config.ts": "c84735fb640d972ad05d7c95bc2620dff99e03dc93e15a005b2edfbe7439de1f",
+    "packages/build-agent/src/agent-hash.test.ts": "c95681628792856e283861ed27789729003a244753c1a84bd2a63602554b20a6",
+    "packages/build-agent/src/agent-hash.ts": "4e1ed3b3fb33ec7383cf0dd4835f60c8f228564454afc2a71cda2c14ecb986bc",
+    "packages/build-agent/src/build.test.ts": "47f7f45da2903a96fe033fc739812e3543796065735bd379cf57d29298318851",
+    "packages/build-agent/src/build.ts": "eace4be32144893b99f31fcb4f99236c99cecb670850e1eb9a8e284bbc59d1fb",
+    "packages/build-agent/src/server.ts": "91a91110ac79152744983e500def3578ce2e7d5a1560e3420bee45f4bed62006",
+    "packages/build-agent/src/write-manifest.ts": "6a85556977b1a621e30bcc8e1a18d46e2221c747cf7dfd16937597cd381d2b56",
+    "packages/build-agent/tsconfig.json": "f5e188288b189d08a6a366f71b632c5407644085e20e5fc8c317b8f4ff16f6d1",
+    "packages/build-agent/tsconfig.typecheck.json": "962a9ba9571162779c49c55f04d9a837fdaa1cbd8b41b80b163e7c5ffcfdd5f6",
+    "packages/build-agent/vitest.config.ts": "edf7353c8fce47e1cd75d7ba8d44dc748b7a4505f824b5bb07a2bd46b16037d4",
+    "packages/cli/CHANGELOG.md": "59ead953c93f934959004aa417a456b87c7a22057ea9123344c955cda1e90288",
+    "packages/cli/README.md": "5519247e779f0f9692f99093557247a49cfefd772ea5ff56fdf5a7ac89108553",
+    "packages/cli/package.json": "7296f7b61d20f3b2b555fa511fa9d1ad6eb95f50d1792899c5fe68c61a792ee7",
+    "packages/cli/scripts/copy-agent.mjs": "6d5fc14a798fa883200dc78ecd00cb0a7c77113c10a7c7ca91ae512d79057b43",
+    "packages/cli/src/adapters/fetch-ping.test.ts": "40639134dd7eaabca3da5f35ab7ab6c066b3cdeb9fea791732a3f4cab316aa9d",
+    "packages/cli/src/adapters/fetch-ping.ts": "690a440c53b261d8decce43150e63187328004fc7e4b76e5021080178d79c63e",
+    "packages/cli/src/adapters/node-module-loader.test.ts": "5befa34afa89ebba467074f6b4cd3d2c618853b28bbd8e9c34b4133e64477cf7",
+    "packages/cli/src/adapters/node-module-loader.ts": "4264aa8a665a8a47fef6c3b449fe847193509bc02891aec07f7355165841563d",
+    "packages/cli/src/adapters/process-package-manager.test.ts": "e39633ecc2466cec2004e3023a81ac433c51710ac5db4f0a4d948874cb69086e",
+    "packages/cli/src/adapters/process-package-manager.ts": "b9e07674d2245da7c57bd18cc811051c9c2a61e50044ac5411cfdbd358f92cab",
+    "packages/cli/src/adapters/process-vcs.test.ts": "cbb4450472ff01d3ee207a8f7faa61d6f8a59372532990ec3629f36f1c588b7b",
+    "packages/cli/src/adapters/process-vcs.ts": "103a329834231e48e288aeaafdc3ebedf02282edb02aea02c5b2556049ca2f49",
+    "packages/cli/src/agent-package.test.ts": "31cf04a6654c78a36ae606bc25040d99b5ac52092374f91a48904c5e6ec2c598",
+    "packages/cli/src/agent-package.ts": "9ba3ed009502cbec9d895587555bf000a99033e831ab700481ef6e87cd6808a3",
+    "packages/cli/src/bin.ts": "08e283f74db7987a15d4f455f9121f22e2babd344d9d808a898e8560b37ad349",
+    "packages/cli/src/cli.test.ts": "419109059885fb215788979593bcd2fe3264220804d1b102c536f4cc7a1dbe77",
+    "packages/cli/src/cli.ts": "516b2c267a16806206f6ea5de2a3ef90d1334551b42e5412687e886d404e0f1d",
+    "packages/cli/src/commands.test.ts": "17f48e417790c47174e27e0fddf49ccfb3791ec6c77efd58af104e6afa907d4b",
+    "packages/cli/src/commands.ts": "91c3e6a3dab2364c81c5d680296dffb76620dacbbe4d4792827e36b241c30e1f",
+    "packages/cli/src/config-block.test.ts": "8f5836d1b160dd24aff52ebc5082fa04ec2e3ba0c4299c4c658c7d7738e8d9f9",
+    "packages/cli/src/config-block.ts": "feab7d69cf89f4a4099413120d9a6349753f92d439f25283a66848c0fc34c27c",
+    "packages/cli/src/context.test.ts": "b29d7fc6f76b83301d64e061b49214d010eee41a1bcee9c0df23d554f63c3814",
+    "packages/cli/src/context.ts": "5960ee088b5a92171900444e6258cffeb9cb09cdfbd4b45588421631ce6b8a0c",
+    "packages/cli/src/deploy.test.ts": "b205eaac8d65025a928f22228b032349ff54d74e418bd26e5fded3f31368f69a",
+    "packages/cli/src/deploy.ts": "e19d382b1a53ff3822f47f6a0976322f88c3336a0e7ab01b6743d8fa0c9e271a",
+    "packages/cli/src/graph.test.ts": "7e05d0ef0dd72bc65c596011205b7cca313c96d0609575421f59b380fa5993bc",
+    "packages/cli/src/graph.ts": "c247ec75cc083961a6be5b709fc035ff3d7f58a5af7ebeb482441169fad028a9",
+    "packages/cli/src/init.test.ts": "a1a3a063f2aa5f20765ffe6a2b973e31908901e87cd1acf1b9f315cb12897a39",
+    "packages/cli/src/init.ts": "f298048c56ec3b1f8467d746646d96b3198360909ce0c1da7fc782885de22f91",
+    "packages/cli/src/known-commands.ts": "dba7480d32a89b64e70684232aa617fb6402e4e0c403d8a61c12fa5112a40e98",
+    "packages/cli/src/logger.test.ts": "e114140a0000fe336f829f3acb14a6ac9dcf1965dbc4701c1776da612a03692e",
+    "packages/cli/src/logger.ts": "657f90a377a983a7f0e1d799cbd213988ef8f15e26594f2d703edd5621230146",
+    "packages/cli/src/microvms.test.ts": "46a8fbdd692ad1052cdf4d275095d3c6258163e6571baf9524faf5136fa833cd",
+    "packages/cli/src/microvms.ts": "88c8eb66f6c011a6c0dc94a537f897500247e1a176baa8dab8fd783d5e37336c",
+    "packages/cli/src/nodes.test.ts": "12ed0bcac7581a15508eb5c8e9e290885970fd60cb4f21a97a4e45ae4645a0cb",
+    "packages/cli/src/nodes.ts": "02a0b006161bf7b6dcf6be6cdbd6862c1eaca5f33c73223a209583e709ba15b4",
+    "packages/cli/src/plugin-commands.test.ts": "8c2803fbd9d44180d88c441f6093e3ac4ec545349f9930696d55094d68814f9e",
+    "packages/cli/src/plugin-commands.ts": "93c7c327982b1b01dd90635a7ef27952d9aee1e7f112999220b98f233415bfb0",
+    "packages/cli/src/plugins.test.ts": "3f9ef141da8408430406d39de0a72129dd127f22de2db5f820268ad418dec7b1",
+    "packages/cli/src/plugins.ts": "be5707b2c800699b5263ec31a80760b1f180a3f5ea0c352cf6b6d1c47bcd3a7e",
+    "packages/cli/src/ports.ts": "12d1955e46631431387dbf6768a253533328b5afb85c80a12d666211c9771b71",
+    "packages/cli/src/render.test.ts": "231d4784e7d8964f61e6a8b9e2d59265a6ecc7b9583af08f60cc2834c27190cf",
+    "packages/cli/src/render.ts": "5797bd5f7ed9330345158fcbc4cc0ffab2c297d5ac35cea146a21762d217e353",
+    "packages/cli/src/repo.test.ts": "fbed5adb24d1a0a2cc15909da8468430de392a6f19bc5b7d1ea8d8f2f6d118db",
+    "packages/cli/src/repo.ts": "57bcfe37b360610e2c0ab5eca84c4fce7ea3caa89f31cf9f14e6f8c710ee776e",
+    "packages/cli/src/rkey.test.ts": "c9c73fd4ef6473556ea4708183f8f0e50ad530986c66a40ec66cf87e33ea96cc",
+    "packages/cli/src/rkey.ts": "adbe5305eaeafde1bd9ae1c1110662e86e596427070b53dcefff1ec246b70cab",
+    "packages/cli/src/seo.test.ts": "3ff626eef2dfbfd60eeaef460765d4029966dada276744e1e1df5ba1d6811535",
+    "packages/cli/src/seo.ts": "ab685216799be910579c5f9708bdc663b62d9b51df862df046439815ae802442",
+    "packages/cli/src/test-support.test.ts": "3e1509f0325d473e87362f1e0da1a3497515b2c8f7556e34f0228a9dab14dff7",
+    "packages/cli/src/test-support.ts": "65a04798a66a232500244320940bbb79857642aa55c1226c9de319d347df722e",
+    "packages/cli/tsconfig.json": "9b81a916463813350440e51f61306f0e8e3ef85f3620971929a607503a6c2faa",
+    "packages/cli/tsconfig.typecheck.json": "962a9ba9571162779c49c55f04d9a837fdaa1cbd8b41b80b163e7c5ffcfdd5f6",
+    "packages/cli/vitest.config.ts": "4a5729190f0496bcc53c2cbcd587c3c3bcd553c80f0e0f3355460af17bd5e88b",
+    "packages/core/CHANGELOG.md": "b4b013d6075f9238ad117e40bf671aa979add7842b5eb141c9962b1bbafbb396",
+    "packages/core/README.md": "f300ae9c8fa9ae1a7c06679a520c4847a9315fee1f6d9033420d677ecca4de36",
+    "packages/core/package.json": "a4f1eddb76a0a0d8eb93bd59e28451950dae2cbb191990b7e1f2c41908980201",
+    "packages/core/src/adapters/memory-fs.test.ts": "c68709763116173c0559b0cd3d16f9fcd7db4ece8647f4cd0cd2ee4c35a4968e",
+    "packages/core/src/adapters/memory-fs.ts": "ba21b6b9b0a2b4e54c902d8fab187eb239efb516e8244b4dc9e8a887b5b76bf5",
+    "packages/core/src/adapters/node-fs.test.ts": "4e5846ae64be9ac8f3a49019827d04eb391fb767933f6668fffff1ad659f98f4",
+    "packages/core/src/adapters/node-fs.ts": "629a6b38de08b4fcf95892fe6549fdebe32e6232c9a5b5cffd051350558851c1",
+    "packages/core/src/adapters/node-terminal.test.ts": "4451eeee5f829928c871419c4b9fc77d949f3c335606c58eb38055698ebc3c54",
+    "packages/core/src/adapters/node-terminal.ts": "c8574b4a54d9bf12c972264a974ed891a0ca5315bd16861d55df29777def4b91",
+    "packages/core/src/adapters/script-terminal.test.ts": "7e55ab61d3ea7cca05b67d69577ab417a6b62603bda2326f582a1bf13c8e086f",
+    "packages/core/src/adapters/script-terminal.ts": "33f8db3f1492274daade6a7d171a8a5f7149b013de7dfef9184633a22ada3ac0",
+    "packages/core/src/aws/acm.ts": "356281c7bba8faaf4cf06b5627e57aea54c00b701d30728e840026794af48161",
+    "packages/core/src/aws/cloudfront.test.ts": "9af1d3b89a1dd561daff519e661a52c54e58f0d4c21318dc6fbc4866af2304c7",
+    "packages/core/src/aws/cloudfront.ts": "9a76d82d84019294b665b5374c746bc338f710ee37344294543b1aa4af475939",
+    "packages/core/src/aws/credentials.ts": "d18330c558aec088de6c8014492adc3009608678ff199896fbde4f64317919cf",
+    "packages/core/src/aws/endpoint.test.ts": "553d0bd590b6f31740b467a866dfb3a912e34cf8186bd2e2573470e8f174fdd6",
+    "packages/core/src/aws/endpoint.ts": "e96c9cd4037461db92e078bc52669ed22e3d21ee5a874268c1feb8614fbf780f",
+    "packages/core/src/aws/errors.ts": "1c4e724d8049a75b3e83e7efd2e78547c606553b94e2a262c92662fd0001c595",
+    "packages/core/src/aws/form.ts": "c911bf1e5b43e8ce83bfc8ac73f06ccfff70ccd636f3ec1fe858c64b40f7138d",
+    "packages/core/src/aws/iam.test.ts": "91309e6a0ea10a125f1911a13984e543c3e25e2cde1171ce0127adaa3ea3c11b",
+    "packages/core/src/aws/iam.ts": "c1de5e18056444a66f5050cdb869bf72d794b571db5051d9db0343f03046e0e2",
+    "packages/core/src/aws/logs.test.ts": "72d90d1725e2d3cf2a791a2126178a97494f54f3b81eafaa68d5d538a8030abc",
+    "packages/core/src/aws/logs.ts": "605df85fd1a25e0b1a675abaabe5e1077a93bb266af3d94f7b573b34386cb426",
+    "packages/core/src/aws/microvms.ts": "d9cb3e92d72af2ac551911fb5de1c56a5c50c4d76afc7705f72746c1d4139f34",
+    "packages/core/src/aws/route53.test.ts": "6042dccd10511ab96c804c4d824fcc7b6cc8f9ec4e1af8fd71633b9f1c42f3df",
+    "packages/core/src/aws/route53.ts": "7165f3e74029d68f094dbfbf520fc0a257a9df6b6e577aeda2797a7787e15d31",
+    "packages/core/src/aws/s3.floci.test.ts": "332b90d325e3b8fabd08fe3085ff1481d2760f13e06375ea28e3e935f6d8940d",
+    "packages/core/src/aws/s3.test.ts": "6aaf38597b67f7b6ff6943b4fff2e95731b7a2dca4ecbd49edc4a7aa651ad9ea",
+    "packages/core/src/aws/s3.ts": "ac072b38d3b9bb926af6116fc4f8c6c47e6a923de564494215c2d26ad77600db",
+    "packages/core/src/aws/secretsmanager.test.ts": "5c7fe77bad4de4d29659b389fb295834c79bbff0165bafb450ffd93480d37c57",
+    "packages/core/src/aws/secretsmanager.ts": "af0246500c781b86688bb05c401ac6b6afc6a24d55f2060224adbd099eb8d76a",
+    "packages/core/src/aws/signer.test.ts": "595f853b41f61662e3438e4be204bc8f5df1ce47659376465c936f722feb636c",
+    "packages/core/src/aws/signer.ts": "75296deb43ac7c8463ac7be15c30d9f8dda7cc8c070915f98756f4a0a2e81b3b",
+    "packages/core/src/aws/sts.ts": "a46cce4a4dbc1762d9547c1dae5859634c875df0b46f6a4a779b96c5d3b28e8b",
+    "packages/core/src/aws/xml.test.ts": "1db656fa8ea2f692cf232a17de21f1ac06020ae18a3e62ccc2034e915ecc441a",
+    "packages/core/src/aws/xml.ts": "0e912e4fe55f474187abb49066d6133481e89f2ac25d6ec74f3f2c4f6a592fc7",
+    "packages/core/src/clients.test.ts": "497422b58fcdd0ccb3b126f1558d2b76b5bfa6183aac77d67f7038aefa84a149",
+    "packages/core/src/clients.ts": "520efd4cffcda5d9af4cecb3b68d019fe6170d2ecd1171b47c271da3a04d5348",
+    "packages/core/src/colors.test.ts": "aff6ee8bff93377ff46455f399570479e4477aae8326e8b5400e0b61cb5bcc06",
+    "packages/core/src/colors.ts": "7f9a04caa0341e779374035752da424395009427098f242ec9f768f78dcf8bc6",
+    "packages/core/src/config.test.ts": "3de91b5826165a5c699a85b86ff6980653c995930d0858d151969bd6da88c56e",
+    "packages/core/src/config.ts": "28076eb5d5f9779d76cc0a8e3732b6d5b86e8af09bd18dca8735c15328157b28",
+    "packages/core/src/index.ts": "008046e270e16e6d7bba3ecd5a980f456b9d1b803288c45ff04e2fb37a86c0ba",
+    "packages/core/src/plugin.test.ts": "6f75f4a29278fd1a28ce86dd28ce91649aad9bc6acd5c5c3f3b0ce9bdf56f52c",
+    "packages/core/src/plugin.ts": "c2cc74ccedfeba65fe983b85b6507288d0cde35b5eff76f9f14783e81a6621ac",
+    "packages/core/src/ports.ts": "701cdaa5c1e1022e29b3c2f4b5bbc9f7ef44edd6310b6d09d3f0cd76a2f7fb79",
+    "packages/core/src/repo-root.test.ts": "acb388d8bfd59bc0e79a2505b0cb582baafef3166a491f8350304931eeb65971",
+    "packages/core/src/repo-root.ts": "bf7214d6c001ce77b251714dd6585468bd7323270748024286bd28ea76925023",
+    "packages/core/src/state.test.ts": "69de2f1df073cb66acfef4e1def8e899d67c6f30aaf2f5776d5998605bd54fca",
+    "packages/core/src/state.ts": "72e7f4c8406363e40b289ce26c480dc1b289d92f54542dba8a27e514ff02819d",
+    "packages/core/src/tags.ts": "3fc8647499175c37077e6bafc8560f5483229dab96eaeb8cf4a93b2fb21c19d0",
+    "packages/core/src/util.test.ts": "2f33cc70be024172b9e6a9201c3a85c6d1613f0f97e8abb8b3f7d4ba092a015c",
+    "packages/core/src/util.ts": "3418e72d4f148d1edb24bd4604fe4f5608fde361e233e55fa2196f61f726bad9",
+    "packages/core/tsconfig.json": "f5e188288b189d08a6a366f71b632c5407644085e20e5fc8c317b8f4ff16f6d1",
+    "packages/core/tsconfig.typecheck.json": "962a9ba9571162779c49c55f04d9a837fdaa1cbd8b41b80b163e7c5ffcfdd5f6",
+    "packages/core/vitest.config.ts": "ab62155f398c51eab4e82c644ad2c943e15fe60e4ee983ecaa916f4567d93e9f",
+    "packages/pds/CHANGELOG.md": "3a69be5f33642363e5e3f9923248db731bc06a5bae106ab3308282b8ebc0d641",
+    "packages/pds/README.md": "acc69ae1303b5c8d19c368c4b816fa64865e13dfd5e9fa80f870598107932b54",
+    "packages/pds/package.json": "a67074610ec1f164ab3db46c05f365b80c80ccb520bf40f9ab986a1a653c321b",
+    "packages/pds/src/client-metadata.test.ts": "692247ab5d149c33680de1c3bcfc865fa4dc73649ac1930ac8c5effbf94f4701",
+    "packages/pds/src/client-metadata.ts": "9d1bc2e22152d9950b6d6b48c067d4fc8683d46e2303e487569912bd5186f725",
+    "packages/pds/src/commands.test.ts": "e0a1676d9e70f7cdc448a0076c3219040e60261bbd0ef4f5f6bf3ccd63fcefa7",
+    "packages/pds/src/commands.ts": "f222507ba3c545ecd89d1ae03254131115ec18a84b50e290d0c0f7ba59bf1bd1",
+    "packages/pds/src/config.test.ts": "c5a844dc4c7f3bbbae3665d8e3f74f5fd4d10b73044019322b799ec7eb01c1d0",
+    "packages/pds/src/config.ts": "d84e2ff998d46b4a0f4947f881d29028f5ef144dce8b7c0dac7969b12f94821f",
+    "packages/pds/src/content.test.ts": "18cb0dafd568658ddf88f43998b860be6abf62fc8a61ac84b97c108a318a5f39",
+    "packages/pds/src/content.ts": "7bea1f11f23a5f726656668b97414a7404e0743395540b483097d971005a518f",
+    "packages/pds/src/context.ts": "bde7c304edf39f122073ff1f3000dbc8a397187f8e29e534165c0ee8c2f08d30",
+    "packages/pds/src/index.ts": "e727c5411c881f45322ec222dd2b4adbb578b23aeb1b80ee24b3f9fb4a25b492",
+    "packages/pds/src/nodes.test.ts": "e4c56d5ebe07aa320c66d04f8e9ef10659ffef671a06f27a3abe10979e9deb52",
+    "packages/pds/src/nodes.ts": "5b643592a231f226e13c9cf108f88cf551948c44a5d3e40baec9f96f34133f2f",
+    "packages/pds/src/oauth.test.ts": "30ad65d0e425615d670cfbe2bb104c1cf2f50f24852ff0399441aa748ae7e4f1",
+    "packages/pds/src/oauth.ts": "148ae1747e1253cf49ca602b18326eec03298392f0c6e7a91f03c223d13cf313",
+    "packages/pds/src/plugin.test.ts": "76a7d63390016dbef84e3edeee2931b1a1e8303a6cd1f1f3d678346c68bad53c",
+    "packages/pds/src/plugin.ts": "b7672eb9b529bb7860bb3be2e131f967101824954687e65f9c3d01e852d65a79",
+    "packages/pds/src/rkey.test.ts": "880fc1442f2d1af6745494e09ed60788b5906a9cd1727febab953d62efb4d1fe",
+    "packages/pds/src/rkey.ts": "7ff97b85a7b35e92b80bddc8c56262206d2b29d9f1da70c7b1b3c6028123d4b9",
+    "packages/pds/src/secret.test.ts": "755d1775af5b0ab6dbd63c42359fdd35b1f5fc14347970188f8659a183687620",
+    "packages/pds/src/secret.ts": "da2877475f7ac10dd17e7ccb3352a4bfb7c7fda3be724b73c4fd09c31e795975",
+    "packages/pds/src/sync.test.ts": "7a9c2302a096d90a5d2f8da535ea4ef95c7163d1a8e2b4e0d0bb70c15831b864",
+    "packages/pds/src/sync.ts": "95b58bc129e3b6d5825008b1321942ba1742c8329093ff1154de729ef25e5dd5",
+    "packages/pds/src/test-support.test.ts": "56c005b6fca8714f1e5073147d445339bcc861b6663d629c360bcf6055c8999a",
+    "packages/pds/src/test-support.ts": "bdec70a4514452d725770e5821bc9a771aafab8e7f2884cfbc5a4542fc484481",
+    "packages/pds/src/xrpc.test.ts": "74fd462ef8b4d829062b54532d2fead185a91fd97dc2ab5baaf179527a24c352",
+    "packages/pds/src/xrpc.ts": "d7fd38b554cb898287d959d12c763023a0f82dd2d50e518975f5c61fd26c74f1",
+    "packages/pds/tsconfig.json": "9b81a916463813350440e51f61306f0e8e3ef85f3620971929a607503a6c2faa",
+    "packages/pds/tsconfig.typecheck.json": "962a9ba9571162779c49c55f04d9a837fdaa1cbd8b41b80b163e7c5ffcfdd5f6",
+    "packages/pds/vitest.config.ts": "edf7353c8fce47e1cd75d7ba8d44dc748b7a4505f824b5bb07a2bd46b16037d4",
+    "playwright.config.ts": "74877d2e77bda4f3d5924ca7f572e6203752f924f65334900cc17555e9c92fda",
+    "pnpm-lock.yaml": "37364032333310dddd008c43d4df62303fcf778bdeff423f99de13fc0e83e0ea",
+    "pnpm-workspace.yaml": "4cbdd2b00902306845bd79cc48e965bb44afca9657b599aed6e41a1a4c1d33fd",
+    "tests/browser/README.md": "3cfca55ad52f0f5764d0f995c9423935063f7dcf522456a492e3e22d8f4e913f",
+    "tests/browser/container.sh": "c2c246443d4e8cc2f51cfc0e308322aa935af18ff6e2549aef8df05e7539b0d3",
+    "tests/browser/dashboard.acceptance.ts": "275d43416196f227024382f842618550181b427967e87fdc80e62489188320a1",
+    "tests/browser/dashboard.acceptance.ts-snapshots/dashboard-dark-1440-dashboard-acceptance-linux.png": "1cc7aa4d4e490a65d46d276e6162e8dbefbc4709b7c4e0b32c76a0e1b43a97d5",
+    "tests/browser/dashboard.acceptance.ts-snapshots/dashboard-dark-320-dashboard-acceptance-linux.png": "28884d3638e6f54b72ffa3ef19b7e542a9b68b131e838b2d1f98d3933923f873",
+    "tests/browser/dashboard.acceptance.ts-snapshots/dashboard-dark-390-dashboard-acceptance-linux.png": "41988e33f0ac6af3784e3db6dd083e38cf38f7341588d3d62d83740e8d065f48",
+    "tests/browser/dashboard.acceptance.ts-snapshots/dashboard-dark-768-dashboard-acceptance-linux.png": "676303566501181c3b4a37cb2d18a9bbb8c3d0f705605cf7020fd5fc5e4cce24",
+    "tests/browser/dashboard.acceptance.ts-snapshots/dashboard-light-1440-dashboard-acceptance-linux.png": "cc11e0306d38def5acc5df54b9fa04a3b07977d2feda007bfa3bc773130690a8",
+    "tests/browser/dashboard.acceptance.ts-snapshots/dashboard-light-320-dashboard-acceptance-linux.png": "4b2b86f3214fb590db9ea6dc68df9af26c2966223b63d303c0447c220f95a858",
+    "tests/browser/dashboard.acceptance.ts-snapshots/dashboard-light-390-dashboard-acceptance-linux.png": "8a6fad7f010172f6ba4d3fa42f4099e1e390279d203426860fafce0a55103177",
+    "tests/browser/dashboard.acceptance.ts-snapshots/dashboard-light-768-dashboard-acceptance-linux.png": "2bbd161a19fea54bbebe5ad9d7c62f98cc70a1ff69a717231b263b43d7619bb4",
+    "tests/browser/dashboard.spec.ts": "c91fdbb97fab4905afe81e2f22201997e8445f5b026bb31a05169105dfaa5ef0",
+    "tests/browser/docs.acceptance.ts": "7925c45ee1a38ca422b5ffce9bf932b1ccce7da9263b6b430861d7e42c116e0a",
+    "tests/browser/docs.acceptance.ts-snapshots/docs-home-dark-1440-docs-acceptance-linux.png": "b9d4fb9f15c4240146c1eacdd47c1dee31e746660e5a2bde5be841c924c8151d",
+    "tests/browser/docs.acceptance.ts-snapshots/docs-home-dark-320-docs-acceptance-linux.png": "35390d952750d5a79eb271e35c935b15e26ba615ff12c828b3996e1b321eefd6",
+    "tests/browser/docs.acceptance.ts-snapshots/docs-home-dark-390-docs-acceptance-linux.png": "870752cc819eb716a81a40c1e687fd2649666d8f416e676aae516622e4707c06",
+    "tests/browser/docs.acceptance.ts-snapshots/docs-home-dark-768-docs-acceptance-linux.png": "19aaf813262ad2ffcbec201ef68f2771850286afbcb0f4bd57821329ab8d4bde",
+    "tests/browser/docs.acceptance.ts-snapshots/docs-home-light-1440-docs-acceptance-linux.png": "955d653271eb6b6fcd0410a8a435a05961714f1f9e05528976ab31943e54c69d",
+    "tests/browser/docs.acceptance.ts-snapshots/docs-home-light-320-docs-acceptance-linux.png": "0e6f26bb3ba95687807443ade942a333610b7993badd90ac0fd874b3573167b0",
+    "tests/browser/docs.acceptance.ts-snapshots/docs-home-light-390-docs-acceptance-linux.png": "2e94cbb6ef7eb967a4305cf6819ff39e6fd5bb9ad9533d5f9435eff263cf7c85",
+    "tests/browser/docs.acceptance.ts-snapshots/docs-home-light-768-docs-acceptance-linux.png": "7adf3c9dc0e4fe22858202f78324662f7f9bdbd22046dcac6c42a44c7652ddaf",
+    "tests/browser/docs.acceptance.ts-snapshots/docs-reference-dark-1440-docs-acceptance-linux.png": "c98ece38a88e93a1fe31bdd1fd22461aef449f3204aa00719bbdb1622bdc693f",
+    "tests/browser/docs.acceptance.ts-snapshots/docs-reference-dark-320-docs-acceptance-linux.png": "4f19cba4714b01aef331628b4670fc8d7646e2d1788b3c29ca420e56a3b2502d",
+    "tests/browser/docs.acceptance.ts-snapshots/docs-reference-dark-390-docs-acceptance-linux.png": "6e4c58a429e2a35217b5fb944fec7d9f2bad3c346ca15309a45131d06d1c4d61",
+    "tests/browser/docs.acceptance.ts-snapshots/docs-reference-dark-768-docs-acceptance-linux.png": "d59da2e68937e9116c1f72c0adf338a35fe884dfe32b48e5dc4cd5c727c27992",
+    "tests/browser/docs.acceptance.ts-snapshots/docs-reference-light-1440-docs-acceptance-linux.png": "d12dc65d5229ae9d754fd49dfa0728f8a7078afa5f81e16ef52d3898385a1b2e",
+    "tests/browser/docs.acceptance.ts-snapshots/docs-reference-light-320-docs-acceptance-linux.png": "080818a269226194222fc94537c504c04e0699b216eadd585a9594cee11f317f",
+    "tests/browser/docs.acceptance.ts-snapshots/docs-reference-light-390-docs-acceptance-linux.png": "fa25c78fe6fd69ae56ef4353d06ee6baa821dcb1ebcf6e73d9b170c660ee5ece",
+    "tests/browser/docs.acceptance.ts-snapshots/docs-reference-light-768-docs-acceptance-linux.png": "24d5b4facd11ad2c7509ed23d3932667c2842cf5ad6b48bc0a61212844b249b3",
+    "tests/browser/docs.acceptance.ts-snapshots/docs-table-dark-1440-docs-acceptance-linux.png": "2b944209de8892bd9f261949fd129cec59b261236b67d1b241d745b639ff6938",
+    "tests/browser/docs.acceptance.ts-snapshots/docs-table-dark-320-docs-acceptance-linux.png": "f77244aa415452f1dfbbed4ae6a611144337882720ab458242e0b57233dfa6e4",
+    "tests/browser/docs.acceptance.ts-snapshots/docs-table-dark-390-docs-acceptance-linux.png": "432dddba0288a44dc3da26d6e466190fd48590162476433307d7267b01fa0f7f",
+    "tests/browser/docs.acceptance.ts-snapshots/docs-table-dark-768-docs-acceptance-linux.png": "b88a669cafb66257e9b2312ec81d4dbc4673cbd5a26956f0a1fb1533e8558f96",
+    "tests/browser/docs.acceptance.ts-snapshots/docs-table-light-1440-docs-acceptance-linux.png": "e4dddb5be7b8f8168cfb17d52bb9207b6cd56e9b98c22fdb9b3d6f47d7e26f2f",
+    "tests/browser/docs.acceptance.ts-snapshots/docs-table-light-320-docs-acceptance-linux.png": "78cd4cc376a87bb3ce435187a7ddba0cdb726f2b1e2b5908da7d34fb1d4c1a90",
+    "tests/browser/docs.acceptance.ts-snapshots/docs-table-light-390-docs-acceptance-linux.png": "4d8fca2047befd8b1499d8f25ea10ced15cbcec62ac658288792532535cd8b0d",
+    "tests/browser/docs.acceptance.ts-snapshots/docs-table-light-768-docs-acceptance-linux.png": "5e017ddf51b7522ef8c8956070a535fc8b76c596832863dcad58daee148c6ba4",
+    "tests/browser/docs.spec.ts": "b05f6341b36d3de2b58a3e2eb054f06477e19a5ae08e4f1bda147c9749c211b5",
+    "tests/browser/helpers.ts": "bcfac746534d421b95970a242efda70e56de47ccafae0b3316ef8f2a0d2566ad",
+    "tests/browser/server.mjs": "64d5f42d731867413abaefbd0ee99cdeb49c298938f04a4ec29ff36512f5dd55",
+    "tests/browser/tsconfig.json": "2e60debf499d13e72f988e681d14a0d2212f6ae3ecc11786804f0ff9e72abb43",
+    "tsconfig.base.json": "8dd4e34ef8c02be60c5bc7d35167e6c90ad82348be8cce3b0e6379c513fe70ea"
+  }
+}

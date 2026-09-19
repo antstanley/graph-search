@@ -1,0 +1,36 @@
+{
+  "blogwright": {
+    "freshness_check": {
+      "matching_sha256": 247
+    },
+    "examples": [],
+    "languages": {
+      "astro": 2,
+      "javascript": 5,
+      "svelte": 11,
+      "typescript": 222,
+      "yaml": 7
+    },
+    "fts_schema": "CREATE VIRTUAL TABLE nodes_fts USING fts5(\n    id,\n    name,\n    qualified_name,\n    docstring,\n    signature,\n    content='nodes',\n    content_rowid='rowid'\n)"
+  },
+  "whatsurvey": {
+    "freshness_check": {
+      "matching_sha256": 1039
+    },
+    "examples": [],
+    "languages": {
+      "javascript": 4,
+      "svelte": 492,
+      "typescript": 535,
+      "yaml": 8
+    },
+    "fts_schema": "CREATE VIRTUAL TABLE nodes_fts USING fts5(\n    id,\n    name,\n    qualified_name,\n    docstring,\n    signature,\n    content='nodes',\n    content_rowid='rowid'\n)"
+  },
+  "environment": {
+    "platform": "macOS-27.0-arm64-arm-64bit-Mach-O",
+    "python": "3.14.7",
+    "sqlite": "3.53.4",
+    "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)",
+    "codegraph": "1.6.0"
+  }
+}

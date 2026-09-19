@@ -1,0 +1,250 @@
+[
+  {
+    "query": "How is an incoming WhatsApp request checked for a forged message authentication code?",
+    "expected_path": "workspaces/backend/src/core/whatsapp/signature.ts",
+    "baseline": [
+      "packages/ui/src/stories/Checkbox.stories.ts",
+      "packages/ui/src/stories/Switch.stories.ts",
+      "workspaces/backend/src/core/llm/provider.ts",
+      "workspaces/backend/src/core/llm/provider.ts",
+      "workspaces/backend/src/core/llm/provider.ts",
+      "workspaces/backend/src/core/llm/provider.ts",
+      "workspaces/backend/src/core/whatsapp/client.ts",
+      "workspaces/backend/src/core/whatsapp/client.ts"
+    ],
+    "fixed": [
+      "packages/ui/src/stories/Checkbox.stories.ts",
+      "packages/ui/src/stories/Switch.stories.ts",
+      "workspaces/backend/src/core/llm/provider.ts",
+      "workspaces/backend/src/core/llm/provider.ts",
+      "workspaces/backend/src/core/llm/provider.ts",
+      "workspaces/backend/src/core/llm/provider.ts",
+      "workspaces/backend/src/core/whatsapp/client.ts",
+      "workspaces/backend/src/core/whatsapp/client.ts"
+    ],
+    "fts_metadata": [
+      "workspaces/backend/tests/functions/auth/index.test.ts",
+      "packages/ui/src/stories/Switch.stories.ts",
+      "packages/ui/src/stories/Checkbox.stories.ts",
+      "packages/ui/src/stories/Checkbox.stories.ts",
+      "packages/ui/src/stories/Switch.stories.ts",
+      "packages/ui/src/stories/Switch.stories.ts",
+      "workspaces/backend/tests/core/db/audit-batch.test.ts",
+      "workspaces/backend/tests/functions/auth-mock/index.test.ts"
+    ],
+    "fts_body": [
+      "workspaces/backend/tests/functions/auth-mock/index.test.ts",
+      "workspaces/backend/src/functions/admin-api/routes/templates.ts",
+      "workspaces/backend/tests/core/db/audit-batch.test.ts",
+      "workspaces/backend/tests/functions/auth-mock/index.test.ts",
+      "workspaces/backend/tests/functions/auth-mock/index.test.ts",
+      "workspaces/backend/tests/functions/auth/index.test.ts",
+      "packages/ui/src/stories/Switch.stories.ts",
+      "packages/ui/src/stories/Checkbox.stories.ts"
+    ],
+    "codegraph_explore": [
+      "workspaces/frontend/src/routes/surveys/[formId]/edit/+page.svelte",
+      "workspaces/frontend/src/routes/contacts/new/+page.svelte",
+      "workspaces/backend/src/core/whatsapp/send.ts",
+      "packages/ui/src/stories/Switch.stories.ts",
+      "packages/ui/src/stories/Checkbox.stories.ts",
+      "workspaces/backend/src/core/db/messages.ts"
+    ]
+  },
+  {
+    "query": "Where are confidential configuration values encrypted before storage?",
+    "expected_path": "workspaces/backend/src/core/settings/crypto.ts",
+    "baseline": [
+      "workspaces/backend/src/core/db/auth-users.ts",
+      "workspaces/backend/src/core/db/consent-flags.ts",
+      "workspaces/backend/src/core/db/forms.ts",
+      "workspaces/backend/src/core/db/forms.ts",
+      "workspaces/backend/src/core/db/statements.ts",
+      "workspaces/backend/src/core/llm/extraction.ts",
+      "workspaces/backend/src/functions/admin-api/routes/sessions.ts",
+      "workspaces/backend/src/functions/admin-api/routes/survey-validation.ts"
+    ],
+    "fixed": [
+      "workspaces/backend/src/core/db/auth-users.ts",
+      "workspaces/backend/src/core/db/consent-flags.ts",
+      "workspaces/backend/src/core/db/forms.ts",
+      "workspaces/backend/src/core/db/forms.ts",
+      "workspaces/backend/src/core/db/statements.ts",
+      "workspaces/backend/src/core/llm/extraction.ts",
+      "workspaces/backend/src/functions/admin-api/routes/sessions.ts",
+      "workspaces/backend/src/functions/admin-api/routes/survey-validation.ts"
+    ],
+    "fts_metadata": [
+      "workspaces/backend/tests/core/db/llm-configs.test.ts",
+      "workspaces/backend/tests/core/db/llm-configs.test.ts",
+      "workspaces/backend/src/core/settings/keys.ts",
+      "workspaces/backend/tests/functions/admin-api/routes/sessions.test.ts",
+      "workspaces/backend/src/core/settings/keys.ts",
+      "workspaces/frontend/src/lib/utils/consent.ts",
+      "workspaces/backend/src/functions/admin-api/routes/sessions.ts",
+      "workspaces/backend/tests/core/whatsapp/resolve.test.ts"
+    ],
+    "fts_body": [
+      "workspaces/backend/tests/core/db/llm-configs.test.ts",
+      "workspaces/backend/tests/core/db/llm-configs.test.ts",
+      "workspaces/backend/src/core/settings/keys.ts",
+      "workspaces/backend/src/core/settings/keys.ts",
+      "workspaces/backend/tests/core/whatsapp/resolve.test.ts",
+      "workspaces/backend/tests/core/settings/keys.test.ts",
+      "workspaces/backend/tests/core/db/llm-configs.test.ts",
+      "workspaces/backend/src/functions/admin-api/routes/settings.ts"
+    ],
+    "codegraph_explore": [
+      "workspaces/frontend/src/lib/components/AgentConfigurations.svelte",
+      "workspaces/backend/src/core/settings/crypto.ts",
+      "workspaces/backend/src/core/settings/keys.ts",
+      "workspaces/frontend/src/lib/components/WhatsAppConfigurations.svelte",
+      "workspaces/backend/src/core/db/llm-configs.ts"
+    ]
+  },
+  {
+    "query": "Where is the editable version of a survey saved before it is published?",
+    "expected_path": "workspaces/backend/src/core/db/survey-versions.ts",
+    "baseline": [
+      "workspaces/backend/src/core/db/contacts.ts",
+      "workspaces/backend/src/core/db/contacts.ts",
+      "workspaces/backend/src/core/db/contacts.ts",
+      "workspaces/backend/src/core/db/statements.ts",
+      "workspaces/backend/src/core/db/statements.ts",
+      "workspaces/backend/src/core/db/statements.ts",
+      "workspaces/backend/src/core/db/statements.ts",
+      "workspaces/backend/src/core/db/statements.ts"
+    ],
+    "fixed": [
+      "workspaces/backend/src/core/db/contacts.ts",
+      "workspaces/backend/src/core/db/contacts.ts",
+      "workspaces/backend/src/core/db/contacts.ts",
+      "workspaces/backend/src/core/db/statements.ts",
+      "workspaces/backend/src/core/db/statements.ts",
+      "workspaces/backend/src/core/db/statements.ts",
+      "workspaces/backend/src/core/db/statements.ts",
+      "workspaces/backend/src/core/db/statements.ts"
+    ],
+    "fts_metadata": [
+      "workspaces/backend/tests/core/db/survey-versions.test.ts",
+      "packages/types/src/index.ts",
+      "workspaces/backend/tests/core/db/survey-versions.test.ts",
+      "workspaces/backend/src/core/db/survey-versions.ts",
+      "workspaces/backend/src/core/db/survey-versions.ts",
+      "workspaces/backend/tests/functions/admin-api/routes/survey-versions.test.ts",
+      "workspaces/backend/tests/core/db/survey-versions.test.ts",
+      "workspaces/backend/tests/core/db/survey-versions.test.ts"
+    ],
+    "fts_body": [
+      "workspaces/backend/tests/core/db/survey-versions.test.ts",
+      "workspaces/backend/src/core/db/survey-versions.ts",
+      "workspaces/backend/src/core/db/survey-versions.ts",
+      "packages/types/src/index.ts",
+      "workspaces/backend/src/core/db/survey-versions.ts",
+      "workspaces/backend/src/core/db/survey-versions.ts",
+      "workspaces/backend/src/core/db/survey-versions.ts",
+      "workspaces/backend/tests/core/db/survey-versions.test.ts"
+    ],
+    "codegraph_explore": [
+      "workspaces/backend/src/core/db/survey-versions.ts",
+      "packages/types/src/index.ts"
+    ]
+  },
+  {
+    "query": "How can an administrator copy the webhook address in the settings screen?",
+    "expected_path": "workspaces/frontend/src/lib/components/WhatsAppConfigurations.svelte",
+    "baseline": [
+      "workspaces/backend/src/functions/admin-api/routes/users.ts",
+      "workspaces/backend/tests/core/observability/tracer.test.ts",
+      "workspaces/backend/tests/core/observability/tracer.test.ts",
+      "workspaces/backend/tests/functions/auth/upstream-contract.test.ts",
+      "workspaces/backend/tests/infra/parity.test.ts",
+      "workspaces/backend/tests/infra/stacks.test.ts",
+      "workspaces/frontend/infra/__tests__/frontend-app.test.ts",
+      "workspaces/frontend/infra/__tests__/frontend-app.test.ts"
+    ],
+    "fixed": [
+      "workspaces/backend/src/functions/admin-api/routes/users.ts",
+      "workspaces/backend/tests/core/observability/tracer.test.ts",
+      "workspaces/backend/tests/core/observability/tracer.test.ts",
+      "workspaces/backend/tests/functions/auth/upstream-contract.test.ts",
+      "workspaces/backend/tests/infra/parity.test.ts",
+      "workspaces/backend/tests/infra/stacks.test.ts",
+      "workspaces/frontend/infra/__tests__/frontend-app.test.ts",
+      "workspaces/frontend/infra/__tests__/frontend-app.test.ts"
+    ],
+    "fts_metadata": [
+      "workspaces/backend/tests/core/consent/can-contact.test.ts",
+      "workspaces/backend/tests/core/consent/can-contact.test.ts",
+      "workspaces/backend/tests/core/observability/tracer.test.ts",
+      "workspaces/backend/tests/functions/auth/upstream-contract.test.ts",
+      "workspaces/backend/src/functions/admin-api/routes/users.ts",
+      "workspaces/backend/tests/core/observability/tracer.test.ts",
+      "workspaces/frontend/src/__tests__/hooks.server.test.ts",
+      "workspaces/frontend/src/__tests__/hooks.server.test.ts"
+    ],
+    "fts_body": [
+      "workspaces/backend/tests/core/consent/can-contact.test.ts",
+      "workspaces/backend/tests/core/consent/can-contact.test.ts",
+      "workspaces/backend/tests/core/consent/can-contact.test.ts",
+      "workspaces/backend/tests/core/consent/can-contact.test.ts",
+      "workspaces/backend/src/functions/admin-api/routes/settings.ts",
+      "workspaces/backend/src/functions/admin-api/routes/settings.ts",
+      "workspaces/backend/tests/infra/parity.test.ts",
+      "workspaces/backend/tests/core/observability/tracer.test.ts"
+    ],
+    "codegraph_explore": [
+      "workspaces/backend/src/functions/admin-api/routes/settings.ts",
+      "workspaces/frontend/src/lib/api/settings.ts",
+      "packages/types/src/index.ts"
+    ]
+  },
+  {
+    "query": "Where is the shared credential for internal API authentication read from the secrets service?",
+    "expected_path": "workspaces/backend/src/core/auth-internal.ts",
+    "baseline": [
+      "workspaces/backend/src/core/llm/resolve.ts",
+      "workspaces/backend/src/core/settings/store.ts",
+      "workspaces/backend/src/core/survey/state-machine.ts",
+      "workspaces/backend/src/core/survey/state-machine.ts",
+      "workspaces/backend/src/core/whatsapp/resolve.ts",
+      "workspaces/backend/src/functions/admin-api/routes/settings.ts",
+      "workspaces/backend/src/functions/admin-api/routes/survey-validation.ts",
+      "workspaces/backend/src/functions/auth/index.ts"
+    ],
+    "fixed": [
+      "workspaces/backend/src/core/llm/resolve.ts",
+      "workspaces/backend/src/core/settings/store.ts",
+      "workspaces/backend/src/core/survey/state-machine.ts",
+      "workspaces/backend/src/core/survey/state-machine.ts",
+      "workspaces/backend/src/core/whatsapp/resolve.ts",
+      "workspaces/backend/src/functions/admin-api/routes/settings.ts",
+      "workspaces/backend/src/functions/admin-api/routes/survey-validation.ts",
+      "workspaces/backend/src/functions/auth/index.ts"
+    ],
+    "fts_metadata": [
+      "workspaces/backend/tests/core/auth-internal.test.ts",
+      "workspaces/backend/tests/scripts/auth-role.test.ts",
+      "workspaces/backend/src/functions/auth/index.ts",
+      "workspaces/backend/src/core/auth-internal.ts",
+      "workspaces/backend/tests/functions/admin-api/routes/users.test.ts",
+      "workspaces/backend/tests/functions/auth/index.test.ts",
+      "workspaces/backend/tests/core/auth-internal.test.ts",
+      "workspaces/backend/src/core/auth-internal.ts"
+    ],
+    "fts_body": [
+      "workspaces/backend/tests/core/auth-internal.test.ts",
+      "workspaces/backend/tests/scripts/auth-role.test.ts",
+      "workspaces/backend/tests/functions/admin-api/routes/users.test.ts",
+      "workspaces/backend/tests/functions/auth/index.test.ts",
+      "workspaces/backend/src/core/auth-internal.ts",
+      "workspaces/backend/src/core/auth-internal.ts",
+      "workspaces/backend/src/core/auth-internal.ts",
+      "workspaces/backend/src/functions/auth/index.ts"
+    ],
+    "codegraph_explore": [
+      "workspaces/backend/src/core/auth-internal.ts",
+      "workspaces/backend/src/functions/auth/index.ts"
+    ]
+  }
+]
