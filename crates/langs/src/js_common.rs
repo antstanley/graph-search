@@ -32,6 +32,8 @@ pub struct JsExtractor<'a> {
     pub extraction: Extraction,
     /// The lexical scope stack: `(prefix, fact_key)`.
     pub scope: Vec<(String, String)>,
+    /// Local import name to (module specifier, exported name).
+    pub imports: std::collections::BTreeMap<String, (String, String)>,
 }
 
 impl<'a> JsExtractor<'a> {
@@ -66,13 +68,10 @@ impl<'a> JsExtractor<'a> {
     }
 
     fn qualify(&self, name: &str, kind: NodeKind) -> (String, String) {
-        let mut qualified = String::new();
-        for (prefix, _) in &self.scope {
-            if !qualified.is_empty() {
-                qualified.push('.');
-            }
-            qualified.push_str(prefix);
-        }
+        let mut qualified = self
+            .scope
+            .last()
+            .map_or_else(String::new, |(name, _)| name.clone());
         if !qualified.is_empty() {
             qualified.push('.');
         }
@@ -98,19 +97,23 @@ impl<'a> JsExtractor<'a> {
     }
 
     fn reference(&mut self, kind: EdgeKind, name: String, node: Node<'_>) {
-        let line = Self::line(node);
-        if let Some((scope_key, _)) = self.scope.last() {
-            self.extraction.references.push(ReferenceFact::from_symbol(
-                scope_key.clone(),
-                kind,
-                name,
-                line,
-            ));
+        let dynamic =
+            kind == EdgeKind::Calls && crate::walk::parameter_shadows(node, self.source, &name);
+        let owner = if kind == EdgeKind::Calls {
+            self.scope.iter().rev().find(|(_, key)| {
+                let local = key.rsplit('>').next().unwrap_or(key);
+                local.starts_with("function:") || local.starts_with("method:")
+            })
         } else {
-            self.extraction
-                .references
-                .push(ReferenceFact::file_level(kind, name, line));
-        }
+            self.scope.last()
+        };
+        let mut fact = if let Some((_, key)) = owner {
+            ReferenceFact::from_symbol(key.clone(), kind, name, Self::line(node))
+        } else {
+            ReferenceFact::file_level(kind, name, Self::line(node))
+        };
+        fact.dynamic = dynamic;
+        self.extraction.references.push(fact);
     }
 
     // ------------------------------------------------------------------
@@ -317,15 +320,12 @@ impl<'a> JsExtractor<'a> {
                         } else {
                             NodeKind::Variable
                         };
-                        let pattern_count = pattern_names.len();
                         for pattern_name in pattern_names {
                             self.emit(child, kind, pattern_name, self.first_line(child));
+                            self.scope.pop();
                         }
                         if let Some(value) = value {
                             self.walk_node(value);
-                        }
-                        for _ in 0..pattern_count {
-                            self.scope.pop();
                         }
                         if !cursor.goto_next_sibling() {
                             break;
@@ -367,19 +367,46 @@ impl<'a> JsExtractor<'a> {
         let Some(specifier) = specifier else { return };
         // The module edge itself: file -> file.
         self.reference(EdgeKind::Imports, specifier.clone(), node);
-        // Each imported binding came in through this specifier.
-        let mut bindings: Vec<String> = Vec::new();
-        if let Some(clause) = (0..node.child_count())
-            .map(|i| node.child(i))
-            .find(|child| child.is_some_and(|c| c.kind() == "import_clause"))
-            .flatten()
-        {
-            collect_bindings(clause, self.source, &mut bindings);
+        // Capture binding identity, including aliases. Apply after walking
+        // the file so imports also work below the referencing declaration.
+        let mut stack = vec![node];
+        while let Some(child) = stack.pop() {
+            if child.kind() == "import_specifier" {
+                if let Some(name) = child.child_by_field_name("name") {
+                    let alias = child.child_by_field_name("alias").unwrap_or(name);
+                    self.imports.insert(
+                        self.text(alias).to_owned(),
+                        (specifier.clone(), self.text(name).to_owned()),
+                    );
+                    self.extraction.references.push(
+                        ReferenceFact::file_level(
+                            EdgeKind::Imports,
+                            self.text(name),
+                            Self::line(node),
+                        )
+                        .via_import(specifier.clone()),
+                    );
+                }
+                continue;
+            }
+            for i in 0..child.named_child_count() {
+                if let Some(n) = child.named_child(u32::try_from(i).unwrap_or(u32::MAX)) {
+                    stack.push(n);
+                }
+            }
         }
-        for binding in bindings {
-            let mut fact = ReferenceFact::file_level(EdgeKind::Imports, binding, Self::line(node));
-            fact = fact.via_import(specifier.clone());
-            self.extraction.references.push(fact);
+    }
+
+    /// Attach explicit import provenance before workspace resolution.
+    pub fn bind_imports(&mut self) {
+        for fact in &mut self.extraction.references {
+            if fact.kind != EdgeKind::Imports
+                && !fact.dynamic
+                && let Some((specifier, exported)) = self.imports.get(&fact.name)
+            {
+                fact.via_import = Some(specifier.clone());
+                fact.name.clone_from(exported);
+            }
         }
     }
 
@@ -445,6 +472,9 @@ impl<'a> JsExtractor<'a> {
             } else if !callee.is_empty() {
                 self.reference(EdgeKind::Calls, callee, node);
             }
+        }
+        if let Some(function) = node.child_by_field_name("function") {
+            self.walk_node(function);
         }
         if let Some(args) = node.child_by_field_name("arguments") {
             self.walk_children(args);
@@ -535,57 +565,6 @@ fn collect_pattern_names(pattern: Node<'_>, source: &str, out: &mut Vec<String>)
     while let Some(current) = stack.pop() {
         match current.kind() {
             "shorthand_property_identifier_pattern" | "identifier" => {
-                out.push(text_of(current, source).to_owned());
-            }
-            _ => {
-                let mut cursor = current.walk();
-                if cursor.goto_first_child() {
-                    loop {
-                        stack.push(cursor.node());
-                        if !cursor.goto_next_sibling() {
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-/// The imported binding names of an import clause.
-fn collect_bindings(clause: Node<'_>, source: &str, out: &mut Vec<String>) {
-    let mut stack = vec![clause];
-    while let Some(current) = stack.pop() {
-        match current.kind() {
-            "named_imports" => {
-                let mut cursor = current.walk();
-                if cursor.goto_first_child() {
-                    loop {
-                        let child = cursor.node();
-                        if child.kind() == "import_specifier" {
-                            // The grammar names no fields: the children are
-                            // identifiers, the second being a local alias.
-                            // Resolve by the *exported* (first) name.
-                            let identifiers: Vec<&str> = (0..child.child_count())
-                                .filter_map(|i| child.child(i))
-                                .filter(|part| part.kind() == "identifier")
-                                .map(|part| text_of(part, source))
-                                .collect();
-                            if let Some(exported) = identifiers.first() {
-                                out.push((*exported).to_owned());
-                            }
-                        }
-                        if !cursor.goto_next_sibling() {
-                            break;
-                        }
-                    }
-                }
-            }
-            "namespace_import" => {
-                // `import * as ns`: the alias is a local binding only.
-            }
-            "identifier" => {
-                // Default import: the module's default export.
                 out.push(text_of(current, source).to_owned());
             }
             _ => {

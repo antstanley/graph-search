@@ -109,6 +109,8 @@ pub struct ReferenceFact {
     /// The import specifier this binding came in through, when the reference
     /// is to an imported binding (`SPEC.md` §7.4 rule 2).
     pub via_import: Option<String>,
+    /// A callable parameter shadows this name; its runtime target is unknown.
+    pub dynamic: bool,
 }
 
 impl ReferenceFact {
@@ -121,6 +123,7 @@ impl ReferenceFact {
             name: name.into(),
             line,
             via_import: None,
+            dynamic: false,
         }
     }
 
@@ -138,6 +141,7 @@ impl ReferenceFact {
             name: name.into(),
             line,
             via_import: None,
+            dynamic: false,
         }
     }
 

@@ -98,7 +98,15 @@ impl<'a> Projector<'a> {
                 changed.push(entry.clone());
             }
         }
-        let unchanged = diff.unchanged.len() as u64;
+        // Replacing target nodes also deletes incoming edges in the store.
+        // Until raw reference facts are persisted, every graph-changing sync
+        // must reproject the complete tree to rebind unchanged callers.
+        let unchanged = if changed.is_empty() && removed.is_empty() {
+            diff.unchanged.len() as u64
+        } else {
+            changed.clone_from(&entries);
+            0
+        };
         let reindexed_all = diff.reindexed_all;
         let renamed = diff.renamed.clone();
         let mut report = self.apply(store, &entries, removed, &changed, reindexed_all, started)?;
@@ -123,15 +131,7 @@ impl<'a> Projector<'a> {
         // The known-file set resolves import specifiers against: the walked
         // tree plus the indexed set (an unchanged file may be an import
         // target).
-        let mut known_files: BTreeSet<String> = entries.iter().map(|e| e.rel.clone()).collect();
-        {
-            let snapshot = store.snapshot()?;
-            for node in snapshot.all_nodes()? {
-                if node.is_file() {
-                    known_files.insert(node.path);
-                }
-            }
-        }
+        let known_files: BTreeSet<String> = entries.iter().map(|e| e.rel.clone()).collect();
 
         // Phase A: extract every changed file.
         let mut pending: Vec<Pending> = Vec::new();
@@ -146,7 +146,10 @@ impl<'a> Projector<'a> {
         {
             let snapshot = store.snapshot()?;
             for node in snapshot.all_nodes()? {
-                if !node.is_file() && !changed_paths.contains(&node.path) {
+                if !node.is_file()
+                    && !changed_paths.contains(&node.path)
+                    && !removed.contains(&node.path)
+                {
                     table.add(&node);
                 }
             }

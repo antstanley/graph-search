@@ -59,6 +59,10 @@ pub enum Error {
     /// A query target matched nothing of the requested kind.
     #[error("not found: {0}")]
     NotFound(String),
+
+    /// A name matches multiple definitions; callers must use an exact id.
+    #[error("ambiguous target: {0}; use `symbol` to choose an exact id")]
+    Ambiguous(String),
 }
 
 impl Error {

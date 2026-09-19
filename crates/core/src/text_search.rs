@@ -100,7 +100,18 @@ pub fn search_text(root: &Path, query: &TextQuery, policy: &WalkPolicy) -> Resul
     if let Some(include) = query.include.as_deref() {
         validate_include(include)?;
     }
-    let include = query.include.as_deref().and_then(compile_include);
+    let include = query
+        .include
+        .as_deref()
+        .map(|pattern| {
+            Glob::new(pattern.trim())
+                .map(|g| g.compile_matcher())
+                .map_err(|e| Error::InvalidPattern {
+                    pattern: pattern.to_owned(),
+                    reason: e.to_string(),
+                })
+        })
+        .transpose()?;
 
     let search_root = resolve_search_root(root, query.path.as_deref())?;
     let entries = walk(&search_root, policy)?;

@@ -31,8 +31,13 @@ pub fn check(search_root: &Path, manifest: &Manifest, policy: &WalkPolicy) -> Re
         match manifest.get(&walked_entry.rel) {
             None => changed.push(walked_entry.rel.clone()),
             Some(entry) => {
-                let version_mismatch =
-                    !entry.matches_versions(manifest.parser_version, manifest.schema_version);
+                let version_mismatch = manifest.parser_version
+                    != graph_search_types::PARSER_VERSION
+                    || manifest.schema_version != graph_search_types::SCHEMA_VERSION
+                    || !entry.matches_versions(
+                        graph_search_types::PARSER_VERSION,
+                        graph_search_types::SCHEMA_VERSION,
+                    );
                 if crate::manifest::entry_differs(entry, walked_entry) || version_mismatch {
                     changed.push(walked_entry.rel.clone());
                 }

@@ -12,14 +12,13 @@ use graph_search_core::ports::GraphSnapshot;
 use graph_search_core::query::QueryEngine;
 use graph_search_core::{files_search, text_search};
 use graph_search_types::FilesQuery;
-use graph_search_types::kind::Language;
 use graph_search_types::query::{
     DepsQuery, ExploreQuery, NeighborsQuery, PathQuery, RefQuery, SymbolQuery, TextQuery,
     TraversalQuery,
 };
 use graph_search_types::result::{
-    ExploreResult, FileHit, FilesResult, GraphResult, ImpactResult, IndexStatus, Staleness,
-    StoreCounts, SyncReport, TextResult,
+    ExploreResult, FilesResult, GraphResult, ImpactResult, IndexStatus, Staleness, StoreCounts,
+    SyncReport, TextResult,
 };
 
 /// The query handle a host calls in-process.
@@ -53,66 +52,14 @@ impl<'a> SearchService<'a> {
     /// # Errors
     /// When the root is missing or the pattern is invalid.
     pub fn files(&self, query: &FilesQuery) -> Result<FilesResult> {
-        // Resident and verified-fresh: the index-first path (`SPEC.md` §4.6).
-        if self.index.is_fresh() {
-            let index_result = self.files_from_index(query);
-            if let Ok(result) = index_result {
-                return Ok(result);
-            }
-        }
-        let search_root =
-            graph_search_core::walk::resolve_search_root(self.index.root(), query.path.as_deref())
-                .map_err(Error::Core)?;
+        // The tree can change while an Index remains resident, and per-query
+        // hidden/ignore flags can broaden the indexed set. Scan for parity.
         files_search::search_files(
-            &search_root,
+            self.index.root(),
             query,
             &self.policy(query.include_hidden, query.no_ignore),
         )
         .map_err(Error::Core)
-    }
-
-    fn files_from_index(&self, query: &FilesQuery) -> Result<FilesResult> {
-        if let Some(sub) = query.path.as_deref() {
-            let mut pattern = String::from(sub.trim_end_matches('/'));
-            if !pattern.is_empty() {
-                pattern.push('/');
-            }
-            pattern.push_str(query.pattern.trim());
-            return self.index.store_read(|store| {
-                let snapshot = store.snapshot().map_err(Error::Core)?;
-                let nodes = snapshot
-                    .files_matching(&pattern, usize::try_from(query.limit).unwrap_or(1_000))?;
-                let items = nodes
-                    .into_iter()
-                    .map(|node| FileHit {
-                        path: node.path,
-                        language: node.language.unwrap_or(Language::Unknown),
-                    })
-                    .collect();
-                Ok(FilesResult {
-                    items,
-                    ..FilesResult::default()
-                })
-            });
-        }
-        self.index.store_read(|store| {
-            let snapshot = store.snapshot().map_err(Error::Core)?;
-            let nodes = snapshot.files_matching(
-                &query.pattern,
-                usize::try_from(query.limit).unwrap_or(1_000),
-            )?;
-            let items = nodes
-                .into_iter()
-                .map(|node| FileHit {
-                    path: node.path,
-                    language: node.language.unwrap_or(Language::Unknown),
-                })
-                .collect();
-            Ok(FilesResult {
-                items,
-                ..FilesResult::default()
-            })
-        })
     }
 
     /// `search text`: a literal scan, never the index (`SPEC.md` §8.2).
@@ -120,11 +67,8 @@ impl<'a> SearchService<'a> {
     /// # Errors
     /// When the include filter is rejected or the root is missing.
     pub fn text(&self, query: &TextQuery) -> Result<TextResult> {
-        let search_root =
-            graph_search_core::walk::resolve_search_root(self.index.root(), query.path.as_deref())
-                .map_err(Error::Core)?;
         text_search::search_text(
-            &search_root,
+            self.index.root(),
             query,
             &self.policy(query.include_hidden, query.no_ignore),
         )
@@ -145,6 +89,11 @@ impl<'a> SearchService<'a> {
             .store_read(|store| store.manifest().map_err(Error::Core))?;
         let Some(manifest) = manifest else {
             if self.index.reconcile() == Reconcile::Never {
+                return Err(Error::Core(graph_search_core::Error::NoIndex));
+            }
+            if self.index.reconcile() == Reconcile::BeforeQuery {
+                self.index.sync()?;
+            } else {
                 return Err(Error::Core(graph_search_core::Error::NoIndex));
             }
             return Ok(Staleness::default());
@@ -251,7 +200,7 @@ impl<'a> SearchService<'a> {
         self.index.store_read(|store| {
             let snapshot = store.snapshot().map_err(Error::Core)?;
             QueryEngine::new(snapshot.as_ref())
-                .explore(query, &root)
+                .explore_with_policy(query, &root, self.index.policy())
                 .map_err(Error::Core)
         })
     }

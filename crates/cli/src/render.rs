@@ -344,7 +344,7 @@ pub(crate) fn impact(
                 envelope,
                 result.edges.clone(),
                 result.approximation.clone(),
-                Vec::new(),
+                result.truncations.clone(),
                 result.stats,
                 stale.is_some(),
                 stale,
@@ -373,6 +373,7 @@ pub(crate) fn impact(
                 )
                 .ok();
             }
+            text.push_str(&truncations_text(&result.truncations));
             if let Some(approximation) = &result.approximation {
                 text.push_str(&approximation_text(
                     approximation.resolved,
@@ -412,7 +413,7 @@ pub(crate) fn explore(
                 }),
                 result.items.clone(),
             );
-            let envelope = finish(
+            let mut envelope = finish(
                 envelope,
                 result.edges.clone(),
                 result.approximation.clone(),
@@ -421,7 +422,7 @@ pub(crate) fn explore(
                 stale.is_some(),
                 stale,
             );
-            emit(&serde_json::to_string_pretty(&envelope).unwrap_or_default())?;
+            emit_explore_envelope(&mut envelope, query.max_bytes)?;
         }
         Format::Text => {
             let mut text = String::new();
@@ -622,4 +623,45 @@ pub(crate) fn stale_notice(paths: &[String], format: Format) -> graph_search::Re
         }
     }
     Ok(())
+}
+
+fn emit_explore_envelope(
+    envelope: &mut Envelope<Vec<graph_search_types::result::ExploreItem>>,
+    max_bytes: u32,
+) -> graph_search::Result<()> {
+    let cap = if max_bytes == 0 {
+        graph_search_types::limits::MAX_TOTAL_BYTES
+    } else {
+        (max_bytes as usize).min(graph_search_types::limits::MAX_TOTAL_BYTES)
+    };
+    loop {
+        let resolved = envelope.edges.iter().filter(|e| e.resolved).count() as u64;
+        if let Some(approximation) = &mut envelope.approximation {
+            approximation.resolved = resolved;
+            approximation.unresolved = (envelope.edges.len() as u64).saturating_sub(resolved);
+        }
+        let json = serde_json::to_string(&envelope).unwrap_or_default();
+        if json.len() <= cap {
+            return emit(&json);
+        }
+        if !envelope.truncations.iter().any(|t| {
+            t.kind == graph_search_types::result::TruncationKind::Bytes && t.cap == cap as u64
+        }) {
+            envelope.truncations.push(Truncation::new(
+                graph_search_types::result::TruncationKind::Bytes,
+                cap as u64,
+                "JSON envelope exceeded its byte cap",
+            ));
+        }
+        if envelope.edges.pop().is_some() {
+            continue;
+        }
+        if envelope.results.pop().is_none() {
+            return Err(graph_search::Error::Core(
+                graph_search::core::Error::InvalidInclude(format!(
+                    "max_bytes={cap} cannot hold the JSON envelope"
+                )),
+            ));
+        }
+    }
 }

@@ -86,13 +86,10 @@ impl Extractor<'_> {
     }
 
     fn qualify(&self, name: &str, kind: NodeKind) -> (String, String) {
-        let mut qualified = String::new();
-        for scope in &self.scope {
-            if !qualified.is_empty() {
-                qualified.push_str("::");
-            }
-            qualified.push_str(&scope.qualified);
-        }
+        let mut qualified = self
+            .scope
+            .last()
+            .map_or_else(String::new, |scope| scope.qualified.clone());
         if !qualified.is_empty() {
             qualified.push_str("::");
         }
@@ -122,10 +119,14 @@ impl Extractor<'_> {
     }
 
     fn reference_from(&self, kind: EdgeKind, name: String, node: Node<'_>) -> ReferenceFact {
-        match self.scope.last().map(|scope| scope.key.clone()) {
+        let dynamic =
+            kind == EdgeKind::Calls && crate::walk::parameter_shadows(node, self.source, &name);
+        let mut fact = match self.scope.last().map(|scope| scope.key.clone()) {
             Some(key) => ReferenceFact::from_symbol(key, kind, name, Self::line(node)),
             None => ReferenceFact::file_level(kind, name, Self::line(node)),
-        }
+        };
+        fact.dynamic = dynamic;
+        fact
     }
 
     // ------------------------------------------------------------------
@@ -346,7 +347,14 @@ impl Extractor<'_> {
         let Some(function) = node.child_by_field_name("function") else {
             return;
         };
-        let callee = self.text(function).trim().to_owned();
+        let mut callee = self.text(function).trim().to_owned();
+        if let Some(member) = callee.strip_prefix("self.")
+            && !member.contains('.')
+            && let Some(scope) = self.scope.last()
+            && let Some((owner, _)) = scope.qualified.rsplit_once("::")
+        {
+            callee = format!("{owner}::{member}");
+        }
         if callee.is_empty() || callee.chars().next().is_some_and(char::is_numeric) {
             // `0()`, string literals: not name references.
             return;
@@ -354,6 +362,8 @@ impl Extractor<'_> {
         self.extraction
             .references
             .push(self.reference_from(EdgeKind::Calls, callee, node));
+        // The receiver may itself be a call (factory().run()).
+        self.walk_node(function);
         // Arguments can call too: walk the argument list.
         if let Some(args) = node.child_by_field_name("arguments") {
             self.walk_children(args);
