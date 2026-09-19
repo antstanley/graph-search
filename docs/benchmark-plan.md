@@ -4,6 +4,21 @@ The measurement protocol for the pre-registered prediction in
 [`SPEC.md`](../SPEC.md) §16.6. Fill in `## Results` when runs happen; do not
 change §16.6 after the fact.
 
+## Executable task suite
+
+[`evaluation/`](../evaluation/README.md) implements the source-grounded task
+corpus, read-only engine adapters, budgeted trials, external agent-driver
+protocol, blind rubric grading and paired reports. It contains 60 debugging and
+change-planning tasks across nanus, blogwright and whatsurvey, with family-level
+development/held-out splits. See the [first evidence run](../research/08-task-evaluation.md).
+
+The executable suite compares resident graph-search, existing CodeGraph, and
+ordinary text search through a shared search/read contract. This is a new
+retrieval/answer evaluation, not the original nanus-as-shipped versus CLI versus
+in-process integration experiment below. The latter and the §16.6 prediction
+still require actual controlled model trials. File hits are not task success;
+no model success or token-reduction claim follows from deterministic retrieval.
+
 ## What is measured
 
 | Metric | How |

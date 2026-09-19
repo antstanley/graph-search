@@ -1,0 +1,29 @@
+name: Task evaluation harness
+on:
+  pull_request:
+    paths:
+      - 'evaluation/**'
+      - 'crates/**'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - '.github/workflows/task-evaluation.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'evaluation/**'
+      - 'crates/**'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - '.github/workflows/task-evaluation.yml'
+jobs:
+  harness-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: sudo apt-get update && sudo apt-get install -y ripgrep
+      - run: PYTHONPATH=evaluation python3 -m unittest discover -s evaluation/tests -v
+      - run: cargo build --locked --manifest-path evaluation/harness/Cargo.toml
+      - run: cargo fmt --manifest-path evaluation/harness/Cargo.toml --check

@@ -1,0 +1,9 @@
+[package]
+name = "task-eval-host"
+version = "0.1.0"
+edition = "2024"
+[workspace]
+[dependencies]
+graph-search = { path = "../../crates/graph-search" }
+graph-search-types = { path = "../../crates/types" }
+serde_json = "1"

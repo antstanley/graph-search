@@ -1,0 +1,138 @@
+{
+  "schema": 1,
+  "created_unix": 1789803251.2089221,
+  "seed": 1729,
+  "split": "all",
+  "repeats": 1,
+  "tasks_sha256": "97e0a725721b874315ea1fbb7bd478ece0044fd738e549a85b9e948c731ca842",
+  "oracles_sha256": "db30fd8e08fc933c2591cf36fdeddea1a6641f6aa559c0fd47ab26c5e396a915",
+  "implementation": {
+    "python": "3.14.7",
+    "platform": "macOS-27.0-arm64-arm-64bit-Mach-O",
+    "rg": "ripgrep 15.2.0\n\nfeatures:+pcre2\nsimd(compile):+NEON\nsimd(runtime):+NEON\n\nPCRE2 10.45 is available (JIT is available)",
+    "codegraph": "1.6.0",
+    "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)",
+    "source_sha256": {
+      "taskbench/__init__.py": "554ed173c1e6ff623956079d4548da85b97a61dcf1ab63383f2886c89e12cbbc",
+      "taskbench/__main__.py": "191d86e466d9a087832e24c1d35812176ad037bf2ca151b7787a1409be427dc6",
+      "taskbench/backends.py": "3d944501767d634103127207dd4c86214ecdea53e38f7661fceaca9c36f449de",
+      "taskbench/core.py": "4ce1dca8b169197b910ea9dd6eafbd7ffc0db60e2e79c45816e03fa12584536e",
+      "taskbench/provenance.py": "a4b37d525a874171bf4fc068ab73eeb4eae76cd4118f3c859eb87ca15db69d7d",
+      "taskbench/runner.py": "5ded07dd8f3cea25e39e0b08a829658b3980b3d1055dc5fe3ace069ea957ec97",
+      "harness/src/main.rs": "0036aaa56b46c6138de15c84a1d6a1f11324ac9d4871be6d3cca4084e832fe85"
+    },
+    "host_sha256": "f933f918fbcd6ef1e43837c5a3b429e1606fa7a754fff32936dd382897248444",
+    "git_head": "47808b1b34d6b157c86a795273382ae99256c6d3"
+  },
+  "driver": null,
+  "model": null,
+  "effort": null,
+  "roots": {
+    "nanus": {
+      "head": "c56f8f25cf962f1486d3f2008717162ae9b6fd35",
+      "dirty": true,
+      "source_snapshot_before": {
+        "scope": "git tracked + untracked nonignored files; symlinks recorded without following",
+        "files": 189,
+        "sha256": "d35101d292ea6c08aaa9a48964c6fb35a79873e582658abfe79be5b5759c6e18"
+      },
+      "codegraph_index_present": false,
+      "codegraph_freshness_before": {
+        "status": "unavailable"
+      },
+      "codegraph_freshness_after": {
+        "status": "unavailable"
+      },
+      "source_snapshot_after": {
+        "scope": "git tracked + untracked nonignored files; symlinks recorded without following",
+        "files": 189,
+        "sha256": "d35101d292ea6c08aaa9a48964c6fb35a79873e582658abfe79be5b5759c6e18"
+      }
+    },
+    "blogwright": {
+      "head": "8a364e3224f9cc47d59a7f270e9a762397760d79",
+      "dirty": false,
+      "source_snapshot_before": {
+        "scope": "git tracked + untracked nonignored files; symlinks recorded without following",
+        "files": 587,
+        "sha256": "c6808f466973a47670fa57fa095e6c1d5e6679e81302637bea1bb511345b5c75"
+      },
+      "codegraph_index_present": true,
+      "codegraph_freshness_before": {
+        "status": "fresh",
+        "counts": {
+          "matching": 247
+        },
+        "mismatches": []
+      },
+      "codegraph_freshness_after": {
+        "status": "fresh",
+        "counts": {
+          "matching": 247
+        },
+        "mismatches": []
+      },
+      "source_snapshot_after": {
+        "scope": "git tracked + untracked nonignored files; symlinks recorded without following",
+        "files": 587,
+        "sha256": "c6808f466973a47670fa57fa095e6c1d5e6679e81302637bea1bb511345b5c75"
+      }
+    },
+    "whatsurvey": {
+      "head": "84ee5d73139f7b82a93d2e003a459b2380110a7f",
+      "dirty": true,
+      "source_snapshot_before": {
+        "scope": "git tracked + untracked nonignored files; symlinks recorded without following",
+        "files": 1404,
+        "sha256": "0d72eb38f0c77b13dfc71c40fbfdfd15434b5e44a7458c65200f29b244fd6a28"
+      },
+      "codegraph_index_present": true,
+      "codegraph_freshness_before": {
+        "status": "fresh",
+        "counts": {
+          "matching": 1039
+        },
+        "mismatches": []
+      },
+      "codegraph_freshness_after": {
+        "status": "fresh",
+        "counts": {
+          "matching": 1039
+        },
+        "mismatches": []
+      },
+      "source_snapshot_after": {
+        "scope": "git tracked + untracked nonignored files; symlinks recorded without following",
+        "files": 1404,
+        "sha256": "0d72eb38f0c77b13dfc71c40fbfdfd15434b5e44a7458c65200f29b244fd6a28"
+      }
+    }
+  },
+  "setups": {
+    "nanus/text": {
+      "setup_ms": 0
+    },
+    "blogwright/codegraph": {
+      "setup_ms": 0
+    },
+    "nanus/graph-search": {
+      "setup_ms": 3112
+    },
+    "whatsurvey/text": {
+      "setup_ms": 0
+    },
+    "blogwright/graph-search": {
+      "setup_ms": 4124
+    },
+    "whatsurvey/codegraph": {
+      "setup_ms": 0
+    },
+    "whatsurvey/graph-search": {
+      "setup_ms": 9243
+    },
+    "blogwright/text": {
+      "setup_ms": 0
+    }
+  },
+  "source_validation": "before and after passed"
+}

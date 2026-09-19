@@ -22,6 +22,8 @@ Read in this order:
 6. [Root checkout comparison](06-root-checkout-review.md): overlap with the pre-existing changes, additional ideas, and reproduced gaps.
 7. [Implemented lexical retrieval and selective sync](07-lexical-and-incremental.md): current behavior, measurements, validation, and limits.
 
+8. [Task-based evaluation suite](08-task-evaluation.md): source-backed real tasks, held-out families, engine adapters, agent protocol and blind grading.
+
 ## Reproduction
 
 The external repositories must be available under `~/code/`; blogwright and whatsurvey must already have CodeGraph indexes. The scripts read these repositories and existing indexes. They write their own temporary graph-search data under `/private/tmp` and results under this research directory.
