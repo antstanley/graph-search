@@ -58,7 +58,10 @@ def command(argv, *, cwd, timeout=30, stdin=None, max_bytes=4_000_000):
                 if size > max_bytes:
                     raise RuntimeError('command output exceeds capture limit')
                 chunks.append(chunk)
-        process.wait(timeout=max(.01, deadline-time.monotonic()))
+        try:
+            process.wait(timeout=max(.01, deadline-time.monotonic()))
+        except subprocess.TimeoutExpired as error:
+            raise TimeoutError('command timed out after output closed') from error
         return process.returncode, b''.join(chunks).decode('utf-8', errors='replace')
     finally:
         terminate(process)
@@ -137,18 +140,44 @@ class GraphSearch:
     name = 'graph-search'
     def __init__(self, root, host, **_):
         self.root=root
+        self.host=host
         self.tmp=tempfile.TemporaryDirectory(prefix='task-eval-store-')
         self.stderr=tempfile.TemporaryFile()
-        self.process=subprocess.Popen([str(host), str(root), str(Path(self.tmp.name)/'index')],
-            stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=self.stderr,start_new_session=True)
-        self.pending=b''
+        self.process=None
+        self.closed=False
+        self.restart_events=[]
         try:
-            ready=self.receive(180)
-            if not ready.get('ready'):
-                raise RuntimeError('graph host failed to initialize')
-            self.setup_ms=ready['setup_ms']
+            self.setup_ms=self._start(180)
         except BaseException:
             self.close()
+            raise
+
+    def _stop(self):
+        process,self.process=self.process,None
+        if process is not None:
+            try:
+                terminate(process)
+            finally:
+                for stream in (process.stdin,process.stdout):
+                    try:
+                        stream.close()
+                    except OSError:
+                        # Closing buffered stdin may flush into an already dead host.
+                        pass
+
+    def _start(self, timeout):
+        self._stop()
+        started=time.monotonic()
+        self.pending=b''
+        try:
+            self.process=subprocess.Popen([str(self.host), str(self.root), str(Path(self.tmp.name)/'index')],
+                stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=self.stderr,start_new_session=True)
+            ready=self.receive(timeout)
+            if not ready.get('ready'):
+                raise RuntimeError('graph host failed to initialize')
+            return (time.monotonic()-started)*1000
+        except BaseException:
+            self._stop()
             raise
 
     def receive(self, timeout):
@@ -176,9 +205,29 @@ class GraphSearch:
             selector.close()
 
     def search(self,query,mode='explore',timeout=30):
-        self.process.stdin.write((json.dumps(dict(query=query,mode=mode))+'\n').encode())
-        self.process.stdin.flush()
-        value=self.receive(timeout)
+        if self.closed:
+            raise RuntimeError('graph backend is closed')
+        started=time.monotonic()
+        if self.process is None or self.process.poll() is not None:
+            event={'elapsed_ms':None,'succeeded':False}
+            tick=time.monotonic()
+            try:
+                self._start(timeout)
+                event['succeeded']=True
+            finally:
+                event['elapsed_ms']=(time.monotonic()-tick)*1000
+                self.restart_events.append(event)
+        try:
+            remaining=timeout-(time.monotonic()-started)
+            if remaining<=0:
+                raise TimeoutError('graph recovery exhausted query timeout')
+            self.process.stdin.write((json.dumps(dict(query=query,mode=mode))+'\n').encode())
+            self.process.stdin.flush()
+            value=self.receive(remaining)
+        except (OSError,RuntimeError,TimeoutError,ValueError):
+            # Do not retry the failed query or reuse a desynchronized JSONL stream.
+            self._stop()
+            raise
         if 'error' in value:
             raise RuntimeError(value['error'])
         if mode!='explore':
@@ -194,11 +243,16 @@ class GraphSearch:
         return '\n'.join(lines)
 
     def close(self):
-        if hasattr(self,'process'):
-            terminate(self.process)
-            self.process.stdin.close(); self.process.stdout.close()
-        self.stderr.close()
-        self.tmp.cleanup()
+        if self.closed:
+            return
+        self.closed=True
+        try:
+            self._stop()
+        finally:
+            try:
+                self.stderr.close()
+            finally:
+                self.tmp.cleanup()
 
 
 BACKENDS={'text':TextSearch,'codegraph':CodeGraph,'graph-search':GraphSearch}

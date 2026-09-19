@@ -81,8 +81,13 @@ before selecting follow-up reads. Shared reads use the current filesystem.
 Default budgets are four tool calls, 16 KiB per response, 48 KiB cumulative tool
 response content, and 180 seconds per trial. Reads are capped at 200 lines.
 Increase `--calls` for agent trials. Tool errors consume calls and context;
-timeouts terminate subprocess groups. Setup/index time is recorded separately
-from trial time. graph-search is resident, while CodeGraph and ripgrep include
+timeouts terminate subprocess groups, including children that close output before
+exiting. Failed graph hosts are invalidated; the next search starts a fresh host
+without replaying the failed query. Each trial records `backend_restarts` with
+success and elapsed setup time. Recovery consumes the query timeout and remains
+included in tool/trial latency, so it cannot hide the cost of a failure. Initial
+setup/index time is recorded separately from trial time. Cleanup errors are
+recorded in the manifest and do not skip remaining cleanup or final artifacts. graph-search is resident, while CodeGraph and ripgrep include
 CLI startup per search. Thus reported latency is the measured integration cost,
 not an isolated ranking algorithm comparison. No speedup claims should be made
 from a single repeat on a shared machine.
@@ -123,7 +128,11 @@ public `task`, tool descriptions, complete `history`, `remaining_calls` and
 ```
 
 Usage is optional and must contain actual per-request provider input/output token
-counts. Missing usage makes aggregate provider tokens null. Estimated response
+counts. `driver_steps` counts every attempted decision, including launch, parsing
+and timeout failures. Missing or invalid usage on any attempt makes aggregate
+`provider_tokens` null and `provider_usage_complete` false. The separate
+`known_provider_tokens` field retains only the reported partial sum; it must not
+be used as total cost. Estimated response
 characters/4 are separately labelled and never substituted for provider usage.
 `model_input_bytes` sums repeated serialized driver requests; `response_bytes`
 measures cumulative tool content. The model/effort settings are recorded, but the
@@ -163,8 +172,19 @@ Reports stratify by repository, split, task kind and arm, with scheduled,
 available, evidence-scored and graded denominators. Paired deltas use matching
 task IDs and repeat numbers; unavailable pairs are excluded explicitly. File
 recall, code-region coverage and relationship-evidence coverage are proxies.
-Errors remain in available-trial denominators. Ungraded answers stay null;
-report graded coverage alongside success to avoid selective-grading claims.
+Terminal agent trials without answers (budget exhaustion or driver failure) have
+`task_success=false` and enter end-to-end success denominators and paired deltas.
+Driver/infrastructure errors are conservatively failures, not silently invalidated
+or excluded. Evidence-only trials and answers awaiting review remain null.
+`task_success_rate` and paired success deltas remain null until all available
+agent trials in that group/pair set have known outcomes. `agent_trials`,
+`resolved_agent_trials`, `terminal_agent_failures` and `pending_agent_answers`
+make that coverage explicit. `graded_answer_success_rate` is a separate,
+conditional metric over graded answers only; it is not end-to-end task success.
+Reports also recognize terminal failures stored as null by the earlier runner.
+An all-failure agent run already has a zero success rate and needs no grading
+packets. Historical `baseline-v1-*` artifacts retain their original retrieval-only
+format and implementation provenance; their null success values remain valid.
 
 Raw `runs/` files contain external source and answers and are gitignored. Publish
 only sanitized results, reports and a manifest with local paths removed. Engine

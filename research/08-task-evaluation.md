@@ -53,7 +53,9 @@ The tests use a scripted driver solely to validate this protocol.
 Answer grading is metadata-blind and requires a named reviewer, all rubric
 judgments, an unsupported-claims judgment and citations to observed source
 locations. Hashes link grading packets to their trial. A file hit cannot set
-`task_success`; ungraded or retrieval-only results remain null. Reports retain
+`task_success`; answers awaiting grading and retrieval-only results remain null.
+Terminal agent trials without answers count as failures; conditional graded-answer
+rates are reported separately from end-to-end success. Reports retain
 errors and unavailable arms, distinguish denominators, and compute paired
 comparisons only for shared task/repeat IDs.
 
@@ -109,3 +111,15 @@ Artifacts:
 Raw external source snippets and driver transcripts are intentionally excluded
 from committed results. The corpus and labels contain source locations, hashes
 and authored rubrics, not copied external implementations.
+
+## Review follow-up
+
+An independent semi-formal review found failure isolation, subprocess timeout,
+success-denominator and incomplete-token-accounting defects in the first suite
+revision. They did not occur in the published retrieval baseline (which has no
+agent decisions and no tool errors), but would invalidate some agent comparisons.
+The fixes and regression evidence are recorded in
+[`evaluation/VERIFICATION.md`](../evaluation/VERIFICATION.md#independent-review-corrections).
+The historical `baseline-v1-*` files retain the original runner/report format and
+hashes; they are not relabelled as a new run. Source labels and query policy were
+not changed in response to held-out outcomes.

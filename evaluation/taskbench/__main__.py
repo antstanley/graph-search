@@ -26,6 +26,28 @@ def write(path, value):
     path.write_text(json.dumps(value,indent=2,ensure_ascii=False)+'\n')
 
 
+def agent_outcome(item):
+    """Terminal agent failures count even in older runs that stored null."""
+    if item.get('protocol')!='agent' or item['status']=='unavailable':
+        return None
+    if item['status'] in {'call_budget','context_budget','wall_budget','driver_error'}:
+        return False
+    return item.get('task_success')
+
+
+def finalize(output, manifest, results, backends):
+    manifest['cleanup_errors']=[]
+    for key,backend in backends.items():
+        try:
+            backend.close()
+        except Exception as error:
+            manifest['cleanup_errors'].append({'backend':'/'.join(key),'error':str(error)})
+    try:
+        write(output/'manifest.json',manifest)
+    finally:
+        write(output/'report.json',report(results))
+
+
 def report(records):
     groups=defaultdict(list)
     for item in records:
@@ -34,13 +56,20 @@ def report(records):
     for key,items in sorted(groups.items()):
         available=[v for v in items if v['status']!='unavailable']
         scored=[v for v in available if 'evidence' in v]
-        graded=[v for v in available if v.get('task_success') is not None]
+        agents=[v for v in available if v.get('protocol')=='agent']
+        resolved=[v for v in agents if agent_outcome(v) is not None]
+        graded=[v for v in agents if v['status']=='answered' and v.get('task_success') is not None]
         rows.append(dict(zip(('repo','split','kind','arm'),key)) | {
             'scheduled':len(items),'available':len(available),'evidence_scored':len(scored),
             'error_trials':sum(bool(v.get('errors')) for v in available),
             'required_file_recall_mean':statistics.mean(v['evidence']['required_file_recall'] for v in scored) if scored else None,
             'evidence_ready_rate':statistics.mean(v['evidence']['evidence_ready'] for v in scored) if scored else None,
-            'graded':len(graded),'task_success_rate':statistics.mean(v['task_success'] for v in graded) if graded else None,
+            'graded':len(graded),
+            'graded_answer_success_rate':statistics.mean(v['task_success'] for v in graded) if graded else None,
+            'agent_trials':len(agents),'resolved_agent_trials':len(resolved),
+            'terminal_agent_failures':sum(v['status']!='answered' for v in resolved),
+            'pending_agent_answers':len(agents)-len(resolved),
+            'task_success_rate':statistics.mean(agent_outcome(v) for v in agents) if agents and len(resolved)==len(agents) else None,
             **{field+'_median':statistics.median(v[field] for v in available) if available else None for field in ('calls','wall_ms','response_bytes')},
         })
     paired=[]
@@ -52,12 +81,15 @@ def report(records):
             pairs=[(arms[left][k],arms[right][k]) for k in arms[left].keys() & arms[right].keys()
                    if arms[left][k]['status']!='unavailable' and arms[right][k]['status']!='unavailable']
             evidence=[(a,b) for a,b in pairs if 'evidence' in a and 'evidence' in b]
-            graded=[(a,b) for a,b in pairs if a.get('task_success') is not None and b.get('task_success') is not None]
+            agents=[(a,b) for a,b in pairs if a.get('protocol')=='agent' and b.get('protocol')=='agent']
+            resolved=[(a,b) for a,b in agents if agent_outcome(a) is not None and agent_outcome(b) is not None]
+            graded=[(a,b) for a,b in agents if a['status']==b['status']=='answered' and a.get('task_success') is not None and b.get('task_success') is not None]
             paired.append(dict(zip(('repo','split','kind'),cohort)) | {'left':left,'right':right,
                 'paired_available':len(pairs),'paired_evidence':len(evidence),'paired_graded':len(graded),
+                'paired_agent_trials':len(agents),'paired_resolved_agent_trials':len(resolved),
                 'file_recall_delta_left_minus_right':statistics.mean(a['evidence']['required_file_recall']-b['evidence']['required_file_recall'] for a,b in evidence) if evidence else None,
-                'success_delta_left_minus_right':statistics.mean(int(a['task_success'])-int(b['task_success']) for a,b in graded) if graded else None})
-    return {'rows':rows,'paired':paired,'interpretation':'Evidence coverage is a retrieval proxy, not task success. Missing CodeGraph indexes are unavailable, not misses. Ungraded answers have null task success.'}
+                'success_delta_left_minus_right':statistics.mean(int(agent_outcome(a))-int(agent_outcome(b)) for a,b in agents) if agents and len(resolved)==len(agents) else None})
+    return {'rows':rows,'paired':paired,'interpretation':'Evidence coverage is a retrieval proxy, not task success. Missing CodeGraph indexes are unavailable, not misses. Terminal unanswered agent trials are failures. End-to-end success and paired deltas remain null until all available agent answers are graded; conditional graded-answer rates are separate.'}
 
 
 def main():
@@ -195,10 +227,7 @@ def main():
                 manifest['source_validation']='FAILED: repository changed during trials'
                 raise ValueError(f'repository changed during trials: {repo}')
     finally:
-        for backend in backends.values():
-            backend.close()
-        write(args.output/'manifest.json',manifest)
-        write(args.output/'report.json',report(results))
+        finalize(args.output,manifest,results,backends)
 
 
 if __name__=='__main__':

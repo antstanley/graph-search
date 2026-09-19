@@ -17,11 +17,14 @@ class CliTests(unittest.TestCase):
             (repo/'x.rs').write_text('fn f() {}\n')
             tasks=[dict(id='fixture.f.debug',repo='fixture',family='f',split='dev',kind='debug',prompt='Explain this function')]
             oracle={'fixture.f.debug':dict(regions=[dict(id='r',path='x.rs',start=1,end=1,file_sha256=digest(b'fn f() {}\n'),sha256=digest(b'fn f() {}\n'))],criteria=[dict(id='c',description='Function has empty body',regions=['r'])],relationships=[])}
+            tasks.append({**tasks[0],'id':'fixture.f.failure'})
+            oracle['fixture.f.failure']=oracle['fixture.f.debug']
             for name,value in [('tasks',tasks),('oracles',oracle),('roots',{'fixture':str(repo)})]:
                 (base/(name+'.json')).write_text(json.dumps(value))
             driver=base/'driver.py'
             driver.write_text('''import json,sys
 x=json.load(sys.stdin)
+if x['task']['id'].endswith('failure'): print('bad json');sys.exit(0)
 if not x['history']: print(json.dumps({'action':{'name':'read','arguments':{'path':'x.rs','start':1}}}))
 else: print(json.dumps({'answer':'The function is empty.','citations':[{'path':'x.rs','line':1}]}))
 ''')
@@ -38,8 +41,16 @@ else: print(json.dumps({'answer':'The function is empty.','citations':[{'path':'
             path.write_text(json.dumps(judgment))
             cli('apply-grades',run,packets,'--output',base/'graded')
             results=json.loads((base/'graded/results.json').read_text())
-            self.assertTrue(results[0]['task_success'])
-            self.assertIsNone(json.loads((run/'results.json').read_text())[0]['task_success'])
+            by_task={r['task_id']:r for r in results}
+            self.assertTrue(by_task['fixture.f.debug']['task_success'])
+            self.assertFalse(by_task['fixture.f.failure']['task_success'])
+            original={r['task_id']:r for r in json.loads((run/'results.json').read_text())}
+            self.assertIsNone(original['fixture.f.debug']['task_success'])
+            self.assertFalse(original['fixture.f.failure']['task_success'])
+            row=json.loads((base/'graded/report.json').read_text())['rows'][0]
+            self.assertEqual(row['task_success_rate'],.5)
+            self.assertEqual(row['graded'],1)
+            self.assertEqual(row['resolved_agent_trials'],2)
             self.assertTrue(json.loads((run/'manifest.json').read_text())['source_validation'].endswith('passed'))
 
 if __name__=='__main__':unittest.main()

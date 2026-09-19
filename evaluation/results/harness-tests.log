@@ -11,6 +11,12 @@ test_path_escape (test_core.CoreTests.test_path_escape) ... ok
 test_public_gold_and_split_separation (test_core.CoreTests.test_public_gold_and_split_separation) ... ok
 test_source_drift (test_core.CoreTests.test_source_drift) ... ok
 test_unseen_citations_fail (test_core.CoreTests.test_unseen_citations_fail) ... ok
+test_cleanup_failure_does_not_skip_artifacts_or_other_backends (test_failure_isolation.FailureIsolationTests.test_cleanup_failure_does_not_skip_artifacts_or_other_backends) ... ok
+test_dead_host_and_buffered_broken_pipe_cleanup (test_failure_isolation.FailureIsolationTests.test_dead_host_and_buffered_broken_pipe_cleanup) ... ok
+test_eof_before_exit_timeout_becomes_trial_error (test_failure_isolation.FailureIsolationTests.test_eof_before_exit_timeout_becomes_trial_error) ... ok
+test_failed_decision_marks_usage_incomplete (test_failure_isolation.FailureIsolationTests.test_failed_decision_marks_usage_incomplete) ... ok
+test_graph_timeout_recovers_next_trial_and_closes_twice (test_failure_isolation.FailureIsolationTests.test_graph_timeout_recovers_next_trial_and_closes_twice) ... ok
+test_terminal_failures_count_pending_and_evidence_do_not (test_failure_isolation.FailureIsolationTests.test_terminal_failures_count_pending_and_evidence_do_not) ... ok
 test_agent_action_answer_and_usage (test_runner.RunnerTests.test_agent_action_answer_and_usage) ... ok
 test_caps_apply_before_coverage (test_runner.RunnerTests.test_caps_apply_before_coverage) ... ok
 test_evidence_protocol_never_claims_success (test_runner.RunnerTests.test_evidence_protocol_never_claims_success) ... ok
@@ -18,6 +24,6 @@ test_malformed_driver_is_error (test_runner.RunnerTests.test_malformed_driver_is
 test_report_missing_is_not_a_miss (test_runner.RunnerTests.test_report_missing_is_not_a_miss) ... ok
 
 ----------------------------------------------------------------------
-Ran 18 tests in 1.036s
+Ran 24 tests in 2.056s
 
 OK

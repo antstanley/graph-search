@@ -1,0 +1,98 @@
+{
+  "scheduled": 9,
+  "available": 8,
+  "unavailable": 1,
+  "tool_errors": 0,
+  "source_validation": "before and after passed",
+  "cleanup_errors": [],
+  "implementation": {
+    "python": "3.14.7",
+    "platform": "macOS-27.0-arm64-arm-64bit-Mach-O",
+    "rg": "ripgrep 15.2.0\n\nfeatures:+pcre2\nsimd(compile):+NEON\nsimd(runtime):+NEON\n\nPCRE2 10.45 is available (JIT is available)",
+    "codegraph": "1.6.0",
+    "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)",
+    "source_sha256": {
+      "taskbench/__init__.py": "554ed173c1e6ff623956079d4548da85b97a61dcf1ab63383f2886c89e12cbbc",
+      "taskbench/__main__.py": "eac128055743becd24dbf11377600232ffbf94a83cafbba6de1104dc386fa54e",
+      "taskbench/backends.py": "df87f7a230a7e7f1fbb42255470f85d44bc7f1cfe1518037c497e3f672429c7b",
+      "taskbench/core.py": "4ce1dca8b169197b910ea9dd6eafbd7ffc0db60e2e79c45816e03fa12584536e",
+      "taskbench/provenance.py": "a4b37d525a874171bf4fc068ab73eeb4eae76cd4118f3c859eb87ca15db69d7d",
+      "taskbench/runner.py": "e839ba1d2053daf8d6b40bcba471472ee6d6f2626793c9b5cc1ead34fcafb682",
+      "harness/src/main.rs": "0036aaa56b46c6138de15c84a1d6a1f11324ac9d4871be6d3cca4084e832fe85"
+    },
+    "host_sha256": "f933f918fbcd6ef1e43837c5a3b429e1606fa7a754fff32936dd382897248444",
+    "git_head": "74467601a7cf5d9422fa9e282b87bec6793fb6ce"
+  },
+  "trials": [
+    {
+      "task_id": "nanus.context.debug",
+      "arm": "graph-search",
+      "status": "protocol_complete",
+      "errors": [],
+      "backend_restarts": [],
+      "task_success": null
+    },
+    {
+      "task_id": "whatsurvey.settings-encryption.debug",
+      "arm": "codegraph",
+      "status": "protocol_complete",
+      "errors": [],
+      "backend_restarts": [],
+      "task_success": null
+    },
+    {
+      "task_id": "blogwright.pds-secret.debug",
+      "arm": "graph-search",
+      "status": "protocol_complete",
+      "errors": [],
+      "backend_restarts": [],
+      "task_success": null
+    },
+    {
+      "task_id": "whatsurvey.settings-encryption.debug",
+      "arm": "graph-search",
+      "status": "protocol_complete",
+      "errors": [],
+      "backend_restarts": [],
+      "task_success": null
+    },
+    {
+      "task_id": "nanus.context.debug",
+      "arm": "codegraph",
+      "status": "unavailable",
+      "task_success": null
+    },
+    {
+      "task_id": "blogwright.pds-secret.debug",
+      "arm": "text",
+      "status": "protocol_complete",
+      "errors": [],
+      "backend_restarts": [],
+      "task_success": null
+    },
+    {
+      "task_id": "blogwright.pds-secret.debug",
+      "arm": "codegraph",
+      "status": "protocol_complete",
+      "errors": [],
+      "backend_restarts": [],
+      "task_success": null
+    },
+    {
+      "task_id": "whatsurvey.settings-encryption.debug",
+      "arm": "text",
+      "status": "protocol_complete",
+      "errors": [],
+      "backend_restarts": [],
+      "task_success": null
+    },
+    {
+      "task_id": "nanus.context.debug",
+      "arm": "text",
+      "status": "protocol_complete",
+      "errors": [],
+      "backend_restarts": [],
+      "task_success": null
+    }
+  ]
+}

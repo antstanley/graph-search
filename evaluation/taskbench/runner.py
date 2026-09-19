@@ -38,6 +38,7 @@ def trial(task, backend, *, driver=None, max_calls=4, response_bytes=16384,
     started=time.monotonic(); history=[]; seen=set(); answer=None; citations=[]
     context_used=0; model_input_bytes=0; model_ms=0; errors=[]; status='call_budget'
     usage=[]; reads=[]; driver_steps=0
+    restart_offset=len(getattr(backend,'restart_events',[]))
     with tempfile.TemporaryDirectory(prefix='task-eval-driver-') as directory:
         for step in range(max_calls+1):
             remaining=wall_seconds-(time.monotonic()-started)
@@ -49,6 +50,8 @@ def trial(task, backend, *, driver=None, max_calls=4, response_bytes=16384,
                 encoded=canonical(request)
                 model_input_bytes+=len(encoded.encode())
                 tick=time.monotonic()
+                driver_steps+=1
+                usage.append(None)
                 try:
                     code,raw=command(driver,cwd=directory,stdin=encoded,timeout=min(60,remaining),max_bytes=131072)
                     if code:
@@ -60,8 +63,7 @@ def trial(task, backend, *, driver=None, max_calls=4, response_bytes=16384,
                     if supplied is not None:
                         if set(supplied)!={'input_tokens','output_tokens'} or any(type(v) is not int or v<0 for v in supplied.values()):
                             raise ValueError('invalid provider token usage')
-                    usage.append(supplied)
-                    driver_steps+=1
+                    usage[-1]=supplied
                     if 'answer' in decision:
                         if not isinstance(decision['answer'],str) or not decision['answer'].strip():
                             raise ValueError('answer must be nonempty text')
@@ -122,7 +124,10 @@ def trial(task, backend, *, driver=None, max_calls=4, response_bytes=16384,
             'tool_ms':sum(h['elapsed_ms'] for h in history),'response_bytes':context_used,
             'model_input_bytes':model_input_bytes,'estimated_response_tokens_chars_div_4':sum(len(h['response']) for h in history)/4,
             'provider_tokens':{k:sum(u[k] for u in usage) for k in ('input_tokens','output_tokens')} if all_usage else None,
-            'driver_steps':driver_steps,'task_success':None,
+            'provider_usage_complete':all_usage,
+            'known_provider_tokens':{k:sum(u[k] for u in usage if u is not None) for k in ('input_tokens','output_tokens')} if usage else None,
+            'backend_restarts':getattr(backend,'restart_events',[])[restart_offset:],
+            'driver_steps':driver_steps,'task_success':False if driver and answer is None else None,
             'budgets':dict(max_calls=max_calls,response_bytes=response_bytes,context_bytes=context_bytes,wall_seconds=wall_seconds)}
 
 
