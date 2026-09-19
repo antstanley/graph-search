@@ -4,7 +4,10 @@ Research branch: `research/search-accuracy`
 Baseline: committed `main` at `4dd6af6`  
 Worktree: `/private/tmp/graph-search-research`
 
-**Follow-up implemented:** production identifier-aware BM25 retrieval and selective sync using persisted raw facts. See [current results and tradeoffs](07-lexical-and-incremental.md): 90/90 exact, 89/90 split-name, 8/15 task-language hits, plus 60/60 new held-out split-name hits. The initial study below is preserved as historical evidence.
+**Natural-language follow-up:** bounded function bodies and file diversity; see
+[experiments, regressions and costs](09-natural-language-retrieval.md).
+
+**Earlier follow-up implemented:** production identifier-aware BM25 retrieval and selective sync using persisted raw facts. See [current results and tradeoffs](07-lexical-and-incremental.md): 90/90 exact, 89/90 split-name, 8/15 task-language hits, plus 60/60 new held-out split-name hits. The initial study below is preserved as historical evidence.
 
 The search problem spans both **retrieval ranking** and **graph correctness**. This branch documents the investigation, repairs 26 concrete defects, and includes 25 new public-library regression tests. It retains the main checkout's uncommitted work separately.
 
@@ -20,9 +23,10 @@ Read in this order:
 4. [Improvement plan](04-improvement-plan.md): lexical retrieval, semantic bindings, incremental facts, budgets, and evaluation gates.
 5. [Verification certificate](05-verification.md): evidence, regression paths, and material tradeoffs.
 6. [Root checkout comparison](06-root-checkout-review.md): overlap with the pre-existing changes, additional ideas, and reproduced gaps.
-7. [Implemented lexical retrieval and selective sync](07-lexical-and-incremental.md): current behavior, measurements, validation, and limits.
+7. [Implemented lexical retrieval and selective sync](07-lexical-and-incremental.md): metadata baseline, measurements, validation, and limits.
 
 8. [Task-based evaluation suite](08-task-evaluation.md): source-backed real tasks, held-out families, engine adapters, agent protocol and blind grading.
+9. [Natural-language retrieval](09-natural-language-retrieval.md): content ablations, expansion/diversity separation, bounded-body implementation, exact-name compatibility and costs.
 
 ## Reproduction
 
@@ -44,6 +48,6 @@ The harness is a standalone Cargo workspace so production manifests remain uncha
 
 ## Review cautions
 
-The initial fix-only revision reprojected the entire tree on changed sync. Current production parses changed files and rebinds affected cached facts; dependency analysis and manifest I/O remain workspace-sized. File search uses the consistent scan path instead of the broken resident shortcut. Ambiguous names now return an error requiring an exact ID. Parser version 2 and schema version 2 force older projections to refresh. These are intentional behavior/performance tradeoffs, documented with the fixes.
+The initial fix-only revision reprojected the entire tree on changed sync. Current production parses changed files and rebinds affected cached facts; dependency analysis and manifest I/O remain workspace-sized. File search uses the consistent scan path instead of the broken resident shortcut. Ambiguous names now return an error requiring an exact ID. Parser version 3 and schema version 2 force older projections to refresh (version 3 adds bounded body terms and corrects byte spans). These are intentional behavior/performance tradeoffs, documented with the fixes.
 
 Identifier-aware lexical retrieval and cached selective rebinding are now implemented. Remaining priorities include module/scope-aware binding, persistent lexical statistics if profiling warrants them, and explicit graph-work budgets. Do not choose a new storage backend or claim general semantic accuracy from this sample alone.

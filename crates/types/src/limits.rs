@@ -66,7 +66,7 @@ pub const SCHEMA_VERSION: u32 = 2;
 
 /// Bumps when extractor behaviour changes in a way that alters output for an
 /// unchanged file.
-pub const PARSER_VERSION: u32 = 2;
+pub const PARSER_VERSION: u32 = 3;
 
 #[cfg(test)]
 mod tests {

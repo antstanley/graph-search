@@ -1,0 +1,115 @@
+{
+  "base_commit": "bdcbecef41d9863bca23830ed30615f1c219064d",
+  "platform": "macOS-27.0-arm64-arm-64bit-Mach-O",
+  "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)",
+  "production_source_sha256": {
+    "Cargo.lock": "cb28fb5ad005f4e69d53b274b298a9fe45d9f8c7bbf78938d8b1965741a0e7fb",
+    "Cargo.toml": "f15aa683c61a27719be51a98bd7c51a945b125c9452bc6641c2e65a206a188ea",
+    "crates/cli/src/main.rs": "1c62160eb27357222bcbd62b41b567eac3bf81842a3db8dc03fe76b59a0ff5ae",
+    "crates/cli/src/render.rs": "b04aaf077dacfe92d472542ded7b34b730ce62e0ea7d378f824118026b555388",
+    "crates/cli/tests/contract.rs": "acd9bb4246fd69acfd28bfc5ba20ebda12136f96c975892d366cef8b336573bb",
+    "crates/core/src/config.rs": "8583a670f0047a1e9f0902d7dad291be60b41dd5fcd95b20ac50315523e29b86",
+    "crates/core/src/conformance.rs": "cbcf9cb392365ce1a7492260105c89c5a9cd8f4f70c53893213cae32ba7e5d52",
+    "crates/core/src/error.rs": "6e67ab8af58e10fe2d36b06c9acefe281b1baefe30b1c6a53a3cbc6e4a1bfb6d",
+    "crates/core/src/extraction.rs": "c95364724428c7961a35b781d914ea75a888909ac1ef1f8f0778ef537587b36f",
+    "crates/core/src/files_search.rs": "36f54dcc2421b3e7c619738cb2dd5641cea455fb834cd9ddd4ed0a7f5a138026",
+    "crates/core/src/hash.rs": "f61e9af026fdfb405c685ef9c77acfc747a3305f4b7a975d6ebe2cf8b25a232a",
+    "crates/core/src/lexical.rs": "815ad38ab5433bfdaf4d0d11ba946962931cdffe74f6cb480d1ecc979ce30b89",
+    "crates/core/src/lib.rs": "e54588b779c55574a8a2a6450ed324d7abdb0053c2317f561250318fe22a5ba7",
+    "crates/core/src/manifest.rs": "c558964da39376fc12f4cffea3416766ba808a0841a447e7417d88afc58ee6a4",
+    "crates/core/src/memory.rs": "d5ca52ea94e42e448e220dd7c9e95d7fe0db7e53ede02bffde8a441f1341985e",
+    "crates/core/src/ports.rs": "737a3328c696110c08007c3dd7fb3ec4c3d45dab649654e66ab784b15c0f1a86",
+    "crates/core/src/query.rs": "8c5b2917855221efc8417261a6939441697985b717293ae9b449ecddbd25854c",
+    "crates/core/src/reconcile.rs": "780772753e013c86f33b65a7e87dd4552115e7a33ccb64fc68369a7c61c81400",
+    "crates/core/src/resolve.rs": "f7ddad6f0e739686bd00e83c8fdf15f4b95e1d013ffdeb8136d110ac73b8140e",
+    "crates/core/src/stale.rs": "9d8db2d4ae78f06983926cda7e559f0645b22106173799b62f8e93a1c8a5f140",
+    "crates/core/src/text_search.rs": "5af7e723ac15d223cdddc6622224f5ea26d9b2799a1477845747fdb45b767848",
+    "crates/core/src/walk.rs": "29bee5b6aa9d15ee7e25f649df7d4d18d65e762e945df800e28a29864206c33c",
+    "crates/core/tests/property.rs": "04498aa857a5c1fd7231eb92f8294c2f757677fbeeac5706db19ce9e16dc3bb9",
+    "crates/engine/src/lib.rs": "b3dd4368732299e500a14411171b4d72842f82019046f5c9f7635295737a64aa",
+    "crates/engine/src/sidecar.rs": "c40f9ba5d5b645f28823659afd4756f587e8d1a55e887f714afc86fc84a61a01",
+    "crates/engine/src/store.rs": "46e881cd9b25d76de67cbe8f18068c0f3a59f619ffdc26bcb605df18678615af",
+    "crates/engine/src/value.rs": "a807b83cc13962ca9ee3330e94021818bf448260421a057daccf27ecf10bf36f",
+    "crates/engine/tests/store.rs": "b9f4235862dc9a76e26f1a7bd0987d2662b9fb52d264b361b491e3854628225a",
+    "crates/graph-search/src/config.rs": "6290ccaeccd6f2c10daa8aeff83edebccb78819cc87e483c11c4f57868405467",
+    "crates/graph-search/src/error.rs": "412a6b8cf249a7e05f52f7280e66f9a6faecd82ae77f06a1fa2166442fc12e91",
+    "crates/graph-search/src/index.rs": "737c81966d90be182d2d56fe9aeda35fb0fafad2dd5581d40a7fa5d93eedb797",
+    "crates/graph-search/src/lib.rs": "c832e685c2ca5cd7525fb78873d684c7f0a12931da25ed5ea55d6f606764cb51",
+    "crates/graph-search/src/lock.rs": "162e5159cbf2eee1411ce972f214ae3601541ebd884bb5d9067252e8040c3d79",
+    "crates/graph-search/src/service.rs": "2e1cbe6d15048f4092534461f37188f7fa20bba41525c1df9bb381d296f56b49",
+    "crates/graph-search/tests/accuracy.rs": "9a4987a3b6a76f40be67559e1133a11e7c77eda2a5afeb7fb4c64cb2e510595b",
+    "crates/graph-search/tests/end_to_end.rs": "234e1cb75daf512d0541c9ae08f46b19535bb316079642ea25e7d1caa06680e9",
+    "crates/graph-search/tests/natural_language.rs": "46d487bbc8d7a5026596f206b00add1488fc87e0ac8fa707c591f126a9cc4fe2",
+    "crates/graph-search/tests/retrieval_incremental.rs": "c36f7ab595ab3445e68dcd3fde0fd085cecbc4ecd44871ec722f4283bd8dc18b",
+    "crates/langs/src/css.rs": "ae1bd4e37d7ed8bc453a8f9216237d7372fd8fddf8dcb5d19717ea89363eb543",
+    "crates/langs/src/html.rs": "987edf953504051348d150311cad14f9cdb65ae6fa1b3b4a1c8be579c8fc4bc4",
+    "crates/langs/src/javascript.rs": "0c38c0854ae137a95d5bddbf76810e80c571da1c980f7f9c95e5b4643464daf1",
+    "crates/langs/src/js_common.rs": "9b12b1ecaa719578b6407ee6b0fdb89bae68ccc2d676ce3080507e5d03144a1f",
+    "crates/langs/src/lib.rs": "8099f319259718eaf82dc42d62b0b46f976d4bffa3515d98d444425d817b328a",
+    "crates/langs/src/rust.rs": "3624920bca17a6fe08cae69df5618bf78362a1ebab073b41d8d28fc063a3823d",
+    "crates/langs/src/typescript.rs": "38fbb08b568b6747038778c88dadb889d5809525e32503946c48cccbff630318",
+    "crates/langs/src/walk.rs": "1ef4ab83458221389fe40ef294f80da038426d8c1e7b1886f0ac2e230b85acf5",
+    "crates/langs/tests/fixtures/rust/functions.rs": "85ba2f59f681b866ece67692e9f2043bd73ace1b226c677b6cc374e58dcdda69",
+    "crates/langs/tests/fixtures/rust/imports.rs": "04319d10efee2b9a22fac5dcfb0bf2346ad06fb6f03b65138530aa45582ffc60",
+    "crates/langs/tests/fixtures/rust/items.rs": "cba3d5005dfa56122177583836fd73a6e9c2abc7147d7e4c4deff2e781074adb",
+    "crates/langs/tests/fixtures_test.rs": "fe31ebfcc9a5e1cbfe5fbf8d99157f67719f8d185731587674a0c2e8727ce6a5",
+    "crates/types/src/batch.rs": "22c86d758ea2ccbe98f92f3fe6a3458fffbb2cc8f33fbebb1849f01fddb42238",
+    "crates/types/src/envelope.rs": "bb1cfb4ffbea0c59ccb2d57129c2a3eb6da5c67d0613034aa5ce2bbcb262bcc3",
+    "crates/types/src/extraction.rs": "40d8fdc769f5b8a8f2d2b9653795a91d7f05eddfa947545e57f8d25be06aaab6",
+    "crates/types/src/id.rs": "1dda0116e6fa66a63ff7ee8484b15823e9ba2e7d21e6b23ff411289495512d9e",
+    "crates/types/src/kind.rs": "52c982d9daeb4a219660f722628e49026c3342ade519e546699a2d7fecae5b23",
+    "crates/types/src/lib.rs": "1c5b4ab82d8a5880d0076fe1c9b2da8dddacc1da3c5766ff97594099131043c0",
+    "crates/types/src/limits.rs": "28ff43b1c1f7f4e2818222b1e5c6b9955f93f46feb81383668ce8487e86e734e",
+    "crates/types/src/manifest.rs": "588317a56766e0a66fae24b038c2f04e73852a25c1ca31da0926d8ba43cbda7d",
+    "crates/types/src/node.rs": "adb7b32dcf20d618eddc0277b7de43da1c813640b33b5614e443537d96dd1180",
+    "crates/types/src/query.rs": "43b36294de14409c2519a777f239dd954259c8d559d17bfe2d7565975b7b4440",
+    "crates/types/src/result.rs": "73e25e978212ccc443ea031c40fe135be51e02d57edda86b618ae16aecc71d9c"
+  },
+  "checks": {
+    "rust-workspace": {
+      "log_sha256": "d9680453ed118b0a980ffa494178487c050cfa8b9fde7766bf4b04119f880cf7",
+      "summary": [
+        "    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.20s",
+        "test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 25 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.17s",
+        "test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s",
+        "test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s",
+        "test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.81s",
+        "test result: ok. 24 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s",
+        "test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s",
+        "test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s",
+        "test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s",
+        "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+      ]
+    },
+    "clippy": {
+      "log_sha256": "fc2dda059d9921f2a78b65f3fce3a61b7bae8feff4f557fdeb1ab442a03bfd95",
+      "summary": [
+        "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 2.20s"
+      ]
+    },
+    "taskbench-python": {
+      "log_sha256": "ca663f782482076a9afb5900ce6274d7f9e8f0e18f65179c5fd8116b159663c5",
+      "summary": [
+        "Ran 24 tests in 3.437s",
+        "OK"
+      ]
+    },
+    "experiment-python": {
+      "log_sha256": "765a1a1257361b230278bb4b35fa6fe8f629dff656da91f43e70ac4c41debcaf",
+      "summary": [
+        "Ran 3 tests in 0.000s",
+        "OK"
+      ]
+    }
+  }
+}

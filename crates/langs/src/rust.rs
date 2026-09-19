@@ -71,8 +71,8 @@ impl Extractor<'_> {
         Span::new(
             crate::walk::line_of(node.start_position().row),
             crate::walk::line_of(node.end_position().row),
-            crate::walk::line_of(node.start_byte()),
-            crate::walk::line_of(node.end_byte()),
+            u32::try_from(node.start_byte()).unwrap_or(u32::MAX),
+            u32::try_from(node.end_byte()).unwrap_or(u32::MAX),
         )
     }
 

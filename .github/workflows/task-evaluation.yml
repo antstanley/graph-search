@@ -3,6 +3,7 @@ on:
   pull_request:
     paths:
       - 'evaluation/**'
+      - 'research/natural-language/**'
       - 'crates/**'
       - 'Cargo.toml'
       - 'Cargo.lock'
@@ -11,6 +12,7 @@ on:
     branches: [main]
     paths:
       - 'evaluation/**'
+      - 'research/natural-language/**'
       - 'crates/**'
       - 'Cargo.toml'
       - 'Cargo.lock'
@@ -24,6 +26,10 @@ jobs:
         with:
           python-version: '3.12'
       - run: sudo apt-get update && sudo apt-get install -y ripgrep
+      - run: cargo test --workspace --locked
+      - run: cargo clippy --workspace --all-targets --locked -- -D warnings
+      - run: cargo fmt --all --check
+      - run: python3 -m unittest discover -s research/natural-language -p 'test_*.py' -v
       - run: PYTHONPATH=evaluation python3 -m unittest discover -s evaluation/tests -v
       - run: cargo build --locked --manifest-path evaluation/harness/Cargo.toml
       - run: cargo fmt --manifest-path evaluation/harness/Cargo.toml --check

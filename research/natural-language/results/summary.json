@@ -1,0 +1,850 @@
+{
+  "core": {
+    "baseline": {
+      "discovery": {
+        "hits": 29,
+        "count": 30,
+        "mrr": 0.9444444444444444
+      },
+      "documentation-dev": {
+        "hits": 0,
+        "count": 6,
+        "mrr": 0
+      },
+      "documentation-heldout": {
+        "hits": 0,
+        "count": 3,
+        "mrr": 0
+      },
+      "exact": {
+        "hits": 90,
+        "count": 90,
+        "mrr": 0.9925925925925926
+      },
+      "heldout-split": {
+        "hits": 60,
+        "count": 60,
+        "mrr": 0.9722222222222222
+      },
+      "natural": {
+        "hits": 8,
+        "count": 15,
+        "mrr": 0.37777777777777777
+      },
+      "split": {
+        "hits": 89,
+        "count": 90,
+        "mrr": 0.9401851851851852
+      },
+      "task-dev": {
+        "hits": 23,
+        "count": 36,
+        "mrr": 0.2946759259259259
+      },
+      "task-heldout": {
+        "hits": 14,
+        "count": 24,
+        "mrr": 0.3836805555555556
+      }
+    },
+    "current": {
+      "discovery": {
+        "hits": 29,
+        "count": 30,
+        "mrr": 0.9444444444444444
+      },
+      "documentation-dev": {
+        "hits": 0,
+        "count": 6,
+        "mrr": 0
+      },
+      "documentation-heldout": {
+        "hits": 0,
+        "count": 3,
+        "mrr": 0
+      },
+      "exact": {
+        "hits": 90,
+        "count": 90,
+        "mrr": 0.9925925925925926
+      },
+      "heldout-split": {
+        "hits": 60,
+        "count": 60,
+        "mrr": 0.9805555555555555
+      },
+      "natural": {
+        "hits": 10,
+        "count": 15,
+        "mrr": 0.5011904761904762
+      },
+      "split": {
+        "hits": 90,
+        "count": 90,
+        "mrr": 0.975925925925926
+      },
+      "task-dev": {
+        "hits": 31,
+        "count": 36,
+        "mrr": 0.46398809523809526
+      },
+      "task-heldout": {
+        "hits": 18,
+        "count": 24,
+        "mrr": 0.4729662698412698
+      }
+    }
+  },
+  "public_index": {
+    "baseline": {
+      "all": {
+        "count": 60,
+        "required_file_hits": 37.0,
+        "evidence_ready": 12,
+        "task_success": null,
+        "median_response_bytes": 25530.5
+      },
+      "dev": {
+        "count": 36,
+        "required_file_hits": 23.0,
+        "evidence_ready": 6,
+        "task_success": null,
+        "median_response_bytes": 26280.0
+      },
+      "heldout": {
+        "count": 24,
+        "required_file_hits": 14.0,
+        "evidence_ready": 6,
+        "task_success": null,
+        "median_response_bytes": 24840.0
+      },
+      "nanus": {
+        "count": 20,
+        "required_file_hits": 13.0,
+        "evidence_ready": 1,
+        "task_success": null,
+        "median_response_bytes": 26660.0
+      },
+      "blogwright": {
+        "count": 20,
+        "required_file_hits": 15.0,
+        "evidence_ready": 7,
+        "task_success": null,
+        "median_response_bytes": 22283.5
+      },
+      "whatsurvey": {
+        "count": 20,
+        "required_file_hits": 9.0,
+        "evidence_ready": 4,
+        "task_success": null,
+        "median_response_bytes": 31233.0
+      }
+    },
+    "current": {
+      "all": {
+        "count": 60,
+        "required_file_hits": 49.0,
+        "evidence_ready": 11,
+        "task_success": null,
+        "median_response_bytes": 23869.5
+      },
+      "dev": {
+        "count": 36,
+        "required_file_hits": 31.0,
+        "evidence_ready": 7,
+        "task_success": null,
+        "median_response_bytes": 23463.5
+      },
+      "heldout": {
+        "count": 24,
+        "required_file_hits": 18.0,
+        "evidence_ready": 4,
+        "task_success": null,
+        "median_response_bytes": 24723.0
+      },
+      "nanus": {
+        "count": 20,
+        "required_file_hits": 19.0,
+        "evidence_ready": 2,
+        "task_success": null,
+        "median_response_bytes": 23316.5
+      },
+      "blogwright": {
+        "count": 20,
+        "required_file_hits": 19.0,
+        "evidence_ready": 8,
+        "task_success": null,
+        "median_response_bytes": 20576.5
+      },
+      "whatsurvey": {
+        "count": 20,
+        "required_file_hits": 11.0,
+        "evidence_ready": 1,
+        "task_success": null,
+        "median_response_bytes": 30656.0
+      }
+    }
+  },
+  "evidence_changes": [
+    {
+      "task": "whatsurvey.storage-envelope.change",
+      "baseline": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 1.0
+        },
+        "evidence_ready": true,
+        "relationship_evidence_recall": 1.0,
+        "task_success": null
+      },
+      "current": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.26666666666666666
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      }
+    },
+    {
+      "task": "nanus.write.change",
+      "baseline": {
+        "required_file_recall": 0.0,
+        "region_coverage": {
+          "r1": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "current": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      }
+    },
+    {
+      "task": "nanus.grep.debug",
+      "baseline": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0,
+          "r2": 0.125
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "current": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0,
+          "r2": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      }
+    },
+    {
+      "task": "whatsurvey.contact-policy.debug",
+      "baseline": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 1.0,
+          "r2": 0.0851063829787234,
+          "r3": 0.04838709677419355
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "current": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0,
+          "r2": 0.48936170212765956,
+          "r3": 1.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      }
+    },
+    {
+      "task": "nanus.write.debug",
+      "baseline": {
+        "required_file_recall": 0.0,
+        "region_coverage": {
+          "r1": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "current": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 1.0
+        },
+        "evidence_ready": true,
+        "relationship_evidence_recall": 1.0,
+        "task_success": null
+      }
+    },
+    {
+      "task": "blogwright.pds-config.debug",
+      "baseline": {
+        "required_file_recall": 0.0,
+        "region_coverage": {
+          "r1": 0.0,
+          "r2": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "current": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0,
+          "r2": 0.07407407407407407
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      }
+    },
+    {
+      "task": "nanus.read.change",
+      "baseline": {
+        "required_file_recall": 0.0,
+        "region_coverage": {
+          "r1": 0.0,
+          "r2": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "current": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0,
+          "r2": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      }
+    },
+    {
+      "task": "nanus.read.debug",
+      "baseline": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0,
+          "r2": 0.07692307692307693
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "current": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0,
+          "r2": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      }
+    },
+    {
+      "task": "nanus.temporary-paths.change",
+      "baseline": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0958904109589041
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "current": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      }
+    },
+    {
+      "task": "whatsurvey.survey-draft.debug",
+      "baseline": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0,
+          "r2": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "current": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0,
+          "r2": 1.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      }
+    },
+    {
+      "task": "blogwright.aws-credentials.debug",
+      "baseline": {
+        "required_file_recall": 0.0,
+        "region_coverage": {
+          "r1": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "current": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.14285714285714285
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      }
+    },
+    {
+      "task": "blogwright.publication-sync.debug",
+      "baseline": {
+        "required_file_recall": 0.0,
+        "region_coverage": {
+          "r1": 0.0,
+          "r2": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "current": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0,
+          "r2": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      }
+    },
+    {
+      "task": "whatsurvey.captcha-retry.change",
+      "baseline": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 1.0
+        },
+        "evidence_ready": true,
+        "relationship_evidence_recall": 1.0,
+        "task_success": null
+      },
+      "current": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.4461538461538462
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      }
+    },
+    {
+      "task": "whatsurvey.settings-encryption.change",
+      "baseline": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 1.0,
+          "r2": 0.4852941176470588
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "current": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 1.0,
+          "r2": 0.38235294117647056
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      }
+    },
+    {
+      "task": "nanus.temporary-paths.debug",
+      "baseline": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0547945205479452
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "current": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      }
+    },
+    {
+      "task": "whatsurvey.settings-encryption.debug",
+      "baseline": {
+        "required_file_recall": 0.0,
+        "region_coverage": {
+          "r1": 0.0,
+          "r2": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "current": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0,
+          "r2": 0.058823529411764705
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      }
+    },
+    {
+      "task": "blogwright.record-key.debug",
+      "baseline": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0,
+          "r2": 0.45454545454545453
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "current": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 1.0,
+          "r2": 1.0
+        },
+        "evidence_ready": true,
+        "relationship_evidence_recall": 1.0,
+        "task_success": null
+      }
+    },
+    {
+      "task": "nanus.parallel-tools.change",
+      "baseline": {
+        "required_file_recall": 0.0,
+        "region_coverage": {
+          "r1": 0.0,
+          "r2": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "current": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0,
+          "r2": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      }
+    },
+    {
+      "task": "whatsurvey.survey-transitions.debug",
+      "baseline": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.14285714285714285,
+          "r2": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "current": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0,
+          "r2": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      }
+    },
+    {
+      "task": "whatsurvey.webhook-signature.change",
+      "baseline": {
+        "required_file_recall": 0.0,
+        "region_coverage": {
+          "r1": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "current": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.15
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      }
+    },
+    {
+      "task": "nanus.grep.change",
+      "baseline": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0,
+          "r2": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "current": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.04411764705882353,
+          "r2": 1.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      }
+    },
+    {
+      "task": "nanus.argument-types.change",
+      "baseline": {
+        "required_file_recall": 0.0,
+        "region_coverage": {
+          "r1": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "current": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      }
+    },
+    {
+      "task": "blogwright.record-key.change",
+      "baseline": {
+        "required_file_recall": 0.0,
+        "region_coverage": {
+          "r1": 0.0,
+          "r2": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "current": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0,
+          "r2": 0.09090909090909091
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      }
+    },
+    {
+      "task": "blogwright.pds-secret.debug",
+      "baseline": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0,
+          "r2": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "current": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 1.0,
+          "r2": 0.775
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      }
+    },
+    {
+      "task": "whatsurvey.captcha-retry.debug",
+      "baseline": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 1.0
+        },
+        "evidence_ready": true,
+        "relationship_evidence_recall": 1.0,
+        "task_success": null
+      },
+      "current": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.4461538461538462
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      }
+    },
+    {
+      "task": "nanus.glob.debug",
+      "baseline": {
+        "required_file_recall": 0.0,
+        "region_coverage": {
+          "r1": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "current": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      }
+    },
+    {
+      "task": "whatsurvey.contact-policy.change",
+      "baseline": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0,
+          "r2": 0.0,
+          "r3": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "current": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0,
+          "r2": 0.9361702127659575,
+          "r3": 0.7419354838709677
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      }
+    }
+  ],
+  "profile": {
+    "nanus": {
+      "baseline": {
+        "setup_ms": 3120.8413340064,
+        "live_store_bytes": 17974268,
+        "median_ms": {
+          "exact-explore": 729.1207079979358,
+          "natural-explore": 746.0412079963135
+        }
+      },
+      "current": {
+        "setup_ms": 3618.6628750001546,
+        "live_store_bytes": 20817138,
+        "median_ms": {
+          "exact-explore": 1058.0387090012664,
+          "natural-explore": 1095.1713340036804
+        }
+      }
+    },
+    "blogwright": {
+      "current": {
+        "setup_ms": 4521.153624998988,
+        "live_store_bytes": 19624320,
+        "median_ms": {
+          "exact-explore": 1056.0857499949634,
+          "natural-explore": 1112.1449159982149
+        }
+      },
+      "baseline": {
+        "setup_ms": 4303.677250005421,
+        "live_store_bytes": 18421944,
+        "median_ms": {
+          "exact-explore": 898.4768329974031,
+          "natural-explore": 922.089750005398
+        }
+      }
+    },
+    "whatsurvey": {
+      "baseline": {
+        "setup_ms": 9644.138250005199,
+        "live_store_bytes": 51754930,
+        "median_ms": {
+          "exact-explore": 2143.3007919986267,
+          "natural-explore": 2175.719584003673
+        }
+      },
+      "current": {
+        "setup_ms": 10115.74166599894,
+        "live_store_bytes": 53692644,
+        "median_ms": {
+          "exact-explore": 2440.716875004,
+          "natural-explore": 2552.9528339975514
+        }
+      }
+    }
+  },
+  "exact_accuracy_gate": true
+}

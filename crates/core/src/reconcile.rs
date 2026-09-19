@@ -481,7 +481,7 @@ impl<'a> Projector<'a> {
             return pending;
         };
 
-        let extraction = match extractor.extract(&crate::ports::SourceFile {
+        let mut extraction = match extractor.extract(&crate::ports::SourceFile {
             path: Path::new(&entry.rel),
             text,
         }) {
@@ -502,6 +502,7 @@ impl<'a> Projector<'a> {
             return pending;
         }
 
+        crate::lexical::attach_body_terms(&mut extraction, text);
         Self::populate_symbols(pending, extraction)
     }
 
