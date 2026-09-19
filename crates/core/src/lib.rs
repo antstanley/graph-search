@@ -13,6 +13,7 @@ pub mod error;
 pub mod extraction;
 pub mod files_search;
 pub mod hash;
+pub mod lexical;
 pub mod manifest;
 pub mod memory;
 pub mod ports;

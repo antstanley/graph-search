@@ -1,0 +1,88 @@
+COMMAND: unrelated_query_returns_no_symbols
+EXIT: 101
+   Compiling graph-search-types v0.1.0 (/private/tmp/graph-search-root-review-a48t8cs6/crates/types)
+   Compiling graph-search-core v0.1.0 (/private/tmp/graph-search-root-review-a48t8cs6/crates/core)
+   Compiling graph-search-engine v0.1.0 (/private/tmp/graph-search-root-review-a48t8cs6/crates/engine)
+   Compiling graph-search-langs v0.1.0 (/private/tmp/graph-search-root-review-a48t8cs6/crates/langs)
+   Compiling graph-search v0.1.0 (/private/tmp/graph-search-root-review-a48t8cs6/crates/graph-search)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.18s
+     Running tests/root_review.rs (/private/tmp/graph-search-research/target/debug/deps/root_review-f51a8c419cc5a9de)
+
+running 1 test
+
+thread 'unrelated_query_returns_no_symbols' (1128971) panicked at crates/graph-search/tests/root_review.rs:393:2:
+ExploreResult { items: [ExploreItem { node: SymbolHit { id: "sym:a.rs#function:apple", name: "apple", qualified_name: "apple", kind: Function, path: "a.rs", start_line: 1, end_line: 1, signature: Some("fn apple() {}") }, snippet: Some(Snippet { start_line: 1, lines: ["fn apple() {}"] }), impact: Some(ImpactSummary { direct_callers: 0, total_callers: 0 }) }], edges: [], truncations: [], approximation: Some(Approximation { resolved: 0, unresolved: 0, note: "static approximation; dynamic/macro/generated edges may be missing" }), stats: Stats { files_scanned: 0, matches: 0, candidates: 1, elapsed_ms: 1 } }
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test unrelated_query_returns_no_symbols ... FAILED
+
+failures:
+
+failures:
+    unrelated_query_returns_no_symbols
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 25 filtered out; finished in 0.03s
+
+error: test failed, to rerun pass `-p graph-search --test root_review`
+
+COMMAND: self_receiver_uses_lexical_impl_owner
+EXIT: 101
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.07s
+     Running tests/root_review.rs (/private/tmp/graph-search-research/target/debug/deps/root_review-f51a8c419cc5a9de)
+
+running 1 test
+
+thread 'self_receiver_uses_lexical_impl_owner' (1129017) panicked at crates/graph-search/tests/root_review.rs:202:5:
+assertion failed: r.edges.iter().any(|e| e.to_name == "A::finish" && e.resolved)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test self_receiver_uses_lexical_impl_owner ... FAILED
+
+failures:
+
+failures:
+    self_receiver_uses_lexical_impl_owner
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 25 filtered out; finished in 0.01s
+
+error: test failed, to rerun pass `-p graph-search --test root_review`
+
+COMMAND: sync_rebinds_unchanged_callers_after_target_edits
+EXIT: 101
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.07s
+     Running tests/root_review.rs (/private/tmp/graph-search-research/target/debug/deps/root_review-f51a8c419cc5a9de)
+
+running 1 test
+
+thread 'sync_rebinds_unchanged_callers_after_target_edits' (1129062) panicked at crates/graph-search/tests/root_review.rs:150:5:
+assertion failed: r.edges.iter().any(|e| e.to_name == "leaf" && e.resolved)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test sync_rebinds_unchanged_callers_after_target_edits ... FAILED
+
+failures:
+
+failures:
+    sync_rebinds_unchanged_callers_after_target_edits
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 25 filtered out; finished in 0.02s
+
+error: test failed, to rerun pass `-p graph-search --test root_review`
+
+COMMAND: foreign_qualified_calls_do_not_bind_to_bare_local_names
+EXIT: 101
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.07s
+     Running tests/root_review.rs (/private/tmp/graph-search-research/target/debug/deps/root_review-f51a8c419cc5a9de)
+
+running 1 test
+
+thread 'foreign_qualified_calls_do_not_bind_to_bare_local_names' (1129107) panicked at crates/graph-search/tests/root_review.rs:127:5:
+assertion failed: r.edges.iter().filter(|e| e.kind == EdgeKind::Calls).all(|e| !e.resolved)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test foreign_qualified_calls_do_not_bind_to_bare_local_names ... FAILED
+
+failures:
+
+failures:
+    foreign_qualified_calls_do_not_bind_to_bare_local_names
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 25 filtered out; finished in 0.01s
+
+error: test failed, to rerun pass `-p graph-search --test root_review`

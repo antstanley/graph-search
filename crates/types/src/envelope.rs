@@ -78,6 +78,9 @@ mod tests {
         );
         let json = serde_json::to_value(&envelope).unwrap_or_default();
         assert!(json.get("stale_paths").is_none());
-        assert_eq!(json.get("schema_version"), Some(&serde_json::json!(1)));
+        assert_eq!(
+            json.get("schema_version"),
+            Some(&serde_json::json!(crate::limits::SCHEMA_VERSION))
+        );
     }
 }

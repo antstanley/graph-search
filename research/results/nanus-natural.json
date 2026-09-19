@@ -1,0 +1,222 @@
+[
+  {
+    "query": "Where are old conversation turns removed to stay within the model context window?",
+    "expected_path": "crates/nanus-domain/src/context.rs",
+    "baseline": [
+      "crates/nanus-adapter-anthropic/src/config.rs",
+      "crates/nanus-adapter-anthropic/src/config.rs",
+      "crates/nanus-adapter-anthropic/src/lib.rs",
+      "crates/nanus-adapter-anthropic/tests/live_wire.rs",
+      "crates/nanus-adapter-config/src/config.rs",
+      "crates/nanus-adapter-deepseek/src/config.rs",
+      "crates/nanus-adapter-deepseek/src/config.rs",
+      "crates/nanus-adapter-deepseek/src/lib.rs"
+    ],
+    "fixed": [
+      "crates/nanus-adapter-anthropic/src/config.rs",
+      "crates/nanus-adapter-anthropic/src/config.rs",
+      "crates/nanus-adapter-anthropic/src/lib.rs",
+      "crates/nanus-adapter-anthropic/tests/live_wire.rs",
+      "crates/nanus-adapter-config/src/config.rs",
+      "crates/nanus-adapter-deepseek/src/config.rs",
+      "crates/nanus-adapter-deepseek/src/config.rs",
+      "crates/nanus-adapter-deepseek/src/lib.rs"
+    ],
+    "fts_metadata": [
+      "crates/nanus-domain/src/context.rs",
+      "crates/nanus-domain/src/context.rs",
+      "crates/nanus-domain/src/context.rs",
+      "crates/nanus-tui/src/markdown/render.rs",
+      "crates/nanus-domain/src/context.rs",
+      "crates/nanus-domain/src/context.rs",
+      "crates/nanus-bundle/src/tools/edit.rs",
+      "crates/nanus-tui/src/markdown/parse.rs"
+    ],
+    "fts_body": [
+      "crates/nanus-domain/src/context.rs",
+      "crates/nanus-domain/src/context.rs",
+      "crates/nanus-domain/src/context.rs",
+      "crates/nanus-domain/src/context.rs",
+      "crates/nanus-domain/src/agent.rs",
+      "crates/nanus-adapter-anthropic/src/wire.rs",
+      "crates/nanus-cli/src/progress.rs",
+      "crates/nanus-bundle/tests/end_to_end.rs"
+    ]
+  },
+  {
+    "query": "How does a shell command get classified as destructive before execution?",
+    "expected_path": "crates/nanus-bundle/src/guard.rs",
+    "baseline": [
+      "apps/website/src/pages/[...slug].md.ts",
+      "apps/website/src/pages/llms.txt.ts",
+      "crates/nanus-adapter-local/src/lib.rs",
+      "crates/nanus-adapter-local/tests/shell.rs",
+      "crates/nanus-adapter-secret/src/backend.rs",
+      "crates/nanus-adapter-secret/src/backend.rs",
+      "crates/nanus-adapter-secret/src/backend.rs",
+      "crates/nanus-adapter-secret/src/keychain.rs"
+    ],
+    "fixed": [
+      "apps/website/src/pages/[...slug].md.ts",
+      "apps/website/src/pages/llms.txt.ts",
+      "crates/nanus-adapter-local/src/lib.rs",
+      "crates/nanus-adapter-local/tests/shell.rs",
+      "crates/nanus-adapter-secret/src/backend.rs",
+      "crates/nanus-adapter-secret/src/backend.rs",
+      "crates/nanus-adapter-secret/src/backend.rs",
+      "crates/nanus-adapter-secret/src/keychain.rs"
+    ],
+    "fts_metadata": [
+      "crates/nanus-bundle/src/guard.rs",
+      "crates/nanus-bundle/src/guard.rs",
+      "crates/nanus-domain/src/tool.rs",
+      "crates/nanus-tui/src/markdown/highlight.rs",
+      "crates/nanus-tui/src/command.rs",
+      "crates/nanus-tui/src/shell.rs",
+      "crates/nanus-tui/src/command.rs",
+      "crates/nanus-tui/src/shell.rs"
+    ],
+    "fts_body": [
+      "crates/nanus-bundle/src/guard.rs",
+      "crates/nanus-bundle/src/guard.rs",
+      "crates/nanus-bundle/src/guard.rs",
+      "crates/nanus-bundle/src/agent_loop.rs",
+      "crates/nanus-bundle/src/agent_loop.rs",
+      "crates/nanus-bundle/src/agent_loop.rs",
+      "crates/nanus-tui/src/markdown/highlight.rs",
+      "crates/nanus-bundle/tests/end_to_end.rs"
+    ]
+  },
+  {
+    "query": "Where is a user asked for permission before a tool executes?",
+    "expected_path": "crates/nanus-bundle/src/agent_loop.rs",
+    "baseline": [
+      "crates/nanus-bundle/src/agent_loop.rs",
+      "crates/nanus-bundle/src/agent_loop.rs",
+      "crates/nanus-bundle/src/agent_loop.rs",
+      "crates/nanus-bundle/src/args.rs",
+      "crates/nanus-bundle/src/error.rs",
+      "crates/nanus-cli/src/approve.rs",
+      "crates/nanus-cli/src/progress.rs",
+      "crates/nanus-domain/src/approval.rs"
+    ],
+    "fixed": [
+      "crates/nanus-bundle/src/agent_loop.rs",
+      "crates/nanus-bundle/src/agent_loop.rs",
+      "crates/nanus-bundle/src/agent_loop.rs",
+      "crates/nanus-bundle/src/args.rs",
+      "crates/nanus-bundle/src/error.rs",
+      "crates/nanus-cli/src/approve.rs",
+      "crates/nanus-cli/src/progress.rs",
+      "crates/nanus-domain/src/approval.rs"
+    ],
+    "fts_metadata": [
+      "crates/nanus-cli/src/approve.rs",
+      "crates/nanus-domain/src/message.rs",
+      "crates/nanus-tui/src/transcript.rs",
+      "crates/nanus-domain/src/message.rs",
+      "crates/nanus-link/src/protocol.rs",
+      "crates/nanus-tui/src/view.rs",
+      "crates/nanus-domain/src/session.rs",
+      "crates/nanus-domain/src/message.rs"
+    ],
+    "fts_body": [
+      "crates/nanus-cli/src/approve.rs",
+      "crates/nanus-domain/src/message.rs",
+      "crates/nanus-tui/src/runtime.rs",
+      "crates/nanus-tui/src/view.rs",
+      "crates/nanus-tui/src/view.rs",
+      "crates/nanus-tui/src/runtime.rs",
+      "crates/nanus-link/tests/link.rs",
+      "crates/nanus-domain/src/message.rs"
+    ]
+  },
+  {
+    "query": "How are file name patterns used to narrow literal text search results?",
+    "expected_path": "crates/nanus-bundle/src/tools/grep.rs",
+    "baseline": [
+      "crates/nanus-adapter-deepseek/src/wire.rs",
+      "crates/nanus-adapter-local/src/fs.rs",
+      "crates/nanus-adapter-local/src/fs.rs",
+      "crates/nanus-adapter-openai/src/wire.rs",
+      "crates/nanus-adapter-secret/src/backend.rs",
+      "crates/nanus-adapter-secret/src/backend.rs",
+      "crates/nanus-adapter-secret/src/backend.rs",
+      "crates/nanus-adapter-secret/src/keychain.rs"
+    ],
+    "fixed": [
+      "crates/nanus-adapter-deepseek/src/wire.rs",
+      "crates/nanus-adapter-local/src/fs.rs",
+      "crates/nanus-adapter-local/src/fs.rs",
+      "crates/nanus-adapter-openai/src/wire.rs",
+      "crates/nanus-adapter-secret/src/backend.rs",
+      "crates/nanus-adapter-secret/src/backend.rs",
+      "crates/nanus-adapter-secret/src/backend.rs",
+      "crates/nanus-adapter-secret/src/keychain.rs"
+    ],
+    "fts_metadata": [
+      "crates/nanus-adapter-local/tests/fs.rs",
+      "crates/nanus-adapter-local/tests/fs.rs",
+      "crates/nanus-adapter-local/tests/fs.rs",
+      "crates/nanus-adapter-local/tests/fs.rs",
+      "crates/nanus-bundle/tests/end_to_end.rs",
+      "crates/nanus-adapter-local/src/fs.rs",
+      "crates/nanus-adapter-store/src/store.rs",
+      "crates/nanus-adapter-secret/src/backend.rs"
+    ],
+    "fts_body": [
+      "crates/nanus-ports/src/fs.rs",
+      "crates/nanus-ports/src/fs.rs",
+      "crates/nanus-adapter-local/src/fs.rs",
+      "crates/nanus-ports/src/fs.rs",
+      "crates/nanus-bundle/src/tools/grep.rs",
+      "crates/nanus-adapter-local/tests/fs.rs",
+      "crates/nanus-adapter-local/src/fs.rs",
+      "crates/nanus-adapter-local/tests/fs.rs"
+    ]
+  },
+  {
+    "query": "How are simultaneous tool calls limited during an agent turn?",
+    "expected_path": "crates/nanus-bundle/src/agent_loop.rs",
+    "baseline": [
+      "crates/nanus-adapter-deepseek/src/wire.rs",
+      "crates/nanus-adapter-openai/src/wire.rs",
+      "crates/nanus-bundle/src/agent_loop.rs",
+      "crates/nanus-bundle/src/args.rs",
+      "crates/nanus-bundle/src/error.rs",
+      "crates/nanus-cli/src/approve.rs",
+      "crates/nanus-cli/src/progress.rs",
+      "crates/nanus-domain/src/approval.rs"
+    ],
+    "fixed": [
+      "crates/nanus-adapter-deepseek/src/wire.rs",
+      "crates/nanus-adapter-openai/src/wire.rs",
+      "crates/nanus-bundle/src/agent_loop.rs",
+      "crates/nanus-bundle/src/args.rs",
+      "crates/nanus-bundle/src/error.rs",
+      "crates/nanus-cli/src/approve.rs",
+      "crates/nanus-cli/src/progress.rs",
+      "crates/nanus-domain/src/approval.rs"
+    ],
+    "fts_metadata": [
+      "crates/nanus-domain/src/context.rs",
+      "crates/nanus-bundle/src/agent_loop.rs",
+      "crates/nanus-tui/src/runtime.rs",
+      "crates/nanus-domain/src/agent.rs",
+      "crates/nanus-domain/src/agent.rs",
+      "crates/nanus-bundle/src/agent_loop.rs",
+      "crates/nanus-domain/tests/invariants.rs",
+      "crates/nanus-domain/src/agent.rs"
+    ],
+    "fts_body": [
+      "crates/nanus-bundle/src/agent_loop.rs",
+      "crates/nanus-bundle/src/agent_loop.rs",
+      "crates/nanus-tui/src/runtime.rs",
+      "crates/nanus-domain/src/agent.rs",
+      "crates/nanus-domain/src/agent.rs",
+      "crates/nanus-domain/src/agent.rs",
+      "crates/nanus-domain/src/context.rs",
+      "crates/nanus-domain/src/agent.rs"
+    ]
+  }
+]

@@ -38,8 +38,10 @@ impl LanguageExtractor for JavaScriptExtractor {
             dialect,
             extraction: Extraction::default(),
             scope: Vec::new(),
+            imports: std::collections::BTreeMap::new(),
         };
         extractor.walk_node(tree.root_node());
+        extractor.bind_imports();
         Ok(extractor.extraction)
     }
 }

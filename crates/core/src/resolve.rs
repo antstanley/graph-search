@@ -56,6 +56,8 @@ pub struct SymbolTable {
     pub by_name: BTreeMap<String, Vec<NodeId>>,
     /// Qualified name to symbol id, workspace-wide.
     pub by_qualified: BTreeMap<String, NodeId>,
+    /// All qualified-name candidates, retaining ambiguity across files.
+    pub qualified_candidates: BTreeMap<String, Vec<NodeId>>,
     /// Per file: bare name to id.
     pub by_file: BTreeMap<String, BTreeMap<String, NodeId>>,
     /// Per file: qualified name to id.
@@ -81,6 +83,10 @@ impl SymbolTable {
             .entry(name.clone())
             .or_default()
             .push(node.id.clone());
+        self.qualified_candidates
+            .entry(qualified.clone())
+            .or_default()
+            .push(node.id.clone());
         self.by_qualified
             .entry(qualified.clone())
             .or_insert(node.id.clone());
@@ -102,6 +108,18 @@ impl SymbolTable {
                 .or_insert(node.id.clone());
         }
         self.symbols.insert(node.id.clone(), node.clone());
+    }
+
+    fn named(&self, name: &str) -> Vec<&Node> {
+        self.by_name
+            .get(name)
+            .into_iter()
+            .flatten()
+            .chain(self.qualified_candidates.get(name).into_iter().flatten())
+            .collect::<BTreeSet<_>>()
+            .into_iter()
+            .filter_map(|id| self.symbols.get(id))
+            .collect()
     }
 
     /// Rule 1: same file, same name.
@@ -213,6 +231,9 @@ fn rust_candidates(from_path: &str, specifier: &str) -> Vec<String> {
 
 /// `./x`, `../x`, `x/index`, with and without extensions.
 fn js_candidates(from_path: &str, specifier: &str) -> Vec<String> {
+    if !specifier.starts_with('.') && !specifier.starts_with('/') {
+        return Vec::new();
+    }
     let base = relative(from_path, specifier);
     let mut candidates = vec![
         base.clone(),
@@ -223,6 +244,16 @@ fn js_candidates(from_path: &str, specifier: &str) -> Vec<String> {
         format!("{base}.mjs"),
         format!("{base}.cjs"),
     ];
+    for (runtime, source) in [
+        (".js", ".ts"),
+        (".js", ".tsx"),
+        (".mjs", ".mts"),
+        (".cjs", ".cts"),
+    ] {
+        if let Some(stem) = base.strip_suffix(runtime) {
+            candidates.push(format!("{stem}{source}"));
+        }
+    }
     for ext in [".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs"] {
         candidates.push(format!("{base}/index{ext}"));
     }
@@ -294,8 +325,12 @@ pub fn resolve_reference(
         to_name,
     };
 
+    if fact.dynamic {
+        return dangling(fact.name.clone());
+    }
+
     // File-level import statements become file->file (or file->module) edges.
-    if fact.kind == EdgeKind::Imports && fact.from_key.is_none() {
+    if fact.kind == EdgeKind::Imports && fact.from_key.is_none() && fact.via_import.is_none() {
         if let Some(target) = resolve_specifier(from_path, &fact.name, known_files, language) {
             let to = NodeId::file(&target);
             return Resolution {
@@ -307,69 +342,78 @@ pub fn resolve_reference(
         return dangling(fact.name.clone());
     }
 
-    // Rule 2: a reference to an imported binding resolves to the importing
-    // file's corresponding export, if found.
-    if let Some(specifier) = &fact.via_import
-        && let Some(target) = resolve_specifier(from_path, specifier, known_files, language)
-        && let Some(id) = table
-            .exports_by_file
-            .get(&target)
-            .and_then(|m| m.get(&fact.name))
-            .or_else(|| table.by_file.get(&target).and_then(|m| m.get(&fact.name)))
-    {
-        let name = table
-            .symbols
-            .get(id)
-            .and_then(|n| n.qualified_name.clone())
-            .unwrap_or_else(|| fact.name.clone());
-        return Resolution {
-            fact: fact.clone(),
-            to: Some(id.clone()),
-            to_name: name,
-        };
-    }
-
-    // Rule 1: same file, same name (qualified first, then bare).
-    if let Some(id) = table
-        .local_qualified(from_path, &fact.name)
-        .cloned()
-        .or_else(|| table.local(from_path, &fact.name).cloned())
-    {
-        let name = table
-            .symbols
-            .get(&id)
-            .and_then(|n| n.qualified_name.clone())
-            .unwrap_or_else(|| fact.name.clone());
-        return Resolution {
-            fact: fact.clone(),
-            to: Some(id),
-            to_name: name,
-        };
-    }
-
-    // Rule 3: qualified paths resolve along modules/classes when the whole
-    // lexical path matches; then progressively-stripped suffixes.
-    if fact.name.contains("::") || fact.name.contains('.') {
-        let separators = if fact.name.contains("::") { "::" } else { "." };
-        let segments: Vec<&str> = fact.name.split(separators).collect();
-        // Whole path first, then shorter *suffixes* — the tail carries the
-        // item name (`crate::foo::Bar` resolves via `foo::Bar`, then `Bar`).
-        for take in (1..=segments.len()).rev() {
-            let start = segments.len().saturating_sub(take);
-            let candidate = segments[start..].join(separators);
-            if let Some(id) = table.by_qualified.get(&candidate) {
-                let name = table
-                    .symbols
-                    .get(id)
-                    .and_then(|n| n.qualified_name.clone())
-                    .unwrap_or(candidate);
+    // Explicit import provenance is authoritative. Failure to resolve the
+    // module must not fall through to an unrelated workspace name.
+    if let Some(specifier) = &fact.via_import {
+        if let Some(target) = resolve_specifier(from_path, specifier, known_files, language) {
+            let matches: Vec<&Node> = table
+                .named(&fact.name)
+                .into_iter()
+                .filter(|n| {
+                    n.path == target
+                        && n.name.as_deref() == Some(fact.name.as_str())
+                        && (fact.kind == EdgeKind::Imports
+                            || n.kind == NodeKind::Export
+                            || compatible(fact.kind, n.kind))
+                })
+                .collect();
+            if let [node] = matches.as_slice() {
                 return Resolution {
                     fact: fact.clone(),
-                    to: Some(id.clone()),
-                    to_name: name,
+                    to: Some(node.id.clone()),
+                    to_name: node
+                        .qualified_name
+                        .clone()
+                        .unwrap_or_else(|| fact.name.clone()),
                 };
             }
         }
+        return dangling(fact.name.clone());
+    }
+
+    // A same-file name must be unique and kind-compatible. Duplicate
+    // methods or nested declarations cannot be collapsed to the first row.
+    let local: Vec<&Node> = table
+        .named(&fact.name)
+        .into_iter()
+        .filter(|n| {
+            n.path == from_path
+                && compatible(fact.kind, n.kind)
+                && (n.qualified_name.as_deref() == Some(fact.name.as_str())
+                    || n.name.as_deref() == Some(fact.name.as_str()))
+        })
+        .collect();
+    if let [node] = local.as_slice() {
+        return Resolution {
+            fact: fact.clone(),
+            to: Some(node.id.clone()),
+            to_name: node
+                .qualified_name
+                .clone()
+                .unwrap_or_else(|| fact.name.clone()),
+        };
+    }
+    if !local.is_empty() {
+        return dangling(fact.name.clone());
+    }
+
+    // Qualified references require the whole lexical path. Stripping an
+    // arbitrary receiver/module to its suffix invents edges (external::run
+    // must not bind to an unrelated workspace run).
+    if fact.name.contains("::") || fact.name.contains('.') {
+        let mut matches = table.named(&fact.name).into_iter().filter(|n| {
+            n.qualified_name.as_deref() == Some(fact.name.as_str()) && compatible(fact.kind, n.kind)
+        });
+        if let Some(node) = matches.next()
+            && matches.next().is_none()
+        {
+            return Resolution {
+                fact: fact.clone(),
+                to: Some(node.id.clone()),
+                to_name: fact.name.clone(),
+            };
+        }
+        return dangling(fact.name.clone());
     }
 
     // Rule 4: exactly one workspace symbol of a compatible kind.
@@ -777,16 +821,13 @@ mod tests {
     }
 
     #[test]
-    fn qualified_paths_resolve_by_whole_then_suffix() {
+    fn qualified_paths_do_not_discard_unknown_module_prefixes() {
         let target = symbol("src/t.rs", NodeKind::Struct, "Token", "Token");
         let table = table_with(&[target]);
         let fact = ReferenceFact::from_symbol("x", EdgeKind::TypeUses, "crate::Token", 4);
         let resolved =
             resolve_reference(&fact, "src/a.rs", &table, &BTreeSet::new(), Language::Rust);
-        assert_eq!(
-            resolved.to.as_ref().map(NodeId::as_str),
-            Some("sym:src/t.rs#struct:Token")
-        );
+        assert!(resolved.to.is_none());
     }
 
     #[test]

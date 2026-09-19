@@ -1,0 +1,254 @@
+[
+  {
+    "query": "Where are draft articles excluded from publishing to the personal data server?",
+    "expected_path": "packages/pds/src/content.ts",
+    "baseline": [
+      "packages/analytics/app/src/lib/picker-date.test.ts",
+      "packages/analytics/scripts/dev-dashboard.mjs",
+      "packages/analytics/src/backfill.test.ts",
+      "packages/analytics/src/queries.ts",
+      "packages/analytics/src/server.test.ts",
+      "tests/browser/dashboard.spec.ts",
+      "docs/src/styles/custom.css",
+      "packages/analytics/app/src/app.css"
+    ],
+    "fixed": [
+      "packages/analytics/app/src/lib/picker-date.test.ts",
+      "packages/analytics/scripts/dev-dashboard.mjs",
+      "packages/analytics/src/backfill.test.ts",
+      "packages/analytics/src/queries.ts",
+      "packages/analytics/src/server.test.ts",
+      "tests/browser/dashboard.spec.ts",
+      "docs/src/styles/custom.css",
+      "packages/analytics/app/src/app.css"
+    ],
+    "fts_metadata": [
+      "packages/analytics/src/server.test.ts",
+      "packages/analytics/src/transform/handler.test.ts",
+      "packages/analytics/src/server.test.ts",
+      "packages/analytics/src/server.ts",
+      "packages/analytics/src/server.test.ts",
+      "packages/analytics/app/src/app.css",
+      "packages/analytics/app/src/app.css",
+      "packages/analytics/app/src/app.css"
+    ],
+    "fts_body": [
+      "packages/analytics/src/server.test.ts",
+      "packages/analytics/src/transform/handler.test.ts",
+      "packages/analytics/src/server.test.ts",
+      "packages/analytics/src/server.ts",
+      "packages/analytics/src/server.test.ts",
+      "packages/analytics/src/server.test.ts",
+      "packages/analytics/src/server.test.ts",
+      "packages/analytics/src/server.test.ts"
+    ],
+    "codegraph_explore": [
+      "packages/analytics/src/server.ts",
+      "packages/analytics/src/aws/s3tables.ts",
+      "packages/analytics/src/aws/lambda.ts",
+      "packages/analytics/src/aws/firehose.ts",
+      "packages/analytics/src/aws/glue.ts"
+    ]
+  },
+  {
+    "query": "How are local articles converted into records and sent to the personal data server?",
+    "expected_path": "packages/pds/src/sync.ts",
+    "baseline": [
+      "packages/analytics/src/adapters/duckdb-session.ts",
+      "packages/analytics/src/server.test.ts",
+      "packages/analytics/src/transform/handler.ts",
+      "packages/pds/src/sync.test.ts",
+      "packages/pds/src/xrpc.test.ts",
+      "packages/pds/src/xrpc.ts",
+      "tests/browser/dashboard.spec.ts",
+      "docs/src/styles/custom.css"
+    ],
+    "fixed": [
+      "packages/analytics/src/adapters/duckdb-session.ts",
+      "packages/analytics/src/server.test.ts",
+      "packages/analytics/src/transform/handler.ts",
+      "packages/pds/src/sync.test.ts",
+      "packages/pds/src/xrpc.test.ts",
+      "packages/pds/src/xrpc.ts",
+      "tests/browser/dashboard.spec.ts",
+      "docs/src/styles/custom.css"
+    ],
+    "fts_metadata": [
+      "packages/analytics/src/adapters/duckdb-session.ts",
+      "packages/analytics/src/server.test.ts",
+      "packages/pds/src/sync.ts",
+      "packages/core/src/util.test.ts",
+      "packages/core/src/util.test.ts",
+      "packages/analytics/src/nodes.test.ts",
+      "packages/analytics/src/transform/handler.test.ts",
+      "packages/pds/src/xrpc.ts"
+    ],
+    "fts_body": [
+      "packages/analytics/src/adapters/duckdb-session.ts",
+      "packages/analytics/src/transform/handler.test.ts",
+      "packages/analytics/src/server.test.ts",
+      "packages/pds/src/sync.ts",
+      "packages/core/src/util.test.ts",
+      "packages/core/src/util.test.ts",
+      "packages/pds/src/sync.ts",
+      "packages/analytics/src/nodes.test.ts"
+    ],
+    "codegraph_explore": [
+      "packages/analytics/src/nodes.ts",
+      "packages/analytics/src/server.ts",
+      "packages/build-agent/src/server.ts",
+      "packages/analytics/src/backfill.ts"
+    ]
+  },
+  {
+    "query": "Where are stored credentials loaded for an authenticated publishing session?",
+    "expected_path": "packages/pds/src/secret.ts",
+    "baseline": [
+      "packages/analytics/src/adapters/duckdb-ingest.test.ts",
+      "packages/analytics/src/adapters/duckdb-query.test.ts",
+      "packages/analytics/src/adapters/duckdb-session.ts",
+      "packages/analytics/src/aws/firehose.test.ts",
+      "packages/analytics/src/aws/glue.test.ts",
+      "packages/analytics/src/aws/lambda.test.ts",
+      "packages/analytics/src/aws/s3tables.test.ts",
+      "packages/cli/src/plugins.ts"
+    ],
+    "fixed": [
+      "packages/analytics/src/adapters/duckdb-ingest.test.ts",
+      "packages/analytics/src/adapters/duckdb-query.test.ts",
+      "packages/analytics/src/adapters/duckdb-session.ts",
+      "packages/analytics/src/aws/firehose.test.ts",
+      "packages/analytics/src/aws/glue.test.ts",
+      "packages/analytics/src/aws/lambda.test.ts",
+      "packages/analytics/src/aws/s3tables.test.ts",
+      "packages/cli/src/plugins.ts"
+    ],
+    "fts_metadata": [
+      "packages/analytics/src/adapters/duckdb-session.ts",
+      "packages/pds/src/commands.test.ts",
+      "packages/pds/src/secret.test.ts",
+      "packages/pds/src/sync.test.ts",
+      "packages/cli/src/plugins.ts",
+      "packages/analytics/src/adapters/duckdb-session.ts",
+      "packages/analytics/src/adapters/duckdb-session.ts",
+      "packages/core/src/aws/signer.ts"
+    ],
+    "fts_body": [
+      "packages/analytics/src/adapters/duckdb-session.ts",
+      "packages/analytics/src/adapters/duckdb-ingest.ts",
+      "packages/analytics/src/adapters/duckdb-query.ts",
+      "packages/analytics/src/adapters/duckdb-session.ts",
+      "packages/analytics/src/adapters/duckdb-session.ts",
+      "packages/analytics/src/adapters/duckdb-session.ts",
+      "packages/analytics/src/adapters/duckdb-session.ts",
+      "packages/core/src/aws/credentials.ts"
+    ],
+    "codegraph_explore": [
+      "packages/analytics/src/adapters/duckdb-session.ts",
+      "packages/core/src/state.ts",
+      "packages/analytics/src/config.ts"
+    ]
+  },
+  {
+    "query": "How is a default secret name chosen when a site has no explicit override?",
+    "expected_path": "packages/pds/src/config.ts",
+    "baseline": [
+      "packages/analytics/src/adapters/duckdb-ingest.ts",
+      "packages/analytics/src/adapters/duckdb-query.test.ts",
+      "packages/analytics/src/adapters/duckdb-session.ts",
+      "packages/analytics/src/aws/lambda.test.ts",
+      "packages/analytics/src/backfill.test.ts",
+      "packages/analytics/src/backfill.test.ts",
+      "packages/analytics/src/backfill.ts",
+      "packages/analytics/src/commands.test.ts"
+    ],
+    "fixed": [
+      "packages/analytics/src/adapters/duckdb-ingest.ts",
+      "packages/analytics/src/adapters/duckdb-query.test.ts",
+      "packages/analytics/src/adapters/duckdb-session.ts",
+      "packages/analytics/src/aws/lambda.test.ts",
+      "packages/analytics/src/backfill.test.ts",
+      "packages/analytics/src/backfill.test.ts",
+      "packages/analytics/src/backfill.ts",
+      "packages/analytics/src/commands.test.ts"
+    ],
+    "fts_metadata": [
+      "packages/analytics/src/config.ts",
+      "packages/pds/src/config.ts",
+      "packages/core/src/plugin.test.ts",
+      "packages/core/src/plugin.test.ts",
+      "packages/analytics/src/nodes.test.ts",
+      "packages/analytics/src/nodes.test.ts",
+      "packages/analytics/src/nodes.test.ts",
+      "packages/analytics/src/nodes.test.ts"
+    ],
+    "fts_body": [
+      "packages/analytics/src/config.ts",
+      "packages/pds/src/config.ts",
+      "packages/pds/src/config.ts",
+      "packages/analytics/src/nodes.test.ts",
+      "packages/analytics/src/nodes.test.ts",
+      "packages/analytics/src/nodes.test.ts",
+      "packages/analytics/src/nodes.test.ts",
+      "packages/analytics/src/nodes.test.ts"
+    ],
+    "codegraph_explore": [
+      "packages/analytics/src/config.ts",
+      "packages/pds/src/config.ts",
+      "packages/pds/src/secret.ts",
+      "packages/core/src/aws/secretsmanager.ts",
+      "packages/pds/src/oauth.ts"
+    ]
+  },
+  {
+    "query": "Where are publication metadata records constructed for the remote server?",
+    "expected_path": "packages/pds/src/sync.ts",
+    "baseline": [
+      "packages/analytics/src/transform/handler.ts",
+      "packages/pds/src/commands.test.ts",
+      "packages/pds/src/sync.test.ts",
+      "packages/pds/src/sync.ts",
+      "packages/pds/src/xrpc.test.ts",
+      "packages/pds/src/xrpc.ts",
+      "packages/analytics/src/transform-hash.test.ts",
+      "packages/analytics/src/transform/map-record.test.ts"
+    ],
+    "fixed": [
+      "packages/analytics/src/transform/handler.ts",
+      "packages/pds/src/commands.test.ts",
+      "packages/pds/src/sync.test.ts",
+      "packages/pds/src/sync.ts",
+      "packages/pds/src/xrpc.test.ts",
+      "packages/pds/src/xrpc.ts",
+      "packages/analytics/src/transform-hash.test.ts",
+      "packages/analytics/src/transform/map-record.test.ts"
+    ],
+    "fts_metadata": [
+      "packages/pds/src/sync.test.ts",
+      "packages/pds/src/xrpc.ts",
+      "packages/pds/src/commands.ts",
+      "packages/pds/src/sync.ts",
+      "packages/pds/src/xrpc.test.ts",
+      "packages/pds/src/sync.ts",
+      "packages/pds/src/sync.test.ts",
+      "packages/pds/src/sync.ts"
+    ],
+    "fts_body": [
+      "packages/pds/src/sync.test.ts",
+      "packages/pds/src/sync.ts",
+      "packages/pds/src/sync.ts",
+      "packages/pds/src/sync.ts",
+      "packages/pds/src/sync.ts",
+      "packages/pds/src/commands.ts",
+      "packages/cli/src/cli.test.ts",
+      "packages/pds/src/sync.ts"
+    ],
+    "codegraph_explore": [
+      "packages/pds/src/client-metadata.ts",
+      "packages/analytics/src/server.ts",
+      "packages/pds/src/sync.ts",
+      "packages/build-agent/src/server.ts",
+      "packages/pds/src/oauth.ts"
+    ]
+  }
+]

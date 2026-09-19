@@ -1,0 +1,894 @@
+{
+  "repo": "semantics",
+  "nodes": 39,
+  "files": 9,
+  "edges": 56,
+  "index_ms": 17,
+  "quarantined": [],
+  "file_owned_calls": 0,
+  "edge_counts": {
+    "contains_resolved": 30,
+    "exports_resolved": 3,
+    "imports_resolved": 3,
+    "calls_unresolved": 7,
+    "calls_resolved": 9,
+    "selects_resolved": 2,
+    "uses_class_resolved": 1,
+    "loads_stylesheet_resolved": 1
+  },
+  "queries": [
+    {
+      "elapsed_us": 1339,
+      "request": {
+        "mode": "symbol",
+        "query": "leaf"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 0,
+          "unresolved": 0
+        },
+        "edges": [],
+        "nodes": [
+          {
+            "end_line": 4,
+            "id": "sym:a.rs#function:leaf",
+            "kind": "function",
+            "name": "leaf",
+            "path": "a.rs",
+            "qualified_name": "leaf",
+            "start_line": 4
+          },
+          {
+            "end_line": 1,
+            "id": "sym:z.rs#function:leaf",
+            "kind": "function",
+            "name": "leaf",
+            "path": "z.rs",
+            "qualified_name": "leaf",
+            "start_line": 1
+          }
+        ],
+        "stats": {
+          "candidates": 2,
+          "elapsed_ms": 1,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 2176,
+      "request": {
+        "mode": "callees",
+        "query": "A::run"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 1,
+          "unresolved": 0
+        },
+        "edges": [
+          {
+            "from": "sym:a.rs#method:A::run",
+            "kind": "calls",
+            "line": 2,
+            "path": "a.rs",
+            "resolved": true,
+            "to": "sym:a.rs#method:A::finish",
+            "to_name": "A::finish"
+          }
+        ],
+        "nodes": [
+          {
+            "end_line": 2,
+            "id": "sym:a.rs#method:A::finish",
+            "kind": "method",
+            "name": "finish",
+            "path": "a.rs",
+            "qualified_name": "A::finish",
+            "start_line": 2
+          },
+          {
+            "end_line": 2,
+            "id": "sym:a.rs#method:A::run",
+            "kind": "method",
+            "name": "run",
+            "path": "a.rs",
+            "qualified_name": "A::run",
+            "start_line": 2
+          }
+        ],
+        "stats": {
+          "candidates": 2,
+          "elapsed_ms": 2,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 2249,
+      "request": {
+        "mode": "callees",
+        "query": "B::run"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 1,
+          "unresolved": 0
+        },
+        "edges": [
+          {
+            "from": "sym:a.rs#method:B::run",
+            "kind": "calls",
+            "line": 3,
+            "path": "a.rs",
+            "resolved": true,
+            "to": "sym:a.rs#method:B::finish",
+            "to_name": "B::finish"
+          }
+        ],
+        "nodes": [
+          {
+            "end_line": 3,
+            "id": "sym:a.rs#method:B::finish",
+            "kind": "method",
+            "name": "finish",
+            "path": "a.rs",
+            "qualified_name": "B::finish",
+            "start_line": 3
+          },
+          {
+            "end_line": 3,
+            "id": "sym:a.rs#method:B::run",
+            "kind": "method",
+            "name": "run",
+            "path": "a.rs",
+            "qualified_name": "B::run",
+            "start_line": 3
+          }
+        ],
+        "stats": {
+          "candidates": 2,
+          "elapsed_ms": 2,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 2105,
+      "request": {
+        "mode": "callees",
+        "query": "ambiguous"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 0,
+          "unresolved": 1
+        },
+        "edges": [
+          {
+            "from": "sym:a.rs#function:ambiguous",
+            "kind": "calls",
+            "line": 5,
+            "path": "a.rs",
+            "resolved": false,
+            "to": null,
+            "to_name": "mystery.finish"
+          }
+        ],
+        "nodes": [
+          {
+            "end_line": 5,
+            "id": "sym:a.rs#function:ambiguous",
+            "kind": "function",
+            "name": "ambiguous",
+            "path": "a.rs",
+            "qualified_name": "ambiguous",
+            "start_line": 5
+          }
+        ],
+        "stats": {
+          "candidates": 1,
+          "elapsed_ms": 2,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 1895,
+      "request": {
+        "mode": "callees",
+        "query": "foreign"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 0,
+          "unresolved": 1
+        },
+        "edges": [
+          {
+            "from": "sym:z.rs#function:foreign",
+            "kind": "calls",
+            "line": 2,
+            "path": "z.rs",
+            "resolved": false,
+            "to": null,
+            "to_name": "external::leaf"
+          }
+        ],
+        "nodes": [
+          {
+            "end_line": 2,
+            "id": "sym:z.rs#function:foreign",
+            "kind": "function",
+            "name": "foreign",
+            "path": "z.rs",
+            "qualified_name": "foreign",
+            "start_line": 2
+          }
+        ],
+        "stats": {
+          "candidates": 1,
+          "elapsed_ms": 1,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 1985,
+      "request": {
+        "mode": "callees",
+        "query": "nested"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 1,
+          "unresolved": 1
+        },
+        "edges": [
+          {
+            "from": "sym:a.rs#function:nested",
+            "kind": "calls",
+            "line": 6,
+            "path": "a.rs",
+            "resolved": false,
+            "to": null,
+            "to_name": "factory().finish"
+          },
+          {
+            "from": "sym:a.rs#function:nested",
+            "kind": "calls",
+            "line": 6,
+            "path": "a.rs",
+            "resolved": true,
+            "to": "sym:a.rs#function:factory",
+            "to_name": "factory"
+          }
+        ],
+        "nodes": [
+          {
+            "end_line": 6,
+            "id": "sym:a.rs#function:factory",
+            "kind": "function",
+            "name": "factory",
+            "path": "a.rs",
+            "qualified_name": "factory",
+            "start_line": 6
+          },
+          {
+            "end_line": 6,
+            "id": "sym:a.rs#function:nested",
+            "kind": "function",
+            "name": "nested",
+            "path": "a.rs",
+            "qualified_name": "nested",
+            "start_line": 6
+          }
+        ],
+        "stats": {
+          "candidates": 2,
+          "elapsed_ms": 1,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 1895,
+      "request": {
+        "mode": "callees",
+        "query": "shadow"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 0,
+          "unresolved": 1
+        },
+        "edges": [
+          {
+            "from": "sym:a.rs#function:shadow",
+            "kind": "calls",
+            "line": 9,
+            "path": "a.rs",
+            "resolved": false,
+            "to": null,
+            "to_name": "leaf"
+          }
+        ],
+        "nodes": [
+          {
+            "end_line": 9,
+            "id": "sym:a.rs#function:shadow",
+            "kind": "function",
+            "name": "shadow",
+            "path": "a.rs",
+            "qualified_name": "shadow",
+            "start_line": 9
+          }
+        ],
+        "stats": {
+          "candidates": 1,
+          "elapsed_ms": 1,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 2092,
+      "request": {
+        "mode": "callees",
+        "query": "imported"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 2,
+          "unresolved": 0
+        },
+        "edges": [
+          {
+            "from": "sym:consumer.ts#function:imported",
+            "kind": "calls",
+            "line": 2,
+            "path": "consumer.ts",
+            "resolved": true,
+            "to": "sym:a.ts#function:shared",
+            "to_name": "shared"
+          },
+          {
+            "from": "sym:consumer.ts#function:imported",
+            "kind": "calls",
+            "line": 2,
+            "path": "consumer.ts",
+            "resolved": true,
+            "to": "sym:a.ts#function:unique",
+            "to_name": "unique"
+          }
+        ],
+        "nodes": [
+          {
+            "end_line": 1,
+            "id": "sym:a.ts#function:shared",
+            "kind": "function",
+            "name": "shared",
+            "path": "a.ts",
+            "qualified_name": "shared",
+            "start_line": 1
+          },
+          {
+            "end_line": 2,
+            "id": "sym:a.ts#function:unique",
+            "kind": "function",
+            "name": "unique",
+            "path": "a.ts",
+            "qualified_name": "unique",
+            "start_line": 2
+          },
+          {
+            "end_line": 2,
+            "id": "sym:consumer.ts#function:imported",
+            "kind": "function",
+            "name": "imported",
+            "path": "consumer.ts",
+            "qualified_name": "imported",
+            "start_line": 2
+          }
+        ],
+        "stats": {
+          "candidates": 3,
+          "elapsed_ms": 2,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 1850,
+      "request": {
+        "mode": "refs",
+        "query": "leaf"
+      },
+      "result": {
+        "error": "ambiguous target: leaf; use `symbol` to choose an exact id"
+      }
+    },
+    {
+      "elapsed_us": 671,
+      "request": {
+        "mode": "deps",
+        "query": "consumer.ts"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 3,
+          "unresolved": 0
+        },
+        "edges": [
+          {
+            "from": "file:consumer.ts",
+            "kind": "imports",
+            "line": 1,
+            "path": "consumer.ts",
+            "resolved": true,
+            "to": "file:a.ts",
+            "to_name": "a.ts"
+          },
+          {
+            "from": "file:consumer.ts",
+            "kind": "imports",
+            "line": 1,
+            "path": "consumer.ts",
+            "resolved": true,
+            "to": "sym:a.ts#function:shared",
+            "to_name": "shared"
+          },
+          {
+            "from": "file:consumer.ts",
+            "kind": "imports",
+            "line": 1,
+            "path": "consumer.ts",
+            "resolved": true,
+            "to": "sym:a.ts#function:unique",
+            "to_name": "unique"
+          }
+        ],
+        "nodes": [
+          {
+            "end_line": 0,
+            "id": "file:a.ts",
+            "kind": "file",
+            "name": "a.ts",
+            "path": "a.ts",
+            "qualified_name": "a.ts",
+            "start_line": 0
+          },
+          {
+            "end_line": 1,
+            "id": "sym:a.ts#function:shared",
+            "kind": "function",
+            "name": "shared",
+            "path": "a.ts",
+            "qualified_name": "shared",
+            "start_line": 1
+          },
+          {
+            "end_line": 2,
+            "id": "sym:a.ts#function:unique",
+            "kind": "function",
+            "name": "unique",
+            "path": "a.ts",
+            "qualified_name": "unique",
+            "start_line": 2
+          },
+          {
+            "end_line": 0,
+            "id": "file:consumer.ts",
+            "kind": "file",
+            "name": "consumer.ts",
+            "path": "consumer.ts",
+            "qualified_name": "consumer.ts",
+            "start_line": 0
+          }
+        ],
+        "stats": {
+          "candidates": 4,
+          "elapsed_ms": 0,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 1454,
+      "request": {
+        "mode": "symbol",
+        "query": "clickButton"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 0,
+          "unresolved": 0
+        },
+        "edges": [],
+        "nodes": [],
+        "stats": {
+          "candidates": 0,
+          "elapsed_ms": 1,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 1758,
+      "request": {
+        "limit": 1,
+        "mode": "symbol",
+        "path": "z.rs",
+        "query": "leaf"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 0,
+          "unresolved": 0
+        },
+        "edges": [],
+        "nodes": [
+          {
+            "end_line": 1,
+            "id": "sym:z.rs#function:leaf",
+            "kind": "function",
+            "name": "leaf",
+            "path": "z.rs",
+            "qualified_name": "leaf",
+            "start_line": 1
+          }
+        ],
+        "stats": {
+          "candidates": 1,
+          "elapsed_ms": 1,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 1797,
+      "request": {
+        "mode": "callers",
+        "path": "z.rs",
+        "query": "middle"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 0,
+          "unresolved": 0
+        },
+        "edges": [],
+        "nodes": [],
+        "stats": {
+          "candidates": 0,
+          "elapsed_ms": 1,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 8472,
+      "request": {
+        "lang": "rust",
+        "mode": "explore",
+        "path": "*.rs",
+        "query": "Distinctivebodytoken"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 0,
+          "unresolved": 0
+        },
+        "edges": [],
+        "items": [],
+        "stats": {
+          "candidates": 0,
+          "elapsed_ms": 8,
+          "files_scanned": 9,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 5113,
+      "request": {
+        "hops": 2,
+        "mode": "explore",
+        "query": "entry leaf"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 2,
+          "unresolved": 0
+        },
+        "edges": [
+          {
+            "from": "sym:a.rs#function:entry",
+            "kind": "calls",
+            "line": 4,
+            "path": "a.rs",
+            "resolved": true,
+            "to": "sym:a.rs#function:middle",
+            "to_name": "middle"
+          },
+          {
+            "from": "sym:a.rs#function:middle",
+            "kind": "calls",
+            "line": 4,
+            "path": "a.rs",
+            "resolved": true,
+            "to": "sym:a.rs#function:leaf",
+            "to_name": "leaf"
+          }
+        ],
+        "items": [
+          {
+            "impact": {
+              "direct_callers": 0,
+              "total_callers": 0
+            },
+            "node": {
+              "end_line": 4,
+              "id": "sym:a.rs#function:entry",
+              "kind": "function",
+              "name": "entry",
+              "path": "a.rs",
+              "qualified_name": "entry",
+              "start_line": 4
+            }
+          },
+          {
+            "impact": {
+              "direct_callers": 1,
+              "total_callers": 2
+            },
+            "node": {
+              "end_line": 4,
+              "id": "sym:a.rs#function:leaf",
+              "kind": "function",
+              "name": "leaf",
+              "path": "a.rs",
+              "qualified_name": "leaf",
+              "start_line": 4
+            }
+          },
+          {
+            "impact": {
+              "direct_callers": 0,
+              "total_callers": 0
+            },
+            "node": {
+              "end_line": 1,
+              "id": "sym:z.rs#function:leaf",
+              "kind": "function",
+              "name": "leaf",
+              "path": "z.rs",
+              "qualified_name": "leaf",
+              "start_line": 1
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 4,
+              "id": "file:a.rs",
+              "kind": "file",
+              "name": "a.rs",
+              "path": "a.rs",
+              "qualified_name": "a.rs",
+              "start_line": 4
+            }
+          },
+          {
+            "impact": {
+              "direct_callers": 1,
+              "total_callers": 1
+            },
+            "node": {
+              "end_line": 4,
+              "id": "sym:a.rs#function:middle",
+              "kind": "function",
+              "name": "middle",
+              "path": "a.rs",
+              "qualified_name": "middle",
+              "start_line": 4
+            }
+          }
+        ],
+        "stats": {
+          "candidates": 4,
+          "elapsed_ms": 4,
+          "files_scanned": 9,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 4231,
+      "request": {
+        "mode": "explore",
+        "query": "leaf()"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 0,
+          "unresolved": 0
+        },
+        "edges": [],
+        "items": [
+          {
+            "impact": {
+              "direct_callers": 1,
+              "total_callers": 1
+            },
+            "node": {
+              "end_line": 4,
+              "id": "sym:a.rs#function:leaf",
+              "kind": "function",
+              "name": "leaf",
+              "path": "a.rs",
+              "qualified_name": "leaf",
+              "start_line": 4
+            }
+          },
+          {
+            "impact": {
+              "direct_callers": 0,
+              "total_callers": 0
+            },
+            "node": {
+              "end_line": 1,
+              "id": "sym:z.rs#function:leaf",
+              "kind": "function",
+              "name": "leaf",
+              "path": "z.rs",
+              "qualified_name": "leaf",
+              "start_line": 1
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 4,
+              "id": "file:a.rs",
+              "kind": "file",
+              "name": "a.rs",
+              "path": "a.rs",
+              "qualified_name": "a.rs",
+              "start_line": 4
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 1,
+              "id": "file:z.rs",
+              "kind": "file",
+              "name": "z.rs",
+              "path": "z.rs",
+              "qualified_name": "z.rs",
+              "start_line": 1
+            }
+          }
+        ],
+        "stats": {
+          "candidates": 4,
+          "elapsed_ms": 4,
+          "files_scanned": 9,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 2545,
+      "request": {
+        "mode": "path",
+        "query": "middle",
+        "to": "middle"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 0,
+          "unresolved": 0
+        },
+        "edges": [],
+        "nodes": [
+          {
+            "end_line": 4,
+            "id": "sym:a.rs#function:middle",
+            "kind": "function",
+            "name": "middle",
+            "path": "a.rs",
+            "qualified_name": "middle",
+            "start_line": 4
+          }
+        ],
+        "stats": {
+          "candidates": 0,
+          "elapsed_ms": 0,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 1274,
+      "request": {
+        "limit": 1,
+        "mode": "callers",
+        "query": "leaf"
+      },
+      "result": {
+        "error": "ambiguous target: leaf; use `symbol` to choose an exact id"
+      }
+    },
+    {
+      "elapsed_us": 1276,
+      "request": {
+        "depth": 4,
+        "limit": 1,
+        "mode": "impact",
+        "query": "leaf"
+      },
+      "result": {
+        "error": "ambiguous target: leaf; use `symbol` to choose an exact id"
+      }
+    },
+    {
+      "elapsed_us": 3554,
+      "request": {
+        "max_bytes": 100,
+        "mode": "explore",
+        "query": "leaf"
+      },
+      "result": {
+        "error": "include max_bytes=100 cannot hold explore metadata"
+      }
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+[
+  {
+    "mode": "explore",
+    "query": "Where are draft articles excluded from publishing to the personal data server?",
+    "expected_path": "packages/pds/src/content.ts"
+  },
+  {
+    "mode": "explore",
+    "query": "How are local articles converted into records and sent to the personal data server?",
+    "expected_path": "packages/pds/src/sync.ts"
+  },
+  {
+    "mode": "explore",
+    "query": "Where are stored credentials loaded for an authenticated publishing session?",
+    "expected_path": "packages/pds/src/secret.ts"
+  },
+  {
+    "mode": "explore",
+    "query": "How is a default secret name chosen when a site has no explicit override?",
+    "expected_path": "packages/pds/src/config.ts"
+  },
+  {
+    "mode": "explore",
+    "query": "Where are publication metadata records constructed for the remote server?",
+    "expected_path": "packages/pds/src/sync.ts"
+  }
+]

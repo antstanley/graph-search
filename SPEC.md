@@ -517,7 +517,7 @@ as a `SourceFile`, which emits nodes, `contains` edges, and candidate
 A manifest is the store's self-fingerprint, one entry per file:
 
 ```
-{ path, size, mtime_ns, content_hash, parser_version, schema_version }
+{ path, size, mtime_ns, content_hash, parser_version, schema_version, extraction }
 ```
 
 Reconcile classifies every path against the stored manifest into exactly one
@@ -532,6 +532,17 @@ bucket:
 | `unchanged` | hash equal | skip (the O(1) no-op path) |
 | `quarantined` | parse failed | record; do not fail the run |
 | `unchanged-global` | `parser_version`/`schema_version` changed | re-parse all |
+
+Schema 2 persists raw symbol/reference facts in `extraction` (no source bodies).
+Changed files are parsed; reverse name dependencies include unresolved names and
+new ambiguities, and imports are checked against old/new file sets. Affected
+unchanged files are rebound from cached facts. Incoming-edge closure preserves
+edges deleted by subtree replacement; HTML/CSS cross-matching is conservatively
+rebound on every change. `SyncReport.modified` includes rebound files, while
+`unchanged` excludes them. A no-op skips graph application; same-content metadata
+changes refresh only the manifest. Missing caches fall back conservatively, and
+older schemas trigger a rebuild. The dependency walk and manifest I/O are still
+workspace-sized; this is not constant-time incremental indexing.
 
 ### 6.4 Apply
 
@@ -751,8 +762,13 @@ graph-search search explore <query> [--k 8] [--hops 1] [--context-lines 2]
 This is the context-efficient entry point and the closest analogue to
 `codegraph`'s single tool. Given free-text terms:
 
-1. **Seed** — rank files and symbols by (a) name match on query terms, (b) path
-   match, (c) a bounded literal scan of candidate files. (No embedding in v1.)
+1. **Seed** — exact bare/qualified names take priority. Otherwise split camelCase,
+   acronym, snake_case, and path tokens and rank metadata with BM25 (name/path/
+   signature weights 8/2/1). Deduplicate query terms and remove sentence function
+   words. Require a real token match; scores are relevance, not confidence.
+   A bounded literal body scan supplies lower-priority fallback files. Lexical
+   statistics are built from the graph snapshot; there is no separate persistent
+   text index or embedding model. Filters apply before the result cap.
 2. **Assemble** — for the top `k` seeds: the definition location, its
    `signature`, and a **bounded snippet** of `context_lines` around the
    definition.
@@ -783,7 +799,7 @@ staleness (count of changed paths, computed cheaply). Exit 0 either way.
 
 ```json
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "command": "search.text",
   "root": "/abs/workspace",
   "query": { "pattern": "fn main", "include": "*.rs", "limit": 250 },
@@ -1328,7 +1344,7 @@ developed; `nanus` depends on the library, not the other way round.
 
 ```json
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "command": "search.graph.callers",
   "root": "/Users/ant/code/nanus",
   "query": { "target": "ToolRegistry::execute", "depth": 1, "limit": 50 },

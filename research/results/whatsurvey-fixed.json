@@ -1,0 +1,2117 @@
+{
+  "repo": "whatsurvey",
+  "nodes": 16566,
+  "files": 1113,
+  "edges": 48495,
+  "index_ms": 5483,
+  "quarantined": [],
+  "file_owned_calls": 14441,
+  "edge_counts": {
+    "contains_resolved": 12260,
+    "exports_resolved": 1591,
+    "calls_unresolved": 17857,
+    "imports_unresolved": 4282,
+    "imports_resolved": 2528,
+    "calls_resolved": 4265,
+    "type_uses_unresolved": 3492,
+    "type_uses_resolved": 2101,
+    "exports_unresolved": 3,
+    "extends_unresolved": 32,
+    "extends_resolved": 74,
+    "implements_resolved": 8,
+    "implements_unresolved": 2
+  },
+  "queries": [
+    {
+      "elapsed_us": 762962,
+      "request": {
+        "category": "exact",
+        "expected_path": "workspaces/backend/src/core/whatsapp/signature.ts",
+        "mode": "explore",
+        "query": "verifyWebhookSignature"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 0,
+          "unresolved": 0
+        },
+        "edges": [],
+        "items": [
+          {
+            "impact": {
+              "direct_callers": 1,
+              "total_callers": 1
+            },
+            "node": {
+              "end_line": 45,
+              "id": "sym:workspaces/backend/src/core/whatsapp/signature.ts#function:verifyWebhookSignature",
+              "kind": "function",
+              "name": "verifyWebhookSignature",
+              "path": "workspaces/backend/src/core/whatsapp/signature.ts",
+              "qualified_name": "verifyWebhookSignature",
+              "start_line": 26
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 35,
+              "id": "sym:workspaces/backend/src/core/whatsapp/signature.ts#const:verifyWebhookSignature.providedDigest",
+              "kind": "const",
+              "name": "providedDigest",
+              "path": "workspaces/backend/src/core/whatsapp/signature.ts",
+              "qualified_name": "verifyWebhookSignature.providedDigest",
+              "start_line": 35
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 36,
+              "id": "sym:workspaces/backend/src/core/whatsapp/signature.ts#const:verifyWebhookSignature.expectedDigest",
+              "kind": "const",
+              "name": "expectedDigest",
+              "path": "workspaces/backend/src/core/whatsapp/signature.ts",
+              "qualified_name": "verifyWebhookSignature.expectedDigest",
+              "start_line": 36
+            }
+          }
+        ],
+        "stats": {
+          "candidates": 3,
+          "elapsed_ms": 762,
+          "files_scanned": 506,
+          "matches": 0
+        },
+        "truncations": [
+          {
+            "cap": 512,
+            "dropped": true,
+            "kind": "files",
+            "message": "explore body scan stopped at its file cap"
+          }
+        ]
+      }
+    },
+    {
+      "elapsed_us": 791814,
+      "request": {
+        "category": "natural_or_split",
+        "expected_path": "workspaces/backend/src/core/whatsapp/signature.ts",
+        "mode": "explore",
+        "query": "verify webhook signature"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 0,
+          "unresolved": 0
+        },
+        "edges": [],
+        "items": [
+          {
+            "impact": null,
+            "node": {
+              "end_line": 123,
+              "id": "sym:workspaces/backend/src/functions/auth-mock/signing.ts#const:derSignatureToJws.signature",
+              "kind": "const",
+              "name": "signature",
+              "path": "workspaces/backend/src/functions/auth-mock/signing.ts",
+              "qualified_name": "derSignatureToJws.signature",
+              "start_line": 123
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 90,
+              "id": "sym:workspaces/backend/src/functions/whatsapp-webhook/index.ts#const:signature",
+              "kind": "const",
+              "name": "signature",
+              "path": "workspaces/backend/src/functions/whatsapp-webhook/index.ts",
+              "qualified_name": "signature",
+              "start_line": 90
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 459,
+              "id": "sym:workspaces/backend/tests/infra/stacks.test.ts#const:webhook",
+              "kind": "const",
+              "name": "webhook",
+              "path": "workspaces/backend/tests/infra/stacks.test.ts",
+              "qualified_name": "webhook",
+              "start_line": 459
+            }
+          },
+          {
+            "impact": {
+              "direct_callers": 1,
+              "total_callers": 1
+            },
+            "node": {
+              "end_line": 45,
+              "id": "sym:workspaces/backend/src/core/whatsapp/signature.ts#function:verifyWebhookSignature",
+              "kind": "function",
+              "name": "verifyWebhookSignature",
+              "path": "workspaces/backend/src/core/whatsapp/signature.ts",
+              "qualified_name": "verifyWebhookSignature",
+              "start_line": 26
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 45,
+              "id": "sym:workspaces/backend/src/functions/whatsapp-webhook/index.ts#const:VERIFY_TOKEN_REJECTED",
+              "kind": "const",
+              "name": "VERIFY_TOKEN_REJECTED",
+              "path": "workspaces/backend/src/functions/whatsapp-webhook/index.ts",
+              "qualified_name": "VERIFY_TOKEN_REJECTED",
+              "start_line": 40
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 51,
+              "id": "sym:workspaces/backend/src/functions/whatsapp-webhook/index.ts#const:SIGNATURE_REJECTED",
+              "kind": "const",
+              "name": "SIGNATURE_REJECTED",
+              "path": "workspaces/backend/src/functions/whatsapp-webhook/index.ts",
+              "qualified_name": "SIGNATURE_REJECTED",
+              "start_line": 46
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 74,
+              "id": "sym:workspaces/backend/src/functions/whatsapp-webhook/index.ts#const:verifyToken",
+              "kind": "const",
+              "name": "verifyToken",
+              "path": "workspaces/backend/src/functions/whatsapp-webhook/index.ts",
+              "qualified_name": "verifyToken",
+              "start_line": 74
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 34,
+              "id": "sym:workspaces/backend/tests/functions/whatsapp-webhook/index.test.ts#const:VERIFY_TOKEN_A",
+              "kind": "const",
+              "name": "VERIFY_TOKEN_A",
+              "path": "workspaces/backend/tests/functions/whatsapp-webhook/index.test.ts",
+              "qualified_name": "VERIFY_TOKEN_A",
+              "start_line": 34
+            }
+          }
+        ],
+        "stats": {
+          "candidates": 220,
+          "elapsed_ms": 791,
+          "files_scanned": 506,
+          "matches": 0
+        },
+        "truncations": [
+          {
+            "cap": 512,
+            "dropped": true,
+            "kind": "files",
+            "message": "explore body scan stopped at its file cap"
+          },
+          {
+            "cap": 8,
+            "dropped": true,
+            "kind": "results",
+            "message": "matching nodes exceeded the result cap"
+          }
+        ]
+      }
+    },
+    {
+      "elapsed_us": 796171,
+      "request": {
+        "category": "natural_or_split",
+        "expected_path": "workspaces/backend/src/core/whatsapp/signature.ts",
+        "mode": "explore",
+        "query": "How is the WhatsApp webhook signature verified?"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 0,
+          "unresolved": 0
+        },
+        "edges": [],
+        "items": [
+          {
+            "impact": null,
+            "node": {
+              "end_line": 123,
+              "id": "sym:workspaces/backend/src/functions/auth-mock/signing.ts#const:derSignatureToJws.signature",
+              "kind": "const",
+              "name": "signature",
+              "path": "workspaces/backend/src/functions/auth-mock/signing.ts",
+              "qualified_name": "derSignatureToJws.signature",
+              "start_line": 123
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 90,
+              "id": "sym:workspaces/backend/src/functions/whatsapp-webhook/index.ts#const:signature",
+              "kind": "const",
+              "name": "signature",
+              "path": "workspaces/backend/src/functions/whatsapp-webhook/index.ts",
+              "qualified_name": "signature",
+              "start_line": 90
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 223,
+              "id": "sym:workspaces/backend/src/infra/backend-app.ts#const:BackendStack.constructor.whatsapp",
+              "kind": "const",
+              "name": "whatsapp",
+              "path": "workspaces/backend/src/infra/backend-app.ts",
+              "qualified_name": "BackendStack.constructor.whatsapp",
+              "start_line": 217
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 75,
+              "id": "sym:workspaces/backend/tests/core/consent/can-contact.test.ts#const:WHATSAPP",
+              "kind": "const",
+              "name": "WHATSAPP",
+              "path": "workspaces/backend/tests/core/consent/can-contact.test.ts",
+              "qualified_name": "WHATSAPP",
+              "start_line": 69
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 2365,
+              "id": "sym:workspaces/backend/tests/core/db/contacts.test.ts#const:whatsapp",
+              "kind": "const",
+              "name": "whatsapp",
+              "path": "workspaces/backend/tests/core/db/contacts.test.ts",
+              "qualified_name": "whatsapp",
+              "start_line": 2365
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 459,
+              "id": "sym:workspaces/backend/tests/infra/stacks.test.ts#const:webhook",
+              "kind": "const",
+              "name": "webhook",
+              "path": "workspaces/backend/tests/infra/stacks.test.ts",
+              "qualified_name": "webhook",
+              "start_line": 459
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 62,
+              "id": "sym:workspaces/frontend/src/lib/utils/__tests__/consent.test.ts#const:whatsapp",
+              "kind": "const",
+              "name": "whatsapp",
+              "path": "workspaces/frontend/src/lib/utils/__tests__/consent.test.ts",
+              "qualified_name": "whatsapp",
+              "start_line": 60
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 68,
+              "id": "sym:workspaces/frontend/src/lib/utils/__tests__/consent.test.ts#const:whatsapp@68",
+              "kind": "const",
+              "name": "whatsapp",
+              "path": "workspaces/frontend/src/lib/utils/__tests__/consent.test.ts",
+              "qualified_name": "whatsapp",
+              "start_line": 68
+            }
+          }
+        ],
+        "stats": {
+          "candidates": 1052,
+          "elapsed_ms": 795,
+          "files_scanned": 506,
+          "matches": 0
+        },
+        "truncations": [
+          {
+            "cap": 512,
+            "dropped": true,
+            "kind": "files",
+            "message": "explore body scan stopped at its file cap"
+          },
+          {
+            "cap": 8,
+            "dropped": true,
+            "kind": "results",
+            "message": "matching nodes exceeded the result cap"
+          }
+        ]
+      }
+    },
+    {
+      "elapsed_us": 762531,
+      "request": {
+        "category": "exact",
+        "expected_path": "workspaces/backend/src/core/settings/crypto.ts",
+        "mode": "explore",
+        "query": "encryptSecret"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 0,
+          "unresolved": 0
+        },
+        "edges": [],
+        "items": [
+          {
+            "impact": {
+              "direct_callers": 5,
+              "total_callers": 5
+            },
+            "node": {
+              "end_line": 162,
+              "id": "sym:workspaces/backend/src/core/settings/crypto.ts#function:encryptSecret",
+              "kind": "function",
+              "name": "encryptSecret",
+              "path": "workspaces/backend/src/core/settings/crypto.ts",
+              "qualified_name": "encryptSecret",
+              "start_line": 132
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 11,
+              "id": "sym:workspaces/backend/tests/core/settings/store.test.ts#const:encryptSecret",
+              "kind": "const",
+              "name": "encryptSecret",
+              "path": "workspaces/backend/tests/core/settings/store.test.ts",
+              "qualified_name": "encryptSecret",
+              "start_line": 6
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 137,
+              "id": "sym:workspaces/backend/src/core/settings/crypto.ts#const:encryptSecret.encryptionContext",
+              "kind": "const",
+              "name": "encryptionContext",
+              "path": "workspaces/backend/src/core/settings/crypto.ts",
+              "qualified_name": "encryptSecret.encryptionContext",
+              "start_line": 137
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 142,
+              "id": "sym:workspaces/backend/src/core/settings/crypto.ts#const:encryptSecret.keyId",
+              "kind": "const",
+              "name": "keyId",
+              "path": "workspaces/backend/src/core/settings/crypto.ts",
+              "qualified_name": "encryptSecret.keyId",
+              "start_line": 142
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 150,
+              "id": "sym:workspaces/backend/src/core/settings/crypto.ts#const:encryptSecret.result",
+              "kind": "const",
+              "name": "result",
+              "path": "workspaces/backend/src/core/settings/crypto.ts",
+              "qualified_name": "encryptSecret.result",
+              "start_line": 144
+            }
+          }
+        ],
+        "stats": {
+          "candidates": 5,
+          "elapsed_ms": 762,
+          "files_scanned": 506,
+          "matches": 0
+        },
+        "truncations": [
+          {
+            "cap": 512,
+            "dropped": true,
+            "kind": "files",
+            "message": "explore body scan stopped at its file cap"
+          }
+        ]
+      }
+    },
+    {
+      "elapsed_us": 777048,
+      "request": {
+        "category": "natural_or_split",
+        "expected_path": "workspaces/backend/src/core/settings/crypto.ts",
+        "mode": "explore",
+        "query": "encrypt secret"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 0,
+          "unresolved": 0
+        },
+        "edges": [],
+        "items": [
+          {
+            "impact": null,
+            "node": {
+              "end_line": 1048,
+              "id": "sym:workspaces/backend/src/functions/auth/index.ts#const:runSessionCleanup.secret",
+              "kind": "const",
+              "name": "secret",
+              "path": "workspaces/backend/src/functions/auth/index.ts",
+              "qualified_name": "runSessionCleanup.secret",
+              "start_line": 1048
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 527,
+              "id": "sym:workspaces/backend/tests/core/llm/provider.test.ts#const:secret",
+              "kind": "const",
+              "name": "secret",
+              "path": "workspaces/backend/tests/core/llm/provider.test.ts",
+              "qualified_name": "secret",
+              "start_line": 527
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 90,
+              "id": "sym:workspaces/backend/tests/core/settings/crypto.test.ts#const:encrypt",
+              "kind": "const",
+              "name": "encrypt",
+              "path": "workspaces/backend/tests/core/settings/crypto.test.ts",
+              "qualified_name": "encrypt",
+              "start_line": 90
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 197,
+              "id": "sym:workspaces/backend/tests/functions/auth/entrypoints.test.ts#const:secret",
+              "kind": "const",
+              "name": "secret",
+              "path": "workspaces/backend/tests/functions/auth/entrypoints.test.ts",
+              "qualified_name": "secret",
+              "start_line": 197
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 42,
+              "id": "sym:workspaces/frontend/src/routes/settings/llm/__tests__/page.test.ts#const:SECRET",
+              "kind": "const",
+              "name": "SECRET",
+              "path": "workspaces/frontend/src/routes/settings/llm/__tests__/page.test.ts",
+              "qualified_name": "SECRET",
+              "start_line": 42
+            }
+          },
+          {
+            "impact": {
+              "direct_callers": 5,
+              "total_callers": 5
+            },
+            "node": {
+              "end_line": 162,
+              "id": "sym:workspaces/backend/src/core/settings/crypto.ts#function:encryptSecret",
+              "kind": "function",
+              "name": "encryptSecret",
+              "path": "workspaces/backend/src/core/settings/crypto.ts",
+              "qualified_name": "encryptSecret",
+              "start_line": 132
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 137,
+              "id": "sym:workspaces/backend/src/core/settings/crypto.ts#const:encryptSecret.encryptionContext",
+              "kind": "const",
+              "name": "encryptionContext",
+              "path": "workspaces/backend/src/core/settings/crypto.ts",
+              "qualified_name": "encryptSecret.encryptionContext",
+              "start_line": 137
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 169,
+              "id": "sym:workspaces/backend/src/core/settings/crypto.ts#const:decryptSecret.encryptionContext",
+              "kind": "const",
+              "name": "encryptionContext",
+              "path": "workspaces/backend/src/core/settings/crypto.ts",
+              "qualified_name": "decryptSecret.encryptionContext",
+              "start_line": 169
+            }
+          }
+        ],
+        "stats": {
+          "candidates": 200,
+          "elapsed_ms": 776,
+          "files_scanned": 506,
+          "matches": 0
+        },
+        "truncations": [
+          {
+            "cap": 512,
+            "dropped": true,
+            "kind": "files",
+            "message": "explore body scan stopped at its file cap"
+          },
+          {
+            "cap": 8,
+            "dropped": true,
+            "kind": "results",
+            "message": "matching nodes exceeded the result cap"
+          }
+        ]
+      }
+    },
+    {
+      "elapsed_us": 762786,
+      "request": {
+        "category": "exact",
+        "expected_path": "workspaces/backend/src/core/db/survey-versions.ts",
+        "mode": "explore",
+        "query": "getSurveyDraft"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 0,
+          "unresolved": 0
+        },
+        "edges": [],
+        "items": [
+          {
+            "impact": {
+              "direct_callers": 4,
+              "total_callers": 4
+            },
+            "node": {
+              "end_line": 123,
+              "id": "sym:workspaces/backend/src/core/db/survey-versions.ts#function:getSurveyDraft",
+              "kind": "function",
+              "name": "getSurveyDraft",
+              "path": "workspaces/backend/src/core/db/survey-versions.ts",
+              "qualified_name": "getSurveyDraft",
+              "start_line": 116
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 119,
+              "id": "sym:workspaces/backend/src/core/db/survey-versions.ts#const:getSurveyDraft.result",
+              "kind": "const",
+              "name": "result",
+              "path": "workspaces/backend/src/core/db/survey-versions.ts",
+              "qualified_name": "getSurveyDraft.result",
+              "start_line": 117
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 121,
+              "id": "sym:workspaces/backend/src/core/db/survey-versions.ts#const:getSurveyDraft._pk",
+              "kind": "const",
+              "name": "_pk",
+              "path": "workspaces/backend/src/core/db/survey-versions.ts",
+              "qualified_name": "getSurveyDraft._pk",
+              "start_line": 121
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 121,
+              "id": "sym:workspaces/backend/src/core/db/survey-versions.ts#const:getSurveyDraft._sk",
+              "kind": "const",
+              "name": "_sk",
+              "path": "workspaces/backend/src/core/db/survey-versions.ts",
+              "qualified_name": "getSurveyDraft._sk",
+              "start_line": 121
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 121,
+              "id": "sym:workspaces/backend/src/core/db/survey-versions.ts#const:getSurveyDraft.draft",
+              "kind": "const",
+              "name": "draft",
+              "path": "workspaces/backend/src/core/db/survey-versions.ts",
+              "qualified_name": "getSurveyDraft.draft",
+              "start_line": 121
+            }
+          }
+        ],
+        "stats": {
+          "candidates": 5,
+          "elapsed_ms": 762,
+          "files_scanned": 506,
+          "matches": 0
+        },
+        "truncations": [
+          {
+            "cap": 512,
+            "dropped": true,
+            "kind": "files",
+            "message": "explore body scan stopped at its file cap"
+          }
+        ]
+      }
+    },
+    {
+      "elapsed_us": 781529,
+      "request": {
+        "category": "natural_or_split",
+        "expected_path": "workspaces/backend/src/core/db/survey-versions.ts",
+        "mode": "explore",
+        "query": "get survey draft"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 0,
+          "unresolved": 0
+        },
+        "edges": [],
+        "items": [
+          {
+            "impact": {
+              "direct_callers": 0,
+              "total_callers": 0
+            },
+            "node": {
+              "end_line": 110,
+              "id": "sym:packages/ui/src/lib/components/ui/data-table/data-table.svelte.ts#method:mergeObjects.get",
+              "kind": "method",
+              "name": "get",
+              "path": "packages/ui/src/lib/components/ui/data-table/data-table.svelte.ts",
+              "qualified_name": "mergeObjects.get",
+              "start_line": 106
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 508,
+              "id": "sym:workspaces/backend/src/core/db/statements.ts#const:addStatementVersion.draft",
+              "kind": "const",
+              "name": "draft",
+              "path": "workspaces/backend/src/core/db/statements.ts",
+              "qualified_name": "addStatementVersion.draft",
+              "start_line": 508
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 121,
+              "id": "sym:workspaces/backend/src/core/db/survey-versions.ts#const:getSurveyDraft.draft",
+              "kind": "const",
+              "name": "draft",
+              "path": "workspaces/backend/src/core/db/survey-versions.ts",
+              "qualified_name": "getSurveyDraft.draft",
+              "start_line": 121
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 129,
+              "id": "sym:workspaces/backend/src/core/db/survey-versions.ts#const:listSurveyVersions.draft",
+              "kind": "const",
+              "name": "draft",
+              "path": "workspaces/backend/src/core/db/survey-versions.ts",
+              "qualified_name": "listSurveyVersions.draft",
+              "start_line": 129
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 179,
+              "id": "sym:workspaces/backend/src/core/db/survey-versions.ts#const:createSurveyDraft.draft",
+              "kind": "const",
+              "name": "draft",
+              "path": "workspaces/backend/src/core/db/survey-versions.ts",
+              "qualified_name": "createSurveyDraft.draft",
+              "start_line": 179
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 196,
+              "id": "sym:workspaces/backend/src/core/db/survey-versions.ts#const:beginSurveyDraft.draft",
+              "kind": "const",
+              "name": "draft",
+              "path": "workspaces/backend/src/core/db/survey-versions.ts",
+              "qualified_name": "beginSurveyDraft.draft",
+              "start_line": 196
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 235,
+              "id": "sym:workspaces/backend/src/core/db/survey-versions.ts#const:saveSurveyDraft.draft",
+              "kind": "const",
+              "name": "draft",
+              "path": "workspaces/backend/src/core/db/survey-versions.ts",
+              "qualified_name": "saveSurveyDraft.draft",
+              "start_line": 235
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 268,
+              "id": "sym:workspaces/backend/src/core/db/survey-versions.ts#const:publishSurveyDraft.draft",
+              "kind": "const",
+              "name": "draft",
+              "path": "workspaces/backend/src/core/db/survey-versions.ts",
+              "qualified_name": "publishSurveyDraft.draft",
+              "start_line": 268
+            }
+          }
+        ],
+        "stats": {
+          "candidates": 1159,
+          "elapsed_ms": 781,
+          "files_scanned": 506,
+          "matches": 0
+        },
+        "truncations": [
+          {
+            "cap": 512,
+            "dropped": true,
+            "kind": "files",
+            "message": "explore body scan stopped at its file cap"
+          },
+          {
+            "cap": 8,
+            "dropped": true,
+            "kind": "results",
+            "message": "matching nodes exceeded the result cap"
+          }
+        ]
+      }
+    },
+    {
+      "elapsed_us": 795381,
+      "request": {
+        "category": "exact",
+        "expected_path": "workspaces/backend/src/core/db/survey-versions.ts",
+        "mode": "explore",
+        "query": "saveSurveyDraft"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 0,
+          "unresolved": 0
+        },
+        "edges": [],
+        "items": [
+          {
+            "impact": {
+              "direct_callers": 1,
+              "total_callers": 1
+            },
+            "node": {
+              "end_line": 264,
+              "id": "sym:workspaces/backend/src/core/db/survey-versions.ts#function:saveSurveyDraft",
+              "kind": "function",
+              "name": "saveSurveyDraft",
+              "path": "workspaces/backend/src/core/db/survey-versions.ts",
+              "qualified_name": "saveSurveyDraft",
+              "start_line": 230
+            }
+          },
+          {
+            "impact": {
+              "direct_callers": 0,
+              "total_callers": 0
+            },
+            "node": {
+              "end_line": 67,
+              "id": "sym:workspaces/frontend/src/lib/api/forms.ts#function:saveSurveyDraft",
+              "kind": "function",
+              "name": "saveSurveyDraft",
+              "path": "workspaces/frontend/src/lib/api/forms.ts",
+              "qualified_name": "saveSurveyDraft",
+              "start_line": 59
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 234,
+              "id": "sym:workspaces/backend/src/core/db/survey-versions.ts#const:saveSurveyDraft.form",
+              "kind": "const",
+              "name": "form",
+              "path": "workspaces/backend/src/core/db/survey-versions.ts",
+              "qualified_name": "saveSurveyDraft.form",
+              "start_line": 234
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 235,
+              "id": "sym:workspaces/backend/src/core/db/survey-versions.ts#const:saveSurveyDraft.draft",
+              "kind": "const",
+              "name": "draft",
+              "path": "workspaces/backend/src/core/db/survey-versions.ts",
+              "qualified_name": "saveSurveyDraft.draft",
+              "start_line": 235
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 238,
+              "id": "sym:workspaces/backend/src/core/db/survey-versions.ts#const:saveSurveyDraft.now",
+              "kind": "const",
+              "name": "now",
+              "path": "workspaces/backend/src/core/db/survey-versions.ts",
+              "qualified_name": "saveSurveyDraft.now",
+              "start_line": 238
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 239,
+              "id": "sym:workspaces/backend/src/core/db/survey-versions.ts#const:saveSurveyDraft.definition",
+              "kind": "const",
+              "name": "definition",
+              "path": "workspaces/backend/src/core/db/survey-versions.ts",
+              "qualified_name": "saveSurveyDraft.definition",
+              "start_line": 239
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 252,
+              "id": "sym:workspaces/backend/src/core/db/survey-versions.ts#const:saveSurveyDraft.saved",
+              "kind": "const",
+              "name": "saved",
+              "path": "workspaces/backend/src/core/db/survey-versions.ts",
+              "qualified_name": "saveSurveyDraft.saved",
+              "start_line": 247
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 261,
+              "id": "sym:workspaces/backend/src/core/db/survey-versions.ts#const:saveSurveyDraft.next",
+              "kind": "const",
+              "name": "next",
+              "path": "workspaces/backend/src/core/db/survey-versions.ts",
+              "qualified_name": "saveSurveyDraft.next",
+              "start_line": 253
+            }
+          }
+        ],
+        "stats": {
+          "candidates": 8,
+          "elapsed_ms": 795,
+          "files_scanned": 506,
+          "matches": 0
+        },
+        "truncations": [
+          {
+            "cap": 512,
+            "dropped": true,
+            "kind": "files",
+            "message": "explore body scan stopped at its file cap"
+          }
+        ]
+      }
+    },
+    {
+      "elapsed_us": 770089,
+      "request": {
+        "category": "natural_or_split",
+        "expected_path": "workspaces/backend/src/core/db/survey-versions.ts",
+        "mode": "explore",
+        "query": "publishSurveyDraft()"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 0,
+          "unresolved": 0
+        },
+        "edges": [],
+        "items": [
+          {
+            "impact": {
+              "direct_callers": 2,
+              "total_callers": 2
+            },
+            "node": {
+              "end_line": 312,
+              "id": "sym:workspaces/backend/src/core/db/survey-versions.ts#function:publishSurveyDraft",
+              "kind": "function",
+              "name": "publishSurveyDraft",
+              "path": "workspaces/backend/src/core/db/survey-versions.ts",
+              "qualified_name": "publishSurveyDraft",
+              "start_line": 266
+            }
+          },
+          {
+            "impact": {
+              "direct_callers": 0,
+              "total_callers": 0
+            },
+            "node": {
+              "end_line": 74,
+              "id": "sym:workspaces/frontend/src/lib/api/forms.ts#function:publishSurveyDraft",
+              "kind": "function",
+              "name": "publishSurveyDraft",
+              "path": "workspaces/frontend/src/lib/api/forms.ts",
+              "qualified_name": "publishSurveyDraft",
+              "start_line": 69
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 267,
+              "id": "sym:workspaces/backend/src/core/db/survey-versions.ts#const:publishSurveyDraft.form",
+              "kind": "const",
+              "name": "form",
+              "path": "workspaces/backend/src/core/db/survey-versions.ts",
+              "qualified_name": "publishSurveyDraft.form",
+              "start_line": 267
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 268,
+              "id": "sym:workspaces/backend/src/core/db/survey-versions.ts#const:publishSurveyDraft.draft",
+              "kind": "const",
+              "name": "draft",
+              "path": "workspaces/backend/src/core/db/survey-versions.ts",
+              "qualified_name": "publishSurveyDraft.draft",
+              "start_line": 268
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 271,
+              "id": "sym:workspaces/backend/src/core/db/survey-versions.ts#const:publishSurveyDraft.oldAccount",
+              "kind": "const",
+              "name": "oldAccount",
+              "path": "workspaces/backend/src/core/db/survey-versions.ts",
+              "qualified_name": "publishSurveyDraft.oldAccount",
+              "start_line": 271
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 272,
+              "id": "sym:workspaces/backend/src/core/db/survey-versions.ts#const:publishSurveyDraft.account",
+              "kind": "const",
+              "name": "account",
+              "path": "workspaces/backend/src/core/db/survey-versions.ts",
+              "qualified_name": "publishSurveyDraft.account",
+              "start_line": 272
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 277,
+              "id": "sym:workspaces/backend/src/core/db/survey-versions.ts#const:publishSurveyDraft.version",
+              "kind": "const",
+              "name": "version",
+              "path": "workspaces/backend/src/core/db/survey-versions.ts",
+              "qualified_name": "publishSurveyDraft.version",
+              "start_line": 277
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 278,
+              "id": "sym:workspaces/backend/src/core/db/survey-versions.ts#const:publishSurveyDraft.now",
+              "kind": "const",
+              "name": "now",
+              "path": "workspaces/backend/src/core/db/survey-versions.ts",
+              "qualified_name": "publishSurveyDraft.now",
+              "start_line": 278
+            }
+          }
+        ],
+        "stats": {
+          "candidates": 12,
+          "elapsed_ms": 769,
+          "files_scanned": 506,
+          "matches": 0
+        },
+        "truncations": [
+          {
+            "cap": 512,
+            "dropped": true,
+            "kind": "files",
+            "message": "explore body scan stopped at its file cap"
+          },
+          {
+            "cap": 8,
+            "dropped": true,
+            "kind": "results",
+            "message": "matching nodes exceeded the result cap"
+          }
+        ]
+      }
+    },
+    {
+      "elapsed_us": 753755,
+      "request": {
+        "category": "exact",
+        "expected_path": "workspaces/frontend/src/lib/components/WhatsAppConfigurations.svelte",
+        "mode": "explore",
+        "query": "copyWebhook"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 0,
+          "unresolved": 0
+        },
+        "edges": [],
+        "items": [],
+        "stats": {
+          "candidates": 0,
+          "elapsed_ms": 753,
+          "files_scanned": 506,
+          "matches": 0
+        },
+        "truncations": [
+          {
+            "cap": 512,
+            "dropped": true,
+            "kind": "files",
+            "message": "explore body scan stopped at its file cap"
+          }
+        ]
+      }
+    },
+    {
+      "elapsed_us": 408654,
+      "request": {
+        "mode": "symbol",
+        "query": "verifyWebhookSignature"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 0,
+          "unresolved": 0
+        },
+        "edges": [],
+        "nodes": [
+          {
+            "end_line": 45,
+            "id": "sym:workspaces/backend/src/core/whatsapp/signature.ts#function:verifyWebhookSignature",
+            "kind": "function",
+            "name": "verifyWebhookSignature",
+            "path": "workspaces/backend/src/core/whatsapp/signature.ts",
+            "qualified_name": "verifyWebhookSignature",
+            "start_line": 26
+          }
+        ],
+        "stats": {
+          "candidates": 1,
+          "elapsed_ms": 408,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 407704,
+      "request": {
+        "mode": "callers",
+        "query": "verifyWebhookSignature"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 1,
+          "unresolved": 0
+        },
+        "edges": [
+          {
+            "from": "file:workspaces/backend/tests/core/whatsapp/signature.test.ts",
+            "kind": "calls",
+            "line": 21,
+            "path": "workspaces/backend/tests/core/whatsapp/signature.test.ts",
+            "resolved": true,
+            "to": "sym:workspaces/backend/src/core/whatsapp/signature.ts#function:verifyWebhookSignature",
+            "to_name": "verifyWebhookSignature"
+          }
+        ],
+        "nodes": [
+          {
+            "end_line": 45,
+            "id": "sym:workspaces/backend/src/core/whatsapp/signature.ts#function:verifyWebhookSignature",
+            "kind": "function",
+            "name": "verifyWebhookSignature",
+            "path": "workspaces/backend/src/core/whatsapp/signature.ts",
+            "qualified_name": "verifyWebhookSignature",
+            "start_line": 26
+          },
+          {
+            "end_line": 0,
+            "id": "file:workspaces/backend/tests/core/whatsapp/signature.test.ts",
+            "kind": "file",
+            "name": "workspaces/backend/tests/core/whatsapp/signature.test.ts",
+            "path": "workspaces/backend/tests/core/whatsapp/signature.test.ts",
+            "qualified_name": "workspaces/backend/tests/core/whatsapp/signature.test.ts",
+            "start_line": 0
+          }
+        ],
+        "stats": {
+          "candidates": 2,
+          "elapsed_ms": 407,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 407895,
+      "request": {
+        "mode": "callees",
+        "query": "verifyWebhookSignature"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 0,
+          "unresolved": 7
+        },
+        "edges": [
+          {
+            "from": "sym:workspaces/backend/src/core/whatsapp/signature.ts#function:verifyWebhookSignature",
+            "kind": "calls",
+            "line": 35,
+            "path": "workspaces/backend/src/core/whatsapp/signature.ts",
+            "resolved": false,
+            "to": null,
+            "to_name": "Buffer.from"
+          },
+          {
+            "from": "sym:workspaces/backend/src/core/whatsapp/signature.ts#function:verifyWebhookSignature",
+            "kind": "calls",
+            "line": 36,
+            "path": "workspaces/backend/src/core/whatsapp/signature.ts",
+            "resolved": false,
+            "to": null,
+            "to_name": "createHmac"
+          },
+          {
+            "from": "sym:workspaces/backend/src/core/whatsapp/signature.ts#function:verifyWebhookSignature",
+            "kind": "calls",
+            "line": 36,
+            "path": "workspaces/backend/src/core/whatsapp/signature.ts",
+            "resolved": false,
+            "to": null,
+            "to_name": "createHmac(\"sha256\", appSecret).update"
+          },
+          {
+            "from": "sym:workspaces/backend/src/core/whatsapp/signature.ts#function:verifyWebhookSignature",
+            "kind": "calls",
+            "line": 36,
+            "path": "workspaces/backend/src/core/whatsapp/signature.ts",
+            "resolved": false,
+            "to": null,
+            "to_name": "createHmac(\"sha256\", appSecret).update(rawBody).digest"
+          },
+          {
+            "from": "sym:workspaces/backend/src/core/whatsapp/signature.ts#function:verifyWebhookSignature",
+            "kind": "calls",
+            "line": 35,
+            "path": "workspaces/backend/src/core/whatsapp/signature.ts",
+            "resolved": false,
+            "to": null,
+            "to_name": "signatureHeader.slice"
+          },
+          {
+            "from": "sym:workspaces/backend/src/core/whatsapp/signature.ts#function:verifyWebhookSignature",
+            "kind": "calls",
+            "line": 31,
+            "path": "workspaces/backend/src/core/whatsapp/signature.ts",
+            "resolved": false,
+            "to": null,
+            "to_name": "signatureHeader.startsWith"
+          },
+          {
+            "from": "sym:workspaces/backend/src/core/whatsapp/signature.ts#function:verifyWebhookSignature",
+            "kind": "calls",
+            "line": 44,
+            "path": "workspaces/backend/src/core/whatsapp/signature.ts",
+            "resolved": false,
+            "to": null,
+            "to_name": "timingSafeEqual"
+          }
+        ],
+        "nodes": [
+          {
+            "end_line": 45,
+            "id": "sym:workspaces/backend/src/core/whatsapp/signature.ts#function:verifyWebhookSignature",
+            "kind": "function",
+            "name": "verifyWebhookSignature",
+            "path": "workspaces/backend/src/core/whatsapp/signature.ts",
+            "qualified_name": "verifyWebhookSignature",
+            "start_line": 26
+          }
+        ],
+        "stats": {
+          "candidates": 1,
+          "elapsed_ms": 407,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 407508,
+      "request": {
+        "mode": "refs",
+        "query": "verifyWebhookSignature"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 1,
+          "unresolved": 0
+        },
+        "edges": [
+          {
+            "from": "file:workspaces/backend/tests/core/whatsapp/signature.test.ts",
+            "kind": "calls",
+            "line": 21,
+            "path": "workspaces/backend/tests/core/whatsapp/signature.test.ts",
+            "resolved": true,
+            "to": "sym:workspaces/backend/src/core/whatsapp/signature.ts#function:verifyWebhookSignature",
+            "to_name": "verifyWebhookSignature"
+          }
+        ],
+        "nodes": [
+          {
+            "end_line": 45,
+            "id": "sym:workspaces/backend/src/core/whatsapp/signature.ts#function:verifyWebhookSignature",
+            "kind": "function",
+            "name": "verifyWebhookSignature",
+            "path": "workspaces/backend/src/core/whatsapp/signature.ts",
+            "qualified_name": "verifyWebhookSignature",
+            "start_line": 26
+          },
+          {
+            "end_line": 0,
+            "id": "file:workspaces/backend/tests/core/whatsapp/signature.test.ts",
+            "kind": "file",
+            "name": "workspaces/backend/tests/core/whatsapp/signature.test.ts",
+            "path": "workspaces/backend/tests/core/whatsapp/signature.test.ts",
+            "qualified_name": "workspaces/backend/tests/core/whatsapp/signature.test.ts",
+            "start_line": 0
+          }
+        ],
+        "stats": {
+          "candidates": 2,
+          "elapsed_ms": 407,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 408284,
+      "request": {
+        "mode": "impact",
+        "query": "verifyWebhookSignature"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 1,
+          "unresolved": 0
+        },
+        "by_depth": [
+          {
+            "by_kind": {
+              "file": 1
+            },
+            "depth": 1,
+            "total": 1
+          }
+        ],
+        "edges": [
+          {
+            "from": "file:workspaces/backend/tests/core/whatsapp/signature.test.ts",
+            "kind": "calls",
+            "line": 21,
+            "path": "workspaces/backend/tests/core/whatsapp/signature.test.ts",
+            "resolved": true,
+            "to": "sym:workspaces/backend/src/core/whatsapp/signature.ts#function:verifyWebhookSignature",
+            "to_name": "verifyWebhookSignature"
+          }
+        ],
+        "stats": {
+          "candidates": 1,
+          "elapsed_ms": 408,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "top": [
+          {
+            "end_line": 0,
+            "id": "file:workspaces/backend/tests/core/whatsapp/signature.test.ts",
+            "kind": "file",
+            "name": "workspaces/backend/tests/core/whatsapp/signature.test.ts",
+            "path": "workspaces/backend/tests/core/whatsapp/signature.test.ts",
+            "qualified_name": "workspaces/backend/tests/core/whatsapp/signature.test.ts",
+            "start_line": 0
+          }
+        ],
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 407517,
+      "request": {
+        "mode": "symbol",
+        "query": "encryptSecret"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 0,
+          "unresolved": 0
+        },
+        "edges": [],
+        "nodes": [
+          {
+            "end_line": 162,
+            "id": "sym:workspaces/backend/src/core/settings/crypto.ts#function:encryptSecret",
+            "kind": "function",
+            "name": "encryptSecret",
+            "path": "workspaces/backend/src/core/settings/crypto.ts",
+            "qualified_name": "encryptSecret",
+            "start_line": 132
+          },
+          {
+            "end_line": 11,
+            "id": "sym:workspaces/backend/tests/core/settings/store.test.ts#const:encryptSecret",
+            "kind": "const",
+            "name": "encryptSecret",
+            "path": "workspaces/backend/tests/core/settings/store.test.ts",
+            "qualified_name": "encryptSecret",
+            "start_line": 6
+          }
+        ],
+        "stats": {
+          "candidates": 2,
+          "elapsed_ms": 407,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 407352,
+      "request": {
+        "mode": "callers",
+        "query": "encryptSecret"
+      },
+      "result": {
+        "error": "ambiguous target: encryptSecret; use `symbol` to choose an exact id"
+      }
+    },
+    {
+      "elapsed_us": 406742,
+      "request": {
+        "mode": "callees",
+        "query": "encryptSecret"
+      },
+      "result": {
+        "error": "ambiguous target: encryptSecret; use `symbol` to choose an exact id"
+      }
+    },
+    {
+      "elapsed_us": 406683,
+      "request": {
+        "mode": "refs",
+        "query": "encryptSecret"
+      },
+      "result": {
+        "error": "ambiguous target: encryptSecret; use `symbol` to choose an exact id"
+      }
+    },
+    {
+      "elapsed_us": 405790,
+      "request": {
+        "mode": "impact",
+        "query": "encryptSecret"
+      },
+      "result": {
+        "error": "ambiguous target: encryptSecret; use `symbol` to choose an exact id"
+      }
+    },
+    {
+      "elapsed_us": 406635,
+      "request": {
+        "mode": "symbol",
+        "query": "getSurveyDraft"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 0,
+          "unresolved": 0
+        },
+        "edges": [],
+        "nodes": [
+          {
+            "end_line": 123,
+            "id": "sym:workspaces/backend/src/core/db/survey-versions.ts#function:getSurveyDraft",
+            "kind": "function",
+            "name": "getSurveyDraft",
+            "path": "workspaces/backend/src/core/db/survey-versions.ts",
+            "qualified_name": "getSurveyDraft",
+            "start_line": 116
+          }
+        ],
+        "stats": {
+          "candidates": 1,
+          "elapsed_ms": 406,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 408151,
+      "request": {
+        "mode": "callers",
+        "query": "getSurveyDraft"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 4,
+          "unresolved": 0
+        },
+        "edges": [
+          {
+            "from": "sym:workspaces/backend/src/core/db/survey-versions.ts#function:beginSurveyDraft",
+            "kind": "calls",
+            "line": 196,
+            "path": "workspaces/backend/src/core/db/survey-versions.ts",
+            "resolved": true,
+            "to": "sym:workspaces/backend/src/core/db/survey-versions.ts#function:getSurveyDraft",
+            "to_name": "getSurveyDraft"
+          },
+          {
+            "from": "sym:workspaces/backend/src/core/db/survey-versions.ts#function:listSurveyVersions",
+            "kind": "calls",
+            "line": 129,
+            "path": "workspaces/backend/src/core/db/survey-versions.ts",
+            "resolved": true,
+            "to": "sym:workspaces/backend/src/core/db/survey-versions.ts#function:getSurveyDraft",
+            "to_name": "getSurveyDraft"
+          },
+          {
+            "from": "sym:workspaces/backend/src/core/db/survey-versions.ts#function:publishSurveyDraft",
+            "kind": "calls",
+            "line": 268,
+            "path": "workspaces/backend/src/core/db/survey-versions.ts",
+            "resolved": true,
+            "to": "sym:workspaces/backend/src/core/db/survey-versions.ts#function:getSurveyDraft",
+            "to_name": "getSurveyDraft"
+          },
+          {
+            "from": "sym:workspaces/backend/src/core/db/survey-versions.ts#function:saveSurveyDraft",
+            "kind": "calls",
+            "line": 235,
+            "path": "workspaces/backend/src/core/db/survey-versions.ts",
+            "resolved": true,
+            "to": "sym:workspaces/backend/src/core/db/survey-versions.ts#function:getSurveyDraft",
+            "to_name": "getSurveyDraft"
+          }
+        ],
+        "nodes": [
+          {
+            "end_line": 123,
+            "id": "sym:workspaces/backend/src/core/db/survey-versions.ts#function:getSurveyDraft",
+            "kind": "function",
+            "name": "getSurveyDraft",
+            "path": "workspaces/backend/src/core/db/survey-versions.ts",
+            "qualified_name": "getSurveyDraft",
+            "start_line": 116
+          },
+          {
+            "end_line": 148,
+            "id": "sym:workspaces/backend/src/core/db/survey-versions.ts#function:listSurveyVersions",
+            "kind": "function",
+            "name": "listSurveyVersions",
+            "path": "workspaces/backend/src/core/db/survey-versions.ts",
+            "qualified_name": "listSurveyVersions",
+            "start_line": 125
+          },
+          {
+            "end_line": 228,
+            "id": "sym:workspaces/backend/src/core/db/survey-versions.ts#function:beginSurveyDraft",
+            "kind": "function",
+            "name": "beginSurveyDraft",
+            "path": "workspaces/backend/src/core/db/survey-versions.ts",
+            "qualified_name": "beginSurveyDraft",
+            "start_line": 194
+          },
+          {
+            "end_line": 264,
+            "id": "sym:workspaces/backend/src/core/db/survey-versions.ts#function:saveSurveyDraft",
+            "kind": "function",
+            "name": "saveSurveyDraft",
+            "path": "workspaces/backend/src/core/db/survey-versions.ts",
+            "qualified_name": "saveSurveyDraft",
+            "start_line": 230
+          },
+          {
+            "end_line": 312,
+            "id": "sym:workspaces/backend/src/core/db/survey-versions.ts#function:publishSurveyDraft",
+            "kind": "function",
+            "name": "publishSurveyDraft",
+            "path": "workspaces/backend/src/core/db/survey-versions.ts",
+            "qualified_name": "publishSurveyDraft",
+            "start_line": 266
+          }
+        ],
+        "stats": {
+          "candidates": 5,
+          "elapsed_ms": 408,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 407967,
+      "request": {
+        "mode": "callees",
+        "query": "getSurveyDraft"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 3,
+          "unresolved": 2
+        },
+        "edges": [
+          {
+            "from": "sym:workspaces/backend/src/core/db/survey-versions.ts#function:getSurveyDraft",
+            "kind": "calls",
+            "line": 118,
+            "path": "workspaces/backend/src/core/db/survey-versions.ts",
+            "resolved": false,
+            "to": null,
+            "to_name": "GetCommand"
+          },
+          {
+            "from": "sym:workspaces/backend/src/core/db/survey-versions.ts#function:getSurveyDraft",
+            "kind": "calls",
+            "line": 117,
+            "path": "workspaces/backend/src/core/db/survey-versions.ts",
+            "resolved": false,
+            "to": null,
+            "to_name": "getDocClient().send"
+          },
+          {
+            "from": "sym:workspaces/backend/src/core/db/survey-versions.ts#function:getSurveyDraft",
+            "kind": "calls",
+            "line": 117,
+            "path": "workspaces/backend/src/core/db/survey-versions.ts",
+            "resolved": true,
+            "to": "sym:workspaces/backend/src/core/db/client.ts#function:getDocClient",
+            "to_name": "getDocClient"
+          },
+          {
+            "from": "sym:workspaces/backend/src/core/db/survey-versions.ts#function:getSurveyDraft",
+            "kind": "calls",
+            "line": 118,
+            "path": "workspaces/backend/src/core/db/survey-versions.ts",
+            "resolved": true,
+            "to": "sym:workspaces/backend/src/core/db/survey-versions.ts#function:key",
+            "to_name": "key"
+          },
+          {
+            "from": "sym:workspaces/backend/src/core/db/survey-versions.ts#function:getSurveyDraft",
+            "kind": "calls",
+            "line": 118,
+            "path": "workspaces/backend/src/core/db/survey-versions.ts",
+            "resolved": true,
+            "to": "sym:workspaces/backend/src/core/db/survey-versions.ts#function:table",
+            "to_name": "table"
+          }
+        ],
+        "nodes": [
+          {
+            "end_line": 22,
+            "id": "sym:workspaces/backend/src/core/db/client.ts#function:getDocClient",
+            "kind": "function",
+            "name": "getDocClient",
+            "path": "workspaces/backend/src/core/db/client.ts",
+            "qualified_name": "getDocClient",
+            "start_line": 14
+          },
+          {
+            "end_line": 48,
+            "id": "sym:workspaces/backend/src/core/db/survey-versions.ts#function:table",
+            "kind": "function",
+            "name": "table",
+            "path": "workspaces/backend/src/core/db/survey-versions.ts",
+            "qualified_name": "table",
+            "start_line": 48
+          },
+          {
+            "end_line": 49,
+            "id": "sym:workspaces/backend/src/core/db/survey-versions.ts#function:key",
+            "kind": "function",
+            "name": "key",
+            "path": "workspaces/backend/src/core/db/survey-versions.ts",
+            "qualified_name": "key",
+            "start_line": 49
+          },
+          {
+            "end_line": 123,
+            "id": "sym:workspaces/backend/src/core/db/survey-versions.ts#function:getSurveyDraft",
+            "kind": "function",
+            "name": "getSurveyDraft",
+            "path": "workspaces/backend/src/core/db/survey-versions.ts",
+            "qualified_name": "getSurveyDraft",
+            "start_line": 116
+          }
+        ],
+        "stats": {
+          "candidates": 4,
+          "elapsed_ms": 407,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 408209,
+      "request": {
+        "mode": "refs",
+        "query": "getSurveyDraft"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 4,
+          "unresolved": 0
+        },
+        "edges": [
+          {
+            "from": "sym:workspaces/backend/src/core/db/survey-versions.ts#function:beginSurveyDraft",
+            "kind": "calls",
+            "line": 196,
+            "path": "workspaces/backend/src/core/db/survey-versions.ts",
+            "resolved": true,
+            "to": "sym:workspaces/backend/src/core/db/survey-versions.ts#function:getSurveyDraft",
+            "to_name": "getSurveyDraft"
+          },
+          {
+            "from": "sym:workspaces/backend/src/core/db/survey-versions.ts#function:listSurveyVersions",
+            "kind": "calls",
+            "line": 129,
+            "path": "workspaces/backend/src/core/db/survey-versions.ts",
+            "resolved": true,
+            "to": "sym:workspaces/backend/src/core/db/survey-versions.ts#function:getSurveyDraft",
+            "to_name": "getSurveyDraft"
+          },
+          {
+            "from": "sym:workspaces/backend/src/core/db/survey-versions.ts#function:publishSurveyDraft",
+            "kind": "calls",
+            "line": 268,
+            "path": "workspaces/backend/src/core/db/survey-versions.ts",
+            "resolved": true,
+            "to": "sym:workspaces/backend/src/core/db/survey-versions.ts#function:getSurveyDraft",
+            "to_name": "getSurveyDraft"
+          },
+          {
+            "from": "sym:workspaces/backend/src/core/db/survey-versions.ts#function:saveSurveyDraft",
+            "kind": "calls",
+            "line": 235,
+            "path": "workspaces/backend/src/core/db/survey-versions.ts",
+            "resolved": true,
+            "to": "sym:workspaces/backend/src/core/db/survey-versions.ts#function:getSurveyDraft",
+            "to_name": "getSurveyDraft"
+          }
+        ],
+        "nodes": [
+          {
+            "end_line": 123,
+            "id": "sym:workspaces/backend/src/core/db/survey-versions.ts#function:getSurveyDraft",
+            "kind": "function",
+            "name": "getSurveyDraft",
+            "path": "workspaces/backend/src/core/db/survey-versions.ts",
+            "qualified_name": "getSurveyDraft",
+            "start_line": 116
+          },
+          {
+            "end_line": 148,
+            "id": "sym:workspaces/backend/src/core/db/survey-versions.ts#function:listSurveyVersions",
+            "kind": "function",
+            "name": "listSurveyVersions",
+            "path": "workspaces/backend/src/core/db/survey-versions.ts",
+            "qualified_name": "listSurveyVersions",
+            "start_line": 125
+          },
+          {
+            "end_line": 228,
+            "id": "sym:workspaces/backend/src/core/db/survey-versions.ts#function:beginSurveyDraft",
+            "kind": "function",
+            "name": "beginSurveyDraft",
+            "path": "workspaces/backend/src/core/db/survey-versions.ts",
+            "qualified_name": "beginSurveyDraft",
+            "start_line": 194
+          },
+          {
+            "end_line": 264,
+            "id": "sym:workspaces/backend/src/core/db/survey-versions.ts#function:saveSurveyDraft",
+            "kind": "function",
+            "name": "saveSurveyDraft",
+            "path": "workspaces/backend/src/core/db/survey-versions.ts",
+            "qualified_name": "saveSurveyDraft",
+            "start_line": 230
+          },
+          {
+            "end_line": 312,
+            "id": "sym:workspaces/backend/src/core/db/survey-versions.ts#function:publishSurveyDraft",
+            "kind": "function",
+            "name": "publishSurveyDraft",
+            "path": "workspaces/backend/src/core/db/survey-versions.ts",
+            "qualified_name": "publishSurveyDraft",
+            "start_line": 266
+          }
+        ],
+        "stats": {
+          "candidates": 5,
+          "elapsed_ms": 408,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 408586,
+      "request": {
+        "mode": "impact",
+        "query": "getSurveyDraft"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 4,
+          "unresolved": 0
+        },
+        "by_depth": [
+          {
+            "by_kind": {
+              "function": 4
+            },
+            "depth": 1,
+            "total": 4
+          }
+        ],
+        "edges": [
+          {
+            "from": "sym:workspaces/backend/src/core/db/survey-versions.ts#function:beginSurveyDraft",
+            "kind": "calls",
+            "line": 196,
+            "path": "workspaces/backend/src/core/db/survey-versions.ts",
+            "resolved": true,
+            "to": "sym:workspaces/backend/src/core/db/survey-versions.ts#function:getSurveyDraft",
+            "to_name": "getSurveyDraft"
+          },
+          {
+            "from": "sym:workspaces/backend/src/core/db/survey-versions.ts#function:listSurveyVersions",
+            "kind": "calls",
+            "line": 129,
+            "path": "workspaces/backend/src/core/db/survey-versions.ts",
+            "resolved": true,
+            "to": "sym:workspaces/backend/src/core/db/survey-versions.ts#function:getSurveyDraft",
+            "to_name": "getSurveyDraft"
+          },
+          {
+            "from": "sym:workspaces/backend/src/core/db/survey-versions.ts#function:publishSurveyDraft",
+            "kind": "calls",
+            "line": 268,
+            "path": "workspaces/backend/src/core/db/survey-versions.ts",
+            "resolved": true,
+            "to": "sym:workspaces/backend/src/core/db/survey-versions.ts#function:getSurveyDraft",
+            "to_name": "getSurveyDraft"
+          },
+          {
+            "from": "sym:workspaces/backend/src/core/db/survey-versions.ts#function:saveSurveyDraft",
+            "kind": "calls",
+            "line": 235,
+            "path": "workspaces/backend/src/core/db/survey-versions.ts",
+            "resolved": true,
+            "to": "sym:workspaces/backend/src/core/db/survey-versions.ts#function:getSurveyDraft",
+            "to_name": "getSurveyDraft"
+          }
+        ],
+        "stats": {
+          "candidates": 4,
+          "elapsed_ms": 408,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "top": [
+          {
+            "end_line": 148,
+            "id": "sym:workspaces/backend/src/core/db/survey-versions.ts#function:listSurveyVersions",
+            "kind": "function",
+            "name": "listSurveyVersions",
+            "path": "workspaces/backend/src/core/db/survey-versions.ts",
+            "qualified_name": "listSurveyVersions",
+            "start_line": 125
+          },
+          {
+            "end_line": 228,
+            "id": "sym:workspaces/backend/src/core/db/survey-versions.ts#function:beginSurveyDraft",
+            "kind": "function",
+            "name": "beginSurveyDraft",
+            "path": "workspaces/backend/src/core/db/survey-versions.ts",
+            "qualified_name": "beginSurveyDraft",
+            "start_line": 194
+          },
+          {
+            "end_line": 264,
+            "id": "sym:workspaces/backend/src/core/db/survey-versions.ts#function:saveSurveyDraft",
+            "kind": "function",
+            "name": "saveSurveyDraft",
+            "path": "workspaces/backend/src/core/db/survey-versions.ts",
+            "qualified_name": "saveSurveyDraft",
+            "start_line": 230
+          },
+          {
+            "end_line": 312,
+            "id": "sym:workspaces/backend/src/core/db/survey-versions.ts#function:publishSurveyDraft",
+            "kind": "function",
+            "name": "publishSurveyDraft",
+            "path": "workspaces/backend/src/core/db/survey-versions.ts",
+            "qualified_name": "publishSurveyDraft",
+            "start_line": 266
+          }
+        ],
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 406498,
+      "request": {
+        "mode": "symbol",
+        "query": "saveSurveyDraft"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 0,
+          "unresolved": 0
+        },
+        "edges": [],
+        "nodes": [
+          {
+            "end_line": 264,
+            "id": "sym:workspaces/backend/src/core/db/survey-versions.ts#function:saveSurveyDraft",
+            "kind": "function",
+            "name": "saveSurveyDraft",
+            "path": "workspaces/backend/src/core/db/survey-versions.ts",
+            "qualified_name": "saveSurveyDraft",
+            "start_line": 230
+          },
+          {
+            "end_line": 67,
+            "id": "sym:workspaces/frontend/src/lib/api/forms.ts#function:saveSurveyDraft",
+            "kind": "function",
+            "name": "saveSurveyDraft",
+            "path": "workspaces/frontend/src/lib/api/forms.ts",
+            "qualified_name": "saveSurveyDraft",
+            "start_line": 59
+          }
+        ],
+        "stats": {
+          "candidates": 2,
+          "elapsed_ms": 406,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 407154,
+      "request": {
+        "mode": "callers",
+        "query": "saveSurveyDraft"
+      },
+      "result": {
+        "error": "ambiguous target: saveSurveyDraft; use `symbol` to choose an exact id"
+      }
+    },
+    {
+      "elapsed_us": 406635,
+      "request": {
+        "mode": "callees",
+        "query": "saveSurveyDraft"
+      },
+      "result": {
+        "error": "ambiguous target: saveSurveyDraft; use `symbol` to choose an exact id"
+      }
+    },
+    {
+      "elapsed_us": 406876,
+      "request": {
+        "mode": "refs",
+        "query": "saveSurveyDraft"
+      },
+      "result": {
+        "error": "ambiguous target: saveSurveyDraft; use `symbol` to choose an exact id"
+      }
+    },
+    {
+      "elapsed_us": 407666,
+      "request": {
+        "mode": "impact",
+        "query": "saveSurveyDraft"
+      },
+      "result": {
+        "error": "ambiguous target: saveSurveyDraft; use `symbol` to choose an exact id"
+      }
+    },
+    {
+      "elapsed_us": 405969,
+      "request": {
+        "mode": "symbol",
+        "query": "copyWebhook"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 0,
+          "unresolved": 0
+        },
+        "edges": [],
+        "nodes": [],
+        "stats": {
+          "candidates": 0,
+          "elapsed_ms": 405,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 407246,
+      "request": {
+        "mode": "callers",
+        "query": "copyWebhook"
+      },
+      "result": {
+        "error": "not found: copyWebhook"
+      }
+    },
+    {
+      "elapsed_us": 406171,
+      "request": {
+        "mode": "callees",
+        "query": "copyWebhook"
+      },
+      "result": {
+        "error": "not found: copyWebhook"
+      }
+    },
+    {
+      "elapsed_us": 407611,
+      "request": {
+        "mode": "refs",
+        "query": "copyWebhook"
+      },
+      "result": {
+        "error": "not found: copyWebhook"
+      }
+    },
+    {
+      "elapsed_us": 406427,
+      "request": {
+        "mode": "impact",
+        "query": "copyWebhook"
+      },
+      "result": {
+        "error": "not found: copyWebhook"
+      }
+    }
+  ]
+}

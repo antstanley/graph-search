@@ -400,10 +400,12 @@ fn search(
         } => {
             let query = FilesQuery::new(pattern.clone())
                 .with_limit(limit.unwrap_or(graph_search_types::limits::FILES_DEFAULT_LIMIT));
-            let query = match path {
+            let mut query = match path {
                 Some(path) => query.with_path(path.clone()),
                 None => query,
             };
+            query.include_hidden = cli.hidden;
+            query.no_ignore = cli.no_ignore;
             let result = service.files(&query)?;
             render::files(
                 "search.files",
@@ -449,7 +451,7 @@ fn search(
                         .ok_or_else(|| usage_kind(kind))?,
                 );
             }
-            query.filters = filters(lang.as_ref(), path.as_ref());
+            query.filters = filters(lang.as_ref(), path.as_ref())?;
             if let Some(limit) = limit {
                 query.limit = *limit;
             }
@@ -470,7 +472,7 @@ fn search(
             limit,
         } => {
             let mut query = RefQuery::new(target.clone());
-            query.filters = filters(lang.as_ref(), path.as_ref());
+            query.filters = filters(lang.as_ref(), path.as_ref())?;
             if let Some(limit) = limit {
                 query.limit = *limit;
             }
@@ -492,7 +494,7 @@ fn search(
             limit,
         } => {
             let mut query = TraversalQuery::new(target.clone(), *depth);
-            query.filters = filters(lang.as_ref(), path.as_ref());
+            query.filters = filters(lang.as_ref(), path.as_ref())?;
             if let Some(limit) = limit {
                 query.limit = *limit;
             }
@@ -514,7 +516,7 @@ fn search(
             limit,
         } => {
             let mut query = TraversalQuery::new(target.clone(), *depth);
-            query.filters = filters(lang.as_ref(), path.as_ref());
+            query.filters = filters(lang.as_ref(), path.as_ref())?;
             if let Some(limit) = limit {
                 query.limit = *limit;
             }
@@ -536,7 +538,7 @@ fn search(
             limit,
         } => {
             let mut query = TraversalQuery::new(target.clone(), *depth);
-            query.filters = filters(lang.as_ref(), path.as_ref());
+            query.filters = filters(lang.as_ref(), path.as_ref())?;
             if let Some(limit) = limit {
                 query.limit = *limit;
             }
@@ -559,7 +561,7 @@ fn search(
         } => {
             let mut query = DepsQuery::new(target.clone());
             query.direction = parse_direction(direction)?;
-            query.filters = filters(lang.as_ref(), path.as_ref());
+            query.filters = filters(lang.as_ref(), path.as_ref())?;
             if let Some(limit) = limit {
                 query.limit = *limit;
             }
@@ -588,7 +590,7 @@ fn search(
             if let Some(hops) = hops {
                 query.hops = *hops;
             }
-            query.filters = filters(lang.as_ref(), path.as_ref());
+            query.filters = filters(lang.as_ref(), path.as_ref())?;
             if let Some(limit) = limit {
                 query.limit = *limit;
             }
@@ -639,7 +641,7 @@ fn search(
             if let Some(bytes) = max_bytes {
                 query.max_bytes = *bytes;
             }
-            query.filters = filters(lang.as_ref(), path.as_ref());
+            query.filters = filters(lang.as_ref(), path.as_ref())?;
             let result = service.explore(&query)?;
             render::explore(
                 "search.explore",
@@ -689,9 +691,18 @@ fn query_echo<Q: serde::Serialize>(query: &Q) -> serde_json::Value {
 fn filters(
     lang: Option<&String>,
     path: Option<&String>,
-) -> graph_search_types::query::GraphFilters {
-    graph_search_types::query::GraphFilters {
-        lang: lang.and_then(|lang| graph_search_types::Language::parse(lang)),
+) -> Result<graph_search_types::query::GraphFilters, Error> {
+    let language = lang
+        .map(|name| {
+            graph_search_types::Language::parse(name).ok_or_else(|| {
+                Error::Core(graph_search::core::Error::InvalidInclude(format!(
+                    "unknown language: {name}"
+                )))
+            })
+        })
+        .transpose()?;
+    Ok(graph_search_types::query::GraphFilters {
+        lang: language,
         path_glob: path.cloned(),
-    }
+    })
 }

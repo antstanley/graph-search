@@ -1,0 +1,836 @@
+[
+  {
+    "query": "listPublishablePosts",
+    "expected_path": "packages/pds/src/content.ts",
+    "category": "exact",
+    "baseline": {
+      "paths": [
+        "packages/pds/src/content.ts",
+        "packages/pds/src/content.test.ts",
+        "packages/pds/src/content.ts",
+        "packages/pds/src/sync.ts",
+        "packages/pds/src/content.ts",
+        "packages/pds/src/content.ts",
+        "packages/pds/src/content.ts",
+        "packages/pds/src/content.ts"
+      ],
+      "rank": 1,
+      "elapsed_us": 355472
+    },
+    "fts_metadata": {
+      "paths": [
+        "packages/pds/src/content.test.ts",
+        "packages/pds/src/content.test.ts",
+        "packages/pds/src/content.test.ts",
+        "packages/pds/src/content.test.ts",
+        "packages/pds/src/content.ts",
+        "packages/pds/src/sync.ts",
+        "packages/pds/src/content.test.ts",
+        "packages/pds/src/content.ts"
+      ],
+      "rank": 5,
+      "elapsed_us": 356
+    },
+    "fts_body": {
+      "paths": [
+        "packages/pds/src/content.test.ts",
+        "packages/pds/src/content.test.ts",
+        "packages/pds/src/content.test.ts",
+        "packages/pds/src/content.test.ts",
+        "packages/pds/src/sync.ts",
+        "packages/pds/src/content.ts",
+        "packages/pds/src/content.test.ts",
+        "packages/pds/src/content.ts"
+      ],
+      "rank": 6,
+      "elapsed_us": 147
+    },
+    "codegraph_raw_fts": {
+      "paths": [
+        "packages/pds/src/content.test.ts",
+        "packages/pds/src/sync.ts",
+        "packages/pds/src/content.ts"
+      ],
+      "rank": 3
+    },
+    "codegraph_query": {
+      "paths": [
+        "packages/pds/src/content.ts",
+        "packages/pds/src/sync.ts",
+        "packages/pds/src/content.test.ts"
+      ],
+      "rank": 1,
+      "elapsed_ms": 276,
+      "exit_code": 0,
+      "output_bytes": 2376
+    },
+    "codegraph_explore": {
+      "paths": [
+        "packages/pds/src/content.ts",
+        "packages/pds/src/sync.ts",
+        "packages/core/src/aws/microvms.ts",
+        "packages/pds/src/xrpc.ts",
+        "packages/core/src/aws/iam.ts"
+      ],
+      "rank": 1,
+      "elapsed_ms": 635,
+      "exit_code": 0,
+      "output_bytes": 23795
+    }
+  },
+  {
+    "query": "list publishable posts",
+    "expected_path": "packages/pds/src/content.ts",
+    "category": "natural_or_split",
+    "baseline": {
+      "paths": [
+        "packages/pds/src/content.test.ts",
+        "packages/pds/src/content.test.ts",
+        "packages/pds/src/content.test.ts",
+        "packages/pds/src/content.test.ts",
+        "packages/pds/src/content.ts",
+        "packages/pds/src/sync.test.ts",
+        "packages/pds/src/sync.ts",
+        "packages/pds/src/content.ts"
+      ],
+      "rank": 5,
+      "elapsed_us": 355745
+    },
+    "fts_metadata": {
+      "paths": [
+        "packages/pds/src/content.test.ts",
+        "packages/pds/src/content.test.ts",
+        "packages/pds/src/content.test.ts",
+        "packages/pds/src/content.test.ts",
+        "packages/pds/src/content.ts",
+        "packages/pds/src/sync.ts",
+        "packages/pds/src/content.test.ts",
+        "packages/pds/src/content.ts"
+      ],
+      "rank": 5,
+      "elapsed_us": 446
+    },
+    "fts_body": {
+      "paths": [
+        "packages/pds/src/content.test.ts",
+        "packages/pds/src/content.test.ts",
+        "packages/pds/src/content.test.ts",
+        "packages/pds/src/content.test.ts",
+        "packages/pds/src/sync.ts",
+        "packages/pds/src/content.ts",
+        "packages/pds/src/content.test.ts",
+        "packages/pds/src/content.ts"
+      ],
+      "rank": 6,
+      "elapsed_us": 145
+    },
+    "codegraph_raw_fts": {
+      "paths": [
+        "packages/pds/src/content.ts",
+        "packages/pds/src/sync.test.ts",
+        "packages/pds/src/content.ts",
+        "packages/build-agent/src/build.ts",
+        "packages/analytics/app/src/lib/format.ts",
+        "packages/pds/src/rkey.test.ts",
+        "packages/pds/src/sync.ts",
+        "packages/build-agent/src/build.ts"
+      ],
+      "rank": 1
+    },
+    "codegraph_query": {
+      "paths": [
+        "packages/pds/src/content.ts",
+        "packages/pds/src/sync.test.ts",
+        "packages/pds/src/sync.ts",
+        "packages/pds/src/content.ts",
+        "packages/build-agent/src/build.ts",
+        "packages/analytics/app/src/lib/format.ts",
+        "packages/build-agent/src/build.ts",
+        "packages/core/src/aws/iam.ts"
+      ],
+      "rank": 1,
+      "elapsed_ms": 161,
+      "exit_code": 0,
+      "output_bytes": 6553
+    },
+    "codegraph_explore": {
+      "paths": [
+        "packages/pds/src/content.ts",
+        "packages/cli/src/render.ts",
+        "packages/cli/src/plugin-commands.ts",
+        "packages/core/src/aws/s3.ts",
+        "packages/analytics/src/aws/firehose.ts"
+      ],
+      "rank": 1,
+      "elapsed_ms": 260,
+      "exit_code": 0,
+      "output_bytes": 23942
+    }
+  },
+  {
+    "query": "How are publishable posts selected?",
+    "expected_path": "packages/pds/src/content.ts",
+    "category": "natural_or_split",
+    "baseline": {
+      "paths": [
+        "packages/pds/src/content.test.ts",
+        "packages/pds/src/content.test.ts",
+        "packages/pds/src/content.test.ts",
+        "packages/pds/src/content.test.ts",
+        "packages/pds/src/content.ts",
+        "packages/pds/src/sync.test.ts",
+        "packages/pds/src/sync.ts",
+        "packages/pds/src/content.ts"
+      ],
+      "rank": 5,
+      "elapsed_us": 358242
+    },
+    "fts_metadata": {
+      "paths": [
+        "packages/pds/src/content.test.ts",
+        "packages/pds/src/content.test.ts",
+        "packages/pds/src/content.test.ts",
+        "packages/pds/src/content.test.ts",
+        "packages/pds/src/content.ts",
+        "packages/pds/src/sync.ts",
+        "packages/pds/src/content.test.ts",
+        "packages/pds/src/content.ts"
+      ],
+      "rank": 5,
+      "elapsed_us": 237
+    },
+    "fts_body": {
+      "paths": [
+        "packages/pds/src/content.test.ts",
+        "packages/pds/src/content.test.ts",
+        "packages/pds/src/content.test.ts",
+        "packages/pds/src/content.test.ts",
+        "packages/pds/src/sync.ts",
+        "packages/pds/src/content.ts",
+        "packages/pds/src/content.test.ts",
+        "packages/pds/src/content.ts"
+      ],
+      "rank": 6,
+      "elapsed_us": 46
+    },
+    "codegraph_raw_fts": {
+      "paths": [
+        "packages/pds/src/content.ts",
+        "packages/pds/src/sync.test.ts",
+        "packages/pds/src/content.ts",
+        "packages/build-agent/src/build.ts",
+        "packages/analytics/app/src/lib/format.ts",
+        "packages/pds/src/rkey.test.ts",
+        "packages/pds/src/sync.ts",
+        "packages/build-agent/src/build.ts"
+      ],
+      "rank": 1
+    },
+    "codegraph_query": {
+      "paths": [
+        "packages/pds/src/sync.test.ts",
+        "packages/build-agent/src/build.ts",
+        "packages/analytics/app/src/lib/DateTimePicker.svelte",
+        "packages/pds/src/content.ts",
+        "packages/analytics/scripts/dev-dashboard.mjs",
+        "packages/pds/src/sync.ts",
+        "packages/pds/src/content.ts",
+        "packages/build-agent/src/build.ts"
+      ],
+      "rank": 4,
+      "elapsed_ms": 166,
+      "exit_code": 0,
+      "output_bytes": 6453
+    },
+    "codegraph_explore": {
+      "paths": [
+        "packages/analytics/app/src/lib/ViewsArea.svelte",
+        "packages/pds/src/content.ts",
+        "packages/analytics/app/src/lib/CountryMap.svelte",
+        "packages/analytics/app/src/lib/ThemeToggle.svelte",
+        "packages/analytics/app/src/routes/+page.svelte"
+      ],
+      "rank": 2,
+      "elapsed_ms": 247,
+      "exit_code": 0,
+      "output_bytes": 20411
+    }
+  },
+  {
+    "query": "syncDocuments",
+    "expected_path": "packages/pds/src/sync.ts",
+    "category": "exact",
+    "baseline": {
+      "paths": [
+        "packages/pds/src/sync.ts",
+        "packages/pds/src/sync.test.ts",
+        "packages/pds/src/sync.ts",
+        "packages/pds/src/sync.ts",
+        "packages/pds/src/sync.ts",
+        "packages/pds/src/sync.ts",
+        "packages/pds/src/sync.ts",
+        "packages/pds/src/sync.ts"
+      ],
+      "rank": 1,
+      "elapsed_us": 353294
+    },
+    "fts_metadata": {
+      "paths": [
+        "packages/pds/src/sync.ts",
+        "packages/pds/src/sync.ts",
+        "packages/pds/src/sync.test.ts",
+        "packages/pds/src/sync.test.ts",
+        "packages/pds/src/sync.test.ts",
+        "packages/pds/src/sync.test.ts",
+        "packages/pds/src/sync.test.ts",
+        "packages/pds/src/commands.ts"
+      ],
+      "rank": 1,
+      "elapsed_us": 365
+    },
+    "fts_body": {
+      "paths": [
+        "packages/pds/src/sync.ts",
+        "packages/pds/src/sync.test.ts",
+        "packages/pds/src/sync.test.ts",
+        "packages/pds/src/sync.test.ts",
+        "packages/pds/src/sync.test.ts",
+        "packages/pds/src/sync.test.ts",
+        "packages/pds/src/sync.ts",
+        "packages/pds/src/sync.ts"
+      ],
+      "rank": 1,
+      "elapsed_us": 109
+    },
+    "codegraph_raw_fts": {
+      "paths": [
+        "packages/pds/src/sync.ts",
+        "packages/pds/src/sync.test.ts"
+      ],
+      "rank": 1
+    },
+    "codegraph_query": {
+      "paths": [
+        "packages/pds/src/sync.ts",
+        "packages/pds/src/sync.test.ts"
+      ],
+      "rank": 1,
+      "elapsed_ms": 158,
+      "exit_code": 0,
+      "output_bytes": 1692
+    },
+    "codegraph_explore": {
+      "paths": [
+        "packages/pds/src/sync.ts",
+        "packages/pds/src/commands.ts",
+        "packages/pds/src/rkey.ts",
+        "packages/pds/src/xrpc.ts"
+      ],
+      "rank": 1,
+      "elapsed_ms": 240,
+      "exit_code": 0,
+      "output_bytes": 21659
+    }
+  },
+  {
+    "query": "sync documents",
+    "expected_path": "packages/pds/src/sync.ts",
+    "category": "natural_or_split",
+    "baseline": {
+      "paths": [
+        "packages/pds/src/commands.ts",
+        "packages/pds/src/commands.ts",
+        "packages/pds/src/sync.ts",
+        "packages/pds/src/sync.ts",
+        "packages/cli/src/adapters/process-package-manager.ts",
+        "packages/pds/src/commands.ts",
+        "packages/pds/src/sync.ts",
+        "packages/pds/src/sync.ts"
+      ],
+      "rank": 3,
+      "elapsed_us": 352743
+    },
+    "fts_metadata": {
+      "paths": [
+        "packages/pds/src/sync.ts",
+        "packages/pds/src/sync.ts",
+        "packages/pds/src/sync.test.ts",
+        "packages/pds/src/sync.test.ts",
+        "packages/pds/src/sync.test.ts",
+        "packages/pds/src/sync.test.ts",
+        "packages/pds/src/sync.test.ts",
+        "packages/pds/src/commands.ts"
+      ],
+      "rank": 1,
+      "elapsed_us": 341
+    },
+    "fts_body": {
+      "paths": [
+        "packages/pds/src/sync.ts",
+        "packages/pds/src/sync.test.ts",
+        "packages/pds/src/sync.test.ts",
+        "packages/pds/src/sync.test.ts",
+        "packages/pds/src/sync.test.ts",
+        "packages/pds/src/sync.test.ts",
+        "packages/pds/src/sync.ts",
+        "packages/pds/src/sync.ts"
+      ],
+      "rank": 1,
+      "elapsed_us": 108
+    },
+    "codegraph_raw_fts": {
+      "paths": [
+        "packages/pds/src/oauth.ts",
+        "packages/pds/src/secret.ts",
+        "packages/pds/src/commands.test.ts",
+        "packages/pds/src/sync.ts",
+        "packages/pds/src/sync.test.ts",
+        "packages/pds/src/commands.ts",
+        "packages/pds/src/sync.test.ts",
+        "packages/pds/src/commands.ts"
+      ],
+      "rank": 4
+    },
+    "codegraph_query": {
+      "paths": [
+        "packages/pds/src/sync.ts",
+        "packages/pds/src/commands.ts",
+        "packages/pds/src/sync.ts",
+        "packages/pds/src/sync.ts",
+        "packages/pds/src/sync.ts",
+        "packages/pds/src/sync.ts",
+        "packages/pds/src/sync.ts",
+        "packages/pds/src/commands.ts"
+      ],
+      "rank": 1,
+      "elapsed_ms": 162,
+      "exit_code": 0,
+      "output_bytes": 5996
+    },
+    "codegraph_explore": {
+      "paths": [
+        "packages/pds/src/sync.ts",
+        "packages/pds/src/commands.ts",
+        "packages/pds/src/rkey.ts",
+        "packages/pds/src/xrpc.ts"
+      ],
+      "rank": 1,
+      "elapsed_ms": 228,
+      "exit_code": 0,
+      "output_bytes": 22041
+    }
+  },
+  {
+    "query": "resolvePdsSecretName",
+    "expected_path": "packages/pds/src/config.ts",
+    "category": "exact",
+    "baseline": {
+      "paths": [
+        "packages/pds/src/config.ts",
+        "packages/cli/CHANGELOG.md",
+        "packages/core/CHANGELOG.md",
+        "packages/core/src/config.ts",
+        "packages/pds/CHANGELOG.md",
+        "packages/pds/src/config.test.ts",
+        "packages/pds/src/config.ts",
+        "packages/pds/src/nodes.ts"
+      ],
+      "rank": 1,
+      "elapsed_us": 351612
+    },
+    "fts_metadata": {
+      "paths": [
+        "packages/pds/src/config.ts",
+        "packages/cli/src/nodes.test.ts",
+        "packages/pds/src/config.ts",
+        "packages/pds/src/config.test.ts",
+        "packages/pds/src/config.test.ts",
+        "packages/pds/src/config.ts",
+        "packages/analytics/src/nodes.ts",
+        "packages/analytics/src/nodes.ts"
+      ],
+      "rank": 1,
+      "elapsed_us": 2011
+    },
+    "fts_body": {
+      "paths": [
+        "packages/pds/src/config.ts",
+        "packages/pds/src/sync.ts",
+        "packages/cli/src/nodes.test.ts",
+        "packages/analytics/src/nodes.ts",
+        "packages/analytics/src/nodes.ts",
+        "packages/analytics/src/nodes.ts",
+        "packages/pds/src/config.test.ts",
+        "packages/pds/src/config.test.ts"
+      ],
+      "rank": 1,
+      "elapsed_us": 1104
+    },
+    "codegraph_raw_fts": {
+      "paths": [
+        "packages/pds/src/config.ts",
+        "packages/pds/src/test-support.ts",
+        "packages/pds/src/nodes.ts",
+        "packages/pds/src/config.test.ts",
+        "packages/pds/src/sync.ts",
+        "packages/pds/src/config.ts",
+        "packages/core/src/config.ts",
+        "packages/pds/src/nodes.ts"
+      ],
+      "rank": 1
+    },
+    "codegraph_query": {
+      "paths": [
+        "packages/pds/src/config.ts",
+        "packages/pds/src/config.ts",
+        "packages/pds/src/nodes.ts",
+        "packages/pds/src/test-support.ts",
+        "packages/pds/src/nodes.ts",
+        "packages/pds/src/sync.ts",
+        "packages/core/src/config.ts",
+        "packages/pds/src/config.test.ts"
+      ],
+      "rank": 1,
+      "elapsed_ms": 159,
+      "exit_code": 0,
+      "output_bytes": 8347
+    },
+    "codegraph_explore": {
+      "paths": [
+        "packages/pds/src/config.ts",
+        "packages/core/src/aws/secretsmanager.ts",
+        "packages/analytics/src/nodes.ts",
+        "packages/pds/src/secret.ts",
+        "packages/cli/src/seo.ts"
+      ],
+      "rank": 1,
+      "elapsed_ms": 244,
+      "exit_code": 0,
+      "output_bytes": 20076
+    }
+  },
+  {
+    "query": "resolve pds secret name",
+    "expected_path": "packages/pds/src/config.ts",
+    "category": "natural_or_split",
+    "baseline": {
+      "paths": [
+        "packages/analytics/src/adapters/duckdb-ingest.ts",
+        "packages/analytics/src/adapters/duckdb-query.test.ts",
+        "packages/analytics/src/adapters/duckdb-session.ts",
+        "packages/analytics/src/aws/lambda.test.ts",
+        "packages/analytics/src/backfill.test.ts",
+        "packages/analytics/src/backfill.ts",
+        "packages/analytics/src/commands.test.ts",
+        "packages/analytics/src/config.test.ts"
+      ],
+      "rank": null,
+      "elapsed_us": 357500
+    },
+    "fts_metadata": {
+      "paths": [
+        "packages/pds/src/config.ts",
+        "packages/cli/src/nodes.test.ts",
+        "packages/pds/src/config.ts",
+        "packages/pds/src/config.test.ts",
+        "packages/pds/src/config.test.ts",
+        "packages/pds/src/config.ts",
+        "packages/analytics/src/nodes.ts",
+        "packages/analytics/src/nodes.ts"
+      ],
+      "rank": 1,
+      "elapsed_us": 1969
+    },
+    "fts_body": {
+      "paths": [
+        "packages/pds/src/config.ts",
+        "packages/pds/src/sync.ts",
+        "packages/cli/src/nodes.test.ts",
+        "packages/analytics/src/nodes.ts",
+        "packages/analytics/src/nodes.ts",
+        "packages/analytics/src/nodes.ts",
+        "packages/pds/src/config.test.ts",
+        "packages/pds/src/config.test.ts"
+      ],
+      "rank": 1,
+      "elapsed_us": 1052
+    },
+    "codegraph_raw_fts": {
+      "paths": [
+        "packages/pds/src/config.ts",
+        "packages/analytics/src/config.ts",
+        "packages/pds/src/secret.ts",
+        "packages/analytics/src/adapters/duckdb-session.ts",
+        "packages/cli/src/nodes.test.ts",
+        "packages/pds/src/secret.test.ts",
+        "packages/pds/src/plugin.test.ts",
+        "packages/cli/src/nodes.test.ts"
+      ],
+      "rank": 1
+    },
+    "codegraph_query": {
+      "paths": [
+        "packages/pds/src/config.ts",
+        "packages/pds/src/client-metadata.test.ts",
+        "packages/pds/src/plugin.test.ts",
+        "packages/analytics/src/aws/lambda.test.ts",
+        "packages/pds/src/secret.ts",
+        "packages/pds/src/secret.ts",
+        "packages/pds/src/secret.ts",
+        "packages/pds/src/secret.ts"
+      ],
+      "rank": 1,
+      "elapsed_ms": 165,
+      "exit_code": 0,
+      "output_bytes": 5689
+    },
+    "codegraph_explore": {
+      "paths": [
+        "packages/pds/src/secret.ts",
+        "packages/pds/src/config.ts",
+        "packages/pds/src/oauth.ts",
+        "packages/core/src/aws/secretsmanager.ts"
+      ],
+      "rank": 2,
+      "elapsed_ms": 257,
+      "exit_code": 0,
+      "output_bytes": 20492
+    }
+  },
+  {
+    "query": "loadPdsSecret",
+    "expected_path": "packages/pds/src/secret.ts",
+    "category": "exact",
+    "baseline": {
+      "paths": [
+        "packages/pds/src/secret.ts",
+        "packages/pds/src/commands.ts",
+        "packages/pds/src/oauth.ts",
+        "packages/pds/src/secret.test.ts",
+        "packages/pds/src/secret.ts",
+        "packages/pds/src/secret.ts",
+        "packages/pds/src/secret.ts"
+      ],
+      "rank": 1,
+      "elapsed_us": 355933
+    },
+    "fts_metadata": {
+      "paths": [
+        "packages/pds/src/secret.ts",
+        "packages/pds/src/commands.ts",
+        "packages/pds/src/oauth.ts",
+        "packages/pds/src/oauth.ts",
+        "packages/pds/src/oauth.ts",
+        "packages/pds/src/secret.test.ts",
+        "packages/analytics/src/transform/handler.ts",
+        "packages/cli/src/nodes.test.ts"
+      ],
+      "rank": 1,
+      "elapsed_us": 1179
+    },
+    "fts_body": {
+      "paths": [
+        "packages/pds/src/secret.ts",
+        "packages/pds/src/commands.ts",
+        "packages/pds/src/oauth.ts",
+        "packages/pds/src/oauth.ts",
+        "packages/pds/src/oauth.ts",
+        "packages/pds/src/secret.test.ts",
+        "packages/analytics/src/transform/handler.ts",
+        "packages/pds/src/commands.ts"
+      ],
+      "rank": 1,
+      "elapsed_us": 508
+    },
+    "codegraph_raw_fts": {
+      "paths": [
+        "packages/pds/src/secret.ts",
+        "packages/pds/src/commands.ts",
+        "packages/pds/src/oauth.ts",
+        "packages/pds/src/secret.test.ts"
+      ],
+      "rank": 1
+    },
+    "codegraph_query": {
+      "paths": [
+        "packages/pds/src/secret.ts",
+        "packages/pds/src/commands.ts",
+        "packages/pds/src/oauth.ts",
+        "packages/pds/src/secret.test.ts"
+      ],
+      "rank": 1,
+      "elapsed_ms": 158,
+      "exit_code": 0,
+      "output_bytes": 2737
+    },
+    "codegraph_explore": {
+      "paths": [
+        "packages/pds/src/secret.ts",
+        "packages/core/src/aws/secretsmanager.ts",
+        "packages/analytics/src/nodes.ts",
+        "packages/core/src/state.ts",
+        "packages/pds/src/commands.ts"
+      ],
+      "rank": 1,
+      "elapsed_ms": 233,
+      "exit_code": 0,
+      "output_bytes": 21372
+    }
+  },
+  {
+    "query": "load pds secret",
+    "expected_path": "packages/pds/src/secret.ts",
+    "category": "natural_or_split",
+    "baseline": {
+      "paths": [
+        "packages/analytics/src/adapters/duckdb-query.test.ts",
+        "packages/analytics/src/adapters/duckdb-session.ts",
+        "packages/analytics/src/backfill.test.ts",
+        "packages/analytics/src/backfill.ts",
+        "packages/analytics/src/nodes.ts",
+        "packages/analytics/src/transform/handler.ts",
+        "packages/cli/src/adapters/node-module-loader.ts",
+        "packages/cli/src/nodes.test.ts"
+      ],
+      "rank": null,
+      "elapsed_us": 361497
+    },
+    "fts_metadata": {
+      "paths": [
+        "packages/pds/src/secret.ts",
+        "packages/pds/src/commands.ts",
+        "packages/pds/src/oauth.ts",
+        "packages/pds/src/oauth.ts",
+        "packages/pds/src/oauth.ts",
+        "packages/pds/src/secret.test.ts",
+        "packages/analytics/src/transform/handler.ts",
+        "packages/cli/src/nodes.test.ts"
+      ],
+      "rank": 1,
+      "elapsed_us": 1138
+    },
+    "fts_body": {
+      "paths": [
+        "packages/pds/src/secret.ts",
+        "packages/pds/src/commands.ts",
+        "packages/pds/src/oauth.ts",
+        "packages/pds/src/oauth.ts",
+        "packages/pds/src/oauth.ts",
+        "packages/pds/src/secret.test.ts",
+        "packages/analytics/src/transform/handler.ts",
+        "packages/pds/src/commands.ts"
+      ],
+      "rank": 1,
+      "elapsed_us": 508
+    },
+    "codegraph_raw_fts": {
+      "paths": [
+        "packages/pds/src/secret.ts",
+        "packages/pds/src/secret.test.ts",
+        "packages/pds/src/plugin.test.ts",
+        "packages/pds/src/oauth.ts",
+        "packages/analytics/src/config.ts",
+        "packages/pds/src/secret.ts",
+        "packages/cli/src/nodes.test.ts",
+        "packages/pds/src/config.ts"
+      ],
+      "rank": 1
+    },
+    "codegraph_query": {
+      "paths": [
+        "packages/pds/src/secret.ts",
+        "packages/core/src/state.ts",
+        "packages/pds/src/client-metadata.test.ts",
+        "packages/pds/src/plugin.test.ts",
+        "packages/pds/src/secret.ts",
+        "packages/pds/src/secret.ts",
+        "packages/pds/src/secret.ts",
+        "packages/pds/src/secret.ts"
+      ],
+      "rank": 1,
+      "elapsed_ms": 162,
+      "exit_code": 0,
+      "output_bytes": 5574
+    },
+    "codegraph_explore": {
+      "paths": [
+        "packages/pds/src/secret.ts",
+        "packages/pds/src/commands.ts",
+        "packages/analytics/src/transform/handler.ts",
+        "packages/core/src/aws/secretsmanager.ts"
+      ],
+      "rank": 1,
+      "elapsed_ms": 245,
+      "exit_code": 0,
+      "output_bytes": 18948
+    }
+  },
+  {
+    "query": "publicationRecord()",
+    "expected_path": "packages/pds/src/sync.ts",
+    "category": "natural_or_split",
+    "baseline": {
+      "paths": [],
+      "rank": null,
+      "elapsed_us": 344691
+    },
+    "fts_metadata": {
+      "paths": [
+        "packages/pds/src/sync.ts",
+        "packages/pds/src/commands.ts",
+        "packages/pds/src/commands.ts",
+        "packages/pds/src/commands.ts",
+        "packages/pds/src/sync.ts",
+        "packages/pds/src/sync.ts",
+        "packages/pds/src/sync.ts",
+        "packages/pds/src/sync.ts"
+      ],
+      "rank": 1,
+      "elapsed_us": 687
+    },
+    "fts_body": {
+      "paths": [
+        "packages/pds/src/sync.ts",
+        "packages/pds/src/sync.ts",
+        "packages/pds/src/commands.ts",
+        "packages/pds/src/sync.ts",
+        "packages/pds/src/commands.ts",
+        "packages/pds/src/sync.ts",
+        "packages/pds/src/sync.ts",
+        "packages/pds/src/sync.ts"
+      ],
+      "rank": 1,
+      "elapsed_us": 301
+    },
+    "codegraph_raw_fts": {
+      "paths": [
+        "packages/pds/src/sync.ts",
+        "packages/pds/src/commands.ts"
+      ],
+      "rank": 1
+    },
+    "codegraph_query": {
+      "paths": [
+        "packages/pds/src/sync.ts",
+        "packages/pds/src/commands.ts"
+      ],
+      "rank": 1,
+      "elapsed_ms": 157,
+      "exit_code": 0,
+      "output_bytes": 1583
+    },
+    "codegraph_explore": {
+      "paths": [
+        "packages/pds/src/sync.ts",
+        "packages/core/src/config.ts",
+        "packages/analytics/src/nodes.ts",
+        "packages/build-agent/src/server.ts",
+        "packages/analytics/src/fixture-ingest.ts"
+      ],
+      "rank": 1,
+      "elapsed_ms": 233,
+      "exit_code": 0,
+      "output_bytes": 20823
+    }
+  }
+]

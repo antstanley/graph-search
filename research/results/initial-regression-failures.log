@@ -1,0 +1,84 @@
+   Compiling graph-search-types v0.1.0 (/private/tmp/graph-search-research/crates/types)
+   Compiling rustix v1.1.5
+   Compiling graph-search-core v0.1.0 (/private/tmp/graph-search-research/crates/core)
+   Compiling graph-search-langs v0.1.0 (/private/tmp/graph-search-research/crates/langs)
+   Compiling graph-search-engine v0.1.0 (/private/tmp/graph-search-research/crates/engine)
+   Compiling graph-search v0.1.0 (/private/tmp/graph-search-research/crates/graph-search)
+   Compiling tempfile v3.27.0
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 6.99s
+     Running tests/accuracy.rs (target/debug/deps/accuracy-7498af8e7af04ada)
+
+running 11 tests
+test explore_body_hits_respect_filters ... FAILED
+test graph_filters_are_applied_and_bad_globs_rejected ... FAILED
+test foreign_qualified_calls_do_not_bind_to_bare_local_names ... FAILED
+test rust_nested_receiver_calls_are_visited ... ok
+test ambiguous_targets_are_not_silently_selected ... FAILED
+test graph_limits_are_reported ... FAILED
+test js_calls_belong_to_functions_and_nested_receivers_are_visited ... ok
+test nested_qualified_names_do_not_repeat_ancestors ... ok
+test symbol_filters_precede_limit_and_ids_are_supported ... FAILED
+test zero_length_path_contains_its_endpoint ... FAILED
+test sync_rebinds_unchanged_callers_after_target_edits ... FAILED
+
+failures:
+
+---- explore_body_hits_respect_filters stdout ----
+
+thread 'explore_body_hits_respect_filters' (1029706) panicked at crates/graph-search/tests/accuracy.rs:45:2:
+assertion failed: i.search().explore(&q).unwrap().items.is_empty()
+
+---- graph_filters_are_applied_and_bad_globs_rejected stdout ----
+
+thread 'graph_filters_are_applied_and_bad_globs_rejected' (1029708) panicked at crates/graph-search/tests/accuracy.rs:39:40:
+assertion failed: r.nodes.is_empty()
+
+---- foreign_qualified_calls_do_not_bind_to_bare_local_names stdout ----
+
+thread 'foreign_qualified_calls_do_not_bind_to_bare_local_names' (1029707) panicked at crates/graph-search/tests/accuracy.rs:58:69:
+assertion failed: r.edges.iter().filter(|e| e.kind == EdgeKind::Calls).all(|e| !e.resolved)
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- ambiguous_targets_are_not_silently_selected stdout ----
+
+thread 'ambiguous_targets_are_not_silently_selected' (1029705) panicked at crates/graph-search/tests/accuracy.rs:34:2:
+assertion failed: i.search().callers(&TraversalQuery::new("same", 1)).is_err()
+
+---- graph_limits_are_reported stdout ----
+
+thread 'graph_limits_are_reported' (1029709) panicked at crates/graph-search/tests/accuracy.rs:54:40:
+assertion failed: !r.truncations.is_empty()
+
+---- symbol_filters_precede_limit_and_ids_are_supported stdout ----
+
+thread 'symbol_filters_precede_limit_and_ids_are_supported' (1029714) panicked at crates/graph-search/tests/accuracy.rs:29:39:
+assertion `left == right` failed
+  left: 0
+ right: 1
+
+---- zero_length_path_contains_its_endpoint stdout ----
+
+thread 'zero_length_path_contains_its_endpoint' (1029716) panicked at crates/graph-search/tests/accuracy.rs:49:65:
+assertion `left == right` failed
+  left: 0
+ right: 1
+
+---- sync_rebinds_unchanged_callers_after_target_edits stdout ----
+
+thread 'sync_rebinds_unchanged_callers_after_target_edits' (1029715) panicked at crates/graph-search/tests/accuracy.rs:63:69:
+assertion failed: r.edges.iter().any(|e| e.to_name == "leaf" && !e.resolved)
+
+
+failures:
+    ambiguous_targets_are_not_silently_selected
+    explore_body_hits_respect_filters
+    foreign_qualified_calls_do_not_bind_to_bare_local_names
+    graph_filters_are_applied_and_bad_globs_rejected
+    graph_limits_are_reported
+    symbol_filters_precede_limit_and_ids_are_supported
+    sync_rebinds_unchanged_callers_after_target_edits
+    zero_length_path_contains_its_endpoint
+
+test result: FAILED. 3 passed; 8 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.09s
+
+error: test failed, to rerun pass `-p graph-search --test accuracy`

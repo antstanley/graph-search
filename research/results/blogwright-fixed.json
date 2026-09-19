@@ -1,0 +1,3263 @@
+{
+  "repo": "blogwright",
+  "nodes": 7453,
+  "files": 337,
+  "edges": 18847,
+  "index_ms": 2575,
+  "quarantined": [],
+  "file_owned_calls": 4167,
+  "edge_counts": {
+    "imports_unresolved": 1225,
+    "contains_resolved": 4973,
+    "exports_resolved": 485,
+    "calls_unresolved": 6502,
+    "imports_resolved": 1415,
+    "calls_resolved": 1783,
+    "type_uses_unresolved": 1248,
+    "type_uses_resolved": 1207,
+    "extends_unresolved": 7,
+    "implements_unresolved": 2
+  },
+  "queries": [
+    {
+      "elapsed_us": 356018,
+      "request": {
+        "category": "exact",
+        "expected_path": "packages/pds/src/content.ts",
+        "mode": "explore",
+        "query": "listPublishablePosts"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 4,
+          "unresolved": 0
+        },
+        "edges": [
+          {
+            "from": "file:packages/pds/src/content.test.ts",
+            "kind": "imports",
+            "line": 7,
+            "path": "packages/pds/src/content.test.ts",
+            "resolved": true,
+            "to": "file:packages/pds/src/content.ts",
+            "to_name": "packages/pds/src/content.ts"
+          },
+          {
+            "from": "file:packages/pds/src/content.test.ts",
+            "kind": "calls",
+            "line": 47,
+            "path": "packages/pds/src/content.test.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/content.ts#function:listPublishablePosts",
+            "to_name": "listPublishablePosts"
+          },
+          {
+            "from": "file:packages/pds/src/sync.ts",
+            "kind": "imports",
+            "line": 11,
+            "path": "packages/pds/src/sync.ts",
+            "resolved": true,
+            "to": "file:packages/pds/src/content.ts",
+            "to_name": "packages/pds/src/content.ts"
+          },
+          {
+            "from": "file:packages/pds/src/sync.ts",
+            "kind": "imports",
+            "line": 11,
+            "path": "packages/pds/src/sync.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/content.ts#function:listPublishablePosts",
+            "to_name": "listPublishablePosts"
+          }
+        ],
+        "items": [
+          {
+            "impact": {
+              "direct_callers": 2,
+              "total_callers": 2
+            },
+            "node": {
+              "end_line": 84,
+              "id": "sym:packages/pds/src/content.ts#function:listPublishablePosts",
+              "kind": "function",
+              "name": "listPublishablePosts",
+              "path": "packages/pds/src/content.ts",
+              "qualified_name": "listPublishablePosts",
+              "start_line": 54
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 7,
+              "id": "file:packages/pds/src/content.test.ts",
+              "kind": "file",
+              "name": "packages/pds/src/content.test.ts",
+              "path": "packages/pds/src/content.test.ts",
+              "qualified_name": "packages/pds/src/content.test.ts",
+              "start_line": 7
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 54,
+              "id": "file:packages/pds/src/content.ts",
+              "kind": "file",
+              "name": "packages/pds/src/content.ts",
+              "path": "packages/pds/src/content.ts",
+              "qualified_name": "packages/pds/src/content.ts",
+              "start_line": 54
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 11,
+              "id": "file:packages/pds/src/sync.ts",
+              "kind": "file",
+              "name": "packages/pds/src/sync.ts",
+              "path": "packages/pds/src/sync.ts",
+              "qualified_name": "packages/pds/src/sync.ts",
+              "start_line": 11
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 59,
+              "id": "sym:packages/pds/src/content.ts#const:listPublishablePosts.dir",
+              "kind": "const",
+              "name": "dir",
+              "path": "packages/pds/src/content.ts",
+              "qualified_name": "listPublishablePosts.dir",
+              "start_line": 59
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 60,
+              "id": "sym:packages/pds/src/content.ts#const:listPublishablePosts.posts",
+              "kind": "const",
+              "name": "posts",
+              "path": "packages/pds/src/content.ts",
+              "qualified_name": "listPublishablePosts.posts",
+              "start_line": 60
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 62,
+              "id": "sym:packages/pds/src/content.ts#const:listPublishablePosts.rel",
+              "kind": "const",
+              "name": "rel",
+              "path": "packages/pds/src/content.ts",
+              "qualified_name": "listPublishablePosts.rel",
+              "start_line": 62
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 64,
+              "id": "sym:packages/pds/src/content.ts#const:listPublishablePosts.base",
+              "kind": "const",
+              "name": "base",
+              "path": "packages/pds/src/content.ts",
+              "qualified_name": "listPublishablePosts.base",
+              "start_line": 64
+            }
+          }
+        ],
+        "stats": {
+          "candidates": 11,
+          "elapsed_ms": 355,
+          "files_scanned": 303,
+          "matches": 0
+        },
+        "truncations": [
+          {
+            "cap": 8,
+            "dropped": true,
+            "kind": "results",
+            "message": "matching nodes exceeded the result cap"
+          }
+        ]
+      }
+    },
+    {
+      "elapsed_us": 357424,
+      "request": {
+        "category": "natural_or_split",
+        "expected_path": "packages/pds/src/content.ts",
+        "mode": "explore",
+        "query": "list publishable posts"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 0,
+          "unresolved": 0
+        },
+        "edges": [],
+        "items": [
+          {
+            "impact": null,
+            "node": {
+              "end_line": 47,
+              "id": "sym:packages/pds/src/content.test.ts#const:posts",
+              "kind": "const",
+              "name": "posts",
+              "path": "packages/pds/src/content.test.ts",
+              "qualified_name": "posts",
+              "start_line": 47
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 62,
+              "id": "sym:packages/pds/src/content.test.ts#const:posts@62",
+              "kind": "const",
+              "name": "posts",
+              "path": "packages/pds/src/content.test.ts",
+              "qualified_name": "posts",
+              "start_line": 62
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 72,
+              "id": "sym:packages/pds/src/content.test.ts#const:posts@72",
+              "kind": "const",
+              "name": "posts",
+              "path": "packages/pds/src/content.test.ts",
+              "qualified_name": "posts",
+              "start_line": 72
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 119,
+              "id": "sym:packages/pds/src/content.test.ts#const:posts@119",
+              "kind": "const",
+              "name": "posts",
+              "path": "packages/pds/src/content.test.ts",
+              "qualified_name": "posts",
+              "start_line": 119
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 60,
+              "id": "sym:packages/pds/src/content.ts#const:listPublishablePosts.posts",
+              "kind": "const",
+              "name": "posts",
+              "path": "packages/pds/src/content.ts",
+              "qualified_name": "listPublishablePosts.posts",
+              "start_line": 60
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 59,
+              "id": "sym:packages/pds/src/sync.test.ts#const:POSTS",
+              "kind": "const",
+              "name": "POSTS",
+              "path": "packages/pds/src/sync.test.ts",
+              "qualified_name": "POSTS",
+              "start_line": 56
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 239,
+              "id": "sym:packages/pds/src/sync.ts#const:syncPds.posts",
+              "kind": "const",
+              "name": "posts",
+              "path": "packages/pds/src/sync.ts",
+              "qualified_name": "syncPds.posts",
+              "start_line": 239
+            }
+          },
+          {
+            "impact": {
+              "direct_callers": 2,
+              "total_callers": 2
+            },
+            "node": {
+              "end_line": 84,
+              "id": "sym:packages/pds/src/content.ts#function:listPublishablePosts",
+              "kind": "function",
+              "name": "listPublishablePosts",
+              "path": "packages/pds/src/content.ts",
+              "qualified_name": "listPublishablePosts",
+              "start_line": 54
+            }
+          }
+        ],
+        "stats": {
+          "candidates": 104,
+          "elapsed_ms": 357,
+          "files_scanned": 303,
+          "matches": 0
+        },
+        "truncations": [
+          {
+            "cap": 8,
+            "dropped": true,
+            "kind": "results",
+            "message": "matching nodes exceeded the result cap"
+          }
+        ]
+      }
+    },
+    {
+      "elapsed_us": 361601,
+      "request": {
+        "category": "natural_or_split",
+        "expected_path": "packages/pds/src/content.ts",
+        "mode": "explore",
+        "query": "How are publishable posts selected?"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 0,
+          "unresolved": 0
+        },
+        "edges": [],
+        "items": [
+          {
+            "impact": null,
+            "node": {
+              "end_line": 47,
+              "id": "sym:packages/pds/src/content.test.ts#const:posts",
+              "kind": "const",
+              "name": "posts",
+              "path": "packages/pds/src/content.test.ts",
+              "qualified_name": "posts",
+              "start_line": 47
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 62,
+              "id": "sym:packages/pds/src/content.test.ts#const:posts@62",
+              "kind": "const",
+              "name": "posts",
+              "path": "packages/pds/src/content.test.ts",
+              "qualified_name": "posts",
+              "start_line": 62
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 72,
+              "id": "sym:packages/pds/src/content.test.ts#const:posts@72",
+              "kind": "const",
+              "name": "posts",
+              "path": "packages/pds/src/content.test.ts",
+              "qualified_name": "posts",
+              "start_line": 72
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 119,
+              "id": "sym:packages/pds/src/content.test.ts#const:posts@119",
+              "kind": "const",
+              "name": "posts",
+              "path": "packages/pds/src/content.test.ts",
+              "qualified_name": "posts",
+              "start_line": 119
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 60,
+              "id": "sym:packages/pds/src/content.ts#const:listPublishablePosts.posts",
+              "kind": "const",
+              "name": "posts",
+              "path": "packages/pds/src/content.ts",
+              "qualified_name": "listPublishablePosts.posts",
+              "start_line": 60
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 59,
+              "id": "sym:packages/pds/src/sync.test.ts#const:POSTS",
+              "kind": "const",
+              "name": "POSTS",
+              "path": "packages/pds/src/sync.test.ts",
+              "qualified_name": "POSTS",
+              "start_line": 56
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 239,
+              "id": "sym:packages/pds/src/sync.ts#const:syncPds.posts",
+              "kind": "const",
+              "name": "posts",
+              "path": "packages/pds/src/sync.ts",
+              "qualified_name": "syncPds.posts",
+              "start_line": 239
+            }
+          },
+          {
+            "impact": {
+              "direct_callers": 2,
+              "total_callers": 2
+            },
+            "node": {
+              "end_line": 84,
+              "id": "sym:packages/pds/src/content.ts#function:listPublishablePosts",
+              "kind": "function",
+              "name": "listPublishablePosts",
+              "path": "packages/pds/src/content.ts",
+              "qualified_name": "listPublishablePosts",
+              "start_line": 54
+            }
+          }
+        ],
+        "stats": {
+          "candidates": 85,
+          "elapsed_ms": 361,
+          "files_scanned": 303,
+          "matches": 0
+        },
+        "truncations": [
+          {
+            "cap": 8,
+            "dropped": true,
+            "kind": "results",
+            "message": "matching nodes exceeded the result cap"
+          }
+        ]
+      }
+    },
+    {
+      "elapsed_us": 356326,
+      "request": {
+        "category": "exact",
+        "expected_path": "packages/pds/src/sync.ts",
+        "mode": "explore",
+        "query": "syncDocuments"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 2,
+          "unresolved": 0
+        },
+        "edges": [
+          {
+            "from": "file:packages/pds/src/sync.test.ts",
+            "kind": "imports",
+            "line": 9,
+            "path": "packages/pds/src/sync.test.ts",
+            "resolved": true,
+            "to": "file:packages/pds/src/sync.ts",
+            "to_name": "packages/pds/src/sync.ts"
+          },
+          {
+            "from": "file:packages/pds/src/sync.test.ts",
+            "kind": "calls",
+            "line": 94,
+            "path": "packages/pds/src/sync.test.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/sync.ts#function:syncDocuments",
+            "to_name": "syncDocuments"
+          }
+        ],
+        "items": [
+          {
+            "impact": {
+              "direct_callers": 2,
+              "total_callers": 2
+            },
+            "node": {
+              "end_line": 207,
+              "id": "sym:packages/pds/src/sync.ts#function:syncDocuments",
+              "kind": "function",
+              "name": "syncDocuments",
+              "path": "packages/pds/src/sync.ts",
+              "qualified_name": "syncDocuments",
+              "start_line": 170
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 14,
+              "id": "file:packages/pds/src/sync.test.ts",
+              "kind": "file",
+              "name": "packages/pds/src/sync.test.ts",
+              "path": "packages/pds/src/sync.test.ts",
+              "qualified_name": "packages/pds/src/sync.test.ts",
+              "start_line": 14
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 170,
+              "id": "file:packages/pds/src/sync.ts",
+              "kind": "file",
+              "name": "packages/pds/src/sync.ts",
+              "path": "packages/pds/src/sync.ts",
+              "qualified_name": "packages/pds/src/sync.ts",
+              "start_line": 170
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 175,
+              "id": "sym:packages/pds/src/sync.ts#const:syncDocuments.existing",
+              "kind": "const",
+              "name": "existing",
+              "path": "packages/pds/src/sync.ts",
+              "qualified_name": "syncDocuments.existing",
+              "start_line": 175
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 185,
+              "id": "sym:packages/pds/src/sync.ts#const:syncDocuments.summary",
+              "kind": "const",
+              "name": "summary",
+              "path": "packages/pds/src/sync.ts",
+              "qualified_name": "syncDocuments.summary",
+              "start_line": 180
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 186,
+              "id": "sym:packages/pds/src/sync.ts#const:syncDocuments.localRkeys",
+              "kind": "const",
+              "name": "localRkeys",
+              "path": "packages/pds/src/sync.ts",
+              "qualified_name": "syncDocuments.localRkeys",
+              "start_line": 186
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 188,
+              "id": "sym:packages/pds/src/sync.ts#const:syncDocuments.rkey",
+              "kind": "const",
+              "name": "rkey",
+              "path": "packages/pds/src/sync.ts",
+              "qualified_name": "syncDocuments.rkey",
+              "start_line": 188
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 191,
+              "id": "sym:packages/pds/src/sync.ts#const:syncDocuments.desired",
+              "kind": "const",
+              "name": "desired",
+              "path": "packages/pds/src/sync.ts",
+              "qualified_name": "syncDocuments.desired",
+              "start_line": 191
+            }
+          }
+        ],
+        "stats": {
+          "candidates": 9,
+          "elapsed_ms": 356,
+          "files_scanned": 303,
+          "matches": 0
+        },
+        "truncations": [
+          {
+            "cap": 8,
+            "dropped": true,
+            "kind": "results",
+            "message": "matching nodes exceeded the result cap"
+          }
+        ]
+      }
+    },
+    {
+      "elapsed_us": 361350,
+      "request": {
+        "category": "natural_or_split",
+        "expected_path": "packages/pds/src/sync.ts",
+        "mode": "explore",
+        "query": "sync documents"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 2,
+          "unresolved": 0
+        },
+        "edges": [
+          {
+            "from": "sym:packages/pds/src/commands.ts#function:syncAfterDeploy",
+            "kind": "type_uses",
+            "line": 207,
+            "path": "packages/pds/src/commands.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/sync.ts#interface:SyncSummary",
+            "to_name": "SyncSummary"
+          },
+          {
+            "from": "sym:packages/pds/src/sync.ts#function:syncDocuments",
+            "kind": "type_uses",
+            "line": 174,
+            "path": "packages/pds/src/sync.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/sync.ts#interface:SyncSummary",
+            "to_name": "SyncSummary"
+          }
+        ],
+        "items": [
+          {
+            "impact": null,
+            "node": {
+              "end_line": 55,
+              "id": "sym:packages/pds/src/commands.ts#const:keygen.documents",
+              "kind": "const",
+              "name": "documents",
+              "path": "packages/pds/src/commands.ts",
+              "qualified_name": "keygen.documents",
+              "start_line": 52
+            }
+          },
+          {
+            "impact": {
+              "direct_callers": 0,
+              "total_callers": 0
+            },
+            "node": {
+              "end_line": 182,
+              "id": "sym:packages/pds/src/commands.ts#function:sync",
+              "kind": "function",
+              "name": "sync",
+              "path": "packages/pds/src/commands.ts",
+              "qualified_name": "sync",
+              "start_line": 169
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 245,
+              "id": "sym:packages/pds/src/sync.ts#const:syncPds.documents",
+              "kind": "const",
+              "name": "documents",
+              "path": "packages/pds/src/sync.ts",
+              "qualified_name": "syncPds.documents",
+              "start_line": 245
+            }
+          },
+          {
+            "impact": {
+              "direct_callers": 2,
+              "total_callers": 2
+            },
+            "node": {
+              "end_line": 207,
+              "id": "sym:packages/pds/src/sync.ts#function:syncDocuments",
+              "kind": "function",
+              "name": "syncDocuments",
+              "path": "packages/pds/src/sync.ts",
+              "qualified_name": "syncDocuments",
+              "start_line": 170
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 29,
+              "id": "sym:packages/cli/src/adapters/process-package-manager.ts#type_alias:ExecFileAsync",
+              "kind": "type_alias",
+              "name": "ExecFileAsync",
+              "path": "packages/cli/src/adapters/process-package-manager.ts",
+              "qualified_name": "ExecFileAsync",
+              "start_line": 25
+            }
+          },
+          {
+            "impact": {
+              "direct_callers": 1,
+              "total_callers": 1
+            },
+            "node": {
+              "end_line": 223,
+              "id": "sym:packages/pds/src/commands.ts#function:syncAfterDeploy",
+              "kind": "function",
+              "name": "syncAfterDeploy",
+              "path": "packages/pds/src/commands.ts",
+              "qualified_name": "syncAfterDeploy",
+              "start_line": 204
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 49,
+              "id": "sym:packages/pds/src/sync.ts#interface:SyncSummary",
+              "kind": "interface",
+              "name": "SyncSummary",
+              "path": "packages/pds/src/sync.ts",
+              "qualified_name": "SyncSummary",
+              "start_line": 42
+            }
+          },
+          {
+            "impact": {
+              "direct_callers": 2,
+              "total_callers": 2
+            },
+            "node": {
+              "end_line": 163,
+              "id": "sym:packages/pds/src/sync.ts#function:syncPublication",
+              "kind": "function",
+              "name": "syncPublication",
+              "path": "packages/pds/src/sync.ts",
+              "qualified_name": "syncPublication",
+              "start_line": 145
+            }
+          }
+        ],
+        "stats": {
+          "candidates": 145,
+          "elapsed_ms": 361,
+          "files_scanned": 303,
+          "matches": 0
+        },
+        "truncations": [
+          {
+            "cap": 8,
+            "dropped": true,
+            "kind": "results",
+            "message": "matching nodes exceeded the result cap"
+          }
+        ]
+      }
+    },
+    {
+      "elapsed_us": 354088,
+      "request": {
+        "category": "exact",
+        "expected_path": "packages/pds/src/config.ts",
+        "mode": "explore",
+        "query": "resolvePdsSecretName"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 4,
+          "unresolved": 0
+        },
+        "edges": [
+          {
+            "from": "file:packages/pds/src/config.test.ts",
+            "kind": "imports",
+            "line": 4,
+            "path": "packages/pds/src/config.test.ts",
+            "resolved": true,
+            "to": "file:packages/pds/src/config.ts",
+            "to_name": "packages/pds/src/config.ts"
+          },
+          {
+            "from": "file:packages/pds/src/config.test.ts",
+            "kind": "calls",
+            "line": 144,
+            "path": "packages/pds/src/config.test.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/config.ts#function:resolvePdsSecretName",
+            "to_name": "resolvePdsSecretName"
+          },
+          {
+            "from": "file:packages/pds/src/nodes.ts",
+            "kind": "imports",
+            "line": 26,
+            "path": "packages/pds/src/nodes.ts",
+            "resolved": true,
+            "to": "file:packages/pds/src/config.ts",
+            "to_name": "packages/pds/src/config.ts"
+          },
+          {
+            "from": "file:packages/pds/src/nodes.ts",
+            "kind": "imports",
+            "line": 26,
+            "path": "packages/pds/src/nodes.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/config.ts#function:resolvePdsSecretName",
+            "to_name": "resolvePdsSecretName"
+          }
+        ],
+        "items": [
+          {
+            "impact": {
+              "direct_callers": 4,
+              "total_callers": 4
+            },
+            "node": {
+              "end_line": 110,
+              "id": "sym:packages/pds/src/config.ts#function:resolvePdsSecretName",
+              "kind": "function",
+              "name": "resolvePdsSecretName",
+              "path": "packages/pds/src/config.ts",
+              "qualified_name": "resolvePdsSecretName",
+              "start_line": 108
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 83,
+              "id": "file:packages/cli/CHANGELOG.md",
+              "kind": "file",
+              "name": "packages/cli/CHANGELOG.md",
+              "path": "packages/cli/CHANGELOG.md",
+              "qualified_name": "packages/cli/CHANGELOG.md",
+              "start_line": 83
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 37,
+              "id": "file:packages/core/CHANGELOG.md",
+              "kind": "file",
+              "name": "packages/core/CHANGELOG.md",
+              "path": "packages/core/CHANGELOG.md",
+              "qualified_name": "packages/core/CHANGELOG.md",
+              "start_line": 37
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 36,
+              "id": "file:packages/core/src/config.ts",
+              "kind": "file",
+              "name": "packages/core/src/config.ts",
+              "path": "packages/core/src/config.ts",
+              "qualified_name": "packages/core/src/config.ts",
+              "start_line": 36
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 49,
+              "id": "file:packages/pds/CHANGELOG.md",
+              "kind": "file",
+              "name": "packages/pds/CHANGELOG.md",
+              "path": "packages/pds/CHANGELOG.md",
+              "qualified_name": "packages/pds/CHANGELOG.md",
+              "start_line": 49
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 4,
+              "id": "file:packages/pds/src/config.test.ts",
+              "kind": "file",
+              "name": "packages/pds/src/config.test.ts",
+              "path": "packages/pds/src/config.test.ts",
+              "qualified_name": "packages/pds/src/config.test.ts",
+              "start_line": 4
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 6,
+              "id": "file:packages/pds/src/config.ts",
+              "kind": "file",
+              "name": "packages/pds/src/config.ts",
+              "path": "packages/pds/src/config.ts",
+              "qualified_name": "packages/pds/src/config.ts",
+              "start_line": 6
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 26,
+              "id": "file:packages/pds/src/nodes.ts",
+              "kind": "file",
+              "name": "packages/pds/src/nodes.ts",
+              "path": "packages/pds/src/nodes.ts",
+              "qualified_name": "packages/pds/src/nodes.ts",
+              "start_line": 26
+            }
+          }
+        ],
+        "stats": {
+          "candidates": 11,
+          "elapsed_ms": 353,
+          "files_scanned": 303,
+          "matches": 0
+        },
+        "truncations": [
+          {
+            "cap": 8,
+            "dropped": true,
+            "kind": "results",
+            "message": "matching nodes exceeded the result cap"
+          }
+        ]
+      }
+    },
+    {
+      "elapsed_us": 357813,
+      "request": {
+        "category": "natural_or_split",
+        "expected_path": "packages/pds/src/config.ts",
+        "mode": "explore",
+        "query": "resolve pds secret name"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 0,
+          "unresolved": 0
+        },
+        "edges": [],
+        "items": [
+          {
+            "impact": null,
+            "node": {
+              "end_line": 123,
+              "id": "sym:packages/analytics/src/adapters/duckdb-ingest.ts#const:insertStatement.tuples.values.name",
+              "kind": "const",
+              "name": "name",
+              "path": "packages/analytics/src/adapters/duckdb-ingest.ts",
+              "qualified_name": "insertStatement.tuples.values.name",
+              "start_line": 123
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 177,
+              "id": "sym:packages/analytics/src/adapters/duckdb-query.test.ts#const:secret",
+              "kind": "const",
+              "name": "secret",
+              "path": "packages/analytics/src/adapters/duckdb-query.test.ts",
+              "qualified_name": "secret",
+              "start_line": 177
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 427,
+              "id": "sym:packages/analytics/src/adapters/duckdb-session.ts#const:createDuckDbSession.openSession.secret",
+              "kind": "const",
+              "name": "secret",
+              "path": "packages/analytics/src/adapters/duckdb-session.ts",
+              "qualified_name": "createDuckDbSession.openSession.secret",
+              "start_line": 427
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 14,
+              "id": "sym:packages/analytics/src/aws/lambda.test.ts#const:NAME",
+              "kind": "const",
+              "name": "NAME",
+              "path": "packages/analytics/src/aws/lambda.test.ts",
+              "qualified_name": "NAME",
+              "start_line": 14
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 229,
+              "id": "sym:packages/analytics/src/backfill.test.ts#const:analyticsWorld.secret",
+              "kind": "const",
+              "name": "secret",
+              "path": "packages/analytics/src/backfill.test.ts",
+              "qualified_name": "analyticsWorld.secret",
+              "start_line": 229
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 300,
+              "id": "sym:packages/analytics/src/backfill.ts#const:readSaltSecret.secret",
+              "kind": "const",
+              "name": "secret",
+              "path": "packages/analytics/src/backfill.ts",
+              "qualified_name": "readSaltSecret.secret",
+              "start_line": 300
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 489,
+              "id": "sym:packages/analytics/src/commands.test.ts#const:iamReply.name",
+              "kind": "const",
+              "name": "name",
+              "path": "packages/analytics/src/commands.test.ts",
+              "qualified_name": "iamReply.name",
+              "start_line": 489
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 129,
+              "id": "sym:packages/analytics/src/config.test.ts#const:name",
+              "kind": "const",
+              "name": "name",
+              "path": "packages/analytics/src/config.test.ts",
+              "qualified_name": "name",
+              "start_line": 129
+            }
+          }
+        ],
+        "stats": {
+          "candidates": 1068,
+          "elapsed_ms": 357,
+          "files_scanned": 303,
+          "matches": 0
+        },
+        "truncations": [
+          {
+            "cap": 8,
+            "dropped": true,
+            "kind": "results",
+            "message": "matching nodes exceeded the result cap"
+          }
+        ]
+      }
+    },
+    {
+      "elapsed_us": 355578,
+      "request": {
+        "category": "exact",
+        "expected_path": "packages/pds/src/secret.ts",
+        "mode": "explore",
+        "query": "loadPdsSecret"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 7,
+          "unresolved": 0
+        },
+        "edges": [
+          {
+            "from": "file:packages/pds/src/commands.ts",
+            "kind": "imports",
+            "line": 7,
+            "path": "packages/pds/src/commands.ts",
+            "resolved": true,
+            "to": "file:packages/pds/src/oauth.ts",
+            "to_name": "packages/pds/src/oauth.ts"
+          },
+          {
+            "from": "file:packages/pds/src/commands.ts",
+            "kind": "imports",
+            "line": 14,
+            "path": "packages/pds/src/commands.ts",
+            "resolved": true,
+            "to": "file:packages/pds/src/secret.ts",
+            "to_name": "packages/pds/src/secret.ts"
+          },
+          {
+            "from": "file:packages/pds/src/commands.ts",
+            "kind": "imports",
+            "line": 14,
+            "path": "packages/pds/src/commands.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/secret.ts#function:loadPdsSecret",
+            "to_name": "loadPdsSecret"
+          },
+          {
+            "from": "file:packages/pds/src/oauth.ts",
+            "kind": "imports",
+            "line": 22,
+            "path": "packages/pds/src/oauth.ts",
+            "resolved": true,
+            "to": "file:packages/pds/src/secret.ts",
+            "to_name": "packages/pds/src/secret.ts"
+          },
+          {
+            "from": "file:packages/pds/src/oauth.ts",
+            "kind": "imports",
+            "line": 22,
+            "path": "packages/pds/src/oauth.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/secret.ts#function:loadPdsSecret",
+            "to_name": "loadPdsSecret"
+          },
+          {
+            "from": "file:packages/pds/src/secret.test.ts",
+            "kind": "imports",
+            "line": 7,
+            "path": "packages/pds/src/secret.test.ts",
+            "resolved": true,
+            "to": "file:packages/pds/src/secret.ts",
+            "to_name": "packages/pds/src/secret.ts"
+          },
+          {
+            "from": "file:packages/pds/src/secret.test.ts",
+            "kind": "calls",
+            "line": 61,
+            "path": "packages/pds/src/secret.test.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/secret.ts#function:loadPdsSecret",
+            "to_name": "loadPdsSecret"
+          }
+        ],
+        "items": [
+          {
+            "impact": {
+              "direct_callers": 5,
+              "total_callers": 5
+            },
+            "node": {
+              "end_line": 76,
+              "id": "sym:packages/pds/src/secret.ts#function:loadPdsSecret",
+              "kind": "function",
+              "name": "loadPdsSecret",
+              "path": "packages/pds/src/secret.ts",
+              "qualified_name": "loadPdsSecret",
+              "start_line": 69
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 14,
+              "id": "file:packages/pds/src/commands.ts",
+              "kind": "file",
+              "name": "packages/pds/src/commands.ts",
+              "path": "packages/pds/src/commands.ts",
+              "qualified_name": "packages/pds/src/commands.ts",
+              "start_line": 14
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 22,
+              "id": "file:packages/pds/src/oauth.ts",
+              "kind": "file",
+              "name": "packages/pds/src/oauth.ts",
+              "path": "packages/pds/src/oauth.ts",
+              "qualified_name": "packages/pds/src/oauth.ts",
+              "start_line": 22
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 8,
+              "id": "file:packages/pds/src/secret.test.ts",
+              "kind": "file",
+              "name": "packages/pds/src/secret.test.ts",
+              "path": "packages/pds/src/secret.test.ts",
+              "qualified_name": "packages/pds/src/secret.test.ts",
+              "start_line": 8
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 69,
+              "id": "file:packages/pds/src/secret.ts",
+              "kind": "file",
+              "name": "packages/pds/src/secret.ts",
+              "path": "packages/pds/src/secret.ts",
+              "qualified_name": "packages/pds/src/secret.ts",
+              "start_line": 69
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 70,
+              "id": "sym:packages/pds/src/secret.ts#const:loadPdsSecret.pds",
+              "kind": "const",
+              "name": "pds",
+              "path": "packages/pds/src/secret.ts",
+              "qualified_name": "loadPdsSecret.pds",
+              "start_line": 70
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 71,
+              "id": "sym:packages/pds/src/secret.ts#const:loadPdsSecret.raw",
+              "kind": "const",
+              "name": "raw",
+              "path": "packages/pds/src/secret.ts",
+              "qualified_name": "loadPdsSecret.raw",
+              "start_line": 71
+            }
+          }
+        ],
+        "stats": {
+          "candidates": 7,
+          "elapsed_ms": 355,
+          "files_scanned": 303,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 357076,
+      "request": {
+        "category": "natural_or_split",
+        "expected_path": "packages/pds/src/secret.ts",
+        "mode": "explore",
+        "query": "load pds secret"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 0,
+          "unresolved": 0
+        },
+        "edges": [],
+        "items": [
+          {
+            "impact": null,
+            "node": {
+              "end_line": 177,
+              "id": "sym:packages/analytics/src/adapters/duckdb-query.test.ts#const:secret",
+              "kind": "const",
+              "name": "secret",
+              "path": "packages/analytics/src/adapters/duckdb-query.test.ts",
+              "qualified_name": "secret",
+              "start_line": 177
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 427,
+              "id": "sym:packages/analytics/src/adapters/duckdb-session.ts#const:createDuckDbSession.openSession.secret",
+              "kind": "const",
+              "name": "secret",
+              "path": "packages/analytics/src/adapters/duckdb-session.ts",
+              "qualified_name": "createDuckDbSession.openSession.secret",
+              "start_line": 427
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 229,
+              "id": "sym:packages/analytics/src/backfill.test.ts#const:analyticsWorld.secret",
+              "kind": "const",
+              "name": "secret",
+              "path": "packages/analytics/src/backfill.test.ts",
+              "qualified_name": "analyticsWorld.secret",
+              "start_line": 229
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 300,
+              "id": "sym:packages/analytics/src/backfill.ts#const:readSaltSecret.secret",
+              "kind": "const",
+              "name": "secret",
+              "path": "packages/analytics/src/backfill.ts",
+              "qualified_name": "readSaltSecret.secret",
+              "start_line": 300
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 1190,
+              "id": "sym:packages/analytics/src/nodes.ts#const:analyticsSaltSecretNode.read.secret",
+              "kind": "const",
+              "name": "secret",
+              "path": "packages/analytics/src/nodes.ts",
+              "qualified_name": "analyticsSaltSecretNode.read.secret",
+              "start_line": 1190
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 160,
+              "id": "sym:packages/analytics/src/transform/handler.ts#const:loadSaltSecret.secret",
+              "kind": "const",
+              "name": "secret",
+              "path": "packages/analytics/src/transform/handler.ts",
+              "qualified_name": "loadSaltSecret.secret",
+              "start_line": 160
+            }
+          },
+          {
+            "impact": {
+              "direct_callers": 0,
+              "total_callers": 0
+            },
+            "node": {
+              "end_line": 159,
+              "id": "sym:packages/cli/src/adapters/node-module-loader.ts#method:createNodeModuleLoader.load",
+              "kind": "method",
+              "name": "load",
+              "path": "packages/cli/src/adapters/node-module-loader.ts",
+              "qualified_name": "createNodeModuleLoader.load",
+              "start_line": 151
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 23,
+              "id": "sym:packages/cli/src/nodes.test.ts#const:ctx.pds",
+              "kind": "const",
+              "name": "pds",
+              "path": "packages/cli/src/nodes.test.ts",
+              "qualified_name": "ctx.pds",
+              "start_line": 23
+            }
+          }
+        ],
+        "stats": {
+          "candidates": 1048,
+          "elapsed_ms": 356,
+          "files_scanned": 303,
+          "matches": 0
+        },
+        "truncations": [
+          {
+            "cap": 8,
+            "dropped": true,
+            "kind": "results",
+            "message": "matching nodes exceeded the result cap"
+          }
+        ]
+      }
+    },
+    {
+      "elapsed_us": 351696,
+      "request": {
+        "category": "natural_or_split",
+        "expected_path": "packages/pds/src/sync.ts",
+        "mode": "explore",
+        "query": "publicationRecord()"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 2,
+          "unresolved": 0
+        },
+        "edges": [
+          {
+            "from": "file:packages/pds/src/commands.ts",
+            "kind": "imports",
+            "line": 15,
+            "path": "packages/pds/src/commands.ts",
+            "resolved": true,
+            "to": "file:packages/pds/src/sync.ts",
+            "to_name": "packages/pds/src/sync.ts"
+          },
+          {
+            "from": "file:packages/pds/src/commands.ts",
+            "kind": "imports",
+            "line": 15,
+            "path": "packages/pds/src/commands.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/sync.ts#function:publicationRecord",
+            "to_name": "publicationRecord"
+          }
+        ],
+        "items": [
+          {
+            "impact": {
+              "direct_callers": 2,
+              "total_callers": 2
+            },
+            "node": {
+              "end_line": 118,
+              "id": "sym:packages/pds/src/sync.ts#function:publicationRecord",
+              "kind": "function",
+              "name": "publicationRecord",
+              "path": "packages/pds/src/sync.ts",
+              "qualified_name": "publicationRecord",
+              "start_line": 110
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 17,
+              "id": "file:packages/pds/src/commands.ts",
+              "kind": "file",
+              "name": "packages/pds/src/commands.ts",
+              "path": "packages/pds/src/commands.ts",
+              "qualified_name": "packages/pds/src/commands.ts",
+              "start_line": 17
+            }
+          },
+          {
+            "impact": null,
+            "node": {
+              "end_line": 110,
+              "id": "file:packages/pds/src/sync.ts",
+              "kind": "file",
+              "name": "packages/pds/src/sync.ts",
+              "path": "packages/pds/src/sync.ts",
+              "qualified_name": "packages/pds/src/sync.ts",
+              "start_line": 110
+            }
+          }
+        ],
+        "stats": {
+          "candidates": 3,
+          "elapsed_ms": 351,
+          "files_scanned": 303,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 180671,
+      "request": {
+        "mode": "symbol",
+        "query": "listPublishablePosts"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 0,
+          "unresolved": 0
+        },
+        "edges": [],
+        "nodes": [
+          {
+            "end_line": 84,
+            "id": "sym:packages/pds/src/content.ts#function:listPublishablePosts",
+            "kind": "function",
+            "name": "listPublishablePosts",
+            "path": "packages/pds/src/content.ts",
+            "qualified_name": "listPublishablePosts",
+            "start_line": 54
+          }
+        ],
+        "stats": {
+          "candidates": 1,
+          "elapsed_ms": 180,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 182273,
+      "request": {
+        "mode": "callers",
+        "query": "listPublishablePosts"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 2,
+          "unresolved": 0
+        },
+        "edges": [
+          {
+            "from": "file:packages/pds/src/content.test.ts",
+            "kind": "calls",
+            "line": 47,
+            "path": "packages/pds/src/content.test.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/content.ts#function:listPublishablePosts",
+            "to_name": "listPublishablePosts"
+          },
+          {
+            "from": "sym:packages/pds/src/sync.ts#function:syncPds",
+            "kind": "calls",
+            "line": 239,
+            "path": "packages/pds/src/sync.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/content.ts#function:listPublishablePosts",
+            "to_name": "listPublishablePosts"
+          }
+        ],
+        "nodes": [
+          {
+            "end_line": 0,
+            "id": "file:packages/pds/src/content.test.ts",
+            "kind": "file",
+            "name": "packages/pds/src/content.test.ts",
+            "path": "packages/pds/src/content.test.ts",
+            "qualified_name": "packages/pds/src/content.test.ts",
+            "start_line": 0
+          },
+          {
+            "end_line": 84,
+            "id": "sym:packages/pds/src/content.ts#function:listPublishablePosts",
+            "kind": "function",
+            "name": "listPublishablePosts",
+            "path": "packages/pds/src/content.ts",
+            "qualified_name": "listPublishablePosts",
+            "start_line": 54
+          },
+          {
+            "end_line": 247,
+            "id": "sym:packages/pds/src/sync.ts#function:syncPds",
+            "kind": "function",
+            "name": "syncPds",
+            "path": "packages/pds/src/sync.ts",
+            "qualified_name": "syncPds",
+            "start_line": 214
+          }
+        ],
+        "stats": {
+          "candidates": 3,
+          "elapsed_ms": 182,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 182721,
+      "request": {
+        "mode": "callees",
+        "query": "listPublishablePosts"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 1,
+          "unresolved": 14
+        },
+        "edges": [
+          {
+            "from": "sym:packages/pds/src/content.ts#function:listPublishablePosts",
+            "kind": "calls",
+            "line": 63,
+            "path": "packages/pds/src/content.ts",
+            "resolved": false,
+            "to": null,
+            "to_name": "/\\.mdx?$/.test"
+          },
+          {
+            "from": "sym:packages/pds/src/content.ts#function:listPublishablePosts",
+            "kind": "calls",
+            "line": 71,
+            "path": "packages/pds/src/content.ts",
+            "resolved": false,
+            "to": null,
+            "to_name": "Date"
+          },
+          {
+            "from": "sym:packages/pds/src/content.ts#function:listPublishablePosts",
+            "kind": "calls",
+            "line": 69,
+            "path": "packages/pds/src/content.ts",
+            "resolved": false,
+            "to": null,
+            "to_name": "Error"
+          },
+          {
+            "from": "sym:packages/pds/src/content.ts#function:listPublishablePosts",
+            "kind": "calls",
+            "line": 72,
+            "path": "packages/pds/src/content.ts",
+            "resolved": false,
+            "to": null,
+            "to_name": "Number.isNaN"
+          },
+          {
+            "from": "sym:packages/pds/src/content.ts#function:listPublishablePosts",
+            "kind": "calls",
+            "line": 65,
+            "path": "packages/pds/src/content.ts",
+            "resolved": false,
+            "to": null,
+            "to_name": "base.endsWith"
+          },
+          {
+            "from": "sym:packages/pds/src/content.ts#function:listPublishablePosts",
+            "kind": "calls",
+            "line": 65,
+            "path": "packages/pds/src/content.ts",
+            "resolved": false,
+            "to": null,
+            "to_name": "base.slice"
+          },
+          {
+            "from": "sym:packages/pds/src/content.ts#function:listPublishablePosts",
+            "kind": "calls",
+            "line": 62,
+            "path": "packages/pds/src/content.ts",
+            "resolved": false,
+            "to": null,
+            "to_name": "file.replaceAll"
+          },
+          {
+            "from": "sym:packages/pds/src/content.ts#function:listPublishablePosts",
+            "kind": "calls",
+            "line": 61,
+            "path": "packages/pds/src/content.ts",
+            "resolved": false,
+            "to": null,
+            "to_name": "fs.listFiles"
+          },
+          {
+            "from": "sym:packages/pds/src/content.ts#function:listPublishablePosts",
+            "kind": "calls",
+            "line": 66,
+            "path": "packages/pds/src/content.ts",
+            "resolved": false,
+            "to": null,
+            "to_name": "fs.readText"
+          },
+          {
+            "from": "sym:packages/pds/src/content.ts#function:listPublishablePosts",
+            "kind": "calls",
+            "line": 59,
+            "path": "packages/pds/src/content.ts",
+            "resolved": false,
+            "to": null,
+            "to_name": "join"
+          },
+          {
+            "from": "sym:packages/pds/src/content.ts#function:listPublishablePosts",
+            "kind": "calls",
+            "line": 75,
+            "path": "packages/pds/src/content.ts",
+            "resolved": false,
+            "to": null,
+            "to_name": "posts.push"
+          },
+          {
+            "from": "sym:packages/pds/src/content.ts#function:listPublishablePosts",
+            "kind": "calls",
+            "line": 83,
+            "path": "packages/pds/src/content.ts",
+            "resolved": false,
+            "to": null,
+            "to_name": "posts.sort"
+          },
+          {
+            "from": "sym:packages/pds/src/content.ts#function:listPublishablePosts",
+            "kind": "calls",
+            "line": 72,
+            "path": "packages/pds/src/content.ts",
+            "resolved": false,
+            "to": null,
+            "to_name": "pubDate.getTime"
+          },
+          {
+            "from": "sym:packages/pds/src/content.ts#function:listPublishablePosts",
+            "kind": "calls",
+            "line": 64,
+            "path": "packages/pds/src/content.ts",
+            "resolved": false,
+            "to": null,
+            "to_name": "rel.replace"
+          },
+          {
+            "from": "sym:packages/pds/src/content.ts#function:listPublishablePosts",
+            "kind": "calls",
+            "line": 66,
+            "path": "packages/pds/src/content.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/content.ts#function:parseFrontmatter",
+            "to_name": "parseFrontmatter"
+          }
+        ],
+        "nodes": [
+          {
+            "end_line": 45,
+            "id": "sym:packages/pds/src/content.ts#function:parseFrontmatter",
+            "kind": "function",
+            "name": "parseFrontmatter",
+            "path": "packages/pds/src/content.ts",
+            "qualified_name": "parseFrontmatter",
+            "start_line": 27
+          },
+          {
+            "end_line": 84,
+            "id": "sym:packages/pds/src/content.ts#function:listPublishablePosts",
+            "kind": "function",
+            "name": "listPublishablePosts",
+            "path": "packages/pds/src/content.ts",
+            "qualified_name": "listPublishablePosts",
+            "start_line": 54
+          }
+        ],
+        "stats": {
+          "candidates": 2,
+          "elapsed_ms": 182,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 181916,
+      "request": {
+        "mode": "refs",
+        "query": "listPublishablePosts"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 2,
+          "unresolved": 0
+        },
+        "edges": [
+          {
+            "from": "file:packages/pds/src/content.test.ts",
+            "kind": "calls",
+            "line": 47,
+            "path": "packages/pds/src/content.test.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/content.ts#function:listPublishablePosts",
+            "to_name": "listPublishablePosts"
+          },
+          {
+            "from": "sym:packages/pds/src/sync.ts#function:syncPds",
+            "kind": "calls",
+            "line": 239,
+            "path": "packages/pds/src/sync.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/content.ts#function:listPublishablePosts",
+            "to_name": "listPublishablePosts"
+          }
+        ],
+        "nodes": [
+          {
+            "end_line": 0,
+            "id": "file:packages/pds/src/content.test.ts",
+            "kind": "file",
+            "name": "packages/pds/src/content.test.ts",
+            "path": "packages/pds/src/content.test.ts",
+            "qualified_name": "packages/pds/src/content.test.ts",
+            "start_line": 0
+          },
+          {
+            "end_line": 84,
+            "id": "sym:packages/pds/src/content.ts#function:listPublishablePosts",
+            "kind": "function",
+            "name": "listPublishablePosts",
+            "path": "packages/pds/src/content.ts",
+            "qualified_name": "listPublishablePosts",
+            "start_line": 54
+          },
+          {
+            "end_line": 247,
+            "id": "sym:packages/pds/src/sync.ts#function:syncPds",
+            "kind": "function",
+            "name": "syncPds",
+            "path": "packages/pds/src/sync.ts",
+            "qualified_name": "syncPds",
+            "start_line": 214
+          }
+        ],
+        "stats": {
+          "candidates": 3,
+          "elapsed_ms": 181,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 181748,
+      "request": {
+        "mode": "impact",
+        "query": "listPublishablePosts"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 2,
+          "unresolved": 0
+        },
+        "by_depth": [
+          {
+            "by_kind": {
+              "file": 1,
+              "function": 1
+            },
+            "depth": 1,
+            "total": 2
+          }
+        ],
+        "edges": [
+          {
+            "from": "file:packages/pds/src/content.test.ts",
+            "kind": "calls",
+            "line": 47,
+            "path": "packages/pds/src/content.test.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/content.ts#function:listPublishablePosts",
+            "to_name": "listPublishablePosts"
+          },
+          {
+            "from": "sym:packages/pds/src/sync.ts#function:syncPds",
+            "kind": "calls",
+            "line": 239,
+            "path": "packages/pds/src/sync.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/content.ts#function:listPublishablePosts",
+            "to_name": "listPublishablePosts"
+          }
+        ],
+        "stats": {
+          "candidates": 2,
+          "elapsed_ms": 181,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "top": [
+          {
+            "end_line": 0,
+            "id": "file:packages/pds/src/content.test.ts",
+            "kind": "file",
+            "name": "packages/pds/src/content.test.ts",
+            "path": "packages/pds/src/content.test.ts",
+            "qualified_name": "packages/pds/src/content.test.ts",
+            "start_line": 0
+          },
+          {
+            "end_line": 247,
+            "id": "sym:packages/pds/src/sync.ts#function:syncPds",
+            "kind": "function",
+            "name": "syncPds",
+            "path": "packages/pds/src/sync.ts",
+            "qualified_name": "syncPds",
+            "start_line": 214
+          }
+        ],
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 180819,
+      "request": {
+        "mode": "symbol",
+        "query": "syncDocuments"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 0,
+          "unresolved": 0
+        },
+        "edges": [],
+        "nodes": [
+          {
+            "end_line": 207,
+            "id": "sym:packages/pds/src/sync.ts#function:syncDocuments",
+            "kind": "function",
+            "name": "syncDocuments",
+            "path": "packages/pds/src/sync.ts",
+            "qualified_name": "syncDocuments",
+            "start_line": 170
+          }
+        ],
+        "stats": {
+          "candidates": 1,
+          "elapsed_ms": 180,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 181572,
+      "request": {
+        "mode": "callers",
+        "query": "syncDocuments"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 2,
+          "unresolved": 0
+        },
+        "edges": [
+          {
+            "from": "file:packages/pds/src/sync.test.ts",
+            "kind": "calls",
+            "line": 94,
+            "path": "packages/pds/src/sync.test.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/sync.ts#function:syncDocuments",
+            "to_name": "syncDocuments"
+          },
+          {
+            "from": "sym:packages/pds/src/sync.ts#function:syncPds",
+            "kind": "calls",
+            "line": 245,
+            "path": "packages/pds/src/sync.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/sync.ts#function:syncDocuments",
+            "to_name": "syncDocuments"
+          }
+        ],
+        "nodes": [
+          {
+            "end_line": 0,
+            "id": "file:packages/pds/src/sync.test.ts",
+            "kind": "file",
+            "name": "packages/pds/src/sync.test.ts",
+            "path": "packages/pds/src/sync.test.ts",
+            "qualified_name": "packages/pds/src/sync.test.ts",
+            "start_line": 0
+          },
+          {
+            "end_line": 207,
+            "id": "sym:packages/pds/src/sync.ts#function:syncDocuments",
+            "kind": "function",
+            "name": "syncDocuments",
+            "path": "packages/pds/src/sync.ts",
+            "qualified_name": "syncDocuments",
+            "start_line": 170
+          },
+          {
+            "end_line": 247,
+            "id": "sym:packages/pds/src/sync.ts#function:syncPds",
+            "kind": "function",
+            "name": "syncPds",
+            "path": "packages/pds/src/sync.ts",
+            "qualified_name": "syncPds",
+            "start_line": 214
+          }
+        ],
+        "stats": {
+          "candidates": 3,
+          "elapsed_ms": 181,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 182224,
+      "request": {
+        "mode": "callees",
+        "query": "syncDocuments"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 5,
+          "unresolved": 13
+        },
+        "edges": [
+          {
+            "from": "sym:packages/pds/src/sync.ts#function:syncDocuments",
+            "kind": "calls",
+            "line": 189,
+            "path": "packages/pds/src/sync.ts",
+            "resolved": false,
+            "to": null,
+            "to_name": "Error"
+          },
+          {
+            "from": "sym:packages/pds/src/sync.ts#function:syncDocuments",
+            "kind": "calls",
+            "line": 175,
+            "path": "packages/pds/src/sync.ts",
+            "resolved": false,
+            "to": null,
+            "to_name": "Map"
+          },
+          {
+            "from": "sym:packages/pds/src/sync.ts#function:syncDocuments",
+            "kind": "calls",
+            "line": 186,
+            "path": "packages/pds/src/sync.ts",
+            "resolved": false,
+            "to": null,
+            "to_name": "Set"
+          },
+          {
+            "from": "sym:packages/pds/src/sync.ts#function:syncDocuments",
+            "kind": "calls",
+            "line": 176,
+            "path": "packages/pds/src/sync.ts",
+            "resolved": false,
+            "to": null,
+            "to_name": "client.listRecords"
+          },
+          {
+            "from": "sym:packages/pds/src/sync.ts#function:syncDocuments",
+            "kind": "calls",
+            "line": 194,
+            "path": "packages/pds/src/sync.ts",
+            "resolved": false,
+            "to": null,
+            "to_name": "client.putRecord"
+          },
+          {
+            "from": "sym:packages/pds/src/sync.ts#function:syncDocuments",
+            "kind": "calls",
+            "line": 192,
+            "path": "packages/pds/src/sync.ts",
+            "resolved": false,
+            "to": null,
+            "to_name": "existing.get"
+          },
+          {
+            "from": "sym:packages/pds/src/sync.ts#function:syncDocuments",
+            "kind": "calls",
+            "line": 203,
+            "path": "packages/pds/src/sync.ts",
+            "resolved": false,
+            "to": null,
+            "to_name": "existing.keys"
+          },
+          {
+            "from": "sym:packages/pds/src/sync.ts#function:syncDocuments",
+            "kind": "calls",
+            "line": 177,
+            "path": "packages/pds/src/sync.ts",
+            "resolved": false,
+            "to": null,
+            "to_name": "existing.set"
+          },
+          {
+            "from": "sym:packages/pds/src/sync.ts#function:syncDocuments",
+            "kind": "calls",
+            "line": 190,
+            "path": "packages/pds/src/sync.ts",
+            "resolved": false,
+            "to": null,
+            "to_name": "localRkeys.add"
+          },
+          {
+            "from": "sym:packages/pds/src/sync.ts#function:syncDocuments",
+            "kind": "calls",
+            "line": 189,
+            "path": "packages/pds/src/sync.ts",
+            "resolved": false,
+            "to": null,
+            "to_name": "localRkeys.has"
+          },
+          {
+            "from": "sym:packages/pds/src/sync.ts#function:syncDocuments",
+            "kind": "calls",
+            "line": 195,
+            "path": "packages/pds/src/sync.ts",
+            "resolved": false,
+            "to": null,
+            "to_name": "summary.created.push"
+          },
+          {
+            "from": "sym:packages/pds/src/sync.ts#function:syncDocuments",
+            "kind": "calls",
+            "line": 204,
+            "path": "packages/pds/src/sync.ts",
+            "resolved": false,
+            "to": null,
+            "to_name": "summary.orphans.push"
+          },
+          {
+            "from": "sym:packages/pds/src/sync.ts#function:syncDocuments",
+            "kind": "calls",
+            "line": 198,
+            "path": "packages/pds/src/sync.ts",
+            "resolved": false,
+            "to": null,
+            "to_name": "summary.updated.push"
+          },
+          {
+            "from": "sym:packages/pds/src/sync.ts#function:syncDocuments",
+            "kind": "calls",
+            "line": 188,
+            "path": "packages/pds/src/sync.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/rkey.ts#function:postPath",
+            "to_name": "postPath"
+          },
+          {
+            "from": "sym:packages/pds/src/sync.ts#function:syncDocuments",
+            "kind": "calls",
+            "line": 188,
+            "path": "packages/pds/src/sync.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/rkey.ts#function:tidFromPath",
+            "to_name": "tidFromPath"
+          },
+          {
+            "from": "sym:packages/pds/src/sync.ts#function:syncDocuments",
+            "kind": "calls",
+            "line": 191,
+            "path": "packages/pds/src/sync.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/sync.ts#function:documentRecord",
+            "to_name": "documentRecord"
+          },
+          {
+            "from": "sym:packages/pds/src/sync.ts#function:syncDocuments",
+            "kind": "calls",
+            "line": 196,
+            "path": "packages/pds/src/sync.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/sync.ts#function:recordsDiffer",
+            "to_name": "recordsDiffer"
+          },
+          {
+            "from": "sym:packages/pds/src/sync.ts#function:syncDocuments",
+            "kind": "calls",
+            "line": 177,
+            "path": "packages/pds/src/sync.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/xrpc.ts#function:rkeyFromUri",
+            "to_name": "rkeyFromUri"
+          }
+        ],
+        "nodes": [
+          {
+            "end_line": 41,
+            "id": "sym:packages/pds/src/rkey.ts#function:tidFromPath",
+            "kind": "function",
+            "name": "tidFromPath",
+            "path": "packages/pds/src/rkey.ts",
+            "qualified_name": "tidFromPath",
+            "start_line": 15
+          },
+          {
+            "end_line": 81,
+            "id": "sym:packages/pds/src/rkey.ts#function:postPath",
+            "kind": "function",
+            "name": "postPath",
+            "path": "packages/pds/src/rkey.ts",
+            "qualified_name": "postPath",
+            "start_line": 81
+          },
+          {
+            "end_line": 130,
+            "id": "sym:packages/pds/src/sync.ts#function:documentRecord",
+            "kind": "function",
+            "name": "documentRecord",
+            "path": "packages/pds/src/sync.ts",
+            "qualified_name": "documentRecord",
+            "start_line": 121
+          },
+          {
+            "end_line": 142,
+            "id": "sym:packages/pds/src/sync.ts#function:recordsDiffer",
+            "kind": "function",
+            "name": "recordsDiffer",
+            "path": "packages/pds/src/sync.ts",
+            "qualified_name": "recordsDiffer",
+            "start_line": 136
+          },
+          {
+            "end_line": 207,
+            "id": "sym:packages/pds/src/sync.ts#function:syncDocuments",
+            "kind": "function",
+            "name": "syncDocuments",
+            "path": "packages/pds/src/sync.ts",
+            "qualified_name": "syncDocuments",
+            "start_line": 170
+          },
+          {
+            "end_line": 38,
+            "id": "sym:packages/pds/src/xrpc.ts#function:rkeyFromUri",
+            "kind": "function",
+            "name": "rkeyFromUri",
+            "path": "packages/pds/src/xrpc.ts",
+            "qualified_name": "rkeyFromUri",
+            "start_line": 34
+          }
+        ],
+        "stats": {
+          "candidates": 6,
+          "elapsed_ms": 182,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 181401,
+      "request": {
+        "mode": "refs",
+        "query": "syncDocuments"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 2,
+          "unresolved": 0
+        },
+        "edges": [
+          {
+            "from": "file:packages/pds/src/sync.test.ts",
+            "kind": "calls",
+            "line": 94,
+            "path": "packages/pds/src/sync.test.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/sync.ts#function:syncDocuments",
+            "to_name": "syncDocuments"
+          },
+          {
+            "from": "sym:packages/pds/src/sync.ts#function:syncPds",
+            "kind": "calls",
+            "line": 245,
+            "path": "packages/pds/src/sync.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/sync.ts#function:syncDocuments",
+            "to_name": "syncDocuments"
+          }
+        ],
+        "nodes": [
+          {
+            "end_line": 0,
+            "id": "file:packages/pds/src/sync.test.ts",
+            "kind": "file",
+            "name": "packages/pds/src/sync.test.ts",
+            "path": "packages/pds/src/sync.test.ts",
+            "qualified_name": "packages/pds/src/sync.test.ts",
+            "start_line": 0
+          },
+          {
+            "end_line": 207,
+            "id": "sym:packages/pds/src/sync.ts#function:syncDocuments",
+            "kind": "function",
+            "name": "syncDocuments",
+            "path": "packages/pds/src/sync.ts",
+            "qualified_name": "syncDocuments",
+            "start_line": 170
+          },
+          {
+            "end_line": 247,
+            "id": "sym:packages/pds/src/sync.ts#function:syncPds",
+            "kind": "function",
+            "name": "syncPds",
+            "path": "packages/pds/src/sync.ts",
+            "qualified_name": "syncPds",
+            "start_line": 214
+          }
+        ],
+        "stats": {
+          "candidates": 3,
+          "elapsed_ms": 181,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 181148,
+      "request": {
+        "mode": "impact",
+        "query": "syncDocuments"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 2,
+          "unresolved": 0
+        },
+        "by_depth": [
+          {
+            "by_kind": {
+              "file": 1,
+              "function": 1
+            },
+            "depth": 1,
+            "total": 2
+          }
+        ],
+        "edges": [
+          {
+            "from": "file:packages/pds/src/sync.test.ts",
+            "kind": "calls",
+            "line": 94,
+            "path": "packages/pds/src/sync.test.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/sync.ts#function:syncDocuments",
+            "to_name": "syncDocuments"
+          },
+          {
+            "from": "sym:packages/pds/src/sync.ts#function:syncPds",
+            "kind": "calls",
+            "line": 245,
+            "path": "packages/pds/src/sync.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/sync.ts#function:syncDocuments",
+            "to_name": "syncDocuments"
+          }
+        ],
+        "stats": {
+          "candidates": 2,
+          "elapsed_ms": 181,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "top": [
+          {
+            "end_line": 0,
+            "id": "file:packages/pds/src/sync.test.ts",
+            "kind": "file",
+            "name": "packages/pds/src/sync.test.ts",
+            "path": "packages/pds/src/sync.test.ts",
+            "qualified_name": "packages/pds/src/sync.test.ts",
+            "start_line": 0
+          },
+          {
+            "end_line": 247,
+            "id": "sym:packages/pds/src/sync.ts#function:syncPds",
+            "kind": "function",
+            "name": "syncPds",
+            "path": "packages/pds/src/sync.ts",
+            "qualified_name": "syncPds",
+            "start_line": 214
+          }
+        ],
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 181035,
+      "request": {
+        "mode": "symbol",
+        "query": "resolvePdsSecretName"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 0,
+          "unresolved": 0
+        },
+        "edges": [],
+        "nodes": [
+          {
+            "end_line": 110,
+            "id": "sym:packages/pds/src/config.ts#function:resolvePdsSecretName",
+            "kind": "function",
+            "name": "resolvePdsSecretName",
+            "path": "packages/pds/src/config.ts",
+            "qualified_name": "resolvePdsSecretName",
+            "start_line": 108
+          }
+        ],
+        "stats": {
+          "candidates": 1,
+          "elapsed_ms": 181,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 181085,
+      "request": {
+        "mode": "callers",
+        "query": "resolvePdsSecretName"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 4,
+          "unresolved": 0
+        },
+        "edges": [
+          {
+            "from": "file:packages/pds/src/config.test.ts",
+            "kind": "calls",
+            "line": 144,
+            "path": "packages/pds/src/config.test.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/config.ts#function:resolvePdsSecretName",
+            "to_name": "resolvePdsSecretName"
+          },
+          {
+            "from": "sym:packages/pds/src/nodes.ts#function:buildPdsNodes",
+            "kind": "calls",
+            "line": 198,
+            "path": "packages/pds/src/nodes.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/config.ts#function:resolvePdsSecretName",
+            "to_name": "resolvePdsSecretName"
+          },
+          {
+            "from": "sym:packages/pds/src/sync.ts#function:requirePdsConfig",
+            "kind": "calls",
+            "line": 69,
+            "path": "packages/pds/src/sync.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/config.ts#function:resolvePdsSecretName",
+            "to_name": "resolvePdsSecretName"
+          },
+          {
+            "from": "sym:packages/pds/src/test-support.ts#function:createTestContext",
+            "kind": "calls",
+            "line": 103,
+            "path": "packages/pds/src/test-support.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/config.ts#function:resolvePdsSecretName",
+            "to_name": "resolvePdsSecretName"
+          }
+        ],
+        "nodes": [
+          {
+            "end_line": 0,
+            "id": "file:packages/pds/src/config.test.ts",
+            "kind": "file",
+            "name": "packages/pds/src/config.test.ts",
+            "path": "packages/pds/src/config.test.ts",
+            "qualified_name": "packages/pds/src/config.test.ts",
+            "start_line": 0
+          },
+          {
+            "end_line": 110,
+            "id": "sym:packages/pds/src/config.ts#function:resolvePdsSecretName",
+            "kind": "function",
+            "name": "resolvePdsSecretName",
+            "path": "packages/pds/src/config.ts",
+            "qualified_name": "resolvePdsSecretName",
+            "start_line": 108
+          },
+          {
+            "end_line": 199,
+            "id": "sym:packages/pds/src/nodes.ts#function:buildPdsNodes",
+            "kind": "function",
+            "name": "buildPdsNodes",
+            "path": "packages/pds/src/nodes.ts",
+            "qualified_name": "buildPdsNodes",
+            "start_line": 195
+          },
+          {
+            "end_line": 70,
+            "id": "sym:packages/pds/src/sync.ts#function:requirePdsConfig",
+            "kind": "function",
+            "name": "requirePdsConfig",
+            "path": "packages/pds/src/sync.ts",
+            "qualified_name": "requirePdsConfig",
+            "start_line": 64
+          },
+          {
+            "end_line": 116,
+            "id": "sym:packages/pds/src/test-support.ts#function:createTestContext",
+            "kind": "function",
+            "name": "createTestContext",
+            "path": "packages/pds/src/test-support.ts",
+            "qualified_name": "createTestContext",
+            "start_line": 100
+          }
+        ],
+        "stats": {
+          "candidates": 5,
+          "elapsed_ms": 181,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 181861,
+      "request": {
+        "mode": "callees",
+        "query": "resolvePdsSecretName"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 1,
+          "unresolved": 0
+        },
+        "edges": [
+          {
+            "from": "sym:packages/pds/src/config.ts#function:resolvePdsSecretName",
+            "kind": "calls",
+            "line": 109,
+            "path": "packages/pds/src/config.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/config.ts#function:defaultSecretName",
+            "to_name": "defaultSecretName"
+          }
+        ],
+        "nodes": [
+          {
+            "end_line": 49,
+            "id": "sym:packages/pds/src/config.ts#function:defaultSecretName",
+            "kind": "function",
+            "name": "defaultSecretName",
+            "path": "packages/pds/src/config.ts",
+            "qualified_name": "defaultSecretName",
+            "start_line": 47
+          },
+          {
+            "end_line": 110,
+            "id": "sym:packages/pds/src/config.ts#function:resolvePdsSecretName",
+            "kind": "function",
+            "name": "resolvePdsSecretName",
+            "path": "packages/pds/src/config.ts",
+            "qualified_name": "resolvePdsSecretName",
+            "start_line": 108
+          }
+        ],
+        "stats": {
+          "candidates": 2,
+          "elapsed_ms": 181,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 183209,
+      "request": {
+        "mode": "refs",
+        "query": "resolvePdsSecretName"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 4,
+          "unresolved": 0
+        },
+        "edges": [
+          {
+            "from": "file:packages/pds/src/config.test.ts",
+            "kind": "calls",
+            "line": 144,
+            "path": "packages/pds/src/config.test.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/config.ts#function:resolvePdsSecretName",
+            "to_name": "resolvePdsSecretName"
+          },
+          {
+            "from": "sym:packages/pds/src/nodes.ts#function:buildPdsNodes",
+            "kind": "calls",
+            "line": 198,
+            "path": "packages/pds/src/nodes.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/config.ts#function:resolvePdsSecretName",
+            "to_name": "resolvePdsSecretName"
+          },
+          {
+            "from": "sym:packages/pds/src/sync.ts#function:requirePdsConfig",
+            "kind": "calls",
+            "line": 69,
+            "path": "packages/pds/src/sync.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/config.ts#function:resolvePdsSecretName",
+            "to_name": "resolvePdsSecretName"
+          },
+          {
+            "from": "sym:packages/pds/src/test-support.ts#function:createTestContext",
+            "kind": "calls",
+            "line": 103,
+            "path": "packages/pds/src/test-support.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/config.ts#function:resolvePdsSecretName",
+            "to_name": "resolvePdsSecretName"
+          }
+        ],
+        "nodes": [
+          {
+            "end_line": 0,
+            "id": "file:packages/pds/src/config.test.ts",
+            "kind": "file",
+            "name": "packages/pds/src/config.test.ts",
+            "path": "packages/pds/src/config.test.ts",
+            "qualified_name": "packages/pds/src/config.test.ts",
+            "start_line": 0
+          },
+          {
+            "end_line": 110,
+            "id": "sym:packages/pds/src/config.ts#function:resolvePdsSecretName",
+            "kind": "function",
+            "name": "resolvePdsSecretName",
+            "path": "packages/pds/src/config.ts",
+            "qualified_name": "resolvePdsSecretName",
+            "start_line": 108
+          },
+          {
+            "end_line": 199,
+            "id": "sym:packages/pds/src/nodes.ts#function:buildPdsNodes",
+            "kind": "function",
+            "name": "buildPdsNodes",
+            "path": "packages/pds/src/nodes.ts",
+            "qualified_name": "buildPdsNodes",
+            "start_line": 195
+          },
+          {
+            "end_line": 70,
+            "id": "sym:packages/pds/src/sync.ts#function:requirePdsConfig",
+            "kind": "function",
+            "name": "requirePdsConfig",
+            "path": "packages/pds/src/sync.ts",
+            "qualified_name": "requirePdsConfig",
+            "start_line": 64
+          },
+          {
+            "end_line": 116,
+            "id": "sym:packages/pds/src/test-support.ts#function:createTestContext",
+            "kind": "function",
+            "name": "createTestContext",
+            "path": "packages/pds/src/test-support.ts",
+            "qualified_name": "createTestContext",
+            "start_line": 100
+          }
+        ],
+        "stats": {
+          "candidates": 5,
+          "elapsed_ms": 183,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 181199,
+      "request": {
+        "mode": "impact",
+        "query": "resolvePdsSecretName"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 4,
+          "unresolved": 0
+        },
+        "by_depth": [
+          {
+            "by_kind": {
+              "file": 1,
+              "function": 3
+            },
+            "depth": 1,
+            "total": 4
+          }
+        ],
+        "edges": [
+          {
+            "from": "file:packages/pds/src/config.test.ts",
+            "kind": "calls",
+            "line": 144,
+            "path": "packages/pds/src/config.test.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/config.ts#function:resolvePdsSecretName",
+            "to_name": "resolvePdsSecretName"
+          },
+          {
+            "from": "sym:packages/pds/src/nodes.ts#function:buildPdsNodes",
+            "kind": "calls",
+            "line": 198,
+            "path": "packages/pds/src/nodes.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/config.ts#function:resolvePdsSecretName",
+            "to_name": "resolvePdsSecretName"
+          },
+          {
+            "from": "sym:packages/pds/src/sync.ts#function:requirePdsConfig",
+            "kind": "calls",
+            "line": 69,
+            "path": "packages/pds/src/sync.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/config.ts#function:resolvePdsSecretName",
+            "to_name": "resolvePdsSecretName"
+          },
+          {
+            "from": "sym:packages/pds/src/test-support.ts#function:createTestContext",
+            "kind": "calls",
+            "line": 103,
+            "path": "packages/pds/src/test-support.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/config.ts#function:resolvePdsSecretName",
+            "to_name": "resolvePdsSecretName"
+          }
+        ],
+        "stats": {
+          "candidates": 4,
+          "elapsed_ms": 181,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "top": [
+          {
+            "end_line": 0,
+            "id": "file:packages/pds/src/config.test.ts",
+            "kind": "file",
+            "name": "packages/pds/src/config.test.ts",
+            "path": "packages/pds/src/config.test.ts",
+            "qualified_name": "packages/pds/src/config.test.ts",
+            "start_line": 0
+          },
+          {
+            "end_line": 199,
+            "id": "sym:packages/pds/src/nodes.ts#function:buildPdsNodes",
+            "kind": "function",
+            "name": "buildPdsNodes",
+            "path": "packages/pds/src/nodes.ts",
+            "qualified_name": "buildPdsNodes",
+            "start_line": 195
+          },
+          {
+            "end_line": 70,
+            "id": "sym:packages/pds/src/sync.ts#function:requirePdsConfig",
+            "kind": "function",
+            "name": "requirePdsConfig",
+            "path": "packages/pds/src/sync.ts",
+            "qualified_name": "requirePdsConfig",
+            "start_line": 64
+          },
+          {
+            "end_line": 116,
+            "id": "sym:packages/pds/src/test-support.ts#function:createTestContext",
+            "kind": "function",
+            "name": "createTestContext",
+            "path": "packages/pds/src/test-support.ts",
+            "qualified_name": "createTestContext",
+            "start_line": 100
+          }
+        ],
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 181240,
+      "request": {
+        "mode": "symbol",
+        "query": "loadPdsSecret"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 0,
+          "unresolved": 0
+        },
+        "edges": [],
+        "nodes": [
+          {
+            "end_line": 76,
+            "id": "sym:packages/pds/src/secret.ts#function:loadPdsSecret",
+            "kind": "function",
+            "name": "loadPdsSecret",
+            "path": "packages/pds/src/secret.ts",
+            "qualified_name": "loadPdsSecret",
+            "start_line": 69
+          }
+        ],
+        "stats": {
+          "candidates": 1,
+          "elapsed_ms": 181,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 181276,
+      "request": {
+        "mode": "callers",
+        "query": "loadPdsSecret"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 5,
+          "unresolved": 0
+        },
+        "edges": [
+          {
+            "from": "file:packages/pds/src/secret.test.ts",
+            "kind": "calls",
+            "line": 61,
+            "path": "packages/pds/src/secret.test.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/secret.ts#function:loadPdsSecret",
+            "to_name": "loadPdsSecret"
+          },
+          {
+            "from": "sym:packages/pds/src/commands.ts#function:secretStatus",
+            "kind": "calls",
+            "line": 95,
+            "path": "packages/pds/src/commands.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/secret.ts#function:loadPdsSecret",
+            "to_name": "loadPdsSecret"
+          },
+          {
+            "from": "sym:packages/pds/src/oauth.ts#function:login",
+            "kind": "calls",
+            "line": 170,
+            "path": "packages/pds/src/oauth.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/secret.ts#function:loadPdsSecret",
+            "to_name": "loadPdsSecret"
+          },
+          {
+            "from": "sym:packages/pds/src/oauth.ts#function:openPdsRepo",
+            "kind": "calls",
+            "line": 207,
+            "path": "packages/pds/src/oauth.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/secret.ts#function:loadPdsSecret",
+            "to_name": "loadPdsSecret"
+          },
+          {
+            "from": "sym:packages/pds/src/oauth.ts#function:verifyClientAssets",
+            "kind": "calls",
+            "line": 120,
+            "path": "packages/pds/src/oauth.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/secret.ts#function:loadPdsSecret",
+            "to_name": "loadPdsSecret"
+          }
+        ],
+        "nodes": [
+          {
+            "end_line": 103,
+            "id": "sym:packages/pds/src/commands.ts#function:secretStatus",
+            "kind": "function",
+            "name": "secretStatus",
+            "path": "packages/pds/src/commands.ts",
+            "qualified_name": "secretStatus",
+            "start_line": 82
+          },
+          {
+            "end_line": 146,
+            "id": "sym:packages/pds/src/oauth.ts#function:verifyClientAssets",
+            "kind": "function",
+            "name": "verifyClientAssets",
+            "path": "packages/pds/src/oauth.ts",
+            "qualified_name": "verifyClientAssets",
+            "start_line": 114
+          },
+          {
+            "end_line": 193,
+            "id": "sym:packages/pds/src/oauth.ts#function:login",
+            "kind": "function",
+            "name": "login",
+            "path": "packages/pds/src/oauth.ts",
+            "qualified_name": "login",
+            "start_line": 166
+          },
+          {
+            "end_line": 228,
+            "id": "sym:packages/pds/src/oauth.ts#function:openPdsRepo",
+            "kind": "function",
+            "name": "openPdsRepo",
+            "path": "packages/pds/src/oauth.ts",
+            "qualified_name": "openPdsRepo",
+            "start_line": 205
+          },
+          {
+            "end_line": 0,
+            "id": "file:packages/pds/src/secret.test.ts",
+            "kind": "file",
+            "name": "packages/pds/src/secret.test.ts",
+            "path": "packages/pds/src/secret.test.ts",
+            "qualified_name": "packages/pds/src/secret.test.ts",
+            "start_line": 0
+          },
+          {
+            "end_line": 76,
+            "id": "sym:packages/pds/src/secret.ts#function:loadPdsSecret",
+            "kind": "function",
+            "name": "loadPdsSecret",
+            "path": "packages/pds/src/secret.ts",
+            "qualified_name": "loadPdsSecret",
+            "start_line": 69
+          }
+        ],
+        "stats": {
+          "candidates": 6,
+          "elapsed_ms": 181,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 181478,
+      "request": {
+        "mode": "callees",
+        "query": "loadPdsSecret"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 2,
+          "unresolved": 2
+        },
+        "edges": [
+          {
+            "from": "sym:packages/pds/src/secret.ts#function:loadPdsSecret",
+            "kind": "calls",
+            "line": 73,
+            "path": "packages/pds/src/secret.ts",
+            "resolved": false,
+            "to": null,
+            "to_name": "Error"
+          },
+          {
+            "from": "sym:packages/pds/src/secret.ts#function:loadPdsSecret",
+            "kind": "calls",
+            "line": 71,
+            "path": "packages/pds/src/secret.ts",
+            "resolved": false,
+            "to": null,
+            "to_name": "ctx.clients.secrets.getSecretValue"
+          },
+          {
+            "from": "sym:packages/pds/src/secret.ts#function:loadPdsSecret",
+            "kind": "calls",
+            "line": 75,
+            "path": "packages/pds/src/secret.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/secret.ts#function:parsePdsSecret",
+            "to_name": "parsePdsSecret"
+          },
+          {
+            "from": "sym:packages/pds/src/secret.ts#function:loadPdsSecret",
+            "kind": "calls",
+            "line": 70,
+            "path": "packages/pds/src/secret.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/sync.ts#function:requirePdsConfig",
+            "to_name": "requirePdsConfig"
+          }
+        ],
+        "nodes": [
+          {
+            "end_line": 63,
+            "id": "sym:packages/pds/src/secret.ts#function:parsePdsSecret",
+            "kind": "function",
+            "name": "parsePdsSecret",
+            "path": "packages/pds/src/secret.ts",
+            "qualified_name": "parsePdsSecret",
+            "start_line": 51
+          },
+          {
+            "end_line": 76,
+            "id": "sym:packages/pds/src/secret.ts#function:loadPdsSecret",
+            "kind": "function",
+            "name": "loadPdsSecret",
+            "path": "packages/pds/src/secret.ts",
+            "qualified_name": "loadPdsSecret",
+            "start_line": 69
+          },
+          {
+            "end_line": 70,
+            "id": "sym:packages/pds/src/sync.ts#function:requirePdsConfig",
+            "kind": "function",
+            "name": "requirePdsConfig",
+            "path": "packages/pds/src/sync.ts",
+            "qualified_name": "requirePdsConfig",
+            "start_line": 64
+          }
+        ],
+        "stats": {
+          "candidates": 3,
+          "elapsed_ms": 181,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 181855,
+      "request": {
+        "mode": "refs",
+        "query": "loadPdsSecret"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 5,
+          "unresolved": 0
+        },
+        "edges": [
+          {
+            "from": "file:packages/pds/src/secret.test.ts",
+            "kind": "calls",
+            "line": 61,
+            "path": "packages/pds/src/secret.test.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/secret.ts#function:loadPdsSecret",
+            "to_name": "loadPdsSecret"
+          },
+          {
+            "from": "sym:packages/pds/src/commands.ts#function:secretStatus",
+            "kind": "calls",
+            "line": 95,
+            "path": "packages/pds/src/commands.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/secret.ts#function:loadPdsSecret",
+            "to_name": "loadPdsSecret"
+          },
+          {
+            "from": "sym:packages/pds/src/oauth.ts#function:login",
+            "kind": "calls",
+            "line": 170,
+            "path": "packages/pds/src/oauth.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/secret.ts#function:loadPdsSecret",
+            "to_name": "loadPdsSecret"
+          },
+          {
+            "from": "sym:packages/pds/src/oauth.ts#function:openPdsRepo",
+            "kind": "calls",
+            "line": 207,
+            "path": "packages/pds/src/oauth.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/secret.ts#function:loadPdsSecret",
+            "to_name": "loadPdsSecret"
+          },
+          {
+            "from": "sym:packages/pds/src/oauth.ts#function:verifyClientAssets",
+            "kind": "calls",
+            "line": 120,
+            "path": "packages/pds/src/oauth.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/secret.ts#function:loadPdsSecret",
+            "to_name": "loadPdsSecret"
+          }
+        ],
+        "nodes": [
+          {
+            "end_line": 103,
+            "id": "sym:packages/pds/src/commands.ts#function:secretStatus",
+            "kind": "function",
+            "name": "secretStatus",
+            "path": "packages/pds/src/commands.ts",
+            "qualified_name": "secretStatus",
+            "start_line": 82
+          },
+          {
+            "end_line": 146,
+            "id": "sym:packages/pds/src/oauth.ts#function:verifyClientAssets",
+            "kind": "function",
+            "name": "verifyClientAssets",
+            "path": "packages/pds/src/oauth.ts",
+            "qualified_name": "verifyClientAssets",
+            "start_line": 114
+          },
+          {
+            "end_line": 193,
+            "id": "sym:packages/pds/src/oauth.ts#function:login",
+            "kind": "function",
+            "name": "login",
+            "path": "packages/pds/src/oauth.ts",
+            "qualified_name": "login",
+            "start_line": 166
+          },
+          {
+            "end_line": 228,
+            "id": "sym:packages/pds/src/oauth.ts#function:openPdsRepo",
+            "kind": "function",
+            "name": "openPdsRepo",
+            "path": "packages/pds/src/oauth.ts",
+            "qualified_name": "openPdsRepo",
+            "start_line": 205
+          },
+          {
+            "end_line": 0,
+            "id": "file:packages/pds/src/secret.test.ts",
+            "kind": "file",
+            "name": "packages/pds/src/secret.test.ts",
+            "path": "packages/pds/src/secret.test.ts",
+            "qualified_name": "packages/pds/src/secret.test.ts",
+            "start_line": 0
+          },
+          {
+            "end_line": 76,
+            "id": "sym:packages/pds/src/secret.ts#function:loadPdsSecret",
+            "kind": "function",
+            "name": "loadPdsSecret",
+            "path": "packages/pds/src/secret.ts",
+            "qualified_name": "loadPdsSecret",
+            "start_line": 69
+          }
+        ],
+        "stats": {
+          "candidates": 6,
+          "elapsed_ms": 181,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "truncations": []
+      }
+    },
+    {
+      "elapsed_us": 181539,
+      "request": {
+        "mode": "impact",
+        "query": "loadPdsSecret"
+      },
+      "result": {
+        "approximation": {
+          "note": "static approximation; dynamic/macro/generated edges may be missing",
+          "resolved": 5,
+          "unresolved": 0
+        },
+        "by_depth": [
+          {
+            "by_kind": {
+              "file": 1,
+              "function": 4
+            },
+            "depth": 1,
+            "total": 5
+          }
+        ],
+        "edges": [
+          {
+            "from": "file:packages/pds/src/secret.test.ts",
+            "kind": "calls",
+            "line": 61,
+            "path": "packages/pds/src/secret.test.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/secret.ts#function:loadPdsSecret",
+            "to_name": "loadPdsSecret"
+          },
+          {
+            "from": "sym:packages/pds/src/commands.ts#function:secretStatus",
+            "kind": "calls",
+            "line": 95,
+            "path": "packages/pds/src/commands.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/secret.ts#function:loadPdsSecret",
+            "to_name": "loadPdsSecret"
+          },
+          {
+            "from": "sym:packages/pds/src/oauth.ts#function:login",
+            "kind": "calls",
+            "line": 170,
+            "path": "packages/pds/src/oauth.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/secret.ts#function:loadPdsSecret",
+            "to_name": "loadPdsSecret"
+          },
+          {
+            "from": "sym:packages/pds/src/oauth.ts#function:openPdsRepo",
+            "kind": "calls",
+            "line": 207,
+            "path": "packages/pds/src/oauth.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/secret.ts#function:loadPdsSecret",
+            "to_name": "loadPdsSecret"
+          },
+          {
+            "from": "sym:packages/pds/src/oauth.ts#function:verifyClientAssets",
+            "kind": "calls",
+            "line": 120,
+            "path": "packages/pds/src/oauth.ts",
+            "resolved": true,
+            "to": "sym:packages/pds/src/secret.ts#function:loadPdsSecret",
+            "to_name": "loadPdsSecret"
+          }
+        ],
+        "stats": {
+          "candidates": 5,
+          "elapsed_ms": 181,
+          "files_scanned": 0,
+          "matches": 0
+        },
+        "top": [
+          {
+            "end_line": 103,
+            "id": "sym:packages/pds/src/commands.ts#function:secretStatus",
+            "kind": "function",
+            "name": "secretStatus",
+            "path": "packages/pds/src/commands.ts",
+            "qualified_name": "secretStatus",
+            "start_line": 82
+          },
+          {
+            "end_line": 146,
+            "id": "sym:packages/pds/src/oauth.ts#function:verifyClientAssets",
+            "kind": "function",
+            "name": "verifyClientAssets",
+            "path": "packages/pds/src/oauth.ts",
+            "qualified_name": "verifyClientAssets",
+            "start_line": 114
+          },
+          {
+            "end_line": 193,
+            "id": "sym:packages/pds/src/oauth.ts#function:login",
+            "kind": "function",
+            "name": "login",
+            "path": "packages/pds/src/oauth.ts",
+            "qualified_name": "login",
+            "start_line": 166
+          },
+          {
+            "end_line": 228,
+            "id": "sym:packages/pds/src/oauth.ts#function:openPdsRepo",
+            "kind": "function",
+            "name": "openPdsRepo",
+            "path": "packages/pds/src/oauth.ts",
+            "qualified_name": "openPdsRepo",
+            "start_line": 205
+          },
+          {
+            "end_line": 0,
+            "id": "file:packages/pds/src/secret.test.ts",
+            "kind": "file",
+            "name": "packages/pds/src/secret.test.ts",
+            "path": "packages/pds/src/secret.test.ts",
+            "qualified_name": "packages/pds/src/secret.test.ts",
+            "start_line": 0
+          }
+        ],
+        "truncations": []
+      }
+    }
+  ]
+}

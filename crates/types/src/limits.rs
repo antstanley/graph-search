@@ -62,11 +62,11 @@ pub const EXPLORE_DEFAULT_K: u32 = 8;
 
 /// Bumps when the projection vocabulary or extraction changes, invalidating
 /// every stored projection.
-pub const SCHEMA_VERSION: u32 = 1;
+pub const SCHEMA_VERSION: u32 = 2;
 
 /// Bumps when extractor behaviour changes in a way that alters output for an
 /// unchanged file.
-pub const PARSER_VERSION: u32 = 1;
+pub const PARSER_VERSION: u32 = 2;
 
 #[cfg(test)]
 mod tests {

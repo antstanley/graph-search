@@ -23,7 +23,11 @@ impl LanguageExtractor for TypeScriptExtractor {
     fn extract(&self, file: &SourceFile<'_>) -> Result<Extraction, ParseError> {
         let mut parser = tree_sitter::Parser::new();
         parser
-            .set_language(&tree_sitter_typescript::LANGUAGE_TYPESCRIPT.into())
+            .set_language(&if is_tsx(file.path) {
+                tree_sitter_typescript::LANGUAGE_TSX.into()
+            } else {
+                tree_sitter_typescript::LANGUAGE_TYPESCRIPT.into()
+            })
             .map_err(|error| ParseError::new(format!("typescript grammar: {error}")))?;
         let Some(tree) = parser.parse(file.text, None) else {
             return Err(ParseError::new("the typescript parser produced no tree"));
@@ -38,8 +42,10 @@ impl LanguageExtractor for TypeScriptExtractor {
             dialect,
             extraction: Extraction::default(),
             scope: Vec::new(),
+            imports: std::collections::BTreeMap::new(),
         };
         extractor.walk_node(tree.root_node());
+        extractor.bind_imports();
         Ok(extractor.extraction)
     }
 }

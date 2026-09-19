@@ -351,7 +351,7 @@ pub struct IndexStatus {
 pub struct SyncReport {
     /// Paths parsed and inserted.
     pub added: Vec<String>,
-    /// Paths re-parsed and replaced.
+    /// Paths replaced after parsing or rebinding cached extraction facts.
     pub modified: Vec<String>,
     /// Paths whose projection was deleted.
     pub removed: Vec<String>,

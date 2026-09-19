@@ -1,6 +1,6 @@
 # graph-search
 
-**Status: v1 implemented (milestones M1–M5). The evaluation of §16 is pending.**
+**Status: v1 implemented (milestones M1–M5). The evaluation of §16 is pending. Accuracy research and targeted fixes are documented in [`research/README.md`](research/README.md).**
 
 An experiment in a single, context-efficient search capability for code and
 context: one surface for finding **files**, **text**, and **symbols and their
@@ -77,8 +77,13 @@ graph-search search callers "Index::sync" --json
 graph-search search explore "how does reconcile classify a modified file"
 ```
 
-After editing files, `graph-search sync` reconciles incrementally; queries
-reconcile lazily and report staleness either way (`SPEC.md` §6.5).
+`explore` prioritizes exact names, then uses identifier-aware BM25 over names,
+paths, and signatures. Literal body matches provide a bounded fallback.
+
+After editing files, `graph-search sync` parses changed files and rebinds affected
+callers using persisted extraction facts. Queries reconcile lazily and report
+staleness (`SPEC.md` §6.5). Schema 2 rebuilds older indexes on the next reconcile.
+See the [retrieval and incremental-sync results](research/07-lexical-and-incremental.md).
 
 ## Documentation
 

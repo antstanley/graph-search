@@ -23,6 +23,10 @@ pub struct FileEntry {
     /// Why the file was quarantined, when extraction failed; its `file` node
     /// is still indexed, but it has no symbols (`SPEC.md` §6.4).
     pub quarantine: Option<String>,
+    /// Raw parser facts used to rebind unchanged files without parsing them.
+    /// Absent in older manifests and for quarantined parse failures.
+    #[serde(default)]
+    pub extraction: Option<crate::extraction::Extraction>,
 }
 
 impl FileEntry {

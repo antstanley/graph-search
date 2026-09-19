@@ -188,5 +188,6 @@ pub fn entry_for(walked: &WalkEntry, content_hash: &str, quarantine: Option<Stri
         parser_version: PARSER_VERSION,
         schema_version: SCHEMA_VERSION,
         quarantine,
+        extraction: None,
     }
 }

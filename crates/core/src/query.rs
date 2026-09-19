@@ -33,55 +33,25 @@ pub const SCAN_FILE_CAP: usize = 512;
 /// How many bytes the explore literal scan may read.
 pub const SCAN_BYTES_CAP: u64 = 8 * 1024 * 1024;
 
-/// Scores one node against the terms: the best single match wins, extra
-/// matching terms add a small bonus. Summing would let a file that merely
-/// mentions every word outrank an exact name hit.
-#[allow(clippy::cast_precision_loss)] // small bounded counts; exactness irrelevant to ranking
-fn score_against(node: &Node, terms: &[String]) -> f32 {
-    let name = node
-        .name
-        .as_deref()
-        .unwrap_or_default()
-        .to_ascii_lowercase();
-    let qualified = node
-        .qualified_name
-        .as_deref()
-        .unwrap_or_default()
-        .to_ascii_lowercase();
-    let path = node.path.to_ascii_lowercase();
-    let mut best = 0.0f32;
-    let mut matches = 0u32;
-    for term in terms {
-        let term_score = if name == *term {
-            1.0
-        } else if name.contains(term.as_str()) {
-            0.7
-        } else if qualified.contains(term.as_str()) {
-            0.5
-        } else if path.contains(term.as_str()) {
-            0.4
-        } else {
-            0.0
-        };
-        if term_score > 0.0 {
-            matches = matches.saturating_add(1);
-        }
-        if term_score > best {
-            best = term_score;
-        }
-    }
-    (best + 0.1 * matches.saturating_sub(1).min(9) as f32).min(1.0)
-}
-
 /// The effective result cap of a query, so a `Default`-derived (unclamped)
 /// query still honours the spec default instead of returning nothing.
 #[must_use]
 pub const fn effective_limit(limit: u32) -> u32 {
     if limit == 0 {
         graph_search_types::limits::GRAPH_DEFAULT_LIMIT
+    } else if limit > graph_search_types::limits::GRAPH_LIMIT_CEILING {
+        graph_search_types::limits::GRAPH_LIMIT_CEILING
     } else {
         limit
     }
+}
+
+/// The read API over one snapshot.
+struct Seeds {
+    nodes: Vec<Scored<Node>>,
+    truncations: Vec<Truncation>,
+    candidates: usize,
+    files_scanned: u64,
 }
 
 /// The read API over one snapshot.
@@ -103,11 +73,17 @@ impl<'a> QueryEngine<'a> {
     pub fn symbol(&self, query: &SymbolQuery) -> Result<GraphResult> {
         let started = std::time::Instant::now();
         let kinds: Vec<NodeKind> = query.kind.iter().copied().collect();
-        let found = self.snapshot.find_by_name(
-            &query.target,
-            &kinds,
-            effective_limit(query.limit) as usize,
-        )?;
+        validate_filters(&query.filters)?;
+        let found = if let Some(node) = self.snapshot.node_by_id(&NodeId::new(&query.target))? {
+            if kinds.is_empty() || kinds.contains(&node.kind) {
+                vec![Scored::new(node, 1.0)]
+            } else {
+                Vec::new()
+            }
+        } else {
+            self.snapshot
+                .find_by_name(&query.target, &kinds, usize::MAX)?
+        };
         let mut nodes: Vec<SymbolHit> = found
             .into_iter()
             .filter(|scored| {
@@ -119,11 +95,13 @@ impl<'a> QueryEngine<'a> {
             })
             .map(|scored| SymbolHit::of(&scored.item))
             .collect();
-        nodes.sort();
+        let candidates = nodes.len();
+        let truncations = result_truncations(candidates, query.limit);
         nodes.truncate(effective_limit(query.limit) as usize);
         Ok(GraphResult {
+            truncations,
             stats: Stats {
-                candidates: nodes.len() as u64,
+                candidates: candidates as u64,
                 elapsed_ms: ms_since(started),
                 ..Stats::default()
             },
@@ -138,12 +116,13 @@ impl<'a> QueryEngine<'a> {
     /// # Errors
     /// When the target does not resolve or the read fails.
     pub fn refs(&self, query: &RefQuery) -> Result<GraphResult> {
+        validate_filters(&query.filters)?;
         let started = std::time::Instant::now();
         let target = self.resolve_target(&query.target)?;
         let edges = self
             .snapshot
             .edges_from(&target, &REFERENCE_KINDS, Direction::In)?;
-        self.assemble_graph(&target, &edges, query.limit, started)
+        self.assemble_graph(&target, &edges, query.limit, &query.filters, started)
     }
 
     /// `callers`: direct or N-hop callers (`SPEC.md` §8.3).
@@ -167,48 +146,44 @@ impl<'a> QueryEngine<'a> {
     ///
     /// # Errors
     /// When the target does not resolve or the read fails.
+    #[allow(clippy::too_many_lines)] // BFS rings and their ranked projection form one query.
     pub fn impact(&self, query: &TraversalQuery) -> Result<ImpactResult> {
+        validate_filters(&query.filters)?;
         let started = std::time::Instant::now();
         let target = self.resolve_target(&query.target)?;
         let kinds = [EdgeKind::Calls, EdgeKind::References];
 
-        // Counts by ring. `expand` returns the deduplicated set, so rings are
-        // recomputed by BFS here for exact per-depth counts.
-        let mut by_depth: Vec<DepthCount> = Vec::new();
-        let mut frontier: BTreeSet<NodeId> = BTreeSet::from([target.clone()]);
-        let mut visited: BTreeSet<NodeId> = frontier.clone();
-        let mut cone_edges: Vec<graph_search_types::Edge> = Vec::new();
-        for depth in 1..=query.depth {
+        let mut by_depth = Vec::new();
+        let mut frontier = BTreeSet::from([target.clone()]);
+        let mut visited = frontier.clone();
+        let mut distances = BTreeMap::new();
+        let mut cone_edges = BTreeMap::new();
+        for depth in 1..=query.depth.clamp(1, MAX_HOPS_CEILING) {
             let mut next = BTreeSet::new();
-            let mut ring: BTreeMap<NodeKind, u64> = BTreeMap::new();
+            let mut ring = BTreeMap::new();
             for id in &frontier {
                 for edge in self.snapshot.edges_from(id, &kinds, Direction::In)? {
-                    // Incoming: the next hop is the edge's SOURCE.
-                    let Some(from) = edge
-                        .to
-                        .as_ref()
-                        .filter(|to| **to == *id)
-                        .map(|_| edge.from.clone())
-                    else {
-                        continue;
-                    };
-                    if visited.contains(&from) {
-                        continue;
-                    }
-                    cone_edges.push(edge.clone());
+                    let from = edge.from.clone();
+                    cone_edges.insert(edge.id.clone(), edge);
                     if visited.insert(from.clone())
                         && let Some(node) = self.snapshot.node_by_id(&from)?
                     {
-                        let count = ring.entry(node.kind).or_default();
-                        *count = count.saturating_add(1);
+                        distances.insert(from.clone(), depth);
+                        if self.passes_filters(
+                            &node,
+                            query.filters.lang,
+                            query.filters.path_glob.as_deref(),
+                        ) {
+                            let count = ring.entry(node.kind).or_insert(0u64);
+                            *count = count.saturating_add(1);
+                        }
                         next.insert(from);
                     }
                 }
             }
-            let total: u64 = ring.values().sum();
             by_depth.push(DepthCount {
                 depth,
-                total,
+                total: ring.values().sum(),
                 by_kind: ring,
             });
             frontier = next;
@@ -216,59 +191,71 @@ impl<'a> QueryEngine<'a> {
                 break;
             }
         }
-
-        // Top nodes: ring order, then in-cone degree desc, then path.
-        let mut degree: BTreeMap<NodeId, u64> = BTreeMap::new();
-        for edge in &cone_edges {
+        let mut degree = BTreeMap::new();
+        for edge in cone_edges.values() {
             if let Some(to) = &edge.to {
-                let count = degree.entry(to.clone()).or_default();
+                let count = degree.entry(to.clone()).or_insert(0u64);
                 *count = count.saturating_add(1);
             }
         }
-        let mut top: Vec<(u8, NodeId)> = visited
-            .iter()
-            .filter(|id| **id != target)
-            .filter_map(|id| {
-                let node = self.snapshot.node_by_id(id).ok().flatten()?;
-                self.passes_filters(
+        let mut top = Vec::new();
+        for (id, depth) in distances {
+            if let Some(node) = self.snapshot.node_by_id(&id)?
+                && self.passes_filters(
                     &node,
                     query.filters.lang,
                     query.filters.path_glob.as_deref(),
                 )
-                .then(|| {
-                    (
-                        u8::try_from(degree.get(id).copied().unwrap_or_default())
-                            .unwrap_or(u8::MAX),
-                        id.clone(),
-                    )
-                })
-            })
-            .collect();
-        top.sort_by(|a, b| b.0.cmp(&a.0).then(a.1.cmp(&b.1)));
-        let mut nodes: Vec<SymbolHit> = Vec::new();
-        for (_, id) in top.into_iter().take(effective_limit(query.limit) as usize) {
-            if let Some(node) = self.snapshot.node_by_id(&id)? {
-                nodes.push(SymbolHit::of(&node));
+            {
+                top.push((
+                    depth,
+                    degree.get(&id).copied().unwrap_or_default(),
+                    SymbolHit::of(&node),
+                ));
             }
         }
-        nodes.sort();
-        let edges: Vec<EdgeHit> = cone_edges.iter().map(EdgeHit::from_edge).collect();
-        let resolved = edges.iter().filter(|e| e.resolved).count() as u64;
+        top.sort_by(|a, b| {
+            a.0.cmp(&b.0)
+                .then(b.1.cmp(&a.1))
+                .then(a.2.path.cmp(&b.2.path))
+                .then(a.2.start_line.cmp(&b.2.start_line))
+                .then(a.2.id.cmp(&b.2.id))
+        });
+        let candidates = top.len();
+        let truncations = result_truncations(candidates, query.limit);
+        let nodes: Vec<SymbolHit> = top
+            .into_iter()
+            .take(effective_limit(query.limit) as usize)
+            .map(|(_, _, n)| n)
+            .collect();
+        let kept: BTreeSet<&str> = nodes
+            .iter()
+            .map(|n| n.id.as_str())
+            .chain(std::iter::once(target.as_str()))
+            .collect();
+        let mut edges: Vec<EdgeHit> = cone_edges
+            .values()
+            .filter(|e| {
+                kept.contains(e.from.as_str())
+                    && e.to.as_ref().is_some_and(|to| kept.contains(to.as_str()))
+            })
+            .map(EdgeHit::from_edge)
+            .collect();
+        edges.sort();
         Ok(ImpactResult {
             by_depth,
             top: nodes,
             approximation: Some(Approximation {
-                resolved,
-                unresolved: (edges.len() as u64).saturating_sub(resolved),
+                resolved: edges.len() as u64,
                 ..Approximation::default()
             }),
             edges,
+            truncations,
             stats: Stats {
-                candidates: visited.len() as u64,
+                candidates: candidates as u64,
                 elapsed_ms: ms_since(started),
                 ..Stats::default()
             },
-            truncations: Vec::new(),
         })
     }
 
@@ -277,6 +264,7 @@ impl<'a> QueryEngine<'a> {
     /// # Errors
     /// When the target does not resolve or the read fails.
     pub fn deps(&self, query: &DepsQuery) -> Result<GraphResult> {
+        validate_filters(&query.filters)?;
         let started = std::time::Instant::now();
         let target = self.resolve_file_target(&query.target)?;
         let dir = match query.direction {
@@ -292,7 +280,7 @@ impl<'a> QueryEngine<'a> {
             EdgeKind::LoadsStylesheet,
         ];
         let edges = self.snapshot.edges_from(&target, &kinds, dir)?;
-        self.assemble_graph(&target, &edges, query.limit, started)
+        self.assemble_graph(&target, &edges, query.limit, &query.filters, started)
     }
 
     /// `neighbors`: adjacent nodes along chosen edge kinds (`SPEC.md` §8.3).
@@ -300,16 +288,17 @@ impl<'a> QueryEngine<'a> {
     /// # Errors
     /// When the target does not resolve or the read fails.
     pub fn neighbors(&self, query: &NeighborsQuery) -> Result<GraphResult> {
+        validate_filters(&query.filters)?;
         let started = std::time::Instant::now();
         let target = self.resolve_target(&query.target)?;
         let kinds: Vec<EdgeKind> = query.rel.iter().copied().collect();
         let subgraph = self.snapshot.expand(
             std::slice::from_ref(&target),
-            query.hops.max(1),
+            query.hops.clamp(1, MAX_HOPS_CEILING),
             &kinds,
             Direction::Both,
         )?;
-        Ok(Self::result_from_subgraph(&subgraph, query.limit, started))
+        Ok(self.result_from_subgraph(&subgraph, query.limit, &query.filters, started))
     }
 
     /// `path`: the shortest path between two nodes (`SPEC.md` §8.3).
@@ -320,6 +309,19 @@ impl<'a> QueryEngine<'a> {
         let started = std::time::Instant::now();
         let from = self.resolve_target(&query.from)?;
         let to = self.resolve_target(&query.to)?;
+        if from == to {
+            let nodes = self
+                .snapshot
+                .node_by_id(&from)?
+                .iter()
+                .map(SymbolHit::of)
+                .collect();
+            return Ok(GraphResult {
+                nodes,
+                approximation: Some(Approximation::default()),
+                ..GraphResult::default()
+            });
+        }
         let max_hops = query.max_hops.clamp(1, MAX_HOPS_CEILING);
 
         // BFS by ring; the first arrival is the shortest path.
@@ -384,8 +386,6 @@ impl<'a> QueryEngine<'a> {
                 nodes.push(SymbolHit::of(&node));
             }
         }
-        nodes.sort();
-        nodes.dedup();
         let edge_hits: Vec<EdgeHit> = chain.iter().map(|(_, e)| EdgeHit::from_edge(e)).collect();
         Ok(GraphResult {
             nodes,
@@ -409,30 +409,29 @@ impl<'a> QueryEngine<'a> {
     /// # Errors
     /// When the store read fails.
     pub fn explore(&self, query: &ExploreQuery, root: &Path) -> Result<ExploreResult> {
-        let started = std::time::Instant::now();
-        let seeds = self.seed(query, root)?;
-        let seed_ids: Vec<NodeId> = seeds.iter().map(|s| s.item.id.clone()).collect();
-        let hops = query.hops.clamp(1, MAX_HOPS_CEILING);
+        self.explore_with_policy(query, root, &WalkPolicy::default())
+    }
 
-        // Connect: edges among the seeds, up to `hops`.
-        let subgraph = self
-            .snapshot
-            .expand(&seed_ids, hops, &[], Direction::Both)?;
-        let seed_set: BTreeSet<&NodeId> = seed_ids.iter().collect();
-        let mut edges: Vec<EdgeHit> = subgraph
-            .edges
-            .iter()
-            .filter(|edge| {
-                seed_set.contains(&edge.from)
-                    && edge.to.as_ref().is_some_and(|to| seed_set.contains(to))
-            })
-            .map(EdgeHit::from_edge)
-            .collect();
-        edges.sort();
+    /// Explore using the same walk policy as indexing and text search.
+    pub fn explore_with_policy(
+        &self,
+        query: &ExploreQuery,
+        root: &Path,
+        policy: &WalkPolicy,
+    ) -> Result<ExploreResult> {
+        let started = std::time::Instant::now();
+        validate_filters(&query.filters)?;
+        let Seeds {
+            nodes: mut seeds,
+            mut truncations,
+            candidates,
+            files_scanned,
+        } = self.seed(query, root, policy)?;
+        let hops = query.hops.clamp(1, MAX_HOPS_CEILING);
+        let mut edges = self.connect(&mut seeds, query, hops, &mut truncations)?;
 
         // Impact: one-line blast radius for function/method seeds.
         let mut items: Vec<ExploreItem> = Vec::new();
-        let mut truncations = Vec::new();
         let mut total_bytes = 0usize;
         let mut byte_cap_hit = false;
         for scored in &seeds {
@@ -441,6 +440,10 @@ impl<'a> QueryEngine<'a> {
                 let direct = self
                     .snapshot
                     .edges_from(&node.id, &[EdgeKind::Calls], Direction::In)?
+                    .into_iter()
+                    .map(|e| e.from)
+                    .filter(|id| id != &node.id)
+                    .collect::<BTreeSet<_>>()
                     .len() as u64;
                 let cone = self.snapshot.expand(
                     std::slice::from_ref(&node.id),
@@ -448,7 +451,7 @@ impl<'a> QueryEngine<'a> {
                     &[EdgeKind::Calls],
                     Direction::In,
                 )?;
-                let total = cone.edges.len() as u64;
+                let total = cone.nodes.iter().filter(|n| n.id != node.id).count() as u64;
                 Some(ImpactSummary {
                     direct_callers: direct,
                     total_callers: total.max(direct),
@@ -463,7 +466,7 @@ impl<'a> QueryEngine<'a> {
                 impact,
             };
             let estimated = serde_json_len(&item);
-            let max = query.max_bytes as usize;
+            let max = explore_byte_cap(query.max_bytes);
             if total_bytes.saturating_add(estimated) > max {
                 byte_cap_hit = true;
                 break;
@@ -484,23 +487,134 @@ impl<'a> QueryEngine<'a> {
 
         // The honesty block, plus the unmatched-class count for HTML/CSS
         // workspaces (`SPEC.md` §7.3).
+        let kept: BTreeSet<&str> = items.iter().map(|i| i.node.id.as_str()).collect();
+        edges.retain(|e| {
+            kept.contains(e.from.as_str()) && e.to.as_deref().is_some_and(|to| kept.contains(to))
+        });
         let resolved = edges.iter().filter(|e| e.resolved).count() as u64;
         let approximation = Approximation {
             resolved,
             unresolved: (edges.len() as u64).saturating_sub(resolved),
             ..Approximation::default()
         };
-        Ok(ExploreResult {
+        let mut result = ExploreResult {
             items,
             edges,
             truncations,
             approximation: Some(approximation),
             stats: Stats {
-                candidates: seeds.len() as u64,
+                candidates: candidates as u64,
+                files_scanned,
                 elapsed_ms: ms_since(started),
                 ..Stats::default()
             },
-        })
+        };
+        fit_explore(&mut result, explore_byte_cap(query.max_bytes))?;
+        Ok(result)
+    }
+
+    fn connect(
+        &self,
+        seeds: &mut Vec<Scored<Node>>,
+        query: &ExploreQuery,
+        hops: u8,
+        truncations: &mut Vec<Truncation>,
+    ) -> Result<Vec<EdgeHit>> {
+        let seed_ids: Vec<NodeId> = seeds.iter().map(|s| s.item.id.clone()).collect();
+        // Connect through semantic relationships. Containment would make
+        // every pair of unrelated functions in one file appear connected.
+        let relations = [
+            EdgeKind::Calls,
+            EdgeKind::References,
+            EdgeKind::TypeUses,
+            EdgeKind::Imports,
+            EdgeKind::Implements,
+            EdgeKind::Extends,
+        ];
+        let subgraph = self
+            .snapshot
+            .expand(&seed_ids, hops, &relations, Direction::Both)?;
+        let allowed: BTreeSet<NodeId> = subgraph
+            .nodes
+            .iter()
+            .filter(|n| {
+                self.passes_filters(n, query.filters.lang, query.filters.path_glob.as_deref())
+            })
+            .map(|n| n.id.clone())
+            .collect();
+        let mut adjacent: BTreeMap<NodeId, Vec<(NodeId, usize)>> = BTreeMap::new();
+        for (index, edge) in subgraph.edges.iter().enumerate() {
+            if let Some(to) = &edge.to
+                && allowed.contains(&edge.from)
+                && allowed.contains(to)
+            {
+                adjacent
+                    .entry(edge.from.clone())
+                    .or_default()
+                    .push((to.clone(), index));
+                adjacent
+                    .entry(to.clone())
+                    .or_default()
+                    .push((edge.from.clone(), index));
+            }
+        }
+        let seed_set: BTreeSet<NodeId> = seed_ids.iter().cloned().collect();
+        let mut selected = BTreeSet::new();
+        for seed in &seed_ids {
+            let mut visited = BTreeSet::from([seed.clone()]);
+            let mut parent: BTreeMap<NodeId, (NodeId, usize)> = BTreeMap::new();
+            let mut frontier = BTreeSet::from([seed.clone()]);
+            for _ in 0..hops {
+                let mut next = BTreeSet::new();
+                for id in &frontier {
+                    for (other, index) in adjacent.get(id).into_iter().flatten() {
+                        if !visited.insert(other.clone()) {
+                            continue;
+                        }
+                        parent.insert(other.clone(), (id.clone(), *index));
+                        next.insert(other.clone());
+                        if seed_set.contains(other) {
+                            let mut cursor = other;
+                            while let Some((prev, edge)) = parent.get(cursor) {
+                                selected.insert(*edge);
+                                cursor = prev;
+                            }
+                        }
+                    }
+                }
+                frontier = next;
+                if frontier.is_empty() {
+                    break;
+                }
+            }
+        }
+        let mut edges: Vec<EdgeHit> = selected
+            .iter()
+            .map(|i| EdgeHit::from_edge(&subgraph.edges[*i]))
+            .collect();
+        edges.sort();
+        let bridge_ids: BTreeSet<NodeId> = selected
+            .iter()
+            .flat_map(|i| {
+                let e = &subgraph.edges[*i];
+                std::iter::once(e.from.clone()).chain(e.to.clone())
+            })
+            .filter(|id| !seed_set.contains(id))
+            .collect();
+        for node in subgraph.nodes {
+            if bridge_ids.contains(&node.id) {
+                seeds.push(Scored::new(node, 0.0));
+            }
+        }
+        if seeds.len() > graph_search_types::limits::GRAPH_LIMIT_CEILING as usize {
+            truncations.extend(result_truncations(
+                seeds.len(),
+                graph_search_types::limits::GRAPH_LIMIT_CEILING,
+            ));
+            seeds.truncate(graph_search_types::limits::GRAPH_LIMIT_CEILING as usize);
+        }
+
+        Ok(edges)
     }
 
     /// Node and edge counts for `status` (`SPEC.md` §8.5).
@@ -538,23 +652,28 @@ impl<'a> QueryEngine<'a> {
     /// Seeds ranked by name, qualified name, and path match, then by a
     /// bounded literal scan of candidate files (`SPEC.md` §8.4 step 1).
     #[allow(clippy::too_many_lines)]
-    fn seed(&self, query: &ExploreQuery, root: &Path) -> Result<Vec<Scored<Node>>> {
-        // Drop the small words a natural-language question is full of; they
-        // match everything and rank nothing.
-        let terms: Vec<String> = query
-            .query
-            .split_whitespace()
-            .map(str::to_ascii_lowercase)
-            .filter(|t| t.len() >= 3)
-            .collect();
+    fn seed(&self, query: &ExploreQuery, root: &Path, policy: &WalkPolicy) -> Result<Seeds> {
+        let terms = crate::lexical::query_terms(&query.query);
+        let exact = crate::lexical::exact_query(&query.query);
         if terms.is_empty() {
-            return Ok(Vec::new());
+            return Ok(Seeds {
+                nodes: Vec::new(),
+                truncations: Vec::new(),
+                candidates: 0,
+                files_scanned: 0,
+            });
         }
+        let mut truncations = Vec::new();
+        let mut scanned_files = 0u64;
         let mut scored: Vec<Scored<Node>> = Vec::new();
-        for node in self.snapshot.all_nodes()? {
-            if node.is_file() {
-                continue;
-            }
+        let nodes: Vec<_> = self
+            .snapshot
+            .all_nodes()?
+            .into_iter()
+            .filter(|n| !n.is_file())
+            .collect();
+        let index = crate::lexical::LexicalIndex::new(&nodes);
+        for (position, node) in nodes.into_iter().enumerate() {
             if !self.passes_filters(
                 &node,
                 query.filters.lang,
@@ -562,7 +681,17 @@ impl<'a> QueryEngine<'a> {
             ) {
                 continue;
             }
-            let score = score_against(&node, &terms);
+            let is_exact = node
+                .name
+                .as_deref()
+                .is_some_and(|n| n.to_lowercase() == exact)
+                || node
+                    .qualified_name
+                    .as_deref()
+                    .is_some_and(|n| n.to_lowercase() == exact);
+            let bm25 = index.score(position, &terms);
+            // Bounded, monotone lexical lane; exact spelling always wins.
+            let score = if is_exact { 2.0 } else { bm25 / (1.0 + bm25) };
             if score > 0.0 {
                 scored.push(Scored::new(node, score));
             }
@@ -576,13 +705,24 @@ impl<'a> QueryEngine<'a> {
         if let Some(needle) = distinctive {
             let search_root =
                 crate::walk::resolve_search_root(root, None).unwrap_or_else(|_| root.to_path_buf());
-            let policy = WalkPolicy::default();
-            if let Ok(entries) = crate::walk::walk(&search_root, &policy) {
-                let mut scanned_files: u64 = 0;
+            {
+                let entries = crate::walk::walk(&search_root, policy)?;
                 let mut scanned_bytes: u64 = 0;
+                if entries.len() > SCAN_FILE_CAP {
+                    truncations.push(Truncation::new(
+                        TruncationKind::Files,
+                        SCAN_FILE_CAP as u64,
+                        "explore body scan stopped at its file cap",
+                    ));
+                }
                 let mut file_hits: Vec<Scored<Node>> = Vec::new();
                 for entry in entries.iter().take(crate::query::SCAN_FILE_CAP) {
-                    if scanned_bytes >= SCAN_BYTES_CAP {
+                    if scanned_bytes.saturating_add(entry.size) > SCAN_BYTES_CAP {
+                        truncations.push(Truncation::new(
+                            TruncationKind::Bytes,
+                            SCAN_BYTES_CAP,
+                            "explore body scan stopped at its byte cap",
+                        ));
                         break;
                     }
                     let Ok(text) = std::fs::read_to_string(&entry.path) else {
@@ -594,16 +734,34 @@ impl<'a> QueryEngine<'a> {
                     if !lowered.contains(needle.as_str()) {
                         continue;
                     }
+                    let match_line = text
+                        .lines()
+                        .position(|line| line.to_lowercase().contains(needle.as_str()))
+                        .unwrap_or(0);
+                    let match_line = u32::try_from(match_line)
+                        .unwrap_or(u32::MAX)
+                        .saturating_add(1);
                     let file_node = Node {
                         id: NodeId::file(&entry.rel),
                         kind: NodeKind::File,
                         path: entry.rel.clone(),
                         language: entry.language,
+                        span: Some(graph_search_types::node::Span {
+                            start_line: match_line,
+                            end_line: match_line,
+                            ..graph_search_types::node::Span::default()
+                        }),
                         ..Node::default()
                     };
-                    // A file seed ranks below an exact symbol name but above
-                    // a bare path mention.
-                    file_hits.push(Scored::new(file_node, 0.6));
+                    if !self.passes_filters(
+                        &file_node,
+                        query.filters.lang,
+                        query.filters.path_glob.as_deref(),
+                    ) {
+                        continue;
+                    }
+                    // Body-only matches are a fallback below metadata hits.
+                    file_hits.push(Scored::new(file_node, f32::MIN_POSITIVE));
                     if scanned_files >= SCAN_FILE_CAP as u64 {
                         break;
                     }
@@ -624,8 +782,20 @@ impl<'a> QueryEngine<'a> {
                         .cmp(&b.item.span.map(|s| s.start_line))
                 })
         });
-        scored.truncate(query.k as usize);
-        Ok(scored)
+        let candidates = scored.len();
+        let k = if query.k == 0 {
+            graph_search_types::limits::EXPLORE_DEFAULT_K
+        } else {
+            effective_limit(query.k)
+        };
+        truncations.extend(result_truncations(candidates, k));
+        scored.truncate(k as usize);
+        Ok(Seeds {
+            nodes: scored,
+            truncations,
+            candidates,
+            files_scanned: scanned_files,
+        })
     }
 
     /// Resolves a `<name|id>` argument: exact id first, then name.
@@ -637,7 +807,10 @@ impl<'a> QueryEngine<'a> {
             }
         }
         let kinds: Vec<NodeKind> = Vec::new();
-        let mut found = self.snapshot.find_by_name(target, &kinds, 1)?;
+        let mut found = self.snapshot.find_by_name(target, &kinds, 2)?;
+        if found.len() > 1 {
+            return Err(Error::Ambiguous(target.to_owned()));
+        }
         if found.is_empty() {
             // A file path names its file node.
             let file_id = NodeId::file(target);
@@ -701,11 +874,15 @@ impl<'a> QueryEngine<'a> {
         query: &TraversalQuery,
     ) -> Result<GraphResult> {
         let started = std::time::Instant::now();
+        validate_filters(&query.filters)?;
         let target_id = self.resolve_target(target)?;
-        let subgraph =
-            self.snapshot
-                .expand(std::slice::from_ref(&target_id), query.depth, kinds, dir)?;
-        Ok(Self::result_from_subgraph(&subgraph, query.limit, started))
+        let subgraph = self.snapshot.expand(
+            std::slice::from_ref(&target_id),
+            query.depth.clamp(1, MAX_HOPS_CEILING),
+            kinds,
+            dir,
+        )?;
+        Ok(self.result_from_subgraph(&subgraph, query.limit, &query.filters, started))
     }
 
     fn assemble_graph(
@@ -713,90 +890,87 @@ impl<'a> QueryEngine<'a> {
         target: &NodeId,
         edges: &[graph_search_types::Edge],
         limit: u32,
+        filters: &graph_search_types::query::GraphFilters,
         started: std::time::Instant,
     ) -> Result<GraphResult> {
-        let mut nodes: BTreeMap<NodeId, Node> = BTreeMap::new();
-        if let Some(node) = self.snapshot.node_by_id(target)? {
-            nodes.insert(target.clone(), node);
-        }
-        for edge in edges {
-            if let Some(node) = self.snapshot.node_by_id(&edge.from)? {
-                nodes.insert(edge.from.clone(), node);
-            }
-            if let Some(to) = &edge.to
-                && let Some(node) = self.snapshot.node_by_id(to)?
-            {
-                nodes.insert(to.clone(), node);
+        let mut nodes = BTreeMap::new();
+        for id in std::iter::once(target).chain(
+            edges
+                .iter()
+                .flat_map(|e| std::iter::once(&e.from).chain(e.to.iter())),
+        ) {
+            if let Some(node) = self.snapshot.node_by_id(id)? {
+                nodes.insert(id.clone(), node);
             }
         }
-        let mut hits: Vec<SymbolHit> = nodes.values().map(SymbolHit::of).collect();
-        hits.sort();
-        hits.truncate(effective_limit(limit) as usize);
-        let hits_set: BTreeSet<String> = hits.iter().map(|h| h.id.clone()).collect();
-        let mut edge_hits: Vec<EdgeHit> = edges.iter().map(EdgeHit::from_edge).collect();
-        edge_hits.sort();
-        let resolved = edge_hits.iter().filter(|e| e.resolved).count() as u64;
-        Ok(GraphResult {
-            nodes: hits,
-            edges: edge_hits
-                .into_iter()
-                .filter(|e| {
-                    hits_set.contains(&e.from)
-                        || hits_set.contains(e.to.as_deref().unwrap_or_default())
-                })
-                .collect(),
-            approximation: Some(Approximation {
-                resolved,
-                unresolved: 0,
-                ..Approximation::default()
-            }),
-            stats: Stats {
-                candidates: nodes.len() as u64,
-                elapsed_ms: ms_since(started),
-                ..Stats::default()
+        Ok(self.result_from_subgraph(
+            &graph_search_types::Subgraph {
+                nodes: nodes.into_values().collect(),
+                edges: edges.to_vec(),
             },
-            ..GraphResult::default()
-        })
+            limit,
+            filters,
+            started,
+        ))
     }
 
     fn result_from_subgraph(
+        &self,
         subgraph: &graph_search_types::Subgraph,
         limit: u32,
+        filters: &graph_search_types::query::GraphFilters,
         started: std::time::Instant,
     ) -> GraphResult {
-        let mut hits: Vec<SymbolHit> = subgraph.nodes.iter().map(SymbolHit::of).collect();
-        hits.sort();
+        let allowed: BTreeSet<String> = subgraph
+            .nodes
+            .iter()
+            .filter(|n| self.passes_filters(n, filters.lang, filters.path_glob.as_deref()))
+            .map(|n| n.id.to_string())
+            .collect();
+        let mut hits: Vec<SymbolHit> = subgraph
+            .nodes
+            .iter()
+            .filter(|n| allowed.contains(n.id.as_str()))
+            .map(SymbolHit::of)
+            .collect();
+        hits.sort_by(|a, b| {
+            a.path
+                .cmp(&b.path)
+                .then(a.start_line.cmp(&b.start_line))
+                .then(a.id.cmp(&b.id))
+        });
+        let candidates = hits.len();
+        let truncations = result_truncations(candidates, limit);
         hits.truncate(effective_limit(limit) as usize);
-        let kept: BTreeSet<String> = hits.iter().map(|h| h.id.clone()).collect();
-        let mut edge_hits: Vec<EdgeHit> = subgraph
+        let kept: BTreeSet<&str> = hits.iter().map(|h| h.id.as_str()).collect();
+        let mut edges: Vec<EdgeHit> = subgraph
             .edges
             .iter()
-            .filter(|edge| {
-                kept.contains(edge.from.as_str())
-                    || edge
-                        .to
-                        .as_ref()
-                        .is_some_and(|to| kept.contains(to.as_str()))
+            .filter(|e| {
+                allowed.contains(e.from.as_str())
+                    && e.to.as_ref().is_none_or(|to| allowed.contains(to.as_str()))
+                    && (kept.contains(e.from.as_str())
+                        || e.to.as_ref().is_some_and(|to| kept.contains(to.as_str())))
             })
             .map(EdgeHit::from_edge)
             .collect();
-        edge_hits.sort();
-        let resolved = edge_hits.iter().filter(|e| e.resolved).count() as u64;
-        let unresolved = (edge_hits.len() as u64).saturating_sub(resolved);
+        edges.sort();
+        let resolved = edges.iter().filter(|e| e.resolved).count() as u64;
+        let unresolved = (edges.len() as u64).saturating_sub(resolved);
         GraphResult {
             nodes: hits,
-            edges: edge_hits,
+            edges,
+            truncations,
             approximation: Some(Approximation {
                 resolved,
                 unresolved,
                 ..Approximation::default()
             }),
             stats: Stats {
-                candidates: subgraph.nodes.len() as u64,
+                candidates: candidates as u64,
                 elapsed_ms: ms_since(started),
                 ..Stats::default()
             },
-            ..GraphResult::default()
         }
     }
 }
@@ -817,7 +991,9 @@ fn snippet_for(node: &Node, context_lines: u32, root: &Path) -> Option<Snippet> 
     let end_base = usize::try_from(span.start_line)
         .unwrap_or(usize::MAX)
         .saturating_add(context_lines as usize);
-    let end = end_base.min(lines.len());
+    let end = end_base
+        .min(lines.len())
+        .min(start.saturating_add(graph_search_types::limits::MAX_SNIPPET_LINES as usize));
     if start >= lines.len() {
         return None;
     }
@@ -844,3 +1020,62 @@ const _: () = {
     let _ = DEFAULT_TRAVERSAL_DEPTH;
     let _ = GRAPH_DEFAULT_LIMIT;
 };
+
+fn validate_filters(filters: &graph_search_types::query::GraphFilters) -> Result<()> {
+    if let Some(glob) = &filters.path_glob {
+        crate::files_search::compile_anchored_glob(glob)?;
+    }
+    Ok(())
+}
+fn result_truncations(candidates: usize, limit: u32) -> Vec<Truncation> {
+    let cap = effective_limit(limit);
+    if candidates > cap as usize {
+        vec![Truncation::new(
+            TruncationKind::Results,
+            u64::from(cap),
+            "matching nodes exceeded the result cap",
+        )]
+    } else {
+        Vec::new()
+    }
+}
+
+fn explore_byte_cap(requested: u32) -> usize {
+    if requested == 0 {
+        graph_search_types::limits::MAX_TOTAL_BYTES
+    } else {
+        (requested as usize).min(graph_search_types::limits::MAX_TOTAL_BYTES)
+    }
+}
+fn fit_explore(result: &mut ExploreResult, cap: usize) -> Result<()> {
+    loop {
+        let resolved = result.edges.iter().filter(|e| e.resolved).count() as u64;
+        result.approximation = Some(Approximation {
+            resolved,
+            unresolved: (result.edges.len() as u64).saturating_sub(resolved),
+            ..Approximation::default()
+        });
+        if serde_json::to_vec(result).map_or(usize::MAX, |v| v.len()) <= cap {
+            return Ok(());
+        }
+        if !result
+            .truncations
+            .iter()
+            .any(|t| t.kind == TruncationKind::Bytes && t.cap == cap as u64)
+        {
+            result.truncations.push(Truncation::new(
+                TruncationKind::Bytes,
+                cap as u64,
+                "serialized explore result exceeded its byte cap",
+            ));
+        }
+        if result.edges.pop().is_some() {
+            continue;
+        }
+        if result.items.pop().is_none() {
+            return Err(Error::InvalidInclude(format!(
+                "max_bytes={cap} cannot hold explore metadata"
+            )));
+        }
+    }
+}

@@ -1,0 +1,13 @@
+[package]
+name = "search-research"
+version = "0.1.0"
+edition = "2024"
+[workspace]
+[dependencies]
+graph-search = { path = "../../crates/graph-search" }
+graph-search-core = { path = "../../crates/core" }
+graph-search-types = { path = "../../crates/types" }
+graph-search-langs = { path = "../../crates/langs" }
+graph-search-engine = { path = "../../crates/engine" }
+serde_json = "1"
+tempfile = "3"

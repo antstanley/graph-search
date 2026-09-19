@@ -1,0 +1,2708 @@
+{
+  "nanus": [
+    {
+      "request": {
+        "expected_name": "apply_backlog",
+        "expected_path": "crates/nanus-tui/src/runtime.rs",
+        "mode": "explore",
+        "query": "apply backlog"
+      },
+      "rank": 1,
+      "items": [
+        {
+          "path": "crates/nanus-tui/src/runtime.rs",
+          "name": "apply_backlog"
+        },
+        {
+          "path": "crates/nanus-tui/src/replay.rs",
+          "name": "apply"
+        },
+        {
+          "path": "crates/nanus-ports/src/llm.rs",
+          "name": "apply"
+        },
+        {
+          "path": "crates/nanus-link/src/protocol.rs",
+          "name": "Backlog"
+        },
+        {
+          "path": "crates/nanus-tui/src/runtime.rs",
+          "name": "apply"
+        },
+        {
+          "path": "crates/nanus-kernel/src/plugin.rs",
+          "name": "apply"
+        },
+        {
+          "path": "crates/nanus-tui/src/runtime.rs",
+          "name": "redundant_backlog"
+        },
+        {
+          "path": "crates/nanus-ports/src/llm.rs",
+          "name": "apply_event"
+        }
+      ],
+      "elapsed_us": 416818,
+      "error": null
+    },
+    {
+      "request": {
+        "expected_name": "scrolling_without_a_session_is_refused",
+        "expected_path": "crates/nanus-cli/src/cli.rs",
+        "mode": "explore",
+        "query": "scrolling without session refused"
+      },
+      "rank": 1,
+      "items": [
+        {
+          "path": "crates/nanus-cli/src/cli.rs",
+          "name": "scrolling_without_a_session_is_refused"
+        },
+        {
+          "path": "crates/nanus-link/tests/link.rs",
+          "name": "a_prompt_without_an_attachment_is_refused"
+        },
+        {
+          "path": "crates/nanus-bundle/tests/composition.rs",
+          "name": "a_configuration_without_a_key_is_refused_before_anything_mounts"
+        },
+        {
+          "path": "crates/nanus-bundle/src/agent_loop.rs",
+          "name": "a_prompt_that_only_fits_without_the_budget_sentence_is_refused"
+        },
+        {
+          "path": "crates/nanus-link/tests/link.rs",
+          "name": "a_session_another_agent_is_writing_is_refused"
+        },
+        {
+          "path": "crates/nanus-adapter-store/tests/store.rs",
+          "name": "a_name_another_session_holds_is_refused"
+        },
+        {
+          "path": "crates/nanus-cli/src/cli.rs",
+          "name": "deleting_a_session_that_is_not_there_is_refused"
+        },
+        {
+          "path": "crates/nanus-link/tests/link.rs",
+          "name": "a_name_another_session_holds_is_refused_and_creates_nothing"
+        }
+      ],
+      "elapsed_us": 424216,
+      "error": null
+    },
+    {
+      "request": {
+        "expected_name": "a_turn_still_running_is_not_reported_as_ended",
+        "expected_path": "crates/nanus-tui/src/summary.rs",
+        "mode": "explore",
+        "query": "turn still running not reported as ended"
+      },
+      "rank": 1,
+      "items": [
+        {
+          "path": "crates/nanus-tui/src/summary.rs",
+          "name": "a_turn_still_running_is_not_reported_as_ended"
+        },
+        {
+          "path": "crates/nanus-tui/src/view.rs",
+          "name": "a_call_still_running_is_marked_as_running"
+        },
+        {
+          "path": "crates/nanus-tui/src/runtime.rs",
+          "name": "a_failed_turn_is_reported_as_a_notice"
+        },
+        {
+          "path": "crates/nanus-bundle/src/tools/grep.rs",
+          "name": "an_empty_result_after_a_cap_is_not_reported_as_no_matches"
+        },
+        {
+          "path": "crates/nanus-tui/src/runtime.rs",
+          "name": "a_turn_that_stops_at_its_budget_is_reported_rather_than_dressed_as_an_answer"
+        },
+        {
+          "path": "crates/nanus-link/tests/link.rs",
+          "name": "an_interrupt_stops_the_turn_that_is_running"
+        },
+        {
+          "path": "crates/nanus-link/tests/link.rs",
+          "name": "an_interrupt_with_no_turn_running_changes_nothing"
+        },
+        {
+          "path": "crates/nanus-tui/src/runtime.rs",
+          "name": "the_stop_key_stops_a_running_turn_before_it_touches_the_prompt"
+        }
+      ],
+      "elapsed_us": 430392,
+      "error": null
+    },
+    {
+      "request": {
+        "expected_name": "scrolling_to_the_top_does_not_follow",
+        "expected_path": "crates/nanus-tui/src/view.rs",
+        "mode": "explore",
+        "query": "scrolling top not follow"
+      },
+      "rank": 1,
+      "items": [
+        {
+          "path": "crates/nanus-tui/src/view.rs",
+          "name": "scrolling_to_the_top_does_not_follow"
+        },
+        {
+          "path": "crates/nanus-adapter-store/tests/store.rs",
+          "name": "delete_does_not_follow_a_symlink_out_of_the_home"
+        },
+        {
+          "path": "crates/nanus-tui/src/markdown/mermaid/charts.rs",
+          "name": "y_top"
+        },
+        {
+          "path": "crates/nanus-tui/src/view.rs",
+          "name": "scroll_to_top"
+        },
+        {
+          "path": "crates/nanus-tui/src/view.rs",
+          "name": "scroll_to_top_returns_to_the_beginning"
+        },
+        {
+          "path": "crates/nanus-cli/src/cli.rs",
+          "name": "scrolling_without_a_session_is_refused"
+        },
+        {
+          "path": "crates/nanus-tui/src/view.rs",
+          "name": "the_key_list_opens_at_the_top"
+        },
+        {
+          "path": "crates/nanus-tui/src/view.rs",
+          "name": "scrolling_forward_reaches_the_newest_entry"
+        }
+      ],
+      "elapsed_us": 433444,
+      "error": null
+    },
+    {
+      "request": {
+        "expected_name": "read_outcome",
+        "expected_path": "crates/nanus-bundle/src/tools/read.rs",
+        "mode": "explore",
+        "query": "read outcome"
+      },
+      "rank": 2,
+      "items": [
+        {
+          "path": "crates/nanus-bundle/src/tools/read.rs",
+          "name": "read_image_outcome"
+        },
+        {
+          "path": "crates/nanus-bundle/src/tools/read.rs",
+          "name": "read_outcome"
+        },
+        {
+          "path": "crates/nanus-domain/src/approval.rs",
+          "name": "Read"
+        },
+        {
+          "path": "crates/nanus-bundle/src/tools/read.rs",
+          "name": "ReadExecutor"
+        },
+        {
+          "path": "crates/nanus-domain/tests/invariants.rs",
+          "name": "outcome"
+        },
+        {
+          "path": "crates/nanus-tui/src/runtime.rs",
+          "name": "Outcome"
+        },
+        {
+          "path": "crates/nanus-tui/src/shell.rs",
+          "name": "Outcome"
+        },
+        {
+          "path": "crates/nanus-domain/src/tool.rs",
+          "name": "outcome"
+        }
+      ],
+      "elapsed_us": 454960,
+      "error": null
+    },
+    {
+      "request": {
+        "expected_name": "a_heading_is_rendered_without_its_hashes",
+        "expected_path": "crates/nanus-tui/src/markdown/render.rs",
+        "mode": "explore",
+        "query": "heading rendered without its hashes"
+      },
+      "rank": 1,
+      "items": [
+        {
+          "path": "crates/nanus-tui/src/markdown/render.rs",
+          "name": "a_heading_is_rendered_without_its_hashes"
+        },
+        {
+          "path": "crates/nanus-tui/src/markdown/render.rs",
+          "name": "a_paragraph_is_rendered_without_its_markers"
+        },
+        {
+          "path": "crates/nanus-tui/src/markdown/parse.rs",
+          "name": "a_hash_without_a_space_is_not_a_heading"
+        },
+        {
+          "path": "crates/nanus-tui/src/markdown/parse.rs",
+          "name": "a_heading_keeps_its_level_and_text"
+        },
+        {
+          "path": "crates/nanus-domain/src/tool.rs",
+          "name": "a_success_without_content_renders_its_value"
+        },
+        {
+          "path": "crates/nanus-kernel/tests/composition.rs",
+          "name": "a_consumer_without_its_dependency_reports_what_is_missing"
+        },
+        {
+          "path": "crates/nanus-tui/src/help.rs",
+          "name": "Heading"
+        },
+        {
+          "path": "crates/nanus-tui/src/markdown/types.rs",
+          "name": "Heading"
+        }
+      ],
+      "elapsed_us": 422015,
+      "error": null
+    },
+    {
+      "request": {
+        "expected_name": "a_bang_line_runs_in_the_interface_and_is_drawn",
+        "expected_path": "crates/nanus-tui/src/runtime.rs",
+        "mode": "explore",
+        "query": "bang line runs interface drawn"
+      },
+      "rank": 1,
+      "items": [
+        {
+          "path": "crates/nanus-tui/src/runtime.rs",
+          "name": "a_bang_line_runs_in_the_interface_and_is_drawn"
+        },
+        {
+          "path": "crates/nanus-tui/src/command.rs",
+          "name": "a_bang_line_is_a_shell_command"
+        },
+        {
+          "path": "crates/nanus-tui/src/view.rs",
+          "name": "the_throughput_line_is_drawn_under_the_composer"
+        },
+        {
+          "path": "crates/nanus-tui/src/transcript.rs",
+          "name": "a_wrapped_line_is_counted_the_way_it_is_drawn"
+        },
+        {
+          "path": "crates/nanus-tui/src/view.rs",
+          "name": "the_caret_is_drawn_on_the_line_it_is_on"
+        },
+        {
+          "path": "crates/nanus-tui/src/view.rs",
+          "name": "a_settled_thinking_segment_is_drawn_as_its_newest_line"
+        },
+        {
+          "path": "crates/nanus-cli/src/cli.rs",
+          "name": "the_interface_takes_a_name_and_a_resume"
+        },
+        {
+          "path": "crates/nanus-cli/src/tui.rs",
+          "name": "the_interface_is_looked_for_beside_the_core"
+        }
+      ],
+      "elapsed_us": 420128,
+      "error": null
+    },
+    {
+      "request": {
+        "expected_name": "print_sessions",
+        "expected_path": "crates/nanus-cli/src/cli.rs",
+        "mode": "explore",
+        "query": "print sessions"
+      },
+      "rank": 1,
+      "items": [
+        {
+          "path": "crates/nanus-cli/src/cli.rs",
+          "name": "print_sessions"
+        },
+        {
+          "path": "crates/nanus-cli/src/cli.rs",
+          "name": "print_session_report"
+        },
+        {
+          "path": "crates/nanus-cli/src/cli.rs",
+          "name": "Sessions"
+        },
+        {
+          "path": "crates/nanus-link/src/protocol.rs",
+          "name": "Sessions"
+        },
+        {
+          "path": "crates/nanus-link/src/protocol.rs",
+          "name": "Sessions"
+        },
+        {
+          "path": "crates/nanus-cli/src/cli.rs",
+          "name": "SessionsAction"
+        },
+        {
+          "path": "crates/nanus-adapter-store/src/store.rs",
+          "name": "SESSIONS_DIR"
+        },
+        {
+          "path": "crates/nanus-link/src/server.rs",
+          "name": "MAX_HELD_SESSIONS"
+        }
+      ],
+      "elapsed_us": 413355,
+      "error": null
+    },
+    {
+      "request": {
+        "expected_name": "a_split_connection_reads_and_writes_independently",
+        "expected_path": "crates/nanus-link/src/client.rs",
+        "mode": "explore",
+        "query": "split connection reads writes independently"
+      },
+      "rank": 1,
+      "items": [
+        {
+          "path": "crates/nanus-link/src/client.rs",
+          "name": "a_split_connection_reads_and_writes_independently"
+        },
+        {
+          "path": "crates/nanus-link/src/server.rs",
+          "name": "serve_connection"
+        },
+        {
+          "path": "crates/nanus-tui/src/runtime.rs",
+          "name": "connection_frames_do_not_reach_the_transcript"
+        },
+        {
+          "path": "crates/nanus-link/src/server.rs",
+          "name": "a_connection_with_no_room_for_the_reply_is_refused_rather_than_attached"
+        },
+        {
+          "path": "crates/nanus-cli/src/progress.rs",
+          "name": "a_disabled_reporter_writes_nothing"
+        },
+        {
+          "path": "crates/nanus-domain/src/approval.rs",
+          "name": "permits_writes"
+        },
+        {
+          "path": "crates/nanus-ports/src/shell.rs",
+          "name": "permits_writes"
+        },
+        {
+          "path": "crates/nanus-ports/src/shell.rs",
+          "name": "ensure_writes_permitted"
+        }
+      ],
+      "elapsed_us": 423092,
+      "error": null
+    },
+    {
+      "request": {
+        "expected_name": "append_stream",
+        "expected_path": "crates/nanus-bundle/src/tools/bash.rs",
+        "mode": "explore",
+        "query": "append stream"
+      },
+      "rank": 1,
+      "items": [
+        {
+          "path": "crates/nanus-bundle/src/tools/bash.rs",
+          "name": "append_stream"
+        },
+        {
+          "path": "crates/nanus-tui/src/transcript.rs",
+          "name": "append_stream"
+        },
+        {
+          "path": "crates/nanus-domain/src/session.rs",
+          "name": "append"
+        },
+        {
+          "path": "crates/nanus-domain/src/session.rs",
+          "name": "append"
+        },
+        {
+          "path": "crates/nanus-tui/src/transcript.rs",
+          "name": "a_settled_entry_refuses_an_append"
+        },
+        {
+          "path": "crates/nanus-tui/src/runtime.rs",
+          "name": "the_frames_that_append_also_follow"
+        },
+        {
+          "path": "crates/nanus-adapter-local/src/shell.rs",
+          "name": "append_capped"
+        },
+        {
+          "path": "crates/nanus-domain/src/session.rs",
+          "name": "an_append_only_log_numbers_events_by_position"
+        }
+      ],
+      "elapsed_us": 414370,
+      "error": null
+    },
+    {
+      "request": {
+        "expected_name": "a_session_remembers_what_it_ran_under",
+        "expected_path": "crates/nanus-domain/src/session.rs",
+        "mode": "explore",
+        "query": "session remembers it ran under"
+      },
+      "rank": 1,
+      "items": [
+        {
+          "path": "crates/nanus-domain/src/session.rs",
+          "name": "a_session_remembers_what_it_ran_under"
+        },
+        {
+          "path": "crates/nanus-tui/src/buffer.rs",
+          "name": "kill_to_end_removes_the_rest_of_the_line_and_remembers_it"
+        },
+        {
+          "path": "crates/nanus-adapter-local/tests/shell.rs",
+          "name": "a_relative_working_directory_runs_under_the_root_it_was_checked_against"
+        },
+        {
+          "path": "crates/nanus-tui/src/buffer.rs",
+          "name": "submitting_clears_and_remembers"
+        },
+        {
+          "path": "crates/nanus-tui/src/runtime.rs",
+          "name": "a_recorded_session_reports_the_model_it_was_recorded_with"
+        },
+        {
+          "path": "crates/nanus-cli/src/cli.rs",
+          "name": "deleting_a_session_by_name_removes_it_and_releases_the_name"
+        },
+        {
+          "path": "crates/nanus-link/tests/link.rs",
+          "name": "two_clients_opening_the_same_session_at_once_share_it"
+        },
+        {
+          "path": "crates/nanus-bundle/src/guard.rs",
+          "name": "under_any"
+        }
+      ],
+      "elapsed_us": 422578,
+      "error": null
+    },
+    {
+      "request": {
+        "expected_name": "words_wrap_at_the_budget",
+        "expected_path": "crates/nanus-tui/src/markdown/wrap.rs",
+        "mode": "explore",
+        "query": "words wrap at budget"
+      },
+      "rank": 1,
+      "items": [
+        {
+          "path": "crates/nanus-tui/src/markdown/wrap.rs",
+          "name": "words_wrap_at_the_budget"
+        },
+        {
+          "path": "crates/nanus-tui/src/view.rs",
+          "name": "wrap_words"
+        },
+        {
+          "path": "crates/nanus-tui/src/markdown/render.rs",
+          "name": "a_long_code_line_is_cut_at_the_budget"
+        },
+        {
+          "path": "crates/nanus-tui/src/markdown/wrap.rs",
+          "name": "budget"
+        },
+        {
+          "path": "crates/nanus-tui/src/runtime.rs",
+          "name": "a_turn_that_stops_at_its_budget_is_reported_rather_than_dressed_as_an_answer"
+        },
+        {
+          "path": "crates/nanus-tui/src/markdown/wrap.rs",
+          "name": "a_line_within_the_budget_stays_one_line"
+        },
+        {
+          "path": "crates/nanus-tui/src/markdown/wrap.rs",
+          "name": "a_space_at_a_break_is_dropped"
+        },
+        {
+          "path": "crates/nanus-bundle/src/guard.rs",
+          "name": "DESTRUCTIVE_WORDS"
+        }
+      ],
+      "elapsed_us": 419511,
+      "error": null
+    },
+    {
+      "request": {
+        "expected_name": "a_request_from_a_viewer_that_was_detached_is_refused",
+        "expected_path": "crates/nanus-link/src/server.rs",
+        "mode": "explore",
+        "query": "request from viewer that was detached refused"
+      },
+      "rank": 1,
+      "items": [
+        {
+          "path": "crates/nanus-link/src/server.rs",
+          "name": "a_request_from_a_viewer_that_was_detached_is_refused"
+        },
+        {
+          "path": "crates/nanus-link/src/server.rs",
+          "name": "a_viewer_that_cannot_make_room_for_an_ending_is_detached"
+        },
+        {
+          "path": "crates/nanus-link/tests/link.rs",
+          "name": "a_session_that_was_never_held_is_loaded_from_the_store"
+        },
+        {
+          "path": "crates/nanus-link/src/server.rs",
+          "name": "a_prompt_reaches_every_watcher_or_that_watcher_is_detached"
+        },
+        {
+          "path": "crates/nanus-bundle/tests/end_to_end.rs",
+          "name": "a_search_finds_a_file_that_was_just_written"
+        },
+        {
+          "path": "crates/nanus-link/src/wire.rs",
+          "name": "the_same_line_decodes_as_the_type_that_was_asked_for"
+        },
+        {
+          "path": "crates/nanus-bundle/src/agent_loop.rs",
+          "name": "the_effort_reaches_the_request_only_when_it_was_chosen"
+        },
+        {
+          "path": "crates/nanus-adapter-config/tests/config.rs",
+          "name": "a_file_from_a_newer_build_is_refused"
+        }
+      ],
+      "elapsed_us": 424875,
+      "error": null
+    },
+    {
+      "request": {
+        "expected_name": "the_service_takes_a_start_stop_and_status",
+        "expected_path": "crates/nanus-cli/src/cli.rs",
+        "mode": "explore",
+        "query": "service takes start stop status"
+      },
+      "rank": 1,
+      "items": [
+        {
+          "path": "crates/nanus-cli/src/cli.rs",
+          "name": "the_service_takes_a_start_stop_and_status"
+        },
+        {
+          "path": "crates/nanus-cli/src/service.rs",
+          "name": "Start"
+        },
+        {
+          "path": "crates/nanus-cli/src/service.rs",
+          "name": "START_TIMEOUT"
+        },
+        {
+          "path": "crates/nanus-cli/src/service.rs",
+          "name": "status"
+        },
+        {
+          "path": "crates/nanus-cli/src/service.rs",
+          "name": "stop"
+        },
+        {
+          "path": "crates/nanus-cli/src/service.rs",
+          "name": "start"
+        },
+        {
+          "path": "crates/nanus-cli/src/cli.rs",
+          "name": "the_interface_takes_a_name_and_a_resume"
+        },
+        {
+          "path": "crates/nanus-cli/src/cli.rs",
+          "name": "the_tui_takes_an_optional_session_id"
+        }
+      ],
+      "elapsed_us": 421377,
+      "error": null
+    },
+    {
+      "request": {
+        "expected_name": "command_is_destructive",
+        "expected_path": "crates/nanus-bundle/src/guard.rs",
+        "mode": "explore",
+        "query": "command destructive"
+      },
+      "rank": 1,
+      "items": [
+        {
+          "path": "crates/nanus-bundle/src/guard.rs",
+          "name": "command_is_destructive"
+        },
+        {
+          "path": "crates/nanus-bundle/src/guard.rs",
+          "name": "a_deleting_command_is_destructive_and_the_rest_are_not"
+        },
+        {
+          "path": "crates/nanus-bundle/src/guard.rs",
+          "name": "DESTRUCTIVE_WORDS"
+        },
+        {
+          "path": "crates/nanus-bundle/src/guard.rs",
+          "name": "is_destructive"
+        },
+        {
+          "path": "crates/nanus-bundle/src/guard.rs",
+          "name": "the_filesystem_tools_are_not_destructive"
+        },
+        {
+          "path": "crates/nanus-bundle/src/agent_loop.rs",
+          "name": "permitted_grants_a_non_destructive_call"
+        },
+        {
+          "path": "crates/nanus-bundle/src/agent_loop.rs",
+          "name": "permitted_asks_about_a_destructive_call"
+        },
+        {
+          "path": "crates/nanus-bundle/src/agent_loop.rs",
+          "name": "permitted_grants_a_destructive_call_in_a_temporary_directory"
+        }
+      ],
+      "elapsed_us": 417000,
+      "error": null
+    },
+    {
+      "request": {
+        "expected_name": "prompts_leave_in_the_order_they_arrived",
+        "expected_path": "crates/nanus-tui/src/queue.rs",
+        "mode": "explore",
+        "query": "prompts leave order they arrived"
+      },
+      "rank": 1,
+      "items": [
+        {
+          "path": "crates/nanus-tui/src/queue.rs",
+          "name": "prompts_leave_in_the_order_they_arrived"
+        },
+        {
+          "path": "crates/nanus-tui/src/runtime.rs",
+          "name": "Leave"
+        },
+        {
+          "path": "crates/nanus-domain/src/approval.rs",
+          "name": "sandbox_modes_report_what_they_permit"
+        },
+        {
+          "path": "crates/nanus-tui/src/buffer.rs",
+          "name": "leave_history"
+        },
+        {
+          "path": "crates/nanus-tui/src/view.rs",
+          "name": "a_thinking_line_follows_the_deltas_as_they_arrive"
+        },
+        {
+          "path": "crates/nanus-adapter-anthropic/src/wire.rs",
+          "name": "no_usage_is_reported_when_none_arrived"
+        },
+        {
+          "path": "crates/nanus-tui/src/markdown/render.rs",
+          "name": "highlighting_leaves_the_code_as_it_arrived"
+        },
+        {
+          "path": "crates/nanus-tui/src/runtime.rs",
+          "name": "the_keys_that_close_the_key_list_are_the_ones_that_leave_a_dialog"
+        }
+      ],
+      "elapsed_us": 420246,
+      "error": null
+    },
+    {
+      "request": {
+        "expected_name": "system_text",
+        "expected_path": "crates/nanus-adapter-anthropic/src/wire.rs",
+        "mode": "explore",
+        "query": "system text"
+      },
+      "rank": 1,
+      "items": [
+        {
+          "path": "crates/nanus-adapter-anthropic/src/wire.rs",
+          "name": "system_text"
+        },
+        {
+          "path": "crates/nanus-domain/src/message.rs",
+          "name": "system"
+        },
+        {
+          "path": "crates/nanus-tui/src/runtime.rs",
+          "name": "system_clipboard"
+        },
+        {
+          "path": "crates/nanus-domain/src/message.rs",
+          "name": "System"
+        },
+        {
+          "path": "crates/nanus-domain/src/message.rs",
+          "name": "System"
+        },
+        {
+          "path": "crates/nanus-tui/src/copy.rs",
+          "name": "System"
+        },
+        {
+          "path": "crates/nanus-adapter-local/src/clock.rs",
+          "name": "SystemClock"
+        },
+        {
+          "path": "crates/nanus-bundle/src/agent_loop.rs",
+          "name": "system_prompt"
+        }
+      ],
+      "elapsed_us": 415262,
+      "error": null
+    },
+    {
+      "request": {
+        "expected_name": "the_reported_failure_is_the_most_actionable_one",
+        "expected_path": "crates/nanus-adapter-secret/src/lib.rs",
+        "mode": "explore",
+        "query": "reported failure most actionable one"
+      },
+      "rank": 1,
+      "items": [
+        {
+          "path": "crates/nanus-adapter-secret/src/lib.rs",
+          "name": "the_reported_failure_is_the_most_actionable_one"
+        },
+        {
+          "path": "crates/nanus-domain/src/approval.rs",
+          "name": "an_undeclared_access_is_the_most_restrictive_one"
+        },
+        {
+          "path": "crates/nanus-bundle/src/agent_loop.rs",
+          "name": "a_model_failure_is_reported"
+        },
+        {
+          "path": "crates/nanus-ports/tests/contracts.rs",
+          "name": "a_malformed_script_is_reported_as_a_stream_failure"
+        },
+        {
+          "path": "crates/nanus-tui/src/stats.rs",
+          "name": "the_waits_are_averaged_over_the_requests_that_reported_one"
+        },
+        {
+          "path": "crates/nanus-domain/src/approval.rs",
+          "name": "the_defaults_are_the_most_restrictive_values"
+        },
+        {
+          "path": "crates/nanus-domain/src/tool.rs",
+          "name": "Failure"
+        },
+        {
+          "path": "crates/nanus-adapter-secret/src/lib.rs",
+          "name": "failure"
+        }
+      ],
+      "elapsed_us": 420254,
+      "error": null
+    },
+    {
+      "request": {
+        "expected_name": "tool_finished",
+        "expected_path": "crates/nanus-bundle/src/agent_loop.rs",
+        "mode": "explore",
+        "query": "tool finished"
+      },
+      "rank": 3,
+      "items": [
+        {
+          "path": "crates/nanus-cli/src/progress.rs",
+          "name": "tool_finished"
+        },
+        {
+          "path": "crates/nanus-link/src/server.rs",
+          "name": "tool_finished"
+        },
+        {
+          "path": "crates/nanus-bundle/src/agent_loop.rs",
+          "name": "tool_finished"
+        },
+        {
+          "path": "crates/nanus-ports/src/llm.rs",
+          "name": "Finished"
+        },
+        {
+          "path": "crates/nanus-bundle/src/agent_loop.rs",
+          "name": "finished"
+        },
+        {
+          "path": "crates/nanus-bundle/src/agent_loop.rs",
+          "name": "finished"
+        },
+        {
+          "path": "crates/nanus-tui/src/runtime.rs",
+          "name": "queue_edit_finished"
+        },
+        {
+          "path": "crates/nanus-tui/src/runtime.rs",
+          "name": "shell_finished"
+        }
+      ],
+      "elapsed_us": 417210,
+      "error": null
+    },
+    {
+      "request": {
+        "expected_name": "a_recorded_session_reports_the_model_it_was_recorded_with",
+        "expected_path": "crates/nanus-tui/src/runtime.rs",
+        "mode": "explore",
+        "query": "recorded session reports model it was recorded"
+      },
+      "rank": 1,
+      "items": [
+        {
+          "path": "crates/nanus-tui/src/runtime.rs",
+          "name": "a_recorded_session_reports_the_model_it_was_recorded_with"
+        },
+        {
+          "path": "crates/nanus-domain/src/agent.rs",
+          "name": "the_machine_exposes_the_config_it_was_given"
+        },
+        {
+          "path": "crates/nanus-link/src/protocol.rs",
+          "name": "an_ending_keeps_the_reason_it_was_sent_with"
+        },
+        {
+          "path": "crates/nanus-tui/src/compact.rs",
+          "name": "a_tool_line_is_marked_with_the_outcome_it_was_given"
+        },
+        {
+          "path": "crates/nanus-ports/tests/contracts.rs",
+          "name": "reap_reports_what_it_stopped"
+        },
+        {
+          "path": "crates/nanus-domain/src/session.rs",
+          "name": "usage_is_split_by_the_model_that_produced_it"
+        },
+        {
+          "path": "crates/nanus-bundle/src/tools/read.rs",
+          "name": "a_window_reports_the_lines_it_showed"
+        },
+        {
+          "path": "crates/nanus-bundle/src/agent_loop.rs",
+          "name": "the_effort_reaches_the_request_only_when_it_was_chosen"
+        }
+      ],
+      "elapsed_us": 419827,
+      "error": null
+    }
+  ],
+  "blogwright": [
+    {
+      "request": {
+        "expected_name": "packageAndUploadAgent",
+        "expected_path": "packages/cli/src/agent-package.ts",
+        "mode": "explore",
+        "query": "package upload agent"
+      },
+      "rank": 1,
+      "items": [
+        {
+          "path": "packages/cli/src/agent-package.ts",
+          "name": "packageAndUploadAgent"
+        },
+        {
+          "path": "packages/build-agent/src/build.ts",
+          "name": "shouldUpload"
+        },
+        {
+          "path": "packages/build-agent/src/build.test.ts",
+          "name": "upload"
+        },
+        {
+          "path": "packages/build-agent/src/build.test.ts",
+          "name": "upload"
+        },
+        {
+          "path": "packages/cli/src/agent-package.test.ts",
+          "name": "artifact"
+        },
+        {
+          "path": "packages/build-agent/src/build.test.ts",
+          "name": "upload"
+        },
+        {
+          "path": "packages/build-agent/src/build.test.ts",
+          "name": "upload"
+        },
+        {
+          "path": "packages/build-agent/src/build.ts",
+          "name": "uploadSiteFile"
+        }
+      ],
+      "elapsed_us": 501065,
+      "error": null
+    },
+    {
+      "request": {
+        "expected_name": "parseFrontmatter",
+        "expected_path": "packages/pds/src/content.ts",
+        "mode": "explore",
+        "query": "parse frontmatter"
+      },
+      "rank": 1,
+      "items": [
+        {
+          "path": "packages/pds/src/content.ts",
+          "name": "parseFrontmatter"
+        },
+        {
+          "path": "docs/src/lib/markdown.ts",
+          "name": "frontmatter"
+        },
+        {
+          "path": "packages/pds/src/content.test.ts",
+          "name": "fields"
+        },
+        {
+          "path": "packages/pds/src/content.ts",
+          "name": "fields"
+        },
+        {
+          "path": "packages/analytics/src/nodes.test.ts",
+          "name": "parseBody"
+        },
+        {
+          "path": "packages/core/src/config.ts",
+          "name": "parseConfigDocument"
+        },
+        {
+          "path": "packages/core/src/config.ts",
+          "name": "parseConfig"
+        },
+        {
+          "path": "packages/analytics/src/view-granularity.ts",
+          "name": "parseViewGranularity"
+        }
+      ],
+      "elapsed_us": 508529,
+      "error": null
+    },
+    {
+      "request": {
+        "expected_name": "clearPluginDeliveries",
+        "expected_path": "packages/analytics/src/nodes.ts",
+        "mode": "explore",
+        "query": "clear plugin deliveries"
+      },
+      "rank": 1,
+      "items": [
+        {
+          "path": "packages/analytics/src/nodes.ts",
+          "name": "clearPluginDeliveries"
+        },
+        {
+          "path": "packages/core/src/adapters/node-terminal.ts",
+          "name": "clearStatus"
+        },
+        {
+          "path": "packages/core/src/adapters/node-terminal.test.ts",
+          "name": "CLEAR"
+        },
+        {
+          "path": "packages/core/src/adapters/node-terminal.test.ts",
+          "name": "CLEAR"
+        },
+        {
+          "path": "packages/core/src/adapters/node-terminal.ts",
+          "name": "CLEAR_LINE"
+        },
+        {
+          "path": "packages/cli/src/microvms.ts",
+          "name": "clearRunningMicrovms"
+        },
+        {
+          "path": "packages/analytics/app/src/app.css",
+          "name": ".country-search-clear,\n.country-search-results button"
+        },
+        {
+          "path": "packages/core/src/aws/logs.ts",
+          "name": "deliveries"
+        }
+      ],
+      "elapsed_us": 505548,
+      "error": null
+    },
+    {
+      "request": {
+        "expected_name": "boundedName",
+        "expected_path": "packages/analytics/src/nodes.ts",
+        "mode": "explore",
+        "query": "bounded name"
+      },
+      "rank": 1,
+      "items": [
+        {
+          "path": "packages/analytics/src/nodes.ts",
+          "name": "boundedName"
+        },
+        {
+          "path": "packages/core/src/plugin.ts",
+          "name": "name"
+        },
+        {
+          "path": "packages/analytics/src/nodes.ts",
+          "name": "name"
+        },
+        {
+          "path": "packages/analytics/src/nodes.ts",
+          "name": "name"
+        },
+        {
+          "path": "packages/analytics/src/nodes.ts",
+          "name": "name"
+        },
+        {
+          "path": "packages/analytics/src/nodes.test.ts",
+          "name": "name"
+        },
+        {
+          "path": "packages/analytics/src/nodes.test.ts",
+          "name": "name"
+        },
+        {
+          "path": "packages/analytics/src/nodes.ts",
+          "name": "name"
+        }
+      ],
+      "elapsed_us": 503344,
+      "error": null
+    },
+    {
+      "request": {
+        "expected_name": "candidateDays",
+        "expected_path": "packages/analytics/src/backfill.ts",
+        "mode": "explore",
+        "query": "candidate days"
+      },
+      "rank": 1,
+      "items": [
+        {
+          "path": "packages/analytics/src/backfill.ts",
+          "name": "candidateDays"
+        },
+        {
+          "path": "packages/analytics/src/backfill.test.ts",
+          "name": "CANDIDATE_DAYS"
+        },
+        {
+          "path": "packages/analytics/src/backfill.ts",
+          "name": "days"
+        },
+        {
+          "path": "tests/browser/server.mjs",
+          "name": "DAYS"
+        },
+        {
+          "path": "packages/analytics/src/backfill.ts",
+          "name": "days"
+        },
+        {
+          "path": "packages/analytics/src/backfill.test.ts",
+          "name": "days"
+        },
+        {
+          "path": "packages/analytics/src/fixture-ingest.ts",
+          "name": "days"
+        },
+        {
+          "path": "packages/cli/src/plugins.ts",
+          "name": "Candidate"
+        }
+      ],
+      "elapsed_us": 500437,
+      "error": null
+    },
+    {
+      "request": {
+        "expected_name": "analyticsLogGroupArn",
+        "expected_path": "packages/analytics/src/nodes.ts",
+        "mode": "explore",
+        "query": "analytics log group arn"
+      },
+      "rank": 2,
+      "items": [
+        {
+          "path": "packages/analytics/src/nodes.ts",
+          "name": "transformLogGroupArn"
+        },
+        {
+          "path": "packages/analytics/src/nodes.ts",
+          "name": "analyticsLogGroupArn"
+        },
+        {
+          "path": "packages/analytics/src/nodes.test.ts",
+          "name": "FIREHOSE_LOG_GROUP_ARN"
+        },
+        {
+          "path": "packages/cli/src/nodes.ts",
+          "name": "logGroupArn"
+        },
+        {
+          "path": "packages/analytics/src/nodes.test.ts",
+          "name": "TRANSFORM_LOG_GROUP_ARN"
+        },
+        {
+          "path": "packages/cli/src/nodes.ts",
+          "name": "groupArn"
+        },
+        {
+          "path": "packages/analytics/src/nodes.test.ts",
+          "name": "FIREHOSE_LOG_STREAM_ARN"
+        },
+        {
+          "path": "packages/analytics/src/backfill.test.ts",
+          "name": "LOG_GROUP"
+        }
+      ],
+      "elapsed_us": 508783,
+      "error": null
+    },
+    {
+      "request": {
+        "expected_name": "validateState",
+        "expected_path": "packages/core/src/state.ts",
+        "mode": "explore",
+        "query": "validate state"
+      },
+      "rank": 1,
+      "items": [
+        {
+          "path": "packages/core/src/state.ts",
+          "name": "validateState"
+        },
+        {
+          "path": "packages/cli/src/context.test.ts",
+          "name": "validate"
+        },
+        {
+          "path": "packages/analytics/src/plugin.test.ts",
+          "name": "validateConfig"
+        },
+        {
+          "path": "packages/core/src/config.ts",
+          "name": "validateConfig"
+        },
+        {
+          "path": "packages/analytics/src/config.ts",
+          "name": "validateBots"
+        },
+        {
+          "path": "packages/analytics/src/config.ts",
+          "name": "validateDashboardPort"
+        },
+        {
+          "path": "packages/analytics/src/plugin.test.ts",
+          "name": "validateBlock"
+        },
+        {
+          "path": "packages/analytics/src/config.ts",
+          "name": "validateAnalyticsConfig"
+        }
+      ],
+      "elapsed_us": 508185,
+      "error": null
+    },
+    {
+      "request": {
+        "expected_name": "agentCredentials",
+        "expected_path": "packages/build-agent/src/build.ts",
+        "mode": "explore",
+        "query": "agent credentials"
+      },
+      "rank": 1,
+      "items": [
+        {
+          "path": "packages/build-agent/src/build.ts",
+          "name": "agentCredentials"
+        },
+        {
+          "path": "packages/build-agent/src/build.ts",
+          "name": "resolveCredentials"
+        },
+        {
+          "path": "packages/build-agent/src/build.ts",
+          "name": "imdsCredentials"
+        },
+        {
+          "path": "packages/build-agent/src/build.ts",
+          "name": "imds"
+        },
+        {
+          "path": "packages/build-agent/src/build.ts",
+          "name": "creds"
+        },
+        {
+          "path": "packages/core/src/clients.ts",
+          "name": "credentials"
+        },
+        {
+          "path": "packages/core/src/aws/credentials.ts",
+          "name": "AwsCredentials"
+        },
+        {
+          "path": "packages/analytics/src/adapters/duckdb-ingest.test.ts",
+          "name": "CREDENTIALS"
+        }
+      ],
+      "elapsed_us": 500288,
+      "error": null
+    },
+    {
+      "request": {
+        "expected_name": "requireActiveStream",
+        "expected_path": "packages/analytics/src/nodes.ts",
+        "mode": "explore",
+        "query": "require active stream"
+      },
+      "rank": 1,
+      "items": [
+        {
+          "path": "packages/analytics/src/nodes.ts",
+          "name": "requireActiveStream"
+        },
+        {
+          "path": "packages/analytics/src/nodes.ts",
+          "name": "STREAM_ACTIVE_TIMEOUT_MS"
+        },
+        {
+          "path": "packages/analytics/src/nodes.ts",
+          "name": "STREAM_ACTIVE_POLL_INTERVAL_MS"
+        },
+        {
+          "path": "packages/analytics/src/nodes.ts",
+          "name": "requireStreamArn"
+        },
+        {
+          "path": "packages/analytics/src/nodes.ts",
+          "name": "streamArn"
+        },
+        {
+          "path": "packages/analytics/src/nodes.ts",
+          "name": "streamArn"
+        },
+        {
+          "path": "packages/cli/src/microvms.ts",
+          "name": "isActive"
+        },
+        {
+          "path": "packages/analytics/app/src/app.css",
+          "name": ".paths-pie-slice.is-active"
+        }
+      ],
+      "elapsed_us": 503107,
+      "error": null
+    },
+    {
+      "request": {
+        "expected_name": "renderPluginFailure",
+        "expected_path": "packages/cli/src/cli.ts",
+        "mode": "explore",
+        "query": "render plugin failure"
+      },
+      "rank": 1,
+      "items": [
+        {
+          "path": "packages/cli/src/cli.ts",
+          "name": "renderPluginFailure"
+        },
+        {
+          "path": "packages/cli/src/render.ts",
+          "name": "PluginListFailure"
+        },
+        {
+          "path": "packages/cli/src/plugins.ts",
+          "name": "PluginLoadFailure"
+        },
+        {
+          "path": "packages/cli/src/cli.ts",
+          "name": "PluginFailure"
+        },
+        {
+          "path": "packages/cli/src/cli.ts",
+          "name": "renderPluginSection"
+        },
+        {
+          "path": "packages/cli/src/render.ts",
+          "name": "renderPluginList"
+        },
+        {
+          "path": "packages/cli/src/plugin-commands.ts",
+          "name": "renderPluginNamespaceActions"
+        },
+        {
+          "path": "packages/cli/src/plugin-commands.ts",
+          "name": "renderActions"
+        }
+      ],
+      "elapsed_us": 508911,
+      "error": null
+    },
+    {
+      "request": {
+        "expected_name": "requestedQueryName",
+        "expected_path": "packages/analytics/src/server.ts",
+        "mode": "explore",
+        "query": "requested query name"
+      },
+      "rank": 1,
+      "items": [
+        {
+          "path": "packages/analytics/src/server.ts",
+          "name": "requestedQueryName"
+        },
+        {
+          "path": "packages/analytics/src/server.ts",
+          "name": "name"
+        },
+        {
+          "path": "packages/analytics/src/queries.ts",
+          "name": "QueryName"
+        },
+        {
+          "path": "packages/analytics/src/queries.test.ts",
+          "name": "EVERY_QUERY_NAME"
+        },
+        {
+          "path": "packages/analytics/src/queries.ts",
+          "name": "QueryParamName"
+        },
+        {
+          "path": "packages/analytics/app/src/lib/api.ts",
+          "name": "asQueryResult"
+        },
+        {
+          "path": "packages/analytics/app/src/lib/api.ts",
+          "name": "runNamedQuery"
+        },
+        {
+          "path": "packages/analytics/src/queries.ts",
+          "name": "queryDefinition"
+        }
+      ],
+      "elapsed_us": 508506,
+      "error": null
+    },
+    {
+      "request": {
+        "expected_name": "isUtcMinute",
+        "expected_path": "packages/analytics/src/queries.ts",
+        "mode": "explore",
+        "query": "utc minute"
+      },
+      "rank": 1,
+      "items": [
+        {
+          "path": "packages/analytics/src/queries.ts",
+          "name": "isUtcMinute"
+        },
+        {
+          "path": "packages/analytics/scripts/dev-dashboard.mjs",
+          "name": "MINUTE_MS"
+        },
+        {
+          "path": "packages/analytics/src/reporting-range.ts",
+          "name": "MINUTE_MS"
+        },
+        {
+          "path": "packages/analytics/src/nodes.ts",
+          "name": "utcDay"
+        },
+        {
+          "path": "packages/core/src/util.test.ts",
+          "name": "utcFixed"
+        },
+        {
+          "path": "packages/analytics/src/reporting-range.ts",
+          "name": "end"
+        },
+        {
+          "path": "packages/analytics/src/reporting-range.ts",
+          "name": "end"
+        },
+        {
+          "path": "packages/analytics/scripts/dev-dashboard.mjs",
+          "name": "bucketMs"
+        }
+      ],
+      "elapsed_us": 502514,
+      "error": null
+    },
+    {
+      "request": {
+        "expected_name": "runVcsCommand",
+        "expected_path": "packages/cli/src/adapters/process-vcs.ts",
+        "mode": "explore",
+        "query": "run vcs command"
+      },
+      "rank": 1,
+      "items": [
+        {
+          "path": "packages/cli/src/adapters/process-vcs.ts",
+          "name": "runVcsCommand"
+        },
+        {
+          "path": "packages/cli/src/adapters/process-package-manager.ts",
+          "name": "runPackageCommand"
+        },
+        {
+          "path": "packages/cli/src/adapters/process-vcs.ts",
+          "name": "stdout"
+        },
+        {
+          "path": "packages/cli/src/adapters/process-vcs.ts",
+          "name": "hash"
+        },
+        {
+          "path": "packages/cli/src/adapters/process-vcs.ts",
+          "name": "run"
+        },
+        {
+          "path": "packages/cli/src/adapters/process-vcs.ts",
+          "name": "stdout"
+        },
+        {
+          "path": "packages/cli/src/adapters/process-vcs.test.ts",
+          "name": "run"
+        },
+        {
+          "path": "packages/analytics/src/commands.test.ts",
+          "name": "runToExitCode"
+        }
+      ],
+      "elapsed_us": 500559,
+      "error": null
+    },
+    {
+      "request": {
+        "expected_name": "buildRepoZip",
+        "expected_path": "packages/cli/src/repo.ts",
+        "mode": "explore",
+        "query": "build repo zip"
+      },
+      "rank": 1,
+      "items": [
+        {
+          "path": "packages/cli/src/repo.ts",
+          "name": "buildRepoZip"
+        },
+        {
+          "path": "packages/cli/src/repo.test.ts",
+          "name": "zip"
+        },
+        {
+          "path": "packages/cli/src/repo.test.ts",
+          "name": "zip"
+        },
+        {
+          "path": "packages/cli/src/repo.test.ts",
+          "name": "zip"
+        },
+        {
+          "path": "packages/cli/src/commands.ts",
+          "name": "zip"
+        },
+        {
+          "path": "packages/cli/src/commands.ts",
+          "name": "zip"
+        },
+        {
+          "path": "packages/cli/src/repo.ts",
+          "name": "ZIP_MTIME"
+        },
+        {
+          "path": "packages/cli/src/adapters/process-vcs.test.ts",
+          "name": "zip"
+        }
+      ],
+      "elapsed_us": 504477,
+      "error": null
+    },
+    {
+      "request": {
+        "expected_name": "emptyState",
+        "expected_path": "packages/core/src/state.ts",
+        "mode": "explore",
+        "query": "empty state"
+      },
+      "rank": 1,
+      "items": [
+        {
+          "path": "packages/core/src/state.ts",
+          "name": "emptyState"
+        },
+        {
+          "path": "packages/analytics/src/nodes.test.ts",
+          "name": "state"
+        },
+        {
+          "path": "packages/core/src/plugin.test.ts",
+          "name": "state"
+        },
+        {
+          "path": "packages/pds/src/nodes.test.ts",
+          "name": "state"
+        },
+        {
+          "path": "packages/pds/src/plugin.test.ts",
+          "name": "state"
+        },
+        {
+          "path": "packages/cli/src/test-support.ts",
+          "name": "state"
+        },
+        {
+          "path": "packages/cli/src/context.test.ts",
+          "name": "pluginState"
+        },
+        {
+          "path": "packages/core/src/aws/cloudfront.test.ts",
+          "name": "empty"
+        }
+      ],
+      "elapsed_us": 496811,
+      "error": null
+    },
+    {
+      "request": {
+        "expected_name": "formatValue",
+        "expected_path": "packages/analytics/src/config.ts",
+        "mode": "explore",
+        "query": "format value"
+      },
+      "rank": 1,
+      "items": [
+        {
+          "path": "packages/analytics/src/config.ts",
+          "name": "formatValue"
+        },
+        {
+          "path": "packages/analytics/app/src/lib/format.ts",
+          "name": "value"
+        },
+        {
+          "path": "packages/analytics/app/src/lib/format.ts",
+          "name": "value"
+        },
+        {
+          "path": "packages/analytics/app/src/lib/format.ts",
+          "name": "formatCount"
+        },
+        {
+          "path": "packages/analytics/app/src/lib/format.ts",
+          "name": "formatRatio"
+        },
+        {
+          "path": "packages/analytics/app/src/lib/format.ts",
+          "name": "RATIO_FORMAT"
+        },
+        {
+          "path": "packages/analytics/src/aws/s3tables.ts",
+          "name": "ICEBERG_FORMAT"
+        },
+        {
+          "path": "packages/cli/src/render.ts",
+          "name": "formatDuration"
+        }
+      ],
+      "elapsed_us": 503611,
+      "error": null
+    },
+    {
+      "request": {
+        "expected_name": "cliPackageDir",
+        "expected_path": "packages/cli/src/context.ts",
+        "mode": "explore",
+        "query": "cli package dir"
+      },
+      "rank": 1,
+      "items": [
+        {
+          "path": "packages/cli/src/context.ts",
+          "name": "cliPackageDir"
+        },
+        {
+          "path": "packages/cli/src/agent-package.ts",
+          "name": "dir"
+        },
+        {
+          "path": "packages/analytics/src/paths.ts",
+          "name": "ANALYTICS_PACKAGE_DIR"
+        },
+        {
+          "path": "packages/cli/src/adapters/process-package-manager.ts",
+          "name": "startDir"
+        },
+        {
+          "path": "packages/cli/src/context.test.ts",
+          "name": "dir"
+        },
+        {
+          "path": "packages/cli/src/plugins.test.ts",
+          "name": "cliDir"
+        },
+        {
+          "path": "packages/cli/src/test-support.ts",
+          "name": "cliDir"
+        },
+        {
+          "path": "packages/cli/src/context.ts",
+          "name": "agentDir"
+        }
+      ],
+      "elapsed_us": 500691,
+      "error": null
+    },
+    {
+      "request": {
+        "expected_name": "encodeKey",
+        "expected_path": "packages/core/src/aws/s3.ts",
+        "mode": "explore",
+        "query": "encode key"
+      },
+      "rank": 1,
+      "items": [
+        {
+          "path": "packages/core/src/aws/s3.ts",
+          "name": "encodeKey"
+        },
+        {
+          "path": "packages/core/src/aws/form.ts",
+          "name": "encode"
+        },
+        {
+          "path": "packages/pds/src/rkey.ts",
+          "name": "encodeTid"
+        },
+        {
+          "path": "packages/analytics/src/nodes.test.ts",
+          "name": "encode"
+        },
+        {
+          "path": "packages/analytics/src/transform/handler.test.ts",
+          "name": "encode"
+        },
+        {
+          "path": "packages/core/src/aws/xml.ts",
+          "name": "encodeEntities"
+        },
+        {
+          "path": "packages/analytics/src/aws/lambda.ts",
+          "name": "encodeZip"
+        },
+        {
+          "path": "packages/core/src/tags.ts",
+          "name": "encodeTagQuery"
+        }
+      ],
+      "elapsed_us": 511133,
+      "error": null
+    },
+    {
+      "request": {
+        "expected_name": "formatFailure",
+        "expected_path": "packages/analytics/src/aws/firehose.ts",
+        "mode": "explore",
+        "query": "format failure"
+      },
+      "rank": 1,
+      "items": [
+        {
+          "path": "packages/analytics/src/aws/firehose.ts",
+          "name": "formatFailure"
+        },
+        {
+          "path": "packages/analytics/src/aws/firehose.ts",
+          "name": "failure"
+        },
+        {
+          "path": "packages/analytics/app/src/lib/format.ts",
+          "name": "RATIO_FORMAT"
+        },
+        {
+          "path": "packages/analytics/src/aws/s3tables.ts",
+          "name": "ICEBERG_FORMAT"
+        },
+        {
+          "path": "packages/analytics/app/src/lib/format.ts",
+          "name": "formatCount"
+        },
+        {
+          "path": "packages/analytics/app/src/lib/format.ts",
+          "name": "formatRatio"
+        },
+        {
+          "path": "packages/analytics/src/config.ts",
+          "name": "formatValue"
+        },
+        {
+          "path": "packages/cli/src/render.ts",
+          "name": "formatDuration"
+        }
+      ],
+      "elapsed_us": 504118,
+      "error": null
+    },
+    {
+      "request": {
+        "expected_name": "unsealEnvDerivedOverrides",
+        "expected_path": "packages/analytics/src/config.ts",
+        "mode": "explore",
+        "query": "unseal env derived overrides"
+      },
+      "rank": 1,
+      "items": [
+        {
+          "path": "packages/analytics/src/config.ts",
+          "name": "unsealEnvDerivedOverrides"
+        },
+        {
+          "path": "packages/analytics/src/config.ts",
+          "name": "EnvDerivedOverrides"
+        },
+        {
+          "path": "packages/analytics/src/config.ts",
+          "name": "overrides"
+        },
+        {
+          "path": "packages/analytics/src/config.ts",
+          "name": "validateEnvDerivedOverrides"
+        },
+        {
+          "path": "packages/analytics/src/config.ts",
+          "name": "ENV_DERIVED"
+        },
+        {
+          "path": "packages/analytics/src/config.ts",
+          "name": "overrides"
+        },
+        {
+          "path": "packages/analytics/src/config.ts",
+          "name": "overrides"
+        },
+        {
+          "path": "packages/analytics/src/nodes.test.ts",
+          "name": "env"
+        }
+      ],
+      "elapsed_us": 503117,
+      "error": null
+    }
+  ],
+  "whatsurvey": [
+    {
+      "request": {
+        "expected_name": "getTextFormats",
+        "expected_path": "packages/ui/src/lib/components/ui/editor/serializers/mobiledoc-export.ts",
+        "mode": "explore",
+        "query": "get text formats"
+      },
+      "rank": 1,
+      "items": [
+        {
+          "path": "packages/ui/src/lib/components/ui/editor/serializers/mobiledoc-export.ts",
+          "name": "getTextFormats"
+        },
+        {
+          "path": "packages/ui/src/lib/components/ui/editor/serializers/mobiledoc-import.ts",
+          "name": "applyFormatsToText"
+        },
+        {
+          "path": "packages/ui/src/lib/components/ui/editor/serializers/mobiledoc-import.ts",
+          "name": "formats"
+        },
+        {
+          "path": "packages/ui/src/lib/components/ui/editor/serializers/mobiledoc-import.ts",
+          "name": "textNode"
+        },
+        {
+          "path": "packages/ui/src/lib/components/ui/editor/serializers/mobiledoc-import.ts",
+          "name": "textNode"
+        },
+        {
+          "path": "packages/ui/src/lib/components/ui/editor/serializers/mobiledoc-export.ts",
+          "name": "nodeMarkups"
+        },
+        {
+          "path": "packages/ui/src/lib/components/ui/editor/nodes/mention-node.ts",
+          "name": "getTextContent"
+        },
+        {
+          "path": "packages/ui/src/lib/components/ui/editor/nodes/tag-node.ts",
+          "name": "getTextContent"
+        }
+      ],
+      "elapsed_us": 1514753,
+      "error": null
+    },
+    {
+      "request": {
+        "expected_name": "parseCredential",
+        "expected_path": "workspaces/backend/src/functions/admin-api/routes/settings.ts",
+        "mode": "explore",
+        "query": "parse credential"
+      },
+      "rank": 1,
+      "items": [
+        {
+          "path": "workspaces/backend/src/functions/admin-api/routes/settings.ts",
+          "name": "parseCredential"
+        },
+        {
+          "path": "workspaces/backend/src/core/whatsapp/resolve.ts",
+          "name": "credentialAccessor"
+        },
+        {
+          "path": "workspaces/backend/tests/functions/orchestrator/turn.test.ts",
+          "name": "credential"
+        },
+        {
+          "path": "workspaces/frontend/src/lib/auth/store.svelte.ts",
+          "name": "isCredentialResponse"
+        },
+        {
+          "path": "workspaces/frontend/src/routes/settings/whatsapp/__tests__/page.test.ts",
+          "name": "CREDENTIAL_VALUES"
+        },
+        {
+          "path": "workspaces/backend/src/core/db/whatsapp-configs.ts",
+          "name": "CredentialField"
+        },
+        {
+          "path": "workspaces/backend/src/functions/admin-api/routes/settings.ts",
+          "name": "CredentialField"
+        },
+        {
+          "path": "workspaces/backend/src/core/db/whatsapp-configs.ts",
+          "name": "credentialContext"
+        }
+      ],
+      "elapsed_us": 1219115,
+      "error": null
+    },
+    {
+      "request": {
+        "expected_name": "messageBodyText",
+        "expected_path": "workspaces/frontend/src/lib/utils/transcripts.ts",
+        "mode": "explore",
+        "query": "message body text"
+      },
+      "rank": 1,
+      "items": [
+        {
+          "path": "workspaces/frontend/src/lib/utils/transcripts.ts",
+          "name": "messageBodyText"
+        },
+        {
+          "path": "workspaces/backend/tests/scripts/reproject-whatsapp-consent.test.ts",
+          "name": "MESSAGE_TEXT"
+        },
+        {
+          "path": "workspaces/backend/tests/core/whatsapp/client.test.ts",
+          "name": "textBody"
+        },
+        {
+          "path": "workspaces/backend/src/core/whatsapp/client.ts",
+          "name": "extractBodyText"
+        },
+        {
+          "path": "workspaces/backend/src/core/llm/provider.ts",
+          "name": "diagnosticText"
+        },
+        {
+          "path": "workspaces/backend/src/core/llm/provider.ts",
+          "name": "text"
+        },
+        {
+          "path": "workspaces/backend/tests/functions/whatsapp-webhook/normalise.test.ts",
+          "name": "raw"
+        },
+        {
+          "path": "workspaces/backend/src/core/llm/provider.ts",
+          "name": "textFrom"
+        }
+      ],
+      "elapsed_us": 1175902,
+      "error": null
+    },
+    {
+      "request": {
+        "expected_name": "escapeHtml",
+        "expected_path": "workspaces/backend/src/functions/auth-mock/authorize-page.ts",
+        "mode": "explore",
+        "query": "escape html"
+      },
+      "rank": 1,
+      "items": [
+        {
+          "path": "workspaces/backend/src/functions/auth-mock/authorize-page.ts",
+          "name": "escapeHtml"
+        },
+        {
+          "path": "workspaces/frontend/src/lib/utils/csv.ts",
+          "name": "escape"
+        },
+        {
+          "path": "packages/ui/src/stories/Kbd.stories.ts",
+          "name": "EscapeKey"
+        },
+        {
+          "path": "workspaces/backend/src/functions/auth/index.ts",
+          "name": "escapeTomlBasicString"
+        },
+        {
+          "path": "workspaces/backend/src/functions/auth-mock/authorize-page.ts",
+          "name": "value"
+        },
+        {
+          "path": "packages/ui/src/app.css",
+          "name": "html"
+        },
+        {
+          "path": "workspaces/frontend/src/__tests__/app-html.test.ts",
+          "name": "appHtml"
+        },
+        {
+          "path": "workspaces/frontend/src/__tests__/app-html.test.ts",
+          "name": "APP_HTML_PATH"
+        }
+      ],
+      "elapsed_us": 1235564,
+      "error": null
+    },
+    {
+      "request": {
+        "expected_name": "rotateRefreshSession",
+        "expected_path": "workspaces/backend/src/functions/auth-mock/refresh-store.ts",
+        "mode": "explore",
+        "query": "rotate refresh session"
+      },
+      "rank": 1,
+      "items": [
+        {
+          "path": "workspaces/backend/src/functions/auth-mock/refresh-store.ts",
+          "name": "rotateRefreshSession"
+        },
+        {
+          "path": "workspaces/backend/tests/functions/auth-mock/refresh-store.floci.test.ts",
+          "name": "rotateRefreshSession"
+        },
+        {
+          "path": "workspaces/backend/tests/functions/auth-mock/refresh-store.floci.test.ts",
+          "name": "commitRefreshSession"
+        },
+        {
+          "path": "workspaces/backend/tests/functions/auth-mock/refresh-store.floci.test.ts",
+          "name": "revokeRefreshSession"
+        },
+        {
+          "path": "workspaces/backend/tests/functions/auth-mock/refresh-store.floci.test.ts",
+          "name": "rotate"
+        },
+        {
+          "path": "workspaces/backend/src/functions/auth-mock/refresh-store.ts",
+          "name": "RefreshSessionRecord"
+        },
+        {
+          "path": "workspaces/backend/src/functions/auth-mock/refresh-store.ts",
+          "name": "REFRESH_SESSION_PREFIX"
+        },
+        {
+          "path": "workspaces/backend/src/functions/auth-mock/refresh-store.ts",
+          "name": "REFRESH_SESSION_TYPE"
+        }
+      ],
+      "elapsed_us": 1304731,
+      "error": null
+    },
+    {
+      "request": {
+        "expected_name": "requireInput",
+        "expected_path": "workspaces/backend/src/infra/backend-app.ts",
+        "mode": "explore",
+        "query": "require input"
+      },
+      "rank": 1,
+      "items": [
+        {
+          "path": "workspaces/backend/src/infra/backend-app.ts",
+          "name": "requireInput"
+        },
+        {
+          "path": "workspaces/backend/src/core/db/contacts.ts",
+          "name": "requireProvenance"
+        },
+        {
+          "path": "workspaces/backend/src/core/db/contacts.ts",
+          "name": "requireEvidence"
+        },
+        {
+          "path": "workspaces/backend/src/core/db/contacts.ts",
+          "name": "requireActivatedStatement"
+        },
+        {
+          "path": "workspaces/backend/src/infra/backend-app.ts",
+          "name": "readEntraInput"
+        },
+        {
+          "path": "workspaces/backend/scripts/auth-role.ts",
+          "name": "requireEnvironment"
+        },
+        {
+          "path": "workspaces/backend/src/core/db/llm-configs.ts",
+          "name": "requireActive"
+        },
+        {
+          "path": "workspaces/backend/tests/core/llm/bundle-laziness.test.ts",
+          "name": "REQUIRE"
+        }
+      ],
+      "elapsed_us": 1156269,
+      "error": null
+    },
+    {
+      "request": {
+        "expected_name": "errorMetadata",
+        "expected_path": "workspaces/backend/src/core/llm/provider.ts",
+        "mode": "explore",
+        "query": "error metadata"
+      },
+      "rank": 1,
+      "items": [
+        {
+          "path": "workspaces/backend/src/core/llm/provider.ts",
+          "name": "errorMetadata"
+        },
+        {
+          "path": "workspaces/backend/src/core/llm/provider.ts",
+          "name": "causeMetadata"
+        },
+        {
+          "path": "workspaces/backend/src/core/llm/provider.ts",
+          "name": "metadata"
+        },
+        {
+          "path": "workspaces/backend/src/core/llm/provider.ts",
+          "name": "metadata"
+        },
+        {
+          "path": "workspaces/backend/src/core/llm/provider.ts",
+          "name": "metadata"
+        },
+        {
+          "path": "workspaces/backend/src/core/observability/errors.ts",
+          "name": "metadata"
+        },
+        {
+          "path": "workspaces/backend/src/functions/orchestrator/status.ts",
+          "name": "metadata"
+        },
+        {
+          "path": "workspaces/backend/src/core/observability/tracer.ts",
+          "name": "METADATA_NAMESPACE"
+        }
+      ],
+      "elapsed_us": 1142721,
+      "error": null
+    },
+    {
+      "request": {
+        "expected_name": "getAuth",
+        "expected_path": "workspaces/frontend/src/lib/auth/store.svelte.ts",
+        "mode": "explore",
+        "query": "get auth"
+      },
+      "rank": 1,
+      "items": [
+        {
+          "path": "workspaces/frontend/src/lib/auth/store.svelte.ts",
+          "name": "getAuth"
+        },
+        {
+          "path": "workspaces/frontend/src/lib/auth/__tests__/store-bypass.test.ts",
+          "name": "getAuth"
+        },
+        {
+          "path": "workspaces/frontend/src/lib/auth/__tests__/store.test.ts",
+          "name": "getAuth"
+        },
+        {
+          "path": "workspaces/backend/src/core/db/auth-users.ts",
+          "name": "getAuthUser"
+        },
+        {
+          "path": "workspaces/frontend/src/lib/auth/__tests__/store.test.ts",
+          "name": "getToken"
+        },
+        {
+          "path": "workspaces/frontend/src/lib/auth/store.svelte.ts",
+          "name": "getToken"
+        },
+        {
+          "path": "workspaces/frontend/src/lib/auth/__tests__/store-bypass.test.ts",
+          "name": "getToken"
+        },
+        {
+          "path": "workspaces/backend/src/core/auth-internal.ts",
+          "name": "getLambdaClient"
+        }
+      ],
+      "elapsed_us": 1149018,
+      "error": null
+    },
+    {
+      "request": {
+        "expected_name": "claimsFromAccessToken",
+        "expected_path": "workspaces/frontend/src/lib/auth/microsoft.ts",
+        "mode": "explore",
+        "query": "claims from access token"
+      },
+      "rank": 1,
+      "items": [
+        {
+          "path": "workspaces/frontend/src/lib/auth/microsoft.ts",
+          "name": "claimsFromAccessToken"
+        },
+        {
+          "path": "workspaces/frontend/src/lib/auth/claims.ts",
+          "name": "decodeAccessTokenClaims"
+        },
+        {
+          "path": "workspaces/backend/src/functions/auth/index.ts",
+          "name": "claims"
+        },
+        {
+          "path": "workspaces/frontend/src/lib/auth/microsoft.ts",
+          "name": "claims"
+        },
+        {
+          "path": "workspaces/frontend/src/lib/auth/store.svelte.ts",
+          "name": "claims"
+        },
+        {
+          "path": "workspaces/frontend/src/lib/auth/store.svelte.ts",
+          "name": "claims"
+        },
+        {
+          "path": "workspaces/backend/tests/functions/auth/index.test.ts",
+          "name": "accessTokenWith"
+        },
+        {
+          "path": "workspaces/frontend/src/lib/auth/__tests__/microsoft.test.ts",
+          "name": "accessToken"
+        }
+      ],
+      "elapsed_us": 1154490,
+      "error": null
+    },
+    {
+      "request": {
+        "expected_name": "buildEncryptionContext",
+        "expected_path": "workspaces/backend/src/core/settings/crypto.ts",
+        "mode": "explore",
+        "query": "build encryption context"
+      },
+      "rank": 1,
+      "items": [
+        {
+          "path": "workspaces/backend/src/core/settings/crypto.ts",
+          "name": "buildEncryptionContext"
+        },
+        {
+          "path": "workspaces/backend/src/core/settings/crypto.ts",
+          "name": "encryptionContext"
+        },
+        {
+          "path": "workspaces/backend/src/core/settings/crypto.ts",
+          "name": "encryptionContext"
+        },
+        {
+          "path": "workspaces/backend/tests/core/db/whatsapp-configs.test.ts",
+          "name": "encryptionSequence"
+        },
+        {
+          "path": "workspaces/backend/src/core/settings/crypto.ts",
+          "name": "contextDigest"
+        },
+        {
+          "path": "workspaces/backend/src/core/observability/lambda.ts",
+          "name": "buildRequestScope"
+        },
+        {
+          "path": "workspaces/frontend/src/lib/logger.ts",
+          "name": "buildEntry"
+        },
+        {
+          "path": "workspaces/backend/tests/infra/auth-mock-stack.test.ts",
+          "name": "build"
+        }
+      ],
+      "elapsed_us": 1153108,
+      "error": null
+    },
+    {
+      "request": {
+        "expected_name": "cleanSession",
+        "expected_path": "workspaces/backend/src/core/db/sessions.ts",
+        "mode": "explore",
+        "query": "clean session"
+      },
+      "rank": 1,
+      "items": [
+        {
+          "path": "workspaces/backend/src/core/db/sessions.ts",
+          "name": "cleanSession"
+        },
+        {
+          "path": "workspaces/frontend/src/routes/surveys/[formId]/transcripts/__tests__/page.test.ts",
+          "name": "CLEAN"
+        },
+        {
+          "path": "workspaces/frontend/src/lib/utils/__tests__/transcripts.test.ts",
+          "name": "clean"
+        },
+        {
+          "path": "workspaces/backend/src/core/db/envelope.ts",
+          "name": "clean"
+        },
+        {
+          "path": "workspaces/backend/src/core/db/messages.ts",
+          "name": "clean"
+        },
+        {
+          "path": "workspaces/backend/tests/core/db/envelope.test.ts",
+          "name": "clean"
+        },
+        {
+          "path": "workspaces/backend/tests/core/db/envelope.test.ts",
+          "name": "clean"
+        },
+        {
+          "path": "workspaces/backend/src/core/db/messages.ts",
+          "name": "cleanMessage"
+        }
+      ],
+      "elapsed_us": 1144115,
+      "error": null
+    },
+    {
+      "request": {
+        "expected_name": "toLanguageTag",
+        "expected_path": "workspaces/backend/src/core/whatsapp/client.ts",
+        "mode": "explore",
+        "query": "language tag"
+      },
+      "rank": 1,
+      "items": [
+        {
+          "path": "workspaces/backend/src/core/whatsapp/client.ts",
+          "name": "toLanguageTag"
+        },
+        {
+          "path": "workspaces/backend/src/functions/admin-api/routes/consent.ts",
+          "name": "LANGUAGE_TAG_PATTERN"
+        },
+        {
+          "path": "workspaces/backend/src/functions/admin-api/routes/templates.ts",
+          "name": "LANGUAGE_TAG_PATTERN"
+        },
+        {
+          "path": "workspaces/backend/src/functions/orchestrator/turn.ts",
+          "name": "language"
+        },
+        {
+          "path": "workspaces/backend/src/functions/orchestrator/turn.ts",
+          "name": "DEFAULT_LANGUAGE"
+        },
+        {
+          "path": "packages/ui/src/lib/components/ui/editor/nodes/codeblock-node.ts",
+          "name": "setLanguage"
+        },
+        {
+          "path": "workspaces/backend/src/core/whatsapp/client.ts",
+          "name": "toVendorLocale"
+        },
+        {
+          "path": "workspaces/backend/src/functions/orchestrator/intent.ts",
+          "name": "STOP_KEYWORDS_BY_LANGUAGE"
+        }
+      ],
+      "elapsed_us": 1163750,
+      "error": null
+    },
+    {
+      "request": {
+        "expected_name": "reportUnhandledError",
+        "expected_path": "workspaces/backend/src/core/observability/lambda.ts",
+        "mode": "explore",
+        "query": "report unhandled error"
+      },
+      "rank": 1,
+      "items": [
+        {
+          "path": "workspaces/backend/src/core/observability/lambda.ts",
+          "name": "reportUnhandledError"
+        },
+        {
+          "path": "workspaces/frontend/src/hooks.client.ts",
+          "name": "UNHANDLED_ERROR_MESSAGE"
+        },
+        {
+          "path": "workspaces/backend/src/functions/authorizer/token.ts",
+          "name": "reportTokenRejected"
+        },
+        {
+          "path": "workspaces/backend/tests/functions/admin-api/observe.test.ts",
+          "name": "unhandled"
+        },
+        {
+          "path": "workspaces/backend/tests/functions/admin-api/observe.test.ts",
+          "name": "unhandled"
+        },
+        {
+          "path": "workspaces/backend/src/functions/authorizer/token.ts",
+          "name": "reportJwksUnavailable"
+        },
+        {
+          "path": "workspaces/backend/scripts/reproject-whatsapp-consent.ts",
+          "name": "report"
+        },
+        {
+          "path": "workspaces/backend/scripts/reproject-whatsapp-consent.ts",
+          "name": "ReprojectionReport"
+        }
+      ],
+      "elapsed_us": 1159155,
+      "error": null
+    },
+    {
+      "request": {
+        "expected_name": "anonymiseSubmission",
+        "expected_path": "workspaces/backend/src/core/db/submissions.ts",
+        "mode": "explore",
+        "query": "anonymise submission"
+      },
+      "rank": 1,
+      "items": [
+        {
+          "path": "workspaces/backend/src/core/db/submissions.ts",
+          "name": "anonymiseSubmission"
+        },
+        {
+          "path": "packages/types/src/index.ts",
+          "name": "Submission"
+        },
+        {
+          "path": "workspaces/backend/src/core/db/submissions.ts",
+          "name": "submission"
+        },
+        {
+          "path": "workspaces/backend/tests/core/db/contacts.test.ts",
+          "name": "submission"
+        },
+        {
+          "path": "workspaces/backend/tests/core/db/submissions.test.ts",
+          "name": "submission"
+        },
+        {
+          "path": "workspaces/frontend/src/lib/api/__tests__/templates.test.ts",
+          "name": "submission"
+        },
+        {
+          "path": "packages/types/src/index.ts",
+          "name": "SubmissionCreateInput"
+        },
+        {
+          "path": "workspaces/backend/src/core/db/submissions.ts",
+          "name": "SubmissionLink"
+        }
+      ],
+      "elapsed_us": 1144029,
+      "error": null
+    },
+    {
+      "request": {
+        "expected_name": "formKey",
+        "expected_path": "workspaces/backend/src/core/db/forms.ts",
+        "mode": "explore",
+        "query": "form key"
+      },
+      "rank": 1,
+      "items": [
+        {
+          "path": "workspaces/backend/src/core/db/forms.ts",
+          "name": "formKey"
+        },
+        {
+          "path": "workspaces/backend/src/functions/form-api/middleware/validate.ts",
+          "name": "STEP_FORM_BY_API_KEY"
+        },
+        {
+          "path": "workspaces/backend/tests/core/types.test.ts",
+          "name": "FORM_WITHOUT_API_KEY"
+        },
+        {
+          "path": "workspaces/backend/src/core/db/forms.ts",
+          "name": "getFormByApiKey"
+        },
+        {
+          "path": "workspaces/backend/tests/functions/form-api/middleware/validate.test.ts",
+          "name": "mockGetFormByApiKey"
+        },
+        {
+          "path": "workspaces/backend/tests/functions/form-api/routes/submit.test.ts",
+          "name": "mockGetFormByApiKey"
+        },
+        {
+          "path": "workspaces/backend/src/functions/form-api/middleware/validate.ts",
+          "name": "STEP_API_KEY_PRESENT"
+        },
+        {
+          "path": "workspaces/backend/src/functions/form-api/middleware/validate.ts",
+          "name": "apiKey"
+        }
+      ],
+      "elapsed_us": 1145873,
+      "error": null
+    },
+    {
+      "request": {
+        "expected_name": "mergeFields",
+        "expected_path": "workspaces/backend/src/core/observability/logger.ts",
+        "mode": "explore",
+        "query": "merge fields"
+      },
+      "rank": 1,
+      "items": [
+        {
+          "path": "workspaces/backend/src/core/observability/logger.ts",
+          "name": "mergeFields"
+        },
+        {
+          "path": "workspaces/frontend/src/lib/logger.ts",
+          "name": "mergeRenamed"
+        },
+        {
+          "path": "packages/ui/src/lib/components/ui/editor/themes/editor-theme.ts",
+          "name": "mergeThemes"
+        },
+        {
+          "path": "workspaces/backend/src/core/settings/store.ts",
+          "name": "mergeSetting"
+        },
+        {
+          "path": "packages/ui/src/lib/components/ui/data-table/data-table.svelte.ts",
+          "name": "mergeObjects"
+        },
+        {
+          "path": "workspaces/backend/src/core/settings/keys.ts",
+          "name": "fields"
+        },
+        {
+          "path": "workspaces/backend/tests/functions/orchestrator/confirm.test.ts",
+          "name": "FIELDS"
+        },
+        {
+          "path": "workspaces/backend/tests/functions/orchestrator/decode.test.ts",
+          "name": "FIELDS"
+        }
+      ],
+      "elapsed_us": 1153482,
+      "error": null
+    },
+    {
+      "request": {
+        "expected_name": "readInternalApiSecret",
+        "expected_path": "workspaces/backend/src/core/auth-internal.ts",
+        "mode": "explore",
+        "query": "read internal api secret"
+      },
+      "rank": 1,
+      "items": [
+        {
+          "path": "workspaces/backend/src/core/auth-internal.ts",
+          "name": "readInternalApiSecret"
+        },
+        {
+          "path": "workspaces/backend/src/core/auth-internal.ts",
+          "name": "INTERNAL_API_SECRET_FIELD"
+        },
+        {
+          "path": "workspaces/backend/tests/core/auth-internal.test.ts",
+          "name": "INTERNAL_API_SECRET"
+        },
+        {
+          "path": "workspaces/backend/src/functions/auth/index.ts",
+          "name": "INTERNAL_API_SECRET_ENV"
+        },
+        {
+          "path": "workspaces/backend/tests/scripts/auth-role.test.ts",
+          "name": "INTERNAL_API_SECRET"
+        },
+        {
+          "path": "workspaces/backend/src/core/auth-internal.ts",
+          "name": "cachedInternalApiSecret"
+        },
+        {
+          "path": "workspaces/backend/tests/functions/auth/index.test.ts",
+          "name": "INTERNAL_API_SECRET"
+        },
+        {
+          "path": "workspaces/backend/src/core/auth-internal.ts",
+          "name": "loadInternalApiSecret"
+        }
+      ],
+      "elapsed_us": 1152338,
+      "error": null
+    },
+    {
+      "request": {
+        "expected_name": "toConstructId",
+        "expected_path": "workspaces/backend/src/infra/components/observability-resources.ts",
+        "mode": "explore",
+        "query": "construct id"
+      },
+      "rank": 1,
+      "items": [
+        {
+          "path": "workspaces/backend/src/infra/components/observability-resources.ts",
+          "name": "toConstructId"
+        },
+        {
+          "path": "workspaces/backend/src/functions/auth/index.ts",
+          "name": "constructAuthService"
+        },
+        {
+          "path": "workspaces/backend/src/infra/backend-app.ts",
+          "name": "constructor"
+        },
+        {
+          "path": "workspaces/frontend/infra/stacks/frontend-stack.ts",
+          "name": "constructor"
+        },
+        {
+          "path": "workspaces/frontend/infra/stacks/ssl-stack.ts",
+          "name": "constructor"
+        },
+        {
+          "path": "workspaces/backend/src/infra/components/database-resources.ts",
+          "name": "constructor"
+        },
+        {
+          "path": "workspaces/backend/src/infra/components/observability-resources.ts",
+          "name": "constructor"
+        },
+        {
+          "path": "workspaces/backend/src/infra/components/queue-resources.ts",
+          "name": "constructor"
+        }
+      ],
+      "elapsed_us": 1161249,
+      "error": null
+    },
+    {
+      "request": {
+        "expected_name": "domainProblem",
+        "expected_path": "workspaces/backend/src/functions/admin-api/routes/settings.ts",
+        "mode": "explore",
+        "query": "domain problem"
+      },
+      "rank": 1,
+      "items": [
+        {
+          "path": "workspaces/backend/src/functions/admin-api/routes/settings.ts",
+          "name": "domainProblem"
+        },
+        {
+          "path": "workspaces/backend/src/functions/admin-api/routes/settings.ts",
+          "name": "problem"
+        },
+        {
+          "path": "workspaces/frontend/infra/frontend-app.ts",
+          "name": "domainName"
+        },
+        {
+          "path": "workspaces/frontend/infra/stacks/ssl-stack.ts",
+          "name": "rootDomain"
+        },
+        {
+          "path": "workspaces/frontend/infra/stacks/ssl-stack.ts",
+          "name": "subDomain"
+        },
+        {
+          "path": "workspaces/backend/src/functions/admin-api/routes/settings.ts",
+          "name": "domain"
+        },
+        {
+          "path": "workspaces/frontend/infra/frontend-app.ts",
+          "name": "rootDomain"
+        },
+        {
+          "path": "workspaces/frontend/infra/frontend-app.ts",
+          "name": "subDomain"
+        }
+      ],
+      "elapsed_us": 1140968,
+      "error": null
+    },
+    {
+      "request": {
+        "expected_name": "installGlobalListeners",
+        "expected_path": "workspaces/frontend/src/hooks.client.ts",
+        "mode": "explore",
+        "query": "install global listeners"
+      },
+      "rank": 1,
+      "items": [
+        {
+          "path": "workspaces/frontend/src/hooks.client.ts",
+          "name": "installGlobalListeners"
+        },
+        {
+          "path": "workspaces/frontend/src/hooks.server.ts",
+          "name": "installProcessHandlers"
+        },
+        {
+          "path": "workspaces/backend/tests/functions/orchestrator/index.test.ts",
+          "name": "installLogCapture"
+        },
+        {
+          "path": "workspaces/backend/tests/core/settings/crypto.test.ts",
+          "name": "installBoundKmsDouble"
+        },
+        {
+          "path": "workspaces/backend/src/core/observability/tracer.ts",
+          "name": "installVendorMessageShield"
+        },
+        {
+          "path": "workspaces/backend/src/local/table-definition.ts",
+          "name": "TABLE_GLOBAL_SECONDARY_INDEXES"
+        },
+        {
+          "path": "workspaces/backend/tests/helpers/in-memory-doc-client.ts",
+          "name": "index"
+        },
+        {
+          "path": "workspaces/backend/src/local/table-definition.ts",
+          "name": "TABLE_INDEX_NAMES"
+        }
+      ],
+      "elapsed_us": 1151948,
+      "error": null
+    }
+  ]
+}
