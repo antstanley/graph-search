@@ -1,0 +1,2800 @@
+{
+  "nanus.context.debug": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "crates/nanus-domain/src/context.rs",
+        "start": 93,
+        "end": 125,
+        "file_sha256": "b801a53772391427904ec41e37c22fa96edc0979f533960a461b284390746ea5",
+        "sha256": "8b4c8be22b0af817b0c876ca233423e84b82c394a0f5318893ecab027ac3bda8"
+      },
+      {
+        "id": "r2",
+        "path": "crates/nanus-domain/src/context.rs",
+        "start": 137,
+        "end": 189,
+        "file_sha256": "b801a53772391427904ec41e37c22fa96edc0979f533960a461b284390746ea5",
+        "sha256": "6c7e5577974f0e85038aaa034350b02a90419d5426fb25711c1494c9b3a8deef"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "The estimator counts text, reasoning, tool arguments and outputs with a characters-per-token approximation and per-message overhead.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      },
+      {
+        "id": "c2",
+        "description": "The fitter preserves the leading prompt and newest turn, removes oldest whole turns, budgets the eviction notice, and returns TooLarge when the retained minimum cannot fit.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "description": "fit uses estimate to decide whether retained turns and the eviction notice fit.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      }
+    ],
+    "provenance": "Manually source-reviewed labels, authored before task benchmark runs; not an independent human review."
+  },
+  "nanus.context.change": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "crates/nanus-domain/src/context.rs",
+        "start": 93,
+        "end": 125,
+        "file_sha256": "b801a53772391427904ec41e37c22fa96edc0979f533960a461b284390746ea5",
+        "sha256": "8b4c8be22b0af817b0c876ca233423e84b82c394a0f5318893ecab027ac3bda8"
+      },
+      {
+        "id": "r2",
+        "path": "crates/nanus-domain/src/context.rs",
+        "start": 137,
+        "end": 189,
+        "file_sha256": "b801a53772391427904ec41e37c22fa96edc0979f533960a461b284390746ea5",
+        "sha256": "6c7e5577974f0e85038aaa034350b02a90419d5426fb25711c1494c9b3a8deef"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "The estimator counts text, reasoning, tool arguments and outputs with a characters-per-token approximation and per-message overhead.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      },
+      {
+        "id": "c2",
+        "description": "The fitter preserves the leading prompt and newest turn, removes oldest whole turns, budgets the eviction notice, and returns TooLarge when the retained minimum cannot fit.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      },
+      {
+        "id": "change_safety",
+        "description": "Proposes a concrete implementation location and tests for the requested change, preserving the documented existing invariants except where the request explicitly changes them.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "description": "fit uses estimate to decide whether retained turns and the eviction notice fit.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      }
+    ],
+    "provenance": "Manually source-reviewed labels, authored before task benchmark runs; not an independent human review."
+  },
+  "nanus.edit.debug": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "crates/nanus-bundle/src/tools/edit.rs",
+        "start": 72,
+        "end": 136,
+        "file_sha256": "dc120fa1f57c556e73826cf95422725af6cee4f562ef6e4929cf21e63808ba4e",
+        "sha256": "d6c8c8431d4c20d2901166fccadea05bfa517684830fc133a62d2cf28b1d3249"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "Empty old text and identical old/new text are rejected before fs.edit.",
+        "regions": [
+          "r1"
+        ]
+      },
+      {
+        "id": "c2",
+        "description": "The successful path delegates replacement to the filesystem and returns a unified diff with replacement and byte counts.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "description": "edit_outcome validates arguments before fs.edit and formats its result.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "provenance": "Manually source-reviewed labels, authored before task benchmark runs; not an independent human review."
+  },
+  "nanus.edit.change": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "crates/nanus-bundle/src/tools/edit.rs",
+        "start": 72,
+        "end": 136,
+        "file_sha256": "dc120fa1f57c556e73826cf95422725af6cee4f562ef6e4929cf21e63808ba4e",
+        "sha256": "d6c8c8431d4c20d2901166fccadea05bfa517684830fc133a62d2cf28b1d3249"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "Empty old text and identical old/new text are rejected before fs.edit.",
+        "regions": [
+          "r1"
+        ]
+      },
+      {
+        "id": "c2",
+        "description": "The successful path delegates replacement to the filesystem and returns a unified diff with replacement and byte counts.",
+        "regions": [
+          "r1"
+        ]
+      },
+      {
+        "id": "change_safety",
+        "description": "Proposes a concrete implementation location and tests for the requested change, preserving the documented existing invariants except where the request explicitly changes them.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "description": "edit_outcome validates arguments before fs.edit and formats its result.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "provenance": "Manually source-reviewed labels, authored before task benchmark runs; not an independent human review."
+  },
+  "nanus.write.debug": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "crates/nanus-bundle/src/tools/write.rs",
+        "start": 68,
+        "end": 112,
+        "file_sha256": "72b7972d4aeda28eeff9e53aa55a2e060b253ba4d9d3a5fc7538c7d6821a6fad",
+        "sha256": "a514a2e4ba7928e8ac0b200387d79a79fd6f4a677e75b03e589bd3ac0fb8bc30"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "mode is required; only create and overwrite are accepted.",
+        "regions": [
+          "r1"
+        ]
+      },
+      {
+        "id": "c2",
+        "description": "The validated mode is passed to fs.write; the response reports created or wrote.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "description": "write_outcome parses the explicit mode then delegates to fs.write.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "provenance": "Manually source-reviewed labels, authored before task benchmark runs; not an independent human review."
+  },
+  "nanus.write.change": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "crates/nanus-bundle/src/tools/write.rs",
+        "start": 68,
+        "end": 112,
+        "file_sha256": "72b7972d4aeda28eeff9e53aa55a2e060b253ba4d9d3a5fc7538c7d6821a6fad",
+        "sha256": "a514a2e4ba7928e8ac0b200387d79a79fd6f4a677e75b03e589bd3ac0fb8bc30"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "mode is required; only create and overwrite are accepted.",
+        "regions": [
+          "r1"
+        ]
+      },
+      {
+        "id": "c2",
+        "description": "The validated mode is passed to fs.write; the response reports created or wrote.",
+        "regions": [
+          "r1"
+        ]
+      },
+      {
+        "id": "change_safety",
+        "description": "Proposes a concrete implementation location and tests for the requested change, preserving the documented existing invariants except where the request explicitly changes them.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "description": "write_outcome parses the explicit mode then delegates to fs.write.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "provenance": "Manually source-reviewed labels, authored before task benchmark runs; not an independent human review."
+  },
+  "nanus.read.debug": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "crates/nanus-bundle/src/tools/read.rs",
+        "start": 109,
+        "end": 169,
+        "file_sha256": "5ebff094ffafc5e40c284e688006c9f93b038bd94c36541a036f1e6770a69827",
+        "sha256": "d33fdbee9bd7326cc58d6fd8f0617014c214923e510f26f691c5edc016f41418"
+      },
+      {
+        "id": "r2",
+        "path": "crates/nanus-bundle/src/tools/read.rs",
+        "start": 182,
+        "end": 220,
+        "file_sha256": "5ebff094ffafc5e40c284e688006c9f93b038bd94c36541a036f1e6770a69827",
+        "sha256": "655d797241ba72269a2bfad5bb6057ff11111e161be2bb42291c31c9312c6846"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "The metadata size guard runs before the full fs.read, so requesting a small window does not bypass the size guard.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      },
+      {
+        "id": "c2",
+        "description": "Offset is one-based and clamped to at least one; zero limit fails and the requested limit is capped before render_window.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "description": "read_outcome checks metadata and reads content before render_window selects lines.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      }
+    ],
+    "provenance": "Manually source-reviewed labels, authored before task benchmark runs; not an independent human review."
+  },
+  "nanus.read.change": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "crates/nanus-bundle/src/tools/read.rs",
+        "start": 109,
+        "end": 169,
+        "file_sha256": "5ebff094ffafc5e40c284e688006c9f93b038bd94c36541a036f1e6770a69827",
+        "sha256": "d33fdbee9bd7326cc58d6fd8f0617014c214923e510f26f691c5edc016f41418"
+      },
+      {
+        "id": "r2",
+        "path": "crates/nanus-bundle/src/tools/read.rs",
+        "start": 182,
+        "end": 220,
+        "file_sha256": "5ebff094ffafc5e40c284e688006c9f93b038bd94c36541a036f1e6770a69827",
+        "sha256": "655d797241ba72269a2bfad5bb6057ff11111e161be2bb42291c31c9312c6846"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "The metadata size guard runs before the full fs.read, so requesting a small window does not bypass the size guard.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      },
+      {
+        "id": "c2",
+        "description": "Offset is one-based and clamped to at least one; zero limit fails and the requested limit is capped before render_window.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      },
+      {
+        "id": "change_safety",
+        "description": "Proposes a concrete implementation location and tests for the requested change, preserving the documented existing invariants except where the request explicitly changes them.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "description": "read_outcome checks metadata and reads content before render_window selects lines.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      }
+    ],
+    "provenance": "Manually source-reviewed labels, authored before task benchmark runs; not an independent human review."
+  },
+  "nanus.grep.debug": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "crates/nanus-bundle/src/tools/grep.rs",
+        "start": 86,
+        "end": 153,
+        "file_sha256": "0b4c1bf2748c892d6268ba912baa8350a873ebd16b54470107f6e29c03b28b81",
+        "sha256": "671828e72b5071d77d19f56b6ea5848d1c57f8c32341a7059dfe9d27557b752c"
+      },
+      {
+        "id": "r2",
+        "path": "crates/nanus-bundle/src/tools/grep.rs",
+        "start": 161,
+        "end": 184,
+        "file_sha256": "0b4c1bf2748c892d6268ba912baa8350a873ebd16b54470107f6e29c03b28b81",
+        "sha256": "9e1af7431178c5ded0e96dd6d873cd6080e719ca917a1edef0e5ff23bb3c0a93"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "fs.search runs with the requested capped limit before filter_by_include, so filtering can remove already capped matches.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      },
+      {
+        "id": "c2",
+        "description": "Include filtering matches the path or basename; response truncation comes from the search outcome rather than the filtered result count.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "description": "grep_outcome invokes fs.search then filter_by_include.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      }
+    ],
+    "provenance": "Manually source-reviewed labels, authored before task benchmark runs; not an independent human review."
+  },
+  "nanus.grep.change": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "crates/nanus-bundle/src/tools/grep.rs",
+        "start": 86,
+        "end": 153,
+        "file_sha256": "0b4c1bf2748c892d6268ba912baa8350a873ebd16b54470107f6e29c03b28b81",
+        "sha256": "671828e72b5071d77d19f56b6ea5848d1c57f8c32341a7059dfe9d27557b752c"
+      },
+      {
+        "id": "r2",
+        "path": "crates/nanus-bundle/src/tools/grep.rs",
+        "start": 161,
+        "end": 184,
+        "file_sha256": "0b4c1bf2748c892d6268ba912baa8350a873ebd16b54470107f6e29c03b28b81",
+        "sha256": "9e1af7431178c5ded0e96dd6d873cd6080e719ca917a1edef0e5ff23bb3c0a93"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "fs.search runs with the requested capped limit before filter_by_include, so filtering can remove already capped matches.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      },
+      {
+        "id": "c2",
+        "description": "Include filtering matches the path or basename; response truncation comes from the search outcome rather than the filtered result count.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      },
+      {
+        "id": "change_safety",
+        "description": "Proposes a concrete implementation location and tests for the requested change, preserving the documented existing invariants except where the request explicitly changes them.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "description": "grep_outcome invokes fs.search then filter_by_include.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      }
+    ],
+    "provenance": "Manually source-reviewed labels, authored before task benchmark runs; not an independent human review."
+  },
+  "nanus.glob.debug": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "crates/nanus-bundle/src/tools/glob.rs",
+        "start": 74,
+        "end": 148,
+        "file_sha256": "af6d6603dd585a689163e755ca6a92de1176d08cac7f320d6429cd87d16e9a29",
+        "sha256": "8601237c80227a2139b4906e062354391e76fc906be7bc8b50799d46b3694477"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "Empty patterns and zero limits fail; the supplied limit is capped before SearchQuery::glob reaches fs.search.",
+        "regions": [
+          "r1"
+        ]
+      },
+      {
+        "id": "c2",
+        "description": "The rendered truncation warning follows outcome.truncated, not merely the number of returned paths.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "description": "glob_outcome builds the glob search and render_matches consumes its truncation flag.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "provenance": "Manually source-reviewed labels, authored before task benchmark runs; not an independent human review."
+  },
+  "nanus.glob.change": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "crates/nanus-bundle/src/tools/glob.rs",
+        "start": 74,
+        "end": 148,
+        "file_sha256": "af6d6603dd585a689163e755ca6a92de1176d08cac7f320d6429cd87d16e9a29",
+        "sha256": "8601237c80227a2139b4906e062354391e76fc906be7bc8b50799d46b3694477"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "Empty patterns and zero limits fail; the supplied limit is capped before SearchQuery::glob reaches fs.search.",
+        "regions": [
+          "r1"
+        ]
+      },
+      {
+        "id": "c2",
+        "description": "The rendered truncation warning follows outcome.truncated, not merely the number of returned paths.",
+        "regions": [
+          "r1"
+        ]
+      },
+      {
+        "id": "change_safety",
+        "description": "Proposes a concrete implementation location and tests for the requested change, preserving the documented existing invariants except where the request explicitly changes them.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "description": "glob_outcome builds the glob search and render_matches consumes its truncation flag.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "provenance": "Manually source-reviewed labels, authored before task benchmark runs; not an independent human review."
+  },
+  "nanus.argument-types.debug": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "crates/nanus-bundle/src/args.rs",
+        "start": 54,
+        "end": 111,
+        "file_sha256": "09b76d73e88cf70183bab66247e02b62304913feb4e8756110918d0678e862db",
+        "sha256": "03b65defe318e4825d68b92c6f0736131c2261b6e65795ae69286737ec39b09c"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "Absent or null optional strings/integers produce None, while flags default false; supplied values must have the correct JSON types.",
+        "regions": [
+          "r1"
+        ]
+      },
+      {
+        "id": "c2",
+        "description": "optional_u32 requires an unsigned integral value that fits u32; flag accepts booleans rather than string truth values.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "description": "Shared argument helpers validate JSON values before tool implementations receive typed arguments.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "provenance": "Manually source-reviewed labels, authored before task benchmark runs; not an independent human review."
+  },
+  "nanus.argument-types.change": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "crates/nanus-bundle/src/args.rs",
+        "start": 54,
+        "end": 111,
+        "file_sha256": "09b76d73e88cf70183bab66247e02b62304913feb4e8756110918d0678e862db",
+        "sha256": "03b65defe318e4825d68b92c6f0736131c2261b6e65795ae69286737ec39b09c"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "Absent or null optional strings/integers produce None, while flags default false; supplied values must have the correct JSON types.",
+        "regions": [
+          "r1"
+        ]
+      },
+      {
+        "id": "c2",
+        "description": "optional_u32 requires an unsigned integral value that fits u32; flag accepts booleans rather than string truth values.",
+        "regions": [
+          "r1"
+        ]
+      },
+      {
+        "id": "change_safety",
+        "description": "Proposes a concrete implementation location and tests for the requested change, preserving the documented existing invariants except where the request explicitly changes them.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "description": "Shared argument helpers validate JSON values before tool implementations receive typed arguments.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "provenance": "Manually source-reviewed labels, authored before task benchmark runs; not an independent human review."
+  },
+  "nanus.temporary-paths.debug": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "crates/nanus-bundle/src/guard.rs",
+        "start": 86,
+        "end": 158,
+        "file_sha256": "05fbd23b6c9cc9470f1b993beb75471ca748424f26d0d3e404817de0a03faa40",
+        "sha256": "211a6e33a4079f7608100313823f521a96c71707fa82bb0c9314e93dd99485c8"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "targets_are_temporary requires at least one recognized path and requires every recognized path to pass under_any.",
+        "regions": [
+          "r1"
+        ]
+      },
+      {
+        "id": "c2",
+        "description": "under_any requires absolute paths, rejects parent-directory components, and checks configured temporary roots; path_token excludes options and assignment-like tokens.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "description": "targets_are_temporary extracts path_token values and checks each through under_any.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "provenance": "Manually source-reviewed labels, authored before task benchmark runs; not an independent human review."
+  },
+  "nanus.temporary-paths.change": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "crates/nanus-bundle/src/guard.rs",
+        "start": 86,
+        "end": 158,
+        "file_sha256": "05fbd23b6c9cc9470f1b993beb75471ca748424f26d0d3e404817de0a03faa40",
+        "sha256": "211a6e33a4079f7608100313823f521a96c71707fa82bb0c9314e93dd99485c8"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "targets_are_temporary requires at least one recognized path and requires every recognized path to pass under_any.",
+        "regions": [
+          "r1"
+        ]
+      },
+      {
+        "id": "c2",
+        "description": "under_any requires absolute paths, rejects parent-directory components, and checks configured temporary roots; path_token excludes options and assignment-like tokens.",
+        "regions": [
+          "r1"
+        ]
+      },
+      {
+        "id": "change_safety",
+        "description": "Proposes a concrete implementation location and tests for the requested change, preserving the documented existing invariants except where the request explicitly changes them.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "description": "targets_are_temporary extracts path_token values and checks each through under_any.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "provenance": "Manually source-reviewed labels, authored before task benchmark runs; not an independent human review."
+  },
+  "blogwright.pds-config.debug": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "packages/pds/src/config.ts",
+        "start": 47,
+        "end": 49,
+        "file_sha256": "d84e2ff998d46b4a0f4947f881d29028f5ef144dce8b7c0dac7969b12f94821f",
+        "sha256": "041e8cf211e74e0dace6ae4bdb281ffb0f970d4c647191be44b7e865fce1f9c0"
+      },
+      {
+        "id": "r2",
+        "path": "packages/pds/src/config.ts",
+        "start": 57,
+        "end": 110,
+        "file_sha256": "d84e2ff998d46b4a0f4947f881d29028f5ef144dce8b7c0dac7969b12f94821f",
+        "sha256": "a5a903c2cd50cabdf5e23a661e9f54b9de7aedf229efab2d2b88139180177069"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "Configuration requires a nonblank name and a valid HTTPS handleResolver URL.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      },
+      {
+        "id": "c2",
+        "description": "An explicit secretName is validated; resolvePdsSecretName otherwise derives siteName/atproto.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "description": "resolvePdsSecretName delegates to defaultSecretName when no explicit secret name exists.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      }
+    ],
+    "provenance": "Manually source-reviewed labels, authored before task benchmark runs; not an independent human review."
+  },
+  "blogwright.pds-config.change": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "packages/pds/src/config.ts",
+        "start": 47,
+        "end": 49,
+        "file_sha256": "d84e2ff998d46b4a0f4947f881d29028f5ef144dce8b7c0dac7969b12f94821f",
+        "sha256": "041e8cf211e74e0dace6ae4bdb281ffb0f970d4c647191be44b7e865fce1f9c0"
+      },
+      {
+        "id": "r2",
+        "path": "packages/pds/src/config.ts",
+        "start": 57,
+        "end": 110,
+        "file_sha256": "d84e2ff998d46b4a0f4947f881d29028f5ef144dce8b7c0dac7969b12f94821f",
+        "sha256": "a5a903c2cd50cabdf5e23a661e9f54b9de7aedf229efab2d2b88139180177069"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "Configuration requires a nonblank name and a valid HTTPS handleResolver URL.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      },
+      {
+        "id": "c2",
+        "description": "An explicit secretName is validated; resolvePdsSecretName otherwise derives siteName/atproto.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      },
+      {
+        "id": "change_safety",
+        "description": "Proposes a concrete implementation location and tests for the requested change, preserving the documented existing invariants except where the request explicitly changes them.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "description": "resolvePdsSecretName delegates to defaultSecretName when no explicit secret name exists.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      }
+    ],
+    "provenance": "Manually source-reviewed labels, authored before task benchmark runs; not an independent human review."
+  },
+  "blogwright.pds-secret.debug": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "packages/pds/src/secret.ts",
+        "start": 51,
+        "end": 98,
+        "file_sha256": "da2877475f7ac10dd17e7ccb3352a4bfb7c7fda3be724b73c4fd09c31e795975",
+        "sha256": "8e47ee61173fe8e1f7c2cd1bfa51382f606a275f83d46ff874a97b55925db8ce"
+      },
+      {
+        "id": "r2",
+        "path": "packages/pds/src/secret.ts",
+        "start": 105,
+        "end": 144,
+        "file_sha256": "da2877475f7ac10dd17e7ccb3352a4bfb7c7fda3be724b73c4fd09c31e795975",
+        "sha256": "3c4d6d4e7b9aa0b30cafd83dd556972b66221580817e10135e446adae468b0b3"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "parsePdsSecret rejects legacy identifier/password secrets and unsupported versions; updatePdsSecret only replaces legacy state when explicitly requested.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      },
+      {
+        "id": "c2",
+        "description": "The session store validates the DID, retries set persistence up to three attempts with backoff, and deletes only the matching session.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "description": "sessionStoreForSecret.set persists through updatePdsSecret and its parsing rules.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      }
+    ],
+    "provenance": "Manually source-reviewed labels, authored before task benchmark runs; not an independent human review."
+  },
+  "blogwright.pds-secret.change": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "packages/pds/src/secret.ts",
+        "start": 51,
+        "end": 98,
+        "file_sha256": "da2877475f7ac10dd17e7ccb3352a4bfb7c7fda3be724b73c4fd09c31e795975",
+        "sha256": "8e47ee61173fe8e1f7c2cd1bfa51382f606a275f83d46ff874a97b55925db8ce"
+      },
+      {
+        "id": "r2",
+        "path": "packages/pds/src/secret.ts",
+        "start": 105,
+        "end": 144,
+        "file_sha256": "da2877475f7ac10dd17e7ccb3352a4bfb7c7fda3be724b73c4fd09c31e795975",
+        "sha256": "3c4d6d4e7b9aa0b30cafd83dd556972b66221580817e10135e446adae468b0b3"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "parsePdsSecret rejects legacy identifier/password secrets and unsupported versions; updatePdsSecret only replaces legacy state when explicitly requested.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      },
+      {
+        "id": "c2",
+        "description": "The session store validates the DID, retries set persistence up to three attempts with backoff, and deletes only the matching session.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      },
+      {
+        "id": "change_safety",
+        "description": "Proposes a concrete implementation location and tests for the requested change, preserving the documented existing invariants except where the request explicitly changes them.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "description": "sessionStoreForSecret.set persists through updatePdsSecret and its parsing rules.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      }
+    ],
+    "provenance": "Manually source-reviewed labels, authored before task benchmark runs; not an independent human review."
+  },
+  "blogwright.post-content.debug": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "packages/pds/src/content.ts",
+        "start": 27,
+        "end": 45,
+        "file_sha256": "7bea1f11f23a5f726656668b97414a7404e0743395540b483097d971005a518f",
+        "sha256": "421bd17fd99295fd1c02694a164bddd004742d3949e79c4afe88b32a710749a2"
+      },
+      {
+        "id": "r2",
+        "path": "packages/pds/src/content.ts",
+        "start": 54,
+        "end": 84,
+        "file_sha256": "7bea1f11f23a5f726656668b97414a7404e0743395540b483097d971005a518f",
+        "sha256": "ad631454f1637e6e442454122844c13763d329683672044436b498ee3e4c0e71"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "The current parser accepts flat scalar frontmatter rather than full YAML.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      },
+      {
+        "id": "c2",
+        "description": "listPublishablePosts skips draft=true before required field and date validation, derives slug from metadata or path, and sorts deterministically.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "description": "listPublishablePosts uses parseFrontmatter before draft and metadata checks.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      }
+    ],
+    "provenance": "Manually source-reviewed labels, authored before task benchmark runs; not an independent human review."
+  },
+  "blogwright.post-content.change": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "packages/pds/src/content.ts",
+        "start": 27,
+        "end": 45,
+        "file_sha256": "7bea1f11f23a5f726656668b97414a7404e0743395540b483097d971005a518f",
+        "sha256": "421bd17fd99295fd1c02694a164bddd004742d3949e79c4afe88b32a710749a2"
+      },
+      {
+        "id": "r2",
+        "path": "packages/pds/src/content.ts",
+        "start": 54,
+        "end": 84,
+        "file_sha256": "7bea1f11f23a5f726656668b97414a7404e0743395540b483097d971005a518f",
+        "sha256": "ad631454f1637e6e442454122844c13763d329683672044436b498ee3e4c0e71"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "The current parser accepts flat scalar frontmatter rather than full YAML.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      },
+      {
+        "id": "c2",
+        "description": "listPublishablePosts skips draft=true before required field and date validation, derives slug from metadata or path, and sorts deterministically.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      },
+      {
+        "id": "change_safety",
+        "description": "Proposes a concrete implementation location and tests for the requested change, preserving the documented existing invariants except where the request explicitly changes them.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "description": "listPublishablePosts uses parseFrontmatter before draft and metadata checks.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      }
+    ],
+    "provenance": "Manually source-reviewed labels, authored before task benchmark runs; not an independent human review."
+  },
+  "blogwright.record-key.debug": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "packages/pds/src/rkey.ts",
+        "start": 15,
+        "end": 50,
+        "file_sha256": "7ff97b85a7b35e92b80bddc8c56262206d2b29d9f1da70c7b1b3c6028123d4b9",
+        "sha256": "9cb21a9a463ffe33d25593a33b08f29794f244d10d8e49afd687d6c200bcbbe5"
+      },
+      {
+        "id": "r2",
+        "path": "packages/pds/src/rkey.ts",
+        "start": 53,
+        "end": 85,
+        "file_sha256": "7ff97b85a7b35e92b80bddc8c56262206d2b29d9f1da70c7b1b3c6028123d4b9",
+        "sha256": "6dd9cd7416ee6e9137e72c959db3dab705cef01bd3535fb5c38ffcef97cc31ce"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "tidFromPath rejects slash-only paths and derives deterministic bits from the path, combining date-derived timestamp bits with hash bits when applicable.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      },
+      {
+        "id": "c2",
+        "description": "Invalid or absent dates use hash-derived values; documentUri derives the key from postPath and encodes it as a TID.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "description": "documentUri calls tidFromPath with postPath; tidFromPath uses extractDate, hashBits and encodeTid.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      }
+    ],
+    "provenance": "Manually source-reviewed labels, authored before task benchmark runs; not an independent human review."
+  },
+  "blogwright.record-key.change": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "packages/pds/src/rkey.ts",
+        "start": 15,
+        "end": 50,
+        "file_sha256": "7ff97b85a7b35e92b80bddc8c56262206d2b29d9f1da70c7b1b3c6028123d4b9",
+        "sha256": "9cb21a9a463ffe33d25593a33b08f29794f244d10d8e49afd687d6c200bcbbe5"
+      },
+      {
+        "id": "r2",
+        "path": "packages/pds/src/rkey.ts",
+        "start": 53,
+        "end": 85,
+        "file_sha256": "7ff97b85a7b35e92b80bddc8c56262206d2b29d9f1da70c7b1b3c6028123d4b9",
+        "sha256": "6dd9cd7416ee6e9137e72c959db3dab705cef01bd3535fb5c38ffcef97cc31ce"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "tidFromPath rejects slash-only paths and derives deterministic bits from the path, combining date-derived timestamp bits with hash bits when applicable.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      },
+      {
+        "id": "c2",
+        "description": "Invalid or absent dates use hash-derived values; documentUri derives the key from postPath and encodes it as a TID.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      },
+      {
+        "id": "change_safety",
+        "description": "Proposes a concrete implementation location and tests for the requested change, preserving the documented existing invariants except where the request explicitly changes them.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "description": "documentUri calls tidFromPath with postPath; tidFromPath uses extractDate, hashBits and encodeTid.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      }
+    ],
+    "provenance": "Manually source-reviewed labels, authored before task benchmark runs; not an independent human review."
+  },
+  "blogwright.xrpc-pagination.debug": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "packages/pds/src/xrpc.ts",
+        "start": 48,
+        "end": 110,
+        "file_sha256": "d7fd38b554cb898287d959d12c763023a0f82dd2d50e518975f5c61fd26c74f1",
+        "sha256": "318c408681607a2a6662c24698304d1fddf603f1b8327623d0ffe14cc5c37b3c"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "listRecords requests pages of 100 and continues only when a nonempty records page provides a cursor.",
+        "regions": [
+          "r1"
+        ]
+      },
+      {
+        "id": "c2",
+        "description": "getRecord converts recognized not-found errors to undefined and rethrows other errors; call parses and reports unsuccessful HTTP responses.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "description": "listRecords and getRecord both use PdsClient.call; their response/error policies differ.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "provenance": "Manually source-reviewed labels, authored before task benchmark runs; not an independent human review."
+  },
+  "blogwright.xrpc-pagination.change": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "packages/pds/src/xrpc.ts",
+        "start": 48,
+        "end": 110,
+        "file_sha256": "d7fd38b554cb898287d959d12c763023a0f82dd2d50e518975f5c61fd26c74f1",
+        "sha256": "318c408681607a2a6662c24698304d1fddf603f1b8327623d0ffe14cc5c37b3c"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "listRecords requests pages of 100 and continues only when a nonempty records page provides a cursor.",
+        "regions": [
+          "r1"
+        ]
+      },
+      {
+        "id": "c2",
+        "description": "getRecord converts recognized not-found errors to undefined and rethrows other errors; call parses and reports unsuccessful HTTP responses.",
+        "regions": [
+          "r1"
+        ]
+      },
+      {
+        "id": "change_safety",
+        "description": "Proposes a concrete implementation location and tests for the requested change, preserving the documented existing invariants except where the request explicitly changes them.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "description": "listRecords and getRecord both use PdsClient.call; their response/error policies differ.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "provenance": "Manually source-reviewed labels, authored before task benchmark runs; not an independent human review."
+  },
+  "blogwright.state-storage.debug": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "packages/core/src/state.ts",
+        "start": 59,
+        "end": 61,
+        "file_sha256": "72e7f4c8406363e40b289ce26c480dc1b289d92f54542dba8a27e514ff02819d",
+        "sha256": "cfab132179defab566bb1122ea4a4467fc459c2291ab50da5ea73c7aff908694"
+      },
+      {
+        "id": "r2",
+        "path": "packages/core/src/state.ts",
+        "start": 90,
+        "end": 133,
+        "file_sha256": "72e7f4c8406363e40b289ce26c480dc1b289d92f54542dba8a27e514ff02819d",
+        "sha256": "a36300d172a259360b09131c45ba5bcfd1cd6949aa46fbef86c1bf723a33d6b0"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "State keys include environment and optional validated scope.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      },
+      {
+        "id": "c2",
+        "description": "load returns empty state only for undefined storage content; parsing and validation errors propagate for existing corrupt content; save updates updatedAt before serialization.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "description": "StateManager.load obtains the scoped stateKey and validates stored state; save writes the same key.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      }
+    ],
+    "provenance": "Manually source-reviewed labels, authored before task benchmark runs; not an independent human review."
+  },
+  "blogwright.state-storage.change": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "packages/core/src/state.ts",
+        "start": 59,
+        "end": 61,
+        "file_sha256": "72e7f4c8406363e40b289ce26c480dc1b289d92f54542dba8a27e514ff02819d",
+        "sha256": "cfab132179defab566bb1122ea4a4467fc459c2291ab50da5ea73c7aff908694"
+      },
+      {
+        "id": "r2",
+        "path": "packages/core/src/state.ts",
+        "start": 90,
+        "end": 133,
+        "file_sha256": "72e7f4c8406363e40b289ce26c480dc1b289d92f54542dba8a27e514ff02819d",
+        "sha256": "a36300d172a259360b09131c45ba5bcfd1cd6949aa46fbef86c1bf723a33d6b0"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "State keys include environment and optional validated scope.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      },
+      {
+        "id": "c2",
+        "description": "load returns empty state only for undefined storage content; parsing and validation errors propagate for existing corrupt content; save updates updatedAt before serialization.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      },
+      {
+        "id": "change_safety",
+        "description": "Proposes a concrete implementation location and tests for the requested change, preserving the documented existing invariants except where the request explicitly changes them.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "description": "StateManager.load obtains the scoped stateKey and validates stored state; save writes the same key.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      }
+    ],
+    "provenance": "Manually source-reviewed labels, authored before task benchmark runs; not an independent human review."
+  },
+  "blogwright.publication-sync.debug": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "packages/pds/src/sync.ts",
+        "start": 170,
+        "end": 207,
+        "file_sha256": "95b58bc129e3b6d5825008b1321942ba1742c8329093ff1154de729ef25e5dd5",
+        "sha256": "bd1bf0e4bccdacdbe888df30b1c38704045f1910045bb21a4c9a474f0865df7d"
+      },
+      {
+        "id": "r2",
+        "path": "packages/pds/src/sync.ts",
+        "start": 214,
+        "end": 247,
+        "file_sha256": "95b58bc129e3b6d5825008b1321942ba1742c8329093ff1154de729ef25e5dd5",
+        "sha256": "2159bef724117dcbb348a80b21e0de76141cd4d4bed5cded4831bedbee634290"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "syncDocuments scopes existing records to the current publication, creates/updates changed records, counts unchanged records, and reports orphans without deleting them.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      },
+      {
+        "id": "c2",
+        "description": "syncPds validates local identity/well-known consistency and connected repo DID before synchronizing publication and documents.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "description": "syncPds loads publishable posts and delegates document reconciliation to syncDocuments.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      }
+    ],
+    "provenance": "Manually source-reviewed labels, authored before task benchmark runs; not an independent human review."
+  },
+  "blogwright.publication-sync.change": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "packages/pds/src/sync.ts",
+        "start": 170,
+        "end": 207,
+        "file_sha256": "95b58bc129e3b6d5825008b1321942ba1742c8329093ff1154de729ef25e5dd5",
+        "sha256": "bd1bf0e4bccdacdbe888df30b1c38704045f1910045bb21a4c9a474f0865df7d"
+      },
+      {
+        "id": "r2",
+        "path": "packages/pds/src/sync.ts",
+        "start": 214,
+        "end": 247,
+        "file_sha256": "95b58bc129e3b6d5825008b1321942ba1742c8329093ff1154de729ef25e5dd5",
+        "sha256": "2159bef724117dcbb348a80b21e0de76141cd4d4bed5cded4831bedbee634290"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "syncDocuments scopes existing records to the current publication, creates/updates changed records, counts unchanged records, and reports orphans without deleting them.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      },
+      {
+        "id": "c2",
+        "description": "syncPds validates local identity/well-known consistency and connected repo DID before synchronizing publication and documents.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      },
+      {
+        "id": "change_safety",
+        "description": "Proposes a concrete implementation location and tests for the requested change, preserving the documented existing invariants except where the request explicitly changes them.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "description": "syncPds loads publishable posts and delegates document reconciliation to syncDocuments.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      }
+    ],
+    "provenance": "Manually source-reviewed labels, authored before task benchmark runs; not an independent human review."
+  },
+  "blogwright.aws-credentials.debug": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "packages/core/src/aws/credentials.ts",
+        "start": 19,
+        "end": 46,
+        "file_sha256": "d18330c558aec088de6c8014492adc3009608678ff199896fbde4f64317919cf",
+        "sha256": "38204a967975b06739003ed28b14563ca11c3301034c96d93fe24baac865e6e4"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "createCredentialProvider tries the normal provider chain first, preserving session tokens.",
+        "regions": [
+          "r1"
+        ]
+      },
+      {
+        "id": "c2",
+        "description": "Only provider failure with an endpoint override permits fallback test credentials; without an override the original error is rethrown.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "description": "The returned credential provider wraps fromNodeProviderChain and conditionally falls back.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "provenance": "Manually source-reviewed labels, authored before task benchmark runs; not an independent human review."
+  },
+  "blogwright.aws-credentials.change": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "packages/core/src/aws/credentials.ts",
+        "start": 19,
+        "end": 46,
+        "file_sha256": "d18330c558aec088de6c8014492adc3009608678ff199896fbde4f64317919cf",
+        "sha256": "38204a967975b06739003ed28b14563ca11c3301034c96d93fe24baac865e6e4"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "createCredentialProvider tries the normal provider chain first, preserving session tokens.",
+        "regions": [
+          "r1"
+        ]
+      },
+      {
+        "id": "c2",
+        "description": "Only provider failure with an endpoint override permits fallback test credentials; without an override the original error is rethrown.",
+        "regions": [
+          "r1"
+        ]
+      },
+      {
+        "id": "change_safety",
+        "description": "Proposes a concrete implementation location and tests for the requested change, preserving the documented existing invariants except where the request explicitly changes them.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "description": "The returned credential provider wraps fromNodeProviderChain and conditionally falls back.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "provenance": "Manually source-reviewed labels, authored before task benchmark runs; not an independent human review."
+  },
+  "blogwright.secret-upsert.debug": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "packages/core/src/aws/secretsmanager.ts",
+        "start": 34,
+        "end": 75,
+        "file_sha256": "af0246500c781b86688bb05c401ac6b6afc6a24d55f2060224adbd099eb8d76a",
+        "sha256": "d8cc9cedb981e82a044ab71a81e461e88e2f8b86212fc444f442fa01469b67cc"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "upsertSecret attempts CreateSecret then only handles recognized AwsError already-exists cases with PutSecretValue; unrelated errors propagate.",
+        "regions": [
+          "r1"
+        ]
+      },
+      {
+        "id": "c2",
+        "description": "getSecretValue converts recognized not-found errors to undefined and rethrows other failures.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "description": "upsertSecret and getSecretValue invoke the shared AWS call wrapper with operation-specific error handling.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "provenance": "Manually source-reviewed labels, authored before task benchmark runs; not an independent human review."
+  },
+  "blogwright.secret-upsert.change": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "packages/core/src/aws/secretsmanager.ts",
+        "start": 34,
+        "end": 75,
+        "file_sha256": "af0246500c781b86688bb05c401ac6b6afc6a24d55f2060224adbd099eb8d76a",
+        "sha256": "d8cc9cedb981e82a044ab71a81e461e88e2f8b86212fc444f442fa01469b67cc"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "upsertSecret attempts CreateSecret then only handles recognized AwsError already-exists cases with PutSecretValue; unrelated errors propagate.",
+        "regions": [
+          "r1"
+        ]
+      },
+      {
+        "id": "c2",
+        "description": "getSecretValue converts recognized not-found errors to undefined and rethrows other failures.",
+        "regions": [
+          "r1"
+        ]
+      },
+      {
+        "id": "change_safety",
+        "description": "Proposes a concrete implementation location and tests for the requested change, preserving the documented existing invariants except where the request explicitly changes them.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "description": "upsertSecret and getSecretValue invoke the shared AWS call wrapper with operation-specific error handling.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "provenance": "Manually source-reviewed labels, authored before task benchmark runs; not an independent human review."
+  },
+  "whatsurvey.webhook-signature.debug": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "workspaces/backend/src/core/whatsapp/signature.ts",
+        "start": 26,
+        "end": 45,
+        "file_sha256": "e2ada5dde5a07a3b61ffd1fa22864d4003e8d622e44564264f580438849edecf",
+        "sha256": "c0cf3695b604f6576c9ca40adfedb7f089082e3732f10894a6fc7d803277344c"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "The verifier requires the sha256= prefix and computes HMAC-SHA256 over the raw body with the app secret.",
+        "regions": [
+          "r1"
+        ]
+      },
+      {
+        "id": "c2",
+        "description": "It decodes supplied hex, checks digest lengths, then uses timingSafeEqual; do not infer stricter hex validation than the code implements.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "description": "verifyWebhookSignature computes a digest and length-checks before timingSafeEqual.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "provenance": "Manually source-reviewed labels, authored before task benchmark runs; not an independent human review."
+  },
+  "whatsurvey.webhook-signature.change": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "workspaces/backend/src/core/whatsapp/signature.ts",
+        "start": 26,
+        "end": 45,
+        "file_sha256": "e2ada5dde5a07a3b61ffd1fa22864d4003e8d622e44564264f580438849edecf",
+        "sha256": "c0cf3695b604f6576c9ca40adfedb7f089082e3732f10894a6fc7d803277344c"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "The verifier requires the sha256= prefix and computes HMAC-SHA256 over the raw body with the app secret.",
+        "regions": [
+          "r1"
+        ]
+      },
+      {
+        "id": "c2",
+        "description": "It decodes supplied hex, checks digest lengths, then uses timingSafeEqual; do not infer stricter hex validation than the code implements.",
+        "regions": [
+          "r1"
+        ]
+      },
+      {
+        "id": "change_safety",
+        "description": "Proposes a concrete implementation location and tests for the requested change, preserving the documented existing invariants except where the request explicitly changes them.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "description": "verifyWebhookSignature computes a digest and length-checks before timingSafeEqual.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "provenance": "Manually source-reviewed labels, authored before task benchmark runs; not an independent human review."
+  },
+  "whatsurvey.settings-encryption.debug": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "workspaces/backend/src/core/settings/crypto.ts",
+        "start": 49,
+        "end": 66,
+        "file_sha256": "bb436f452309923bbf25989b71472feba069f2b05b2853452cbda07413ee937c",
+        "sha256": "550b1f976493206757d474b3a54ba6f7402735fe971a4e605aad2db3a4a04ca1"
+      },
+      {
+        "id": "r2",
+        "path": "workspaces/backend/src/core/settings/crypto.ts",
+        "start": 122,
+        "end": 189,
+        "file_sha256": "bb436f452309923bbf25989b71472feba069f2b05b2853452cbda07413ee937c",
+        "sha256": "91155becd49e5251fb84e3b41900126959162259acfd9173bc00ad229fe4da30"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "Encryption context binds table, row keys and field; both KMS encryption and decryption use that context.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      },
+      {
+        "id": "c2",
+        "description": "Plaintext size is checked in UTF-8 bytes with a nonempty 4096-byte limit; local mode is restricted and failures are converted to fixed SettingsCryptoError messages.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "description": "encryptSecret and decryptSecret construct the same context through buildEncryptionContext and choose local or KMS paths.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      }
+    ],
+    "provenance": "Manually source-reviewed labels, authored before task benchmark runs; not an independent human review."
+  },
+  "whatsurvey.settings-encryption.change": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "workspaces/backend/src/core/settings/crypto.ts",
+        "start": 49,
+        "end": 66,
+        "file_sha256": "bb436f452309923bbf25989b71472feba069f2b05b2853452cbda07413ee937c",
+        "sha256": "550b1f976493206757d474b3a54ba6f7402735fe971a4e605aad2db3a4a04ca1"
+      },
+      {
+        "id": "r2",
+        "path": "workspaces/backend/src/core/settings/crypto.ts",
+        "start": 122,
+        "end": 189,
+        "file_sha256": "bb436f452309923bbf25989b71472feba069f2b05b2853452cbda07413ee937c",
+        "sha256": "91155becd49e5251fb84e3b41900126959162259acfd9173bc00ad229fe4da30"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "Encryption context binds table, row keys and field; both KMS encryption and decryption use that context.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      },
+      {
+        "id": "c2",
+        "description": "Plaintext size is checked in UTF-8 bytes with a nonempty 4096-byte limit; local mode is restricted and failures are converted to fixed SettingsCryptoError messages.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      },
+      {
+        "id": "change_safety",
+        "description": "Proposes a concrete implementation location and tests for the requested change, preserving the documented existing invariants except where the request explicitly changes them.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "description": "encryptSecret and decryptSecret construct the same context through buildEncryptionContext and choose local or KMS paths.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      }
+    ],
+    "provenance": "Manually source-reviewed labels, authored before task benchmark runs; not an independent human review."
+  },
+  "whatsurvey.message-idempotency.debug": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "workspaces/backend/src/core/db/idempotency.ts",
+        "start": 34,
+        "end": 56,
+        "file_sha256": "3d75d0fedd3483e062b780df42e8ced5d8080eb347a2b2ec42c8f145f2c895c7",
+        "sha256": "ad9f20e153c17cb7fc7becd891ff5311c0a13ec30953064463480f4ce0412741"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "claimWamid conditionally inserts a WAMID-keyed item with attribute_not_exists(pk) and a TTL.",
+        "regions": [
+          "r1"
+        ]
+      },
+      {
+        "id": "c2",
+        "description": "ConditionalCheckFailedException means duplicate and returns false; successful claim returns true, while unrelated errors propagate.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "description": "claimWamid delegates atomic insertion to conditionalPut and interprets its conditional failure.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "provenance": "Manually source-reviewed labels, authored before task benchmark runs; not an independent human review."
+  },
+  "whatsurvey.message-idempotency.change": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "workspaces/backend/src/core/db/idempotency.ts",
+        "start": 34,
+        "end": 56,
+        "file_sha256": "3d75d0fedd3483e062b780df42e8ced5d8080eb347a2b2ec42c8f145f2c895c7",
+        "sha256": "ad9f20e153c17cb7fc7becd891ff5311c0a13ec30953064463480f4ce0412741"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "claimWamid conditionally inserts a WAMID-keyed item with attribute_not_exists(pk) and a TTL.",
+        "regions": [
+          "r1"
+        ]
+      },
+      {
+        "id": "c2",
+        "description": "ConditionalCheckFailedException means duplicate and returns false; successful claim returns true, while unrelated errors propagate.",
+        "regions": [
+          "r1"
+        ]
+      },
+      {
+        "id": "change_safety",
+        "description": "Proposes a concrete implementation location and tests for the requested change, preserving the documented existing invariants except where the request explicitly changes them.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "description": "claimWamid delegates atomic insertion to conditionalPut and interprets its conditional failure.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "provenance": "Manually source-reviewed labels, authored before task benchmark runs; not an independent human review."
+  },
+  "whatsurvey.contact-policy.debug": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "workspaces/backend/src/core/consent/can-contact.ts",
+        "start": 183,
+        "end": 193,
+        "file_sha256": "6f081604069b9469f9e94f1571cb4151e4afa367b1f4c8cea2878c2183f1b60b",
+        "sha256": "66bf55a27547d34076153c02411d3c8d40a53f30b7b445e1c658c729bfd6de4b"
+      },
+      {
+        "id": "r2",
+        "path": "workspaces/backend/src/core/consent/can-contact.ts",
+        "start": 223,
+        "end": 269,
+        "file_sha256": "6f081604069b9469f9e94f1571cb4151e4afa367b1f4c8cea2878c2183f1b60b",
+        "sha256": "1db494ca8ab03b80125c39c8ec59c8fa3e1a7ac64bfb46a36927ac64a4dc99e3"
+      },
+      {
+        "id": "r3",
+        "path": "workspaces/backend/src/core/consent/can-contact.ts",
+        "start": 280,
+        "end": 341,
+        "file_sha256": "6f081604069b9469f9e94f1571cb4151e4afa367b1f4c8cea2878c2183f1b60b",
+        "sha256": "ff32f0f3c4368ca381d27c509505273761886920206c597662137ef40950abd9"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "Withdrawal and explicit participation decline checks always apply; recruitment adds hard and soft refusals including archive, handle availability, confirmation and freshness checks.",
+        "regions": [
+          "r1",
+          "r2",
+          "r3"
+        ]
+      },
+      {
+        "id": "c2",
+        "description": "Channel projection uses WhatsApp-specific configuration when available and legacy grants only with explicit inheritance; invalid freshness timestamps are stale.",
+        "regions": [
+          "r1",
+          "r2",
+          "r3"
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "description": "canContact combines withdrawalRefusals with recruitmentHardRefusals and recruitmentSoftRefusals only in recruitment mode.",
+        "regions": [
+          "r1",
+          "r2",
+          "r3"
+        ]
+      }
+    ],
+    "provenance": "Manually source-reviewed labels, authored before task benchmark runs; not an independent human review."
+  },
+  "whatsurvey.contact-policy.change": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "workspaces/backend/src/core/consent/can-contact.ts",
+        "start": 183,
+        "end": 193,
+        "file_sha256": "6f081604069b9469f9e94f1571cb4151e4afa367b1f4c8cea2878c2183f1b60b",
+        "sha256": "66bf55a27547d34076153c02411d3c8d40a53f30b7b445e1c658c729bfd6de4b"
+      },
+      {
+        "id": "r2",
+        "path": "workspaces/backend/src/core/consent/can-contact.ts",
+        "start": 223,
+        "end": 269,
+        "file_sha256": "6f081604069b9469f9e94f1571cb4151e4afa367b1f4c8cea2878c2183f1b60b",
+        "sha256": "1db494ca8ab03b80125c39c8ec59c8fa3e1a7ac64bfb46a36927ac64a4dc99e3"
+      },
+      {
+        "id": "r3",
+        "path": "workspaces/backend/src/core/consent/can-contact.ts",
+        "start": 280,
+        "end": 341,
+        "file_sha256": "6f081604069b9469f9e94f1571cb4151e4afa367b1f4c8cea2878c2183f1b60b",
+        "sha256": "ff32f0f3c4368ca381d27c509505273761886920206c597662137ef40950abd9"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "Withdrawal and explicit participation decline checks always apply; recruitment adds hard and soft refusals including archive, handle availability, confirmation and freshness checks.",
+        "regions": [
+          "r1",
+          "r2",
+          "r3"
+        ]
+      },
+      {
+        "id": "c2",
+        "description": "Channel projection uses WhatsApp-specific configuration when available and legacy grants only with explicit inheritance; invalid freshness timestamps are stale.",
+        "regions": [
+          "r1",
+          "r2",
+          "r3"
+        ]
+      },
+      {
+        "id": "change_safety",
+        "description": "Proposes a concrete implementation location and tests for the requested change, preserving the documented existing invariants except where the request explicitly changes them.",
+        "regions": [
+          "r1",
+          "r2",
+          "r3"
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "description": "canContact combines withdrawalRefusals with recruitmentHardRefusals and recruitmentSoftRefusals only in recruitment mode.",
+        "regions": [
+          "r1",
+          "r2",
+          "r3"
+        ]
+      }
+    ],
+    "provenance": "Manually source-reviewed labels, authored before task benchmark runs; not an independent human review."
+  },
+  "whatsurvey.captcha-retry.debug": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "workspaces/backend/src/core/captcha.ts",
+        "start": 32,
+        "end": 96,
+        "file_sha256": "c8ffacf792c82d9b70b619bb84a7ab4cb1614f01698854b96344a1a40ed54491",
+        "sha256": "13fa139640dcde459241bb4d0a0e58aeb94354386eabe598a0490eae12ed9b12"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "callProvider submits form-encoded secret, response and optional IP with a 1500ms timeout; unsuccessful HTTP status throws, and only success===true verifies.",
+        "regions": [
+          "r1"
+        ]
+      },
+      {
+        "id": "c2",
+        "description": "verifyCaptcha retries once when the first traced attempt throws; a returned false is not an exception and is not retried.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "description": "verifyCaptcha invokes tracedAttempt, which wraps callProvider.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "provenance": "Manually source-reviewed labels, authored before task benchmark runs; not an independent human review."
+  },
+  "whatsurvey.captcha-retry.change": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "workspaces/backend/src/core/captcha.ts",
+        "start": 32,
+        "end": 96,
+        "file_sha256": "c8ffacf792c82d9b70b619bb84a7ab4cb1614f01698854b96344a1a40ed54491",
+        "sha256": "13fa139640dcde459241bb4d0a0e58aeb94354386eabe598a0490eae12ed9b12"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "callProvider submits form-encoded secret, response and optional IP with a 1500ms timeout; unsuccessful HTTP status throws, and only success===true verifies.",
+        "regions": [
+          "r1"
+        ]
+      },
+      {
+        "id": "c2",
+        "description": "verifyCaptcha retries once when the first traced attempt throws; a returned false is not an exception and is not retried.",
+        "regions": [
+          "r1"
+        ]
+      },
+      {
+        "id": "change_safety",
+        "description": "Proposes a concrete implementation location and tests for the requested change, preserving the documented existing invariants except where the request explicitly changes them.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "description": "verifyCaptcha invokes tracedAttempt, which wraps callProvider.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "provenance": "Manually source-reviewed labels, authored before task benchmark runs; not an independent human review."
+  },
+  "whatsurvey.survey-draft.debug": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "workspaces/backend/src/core/db/survey-versions.ts",
+        "start": 53,
+        "end": 87,
+        "file_sha256": "064cce584de03438cd1496f16de0d620ebba0d6d9be07eb0ce8ac10d90ac7970",
+        "sha256": "685862b0919f32194fce3cbab43eb51d30b1c47aa6db3319eb1a35fca209e63a"
+      },
+      {
+        "id": "r2",
+        "path": "workspaces/backend/src/core/db/survey-versions.ts",
+        "start": 194,
+        "end": 227,
+        "file_sha256": "064cce584de03438cd1496f16de0d620ebba0d6d9be07eb0ce8ac10d90ac7970",
+        "sha256": "008bf450e8bce75001ec50510f2c57069974ce5fafb90816a81626307eb35f38"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "beginSurveyDraft returns an existing draft, rejects archived surveys, and for legacy surveys stores the previous form as published version 1 marked used before creating the draft in a transaction.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      },
+      {
+        "id": "c2",
+        "description": "replaceAnchor conditions the update on the previous updatedAt; transaction cancellation is translated to a reload/conflict error.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "description": "beginSurveyDraft submits versionPut, replaceAnchor and draftPut through transact.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      }
+    ],
+    "provenance": "Manually source-reviewed labels, authored before task benchmark runs; not an independent human review."
+  },
+  "whatsurvey.survey-draft.change": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "workspaces/backend/src/core/db/survey-versions.ts",
+        "start": 53,
+        "end": 87,
+        "file_sha256": "064cce584de03438cd1496f16de0d620ebba0d6d9be07eb0ce8ac10d90ac7970",
+        "sha256": "685862b0919f32194fce3cbab43eb51d30b1c47aa6db3319eb1a35fca209e63a"
+      },
+      {
+        "id": "r2",
+        "path": "workspaces/backend/src/core/db/survey-versions.ts",
+        "start": 194,
+        "end": 227,
+        "file_sha256": "064cce584de03438cd1496f16de0d620ebba0d6d9be07eb0ce8ac10d90ac7970",
+        "sha256": "008bf450e8bce75001ec50510f2c57069974ce5fafb90816a81626307eb35f38"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "beginSurveyDraft returns an existing draft, rejects archived surveys, and for legacy surveys stores the previous form as published version 1 marked used before creating the draft in a transaction.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      },
+      {
+        "id": "c2",
+        "description": "replaceAnchor conditions the update on the previous updatedAt; transaction cancellation is translated to a reload/conflict error.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      },
+      {
+        "id": "change_safety",
+        "description": "Proposes a concrete implementation location and tests for the requested change, preserving the documented existing invariants except where the request explicitly changes them.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "description": "beginSurveyDraft submits versionPut, replaceAnchor and draftPut through transact.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      }
+    ],
+    "provenance": "Manually source-reviewed labels, authored before task benchmark runs; not an independent human review."
+  },
+  "nanus.parallel-tools.debug": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "crates/nanus-bundle/src/agent_loop.rs",
+        "start": 721,
+        "end": 795,
+        "file_sha256": "146198409260b6ec424020e3c9f34d144a3dcb24f0d773bdb83608209373836b",
+        "sha256": "2b479472e8a26ea70a3a39239e078cf1957407d271968db92e33b6007c583771"
+      },
+      {
+        "id": "r2",
+        "path": "crates/nanus-bundle/src/agent_loop.rs",
+        "start": 802,
+        "end": 806,
+        "file_sha256": "146198409260b6ec424020e3c9f34d144a3dcb24f0d773bdb83608209373836b",
+        "sha256": "9865cfa2e736fe65390c5b966e4c74b7573d9280bd1b0e8c017635f2523afafd"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "All calls are logged first and gate decisions are awaited sequentially before permitted execution.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      },
+      {
+        "id": "c2",
+        "description": "Permitted calls run in bounded join_all batches, results are stored by original index, and final recording verifies matching call IDs in request order.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "description": "run_tools uses gate, parallel_limit, registry.execute and indexed result recording.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      }
+    ],
+    "provenance": "Manually source-reviewed labels, authored before task benchmark runs; not an independent human review."
+  },
+  "nanus.parallel-tools.change": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "crates/nanus-bundle/src/agent_loop.rs",
+        "start": 721,
+        "end": 795,
+        "file_sha256": "146198409260b6ec424020e3c9f34d144a3dcb24f0d773bdb83608209373836b",
+        "sha256": "2b479472e8a26ea70a3a39239e078cf1957407d271968db92e33b6007c583771"
+      },
+      {
+        "id": "r2",
+        "path": "crates/nanus-bundle/src/agent_loop.rs",
+        "start": 802,
+        "end": 806,
+        "file_sha256": "146198409260b6ec424020e3c9f34d144a3dcb24f0d773bdb83608209373836b",
+        "sha256": "9865cfa2e736fe65390c5b966e4c74b7573d9280bd1b0e8c017635f2523afafd"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "All calls are logged first and gate decisions are awaited sequentially before permitted execution.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      },
+      {
+        "id": "c2",
+        "description": "Permitted calls run in bounded join_all batches, results are stored by original index, and final recording verifies matching call IDs in request order.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      },
+      {
+        "id": "change_safety",
+        "description": "Proposes a concrete implementation location and tests for the requested change, preserving the documented existing invariants except where the request explicitly changes them.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "description": "run_tools uses gate, parallel_limit, registry.execute and indexed result recording.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      }
+    ],
+    "provenance": "Manually source-reviewed labels, authored before task benchmark runs; not an independent human review."
+  },
+  "nanus.approval-gate.debug": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "crates/nanus-bundle/src/agent_loop.rs",
+        "start": 822,
+        "end": 869,
+        "file_sha256": "146198409260b6ec424020e3c9f34d144a3dcb24f0d773bdb83608209373836b",
+        "sha256": "c1bbeed6d26c8c4319490639d13e6baf9521d84cbaff063983ff4b456643a5c3"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "gate checks sandbox.permits before consulting approval policy or an approver.",
+        "regions": [
+          "r1"
+        ]
+      },
+      {
+        "id": "c2",
+        "description": "exempt grants all_calls, denies per_call exemptions, and conditionally grants permitted; a required approval without an approver becomes Unavailable and is denied.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "description": "gate invokes exempt only after sandbox refusal, then records denied_result for nonallowed approval outcomes.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "provenance": "Manually source-reviewed labels, authored before task benchmark runs; not an independent human review."
+  },
+  "nanus.approval-gate.change": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "crates/nanus-bundle/src/agent_loop.rs",
+        "start": 822,
+        "end": 869,
+        "file_sha256": "146198409260b6ec424020e3c9f34d144a3dcb24f0d773bdb83608209373836b",
+        "sha256": "c1bbeed6d26c8c4319490639d13e6baf9521d84cbaff063983ff4b456643a5c3"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "gate checks sandbox.permits before consulting approval policy or an approver.",
+        "regions": [
+          "r1"
+        ]
+      },
+      {
+        "id": "c2",
+        "description": "exempt grants all_calls, denies per_call exemptions, and conditionally grants permitted; a required approval without an approver becomes Unavailable and is denied.",
+        "regions": [
+          "r1"
+        ]
+      },
+      {
+        "id": "change_safety",
+        "description": "Proposes a concrete implementation location and tests for the requested change, preserving the documented existing invariants except where the request explicitly changes them.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "description": "gate invokes exempt only after sandbox refusal, then records denied_result for nonallowed approval outcomes.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "provenance": "Manually source-reviewed labels, authored before task benchmark runs; not an independent human review."
+  },
+  "blogwright.tag-encoding.debug": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "packages/core/src/tags.ts",
+        "start": 5,
+        "end": 9,
+        "file_sha256": "3fc8647499175c37077e6bafc8560f5483229dab96eaeb8cf4a93b2fb21c19d0",
+        "sha256": "ccc7b8113d063bac0fa45764f1afc12c2b5e52472fbb1bf6fab0893e592de9f4"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "encodeTagQuery percent-encodes each key and value independently, then joins key=value pairs with ampersands.",
+        "regions": [
+          "r1"
+        ]
+      },
+      {
+        "id": "c2",
+        "description": "Empty input yields an empty string; encoding must occur before delimiter joining.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "description": "encodeTagQuery maps Object.entries through encodeURIComponent for both tuple members before joining.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "provenance": "Manually source-reviewed labels, authored before task benchmark runs; not an independent human review."
+  },
+  "blogwright.tag-encoding.change": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "packages/core/src/tags.ts",
+        "start": 5,
+        "end": 9,
+        "file_sha256": "3fc8647499175c37077e6bafc8560f5483229dab96eaeb8cf4a93b2fb21c19d0",
+        "sha256": "ccc7b8113d063bac0fa45764f1afc12c2b5e52472fbb1bf6fab0893e592de9f4"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "encodeTagQuery percent-encodes each key and value independently, then joins key=value pairs with ampersands.",
+        "regions": [
+          "r1"
+        ]
+      },
+      {
+        "id": "c2",
+        "description": "Empty input yields an empty string; encoding must occur before delimiter joining.",
+        "regions": [
+          "r1"
+        ]
+      },
+      {
+        "id": "change_safety",
+        "description": "Proposes a concrete implementation location and tests for the requested change, preserving the documented existing invariants except where the request explicitly changes them.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "description": "encodeTagQuery maps Object.entries through encodeURIComponent for both tuple members before joining.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "provenance": "Manually source-reviewed labels, authored before task benchmark runs; not an independent human review."
+  },
+  "whatsurvey.storage-envelope.debug": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "workspaces/backend/src/core/db/envelope.ts",
+        "start": 14,
+        "end": 28,
+        "file_sha256": "d72a2a7e1f9837c5f33270c2d820b2c95a7b20d77094bc0180e1097ac32e235e",
+        "sha256": "df05647b0508a05b2e118b83859cfd59f9e57053aed3f7544fab04ac4868d64f"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "stripEnvelope shallow-copies the item and deletes only pk, sk and _type; domain attributes and the input object are preserved.",
+        "regions": [
+          "r1"
+        ]
+      },
+      {
+        "id": "c2",
+        "description": "stripEnvelopeList applies the single-item helper to every input item.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "description": "stripEnvelopeList maps its items through stripEnvelope.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "provenance": "Manually source-reviewed labels, authored before task benchmark runs; not an independent human review."
+  },
+  "whatsurvey.storage-envelope.change": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "workspaces/backend/src/core/db/envelope.ts",
+        "start": 14,
+        "end": 28,
+        "file_sha256": "d72a2a7e1f9837c5f33270c2d820b2c95a7b20d77094bc0180e1097ac32e235e",
+        "sha256": "df05647b0508a05b2e118b83859cfd59f9e57053aed3f7544fab04ac4868d64f"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "stripEnvelope shallow-copies the item and deletes only pk, sk and _type; domain attributes and the input object are preserved.",
+        "regions": [
+          "r1"
+        ]
+      },
+      {
+        "id": "c2",
+        "description": "stripEnvelopeList applies the single-item helper to every input item.",
+        "regions": [
+          "r1"
+        ]
+      },
+      {
+        "id": "change_safety",
+        "description": "Proposes a concrete implementation location and tests for the requested change, preserving the documented existing invariants except where the request explicitly changes them.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "description": "stripEnvelopeList maps its items through stripEnvelope.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "provenance": "Manually source-reviewed labels, authored before task benchmark runs; not an independent human review."
+  },
+  "whatsurvey.survey-transitions.debug": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "workspaces/backend/src/core/survey/state-machine.ts",
+        "start": 106,
+        "end": 133,
+        "file_sha256": "33054c747375ebb530d0f011678ee94dd1bd43fb5239b3811fd0ec21c0878961",
+        "sha256": "14d4615a8924b7811f8b2e57f361bdda6e73658816eb6d6e610ffb7b2a04b1d4"
+      },
+      {
+        "id": "r2",
+        "path": "workspaces/backend/src/core/survey/state-machine.ts",
+        "start": 176,
+        "end": 229,
+        "file_sha256": "33054c747375ebb530d0f011678ee94dd1bd43fb5239b3811fd0ec21c0878961",
+        "sha256": "76635f4e60c706b782f4476b5515bc9f4ddbd4ac8196745217e9b6f5876b6fed"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "transition requires survey configuration; awaiting_confirmation accepts only explicit confirm_accepted or confirm_declined, not ordinary inbound_reply.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      },
+      {
+        "id": "c2",
+        "description": "resolveTarget accepts STOP from any state but participation_withdrawn only from active states; transition marks submission only on completed and contact opt-out only for STOP.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "description": "transition calls requireSurvey and resolveTarget, translating a null target to IllegalTransitionError.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      }
+    ],
+    "provenance": "Manually source-reviewed labels, authored before task benchmark runs; not an independent human review."
+  },
+  "whatsurvey.survey-transitions.change": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "workspaces/backend/src/core/survey/state-machine.ts",
+        "start": 106,
+        "end": 133,
+        "file_sha256": "33054c747375ebb530d0f011678ee94dd1bd43fb5239b3811fd0ec21c0878961",
+        "sha256": "14d4615a8924b7811f8b2e57f361bdda6e73658816eb6d6e610ffb7b2a04b1d4"
+      },
+      {
+        "id": "r2",
+        "path": "workspaces/backend/src/core/survey/state-machine.ts",
+        "start": 176,
+        "end": 229,
+        "file_sha256": "33054c747375ebb530d0f011678ee94dd1bd43fb5239b3811fd0ec21c0878961",
+        "sha256": "76635f4e60c706b782f4476b5515bc9f4ddbd4ac8196745217e9b6f5876b6fed"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "transition requires survey configuration; awaiting_confirmation accepts only explicit confirm_accepted or confirm_declined, not ordinary inbound_reply.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      },
+      {
+        "id": "c2",
+        "description": "resolveTarget accepts STOP from any state but participation_withdrawn only from active states; transition marks submission only on completed and contact opt-out only for STOP.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      },
+      {
+        "id": "change_safety",
+        "description": "Proposes a concrete implementation location and tests for the requested change, preserving the documented existing invariants except where the request explicitly changes them.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "description": "transition calls requireSurvey and resolveTarget, translating a null target to IllegalTransitionError.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      }
+    ],
+    "provenance": "Manually source-reviewed labels, authored before task benchmark runs; not an independent human review."
+  },
+  "whatsurvey.money-rounding.debug": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "workspaces/backend/src/core/money.ts",
+        "start": 1,
+        "end": 7,
+        "file_sha256": "9d79b1f06e8f4be93af6c67d09e4dbc0d2fd7e5c1c780df066dbede822030404",
+        "sha256": "9d79b1f06e8f4be93af6c67d09e4dbc0d2fd7e5c1c780df066dbede822030404"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "roundUsd uses six decimal places because estimates include micro-dollar costs.",
+        "regions": [
+          "r1"
+        ]
+      },
+      {
+        "id": "c2",
+        "description": "It converts the toFixed string back to Number, so the returned value is numeric and does not preserve display padding.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "description": "roundUsd applies toFixed with USD_DECIMALS then converts through Number.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "provenance": "Manually source-reviewed labels, authored before task benchmark runs; not an independent human review."
+  },
+  "whatsurvey.money-rounding.change": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "workspaces/backend/src/core/money.ts",
+        "start": 1,
+        "end": 7,
+        "file_sha256": "9d79b1f06e8f4be93af6c67d09e4dbc0d2fd7e5c1c780df066dbede822030404",
+        "sha256": "9d79b1f06e8f4be93af6c67d09e4dbc0d2fd7e5c1c780df066dbede822030404"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "roundUsd uses six decimal places because estimates include micro-dollar costs.",
+        "regions": [
+          "r1"
+        ]
+      },
+      {
+        "id": "c2",
+        "description": "It converts the toFixed string back to Number, so the returned value is numeric and does not preserve display padding.",
+        "regions": [
+          "r1"
+        ]
+      },
+      {
+        "id": "change_safety",
+        "description": "Proposes a concrete implementation location and tests for the requested change, preserving the documented existing invariants except where the request explicitly changes them.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "description": "roundUsd applies toFixed with USD_DECIMALS then converts through Number.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "provenance": "Manually source-reviewed labels, authored before task benchmark runs; not an independent human review."
+  },
+  "whatsurvey.webhook-copy-ui.debug": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "workspaces/frontend/src/lib/components/WhatsAppConfigurations.svelte",
+        "start": 263,
+        "end": 266,
+        "file_sha256": "8ad9aadd942988051b1cb48400eb6fd1785e2a63cf96d922ea572e3218f667c2",
+        "sha256": "60bae1c9fa5d8c3bc4084ba8c65da3df73350bbee39964d190331955c949281a"
+      },
+      {
+        "id": "r2",
+        "path": "workspaces/frontend/src/lib/components/WhatsAppConfigurations.svelte",
+        "start": 393,
+        "end": 400,
+        "file_sha256": "8ad9aadd942988051b1cb48400eb6fd1785e2a63cf96d922ea572e3218f667c2",
+        "sha256": "939d1ccdcfd7f021a11a411f3303fac2e0b42e672be1beebb430263fd33293f8"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "Both the displayed value and copyWebhook use webhookUrl ?? webhookPath; the degraded note checks a missing/falsy webhookUrl.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      },
+      {
+        "id": "c2",
+        "description": "The click handler invokes copyWebhook, which awaits clipboard.writeText before setting copiedId; the UI shows Copied for the matching configuration ID.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "description": "The button onclick calls copyWebhook and its copiedId update controls the success indicator.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      }
+    ],
+    "provenance": "Manually source-reviewed labels, authored before task benchmark runs; not an independent human review."
+  },
+  "whatsurvey.webhook-copy-ui.change": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "workspaces/frontend/src/lib/components/WhatsAppConfigurations.svelte",
+        "start": 263,
+        "end": 266,
+        "file_sha256": "8ad9aadd942988051b1cb48400eb6fd1785e2a63cf96d922ea572e3218f667c2",
+        "sha256": "60bae1c9fa5d8c3bc4084ba8c65da3df73350bbee39964d190331955c949281a"
+      },
+      {
+        "id": "r2",
+        "path": "workspaces/frontend/src/lib/components/WhatsAppConfigurations.svelte",
+        "start": 393,
+        "end": 400,
+        "file_sha256": "8ad9aadd942988051b1cb48400eb6fd1785e2a63cf96d922ea572e3218f667c2",
+        "sha256": "939d1ccdcfd7f021a11a411f3303fac2e0b42e672be1beebb430263fd33293f8"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "Both the displayed value and copyWebhook use webhookUrl ?? webhookPath; the degraded note checks a missing/falsy webhookUrl.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      },
+      {
+        "id": "c2",
+        "description": "The click handler invokes copyWebhook, which awaits clipboard.writeText before setting copiedId; the UI shows Copied for the matching configuration ID.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      },
+      {
+        "id": "change_safety",
+        "description": "Proposes a concrete implementation location and tests for the requested change, preserving the documented existing invariants except where the request explicitly changes them.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "description": "The button onclick calls copyWebhook and its copiedId update controls the success indicator.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      }
+    ],
+    "provenance": "Manually source-reviewed labels, authored before task benchmark runs; not an independent human review."
+  }
+}
