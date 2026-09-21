@@ -1,4 +1,5 @@
 import copy
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -46,6 +47,24 @@ class CoreTests(unittest.TestCase):
         self.assertEqual(result['region_coverage']['r'], .5)
         self.assertFalse(result['evidence_ready'])
         self.assertIsNone(result['task_success'])
+
+    def test_native_json_counts_only_verified_delivered_lines(self):
+        from taskbench.runner import candidates
+        value={'items':[{'node':{'path':'a.rs','start_line':1,'signature':'fake:999 target'},
+            'snippet':{'start_line':1,'source_hash':digest(b'first\nsecond\nthird\n'),'lines':['first']},
+            'excerpts':[{'role':'body','snippet':{'start_line':3,'lines':['third','not in file']}}]},
+            {'node':{'path':'a.rs','start_line':2},'snippet':{'start_line':2,'lines':['seco']}},
+            {'node':{'path':'../escape','start_line':1},'snippet':{'start_line':1,'lines':['first']}},
+            {'node':{'path':'a.rs','start_line':2},'snippet':{'start_line':2,'source_hash':'stale','lines':['second']}},
+            {'node':{'path':'a.rs','start_line':True},'snippet':{'start_line':True,'lines':['first']}},
+            None]}
+        encoded=json.dumps(value,ensure_ascii=False,separators=(',',':'))
+        self.assertEqual(delivered_lines(encoded,self.root),{('a.rs',1),('a.rs',3)})
+        self.assertEqual(candidates(encoded),[('a.rs',1),('../escape',1)])
+        self.assertEqual(delivered_lines(encoded[:-1],self.root),set())
+        self.assertEqual(candidates(encoded[:-1]),[])
+        (self.root/'a.rs').write_text('first\nsecond\nchanged\n')
+        self.assertEqual(delivered_lines(encoded,self.root),set())
 
     def test_budget_unicode_and_read(self):
         self.assertEqual(bounded('éé', 3), ('é', True))

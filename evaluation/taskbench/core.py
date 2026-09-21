@@ -81,22 +81,59 @@ def read_source(root: Path, path: str, start: int, count: int = 80) -> str:
     return "\n".join(f"{path}:{i+1}\t{line}" for i, line in enumerate(lines) if start-1 <= i < start-1+count)
 
 
+def explore_items(text: str):
+    """Recognize complete native API responses; truncated JSON earns no fields."""
+    try:
+        value=json.loads(text)
+    except (ValueError,TypeError):
+        return None
+    if isinstance(value,dict) and isinstance(value.get('items'),list):
+        return value['items']
+    return None
+
+
 def delivered_lines(text: str, root: Path) -> set[tuple[str, int]]:
     """Only complete, byte-exact delivered source lines earn coverage, never spans."""
     import re
-    result, cache = set(), {}
-    for line in text.splitlines():
-        match = re.fullmatch(r"(.+):(\d+)\t(.*)", line)
-        if not match:
+    result,cache=set(),{}
+    observations=[]
+    items=explore_items(text)
+    if items is not None:
+        for item in items:
+            if not isinstance(item,dict) or not isinstance(item.get('node'),dict):
+                continue
+            path=item['node'].get('path')
+            snippets=[item.get('snippet')]
+            excerpts=item.get('excerpts',[])
+            if isinstance(excerpts,list):
+                snippets.extend(e.get('snippet') for e in excerpts if isinstance(e,dict))
+            for snippet in snippets:
+                if not isinstance(snippet,dict):
+                    continue
+                start,lines=snippet.get('start_line'),snippet.get('lines')
+                if type(start) is not int or start<1 or not isinstance(lines,list):
+                    continue
+                observations.extend((path,start+i,line,snippet.get('source_hash'))
+                                    for i,line in enumerate(lines))
+    else:
+        for line in text.splitlines():
+            match=re.fullmatch(r"(.+):(\d+)\t(.*)",line)
+            if match:
+                path,number,content=match.groups()
+                observations.append((path,int(number),content,None))
+    for path,number,content,source_hash in observations:
+        if not isinstance(path,str) or not isinstance(content,str):
             continue
-        path, number, content = match.groups()
         try:
             if path not in cache:
-                cache[path] = source_path(root, path).read_text().splitlines()
-            number = int(number)
-            if number >= 1 and cache[path][number-1] == content:
-                result.add((path, number))
-        except (ValueError, IndexError, UnicodeError, OSError):
+                data=source_path(root,path).read_bytes()
+                cache[path]=(data.decode().splitlines(),digest(data))
+            lines,current_hash=cache[path]
+            if source_hash is not None and source_hash!=current_hash:
+                continue
+            if number>=1 and lines[number-1]==content:
+                result.add((path,number))
+        except (ValueError,IndexError,UnicodeError,OSError):
             continue
     return result
 

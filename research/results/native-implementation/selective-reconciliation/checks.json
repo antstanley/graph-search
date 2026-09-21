@@ -1,0 +1,80 @@
+[
+  {
+    "name": "initial-incremental",
+    "command": "cargo test -p graph-search --test binding_invalidation --test retrieval_incremental --test source_units",
+    "exit_code": 0,
+    "log": "initial-incremental.log"
+  },
+  {
+    "name": "initial-selective-path",
+    "command": "cargo test -p graph-search --test selective_sync",
+    "exit_code": 0,
+    "log": "initial-selective-path.log"
+  },
+  {
+    "name": "initial-engine",
+    "command": "cargo test -p graph-search-engine --tests",
+    "exit_code": 0,
+    "log": "initial-engine.log"
+  },
+  {
+    "name": "initial-clippy",
+    "command": "cargo clippy --workspace --all-targets -- -D warnings",
+    "exit_code": 101,
+    "log": "initial-clippy.log"
+  },
+  {
+    "name": "test-style-clippy",
+    "command": "cargo clippy --workspace --all-targets -- -D warnings",
+    "exit_code": 101,
+    "log": "test-style-clippy.log"
+  },
+  {
+    "name": "final-clippy",
+    "command": "cargo clippy --workspace --all-targets -- -D warnings",
+    "exit_code": 0,
+    "log": "final-clippy.log"
+  },
+  {
+    "name": "probe-clippy",
+    "command": "cargo clippy --manifest-path research/harness/Cargo.toml --bin stable_target_probe -- -D warnings",
+    "exit_code": 0,
+    "log": "probe-clippy.log"
+  },
+  {
+    "name": "final-regression",
+    "command": "cargo test -p graph-search-core -p graph-search-engine -p graph-search --tests",
+    "exit_code": 0,
+    "log": "final-regression.log"
+  },
+  {
+    "name": "final-selective-path",
+    "command": "cargo test -p graph-search --test selective_sync",
+    "exit_code": 0,
+    "log": "final-selective-path.log"
+  },
+  {
+    "name": "matrix-clippy",
+    "command": "cargo clippy --manifest-path research/harness/Cargo.toml --bin selective_sync_probe -- -D warnings",
+    "exit_code": 0,
+    "log": "matrix-clippy.log"
+  },
+  {
+    "name": "matrix-release-build",
+    "command": "cargo build --release --manifest-path research/harness/Cargo.toml --bin selective_sync_probe",
+    "exit_code": 0,
+    "log": "matrix-release-build.log"
+  },
+  {
+    "name": "matrix-os-profiler",
+    "command": "/usr/bin/time -l research/harness/target/release/selective_sync_probe",
+    "exit_code": 1,
+    "log": "matrix-os-profiler.log"
+  },
+  {
+    "name": "matrix-direct",
+    "command": "research/harness/target/release/selective_sync_probe",
+    "exit_code": 0,
+    "log": "matrix-direct.log"
+  }
+]

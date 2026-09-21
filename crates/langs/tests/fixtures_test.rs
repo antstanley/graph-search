@@ -232,3 +232,110 @@ fn css_site() {
     );
     assert_eq!(refs(&extraction, EdgeKind::Imports), vec!["./reset.css"]);
 }
+
+#[test]
+fn javascript_and_typescript_spans_slice_original_utf8() {
+    let extractors: Vec<(&dyn LanguageExtractor, &str)> = vec![
+        (&graph_search_langs::JavaScriptExtractor, "sample.js"),
+        (&graph_search_langs::TypeScriptExtractor, "sample.ts"),
+    ];
+    for (extractor, path) in extractors {
+        for prefix in ["", "// café\r\n"] {
+            let declaration = "function café() {\r\n  return 'é';\r\n}";
+            let source = format!("{prefix}{declaration}\r\n");
+            let facts = extractor
+                .extract(&SourceFile {
+                    path: Path::new(path),
+                    text: &source,
+                })
+                .expect("extract");
+            let symbol = facts
+                .symbols
+                .iter()
+                .find(|s| s.name == "café")
+                .expect("function");
+            assert_eq!(symbol.span.start_byte as usize, prefix.len());
+            assert_eq!(
+                &source[symbol.span.start_byte as usize..symbol.span.end_byte as usize],
+                declaration
+            );
+            assert_eq!(
+                symbol.span.start_line,
+                if prefix.is_empty() { 1 } else { 2 }
+            );
+        }
+    }
+}
+
+#[test]
+fn every_language_preserves_raw_byte_and_line_coordinates() {
+    let cases: Vec<(&dyn LanguageExtractor, &str, &str, &str)> = vec![
+        (
+            &graph_search_langs::RustExtractor,
+            "a.rs",
+            "// café\r\n",
+            "fn café() {\r\n let value = \"é\";\r\n}",
+        ),
+        (
+            &graph_search_langs::TypeScriptExtractor,
+            "a.ts",
+            "// café\r\n",
+            "function café() {\r\n return 'é';\r\n}",
+        ),
+        (
+            &graph_search_langs::JavaScriptExtractor,
+            "a.js",
+            "// café\r\n",
+            "function café() {\r\n return 'é';\r\n}",
+        ),
+        (
+            &graph_search_langs::HtmlExtractor,
+            "a.html",
+            "<!-- café -->\r\n",
+            "<div id=\"café\">\r\n é\r\n</div>",
+        ),
+        (
+            &graph_search_langs::CssExtractor,
+            "a.css",
+            "/* café */\r\n",
+            ".café {\r\n color: red;\r\n}",
+        ),
+    ];
+    for (extractor, path, prefix, declaration) in cases {
+        for prefix in ["", prefix] {
+            let source = format!("{prefix}{declaration}");
+            let facts = extractor
+                .extract(&SourceFile {
+                    path: Path::new(path),
+                    text: &source,
+                })
+                .expect("extract");
+            assert!(!facts.symbols.is_empty(), "{path}");
+            let span = facts.symbols[0].span;
+            assert_eq!(
+                &source[span.start_byte as usize..span.end_byte as usize],
+                declaration,
+                "{path}"
+            );
+            for fact in facts.symbols {
+                let span = fact.span;
+                let start = span.start_byte as usize;
+                let end = span.end_byte as usize;
+                assert!(
+                    !source
+                        .get(start..end)
+                        .expect("valid UTF-8 slice")
+                        .is_empty()
+                );
+                assert_eq!(
+                    span.start_line as usize,
+                    1 + source[..start].bytes().filter(|b| *b == b'\n').count()
+                );
+                assert_eq!(
+                    span.end_line as usize,
+                    1 + source[..end].bytes().filter(|b| *b == b'\n').count()
+                );
+            }
+        }
+    }
+}

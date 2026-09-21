@@ -1,0 +1,206 @@
+--- a/crates/core/src/evidence.rs
++++ b/crates/core/src/evidence.rs
+@@ -92,6 +92,7 @@
+         }
+     }
+     let mut candidates = Vec::new();
++    let mut partial_candidates = Vec::new();
+     let mut match_candidates = Vec::new();
+     let mut match_line_candidates = Vec::new();
+     let mut document_candidates = Vec::new();
+@@ -295,15 +296,22 @@
+     let mut count = 0usize;
+     let mut omitted = false;
+     let mut refresh = true;
++    let mut split_rejected = true;
+     loop {
+         if candidates.is_empty() {
+-            // Preserve structural/relationship evidence, then try context around
+-            // matches, then the matching lines themselves when neighbors cannot fit.
++            // Preserve complete structure and explicit match evidence before
++            // spending residual space on fragments of rejected intervals.
+             candidates = if !match_candidates.is_empty() {
++                split_rejected = false;
+                 std::mem::take(&mut match_candidates)
+             } else if !match_line_candidates.is_empty() {
++                split_rejected = false;
+                 std::mem::take(&mut match_line_candidates)
++            } else if !partial_candidates.is_empty() {
++                split_rejected = true;
++                std::mem::take(&mut partial_candidates)
+             } else if !document_candidates.is_empty() {
++                split_rejected = false;
+                 std::mem::take(&mut document_candidates)
+             } else {
+                 break;
+@@ -345,6 +353,9 @@
+             // Even removing all existing item metadata cannot make this fit.
+             if total.saturating_add(raw_bytes) > target.saturating_add(old) {
+                 omitted = true;
++                if split_rejected {
++                    split_candidate(&candidate, start, end, &mut partial_candidates);
++                }
+                 start = end.saturating_add(1);
+                 continue;
+             }
+@@ -373,6 +384,9 @@
+             } else {
+                 item.excerpts = previous;
+                 omitted = true;
++                if split_rejected {
++                    split_candidate(&candidate, start, end, &mut partial_candidates);
++                }
+             }
+             start = end.saturating_add(1);
+         }
+@@ -381,6 +395,39 @@
+         result.truncations.push(notice);
+     }
+     Ok(())
++}
++
++// At most four bisections for an 80-line interval: the existing five-line
++// match neighborhoods handle smaller fragments. Both halves compete by their
++// remaining terms and byte cost, rather than always retaining a prefix. Scaling
++// value by length prevents subdivision from manufacturing extra relevance.
++fn split_candidate(candidate: &Candidate, start: u32, end: u32, into: &mut Vec<Candidate>) {
++    let length = end.saturating_sub(start).saturating_add(1);
++    if length <= 5 {
++        return;
++    }
++    let middle = start.saturating_add(length.saturating_sub(1).checked_div(2).unwrap_or(0));
++    let original = u64::from(
++        candidate
++            .end
++            .saturating_sub(candidate.start)
++            .saturating_add(1),
++    );
++    for (start, end) in [(start, middle), (middle.saturating_add(1), end)] {
++        into.push(Candidate {
++            item: candidate.item,
++            start,
++            end,
++            role: candidate.role,
++            value: candidate
++                .value
++                .saturating_mul(u64::from(end.saturating_sub(start).saturating_add(1)))
++                .checked_div(original)
++                .unwrap_or(0),
++            utility: 0,
++            bytes: 0,
++        });
++    }
+ }
+ 
+ /// Join only contiguous excerpts of one role/source version, within one item.
+@@ -571,6 +618,99 @@
+             delivered,
+             "the reservation must still permit source evidence"
+         );
++    }
++
++    #[test]
++    fn rejected_structure_yields_bounded_fragments_near_unseen_matches() {
++        use crate::ports::GraphStore;
++        let root = tempfile::tempdir().unwrap();
++        let lines: Vec<_> = (1..=40)
++            .map(|line| format!("line {line:02}: café \"{}\"", "x".repeat(45)))
++            .collect();
++        std::fs::write(root.path().join("a.rs"), lines.join("\n")).unwrap();
++        let mut sources = SourceCache::new(8192, 8192);
++        assert!(sources.read(root.path(), "a.rs").is_some());
++        let mut node = SymbolHit::of(&Node {
++            path: "a.rs".into(),
++            ..Node::default()
++        });
++        node.start_line = 1;
++        node.end_line = 40;
++        let contexts = BTreeMap::from([(
++            graph_search_types::NodeId::new(&node.id),
++            MatchContext {
++                omitted_regions: 0,
++                regions: vec![MatchRegion {
++                    span: graph_search_types::Span {
++                        start_line: 1,
++                        end_line: 40,
++                        ..Default::default()
++                    },
++                    lines: BTreeMap::from([(36, 1)]),
++                    headings: Vec::new(),
++                    fence: None,
++                    table: None,
++                }],
++            },
++        )]);
++        let base = ExploreResult {
++            items: vec![ExploreItem {
++                node,
++                snippet: Some(Snippet {
++                    source_hash: sources.hash("a.rs").unwrap().into(),
++                    start_line: 1,
++                    lines: vec![lines[0].clone()],
++                }),
++                retrieval: None,
++                excerpts: Vec::new(),
++                evidence: None,
++                impact: None,
++            }],
++            ..ExploreResult::default()
++        };
++        let store = crate::memory::MemoryStore::new();
++        let snapshot = store.snapshot().unwrap();
++        for extra in [1200, 1500, 1900, 4000] {
++            let cap = encoded_len(&base) + extra;
++            let mut result = base.clone();
++            let mut work = WorkBudget::new(crate::work::WorkLimits::default());
++            extend(
++                &mut result,
++                &sources,
++                cap,
++                &mut work,
++                snapshot.as_ref(),
++                &contexts,
++            )
++            .unwrap();
++            result.stats.context_windows_examined = work.context_windows_examined();
++            result.stats.elapsed_ms = u64::MAX;
++            assert!(encoded_len(&result) <= cap);
++            let mut seen = BTreeSet::from([1]);
++            for excerpt in &result.items[0].excerpts {
++                assert_eq!(excerpt.snippet.source_hash, sources.hash("a.rs").unwrap());
++                for (offset, text) in excerpt.snippet.lines.iter().enumerate() {
++                    let line = excerpt.snippet.start_line + u32::try_from(offset).unwrap();
++                    assert!(seen.insert(line), "duplicate line {line}");
++                    assert_eq!(text, &lines[line as usize - 1]);
++                }
++            }
++            assert!(
++                seen.contains(&36),
++                "unseen match survives at extra budget {extra}"
++            );
++            if extra == 4000 {
++                assert_eq!(seen.len(), 40, "complete structure still wins when it fits");
++            } else {
++                assert!(seen.len() < 40);
++                assert!(
++                    result
++                        .truncations
++                        .iter()
++                        .any(|t| t.kind == TruncationKind::Snippet)
++                );
++            }
++        }
+     }
+ 
+     #[test]
+--- a/crates/types/src/limits.rs
++++ b/crates/types/src/limits.rs
+@@ -97,7 +97,7 @@
+ pub const CHUNKER_VERSION: u32 = 9;
+ /// Metadata/body scoring, automatic routing and context-selection policy revision.
+ /// Query-time only: changing this does not invalidate persisted extraction facts.
+-pub const RANKER_VERSION: u32 = 16;
++pub const RANKER_VERSION: u32 = 17;
+ /// Source-owned reference and binding representation.
+ pub const OCCURRENCE_VERSION: u32 = 1;
+ /// Source retrieval serialization revision, independent of parser and chunker policy.

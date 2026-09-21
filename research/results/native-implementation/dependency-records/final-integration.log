@@ -1,0 +1,34 @@
+   Compiling graph-search-core v0.1.0 (/Volumes/Delorean/code/graph-search/crates/core)
+   Compiling graph-search-engine v0.1.0 (/Volumes/Delorean/code/graph-search/crates/engine)
+   Compiling graph-search-langs v0.1.0 (/Volumes/Delorean/code/graph-search/crates/langs)
+   Compiling graph-search v0.1.0 (/Volumes/Delorean/code/graph-search/crates/graph-search)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 30.82s
+     Running tests/binding_invalidation.rs (target/debug/deps/binding_invalidation-83ae3c340e553c09)
+
+running 2 tests
+test binding_changes_still_repair_consumers ... ok
+test body_and_signature_edits_refresh_only_their_owner ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.44s
+
+     Running tests/retrieval_incremental.rs (target/debug/deps/retrieval_incremental-c574121807aafe0e)
+
+running 4 tests
+test old_manifests_rebuild_and_missing_fact_caches_fall_back_safely ... ok
+test lexical_retrieval_matches_identifiers_signatures_and_exact_names ... ok
+test selective_sync_reuses_persisted_facts_and_tracks_unresolved_and_ambiguous_names ... ok
+test import_precedence_and_cross_language_changes_match_clean_reindex ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.58s
+
+     Running tests/extraction_facts.rs (target/debug/deps/extraction_facts-bd27f476b0024ad1)
+
+running 5 tests
+test legacy_embedded_facts_keep_compatible_selected_results ... ok
+test native_adapters_select_facts_and_omit_absent_or_missing_caches ... ok
+test dependency_records_are_pinned_and_authenticated_with_the_generation ... ok
+test format_six_uses_fallback_and_next_publication_adds_dependencies ... ok
+test selected_reads_remain_pinned_across_publication_and_reopen ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.43s
+

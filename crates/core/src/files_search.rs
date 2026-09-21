@@ -7,7 +7,7 @@
 use crate::Result;
 use crate::config::WalkPolicy;
 use crate::error::Error;
-use crate::walk::{resolve_search_root, walk};
+use crate::walk::resolve_search_root;
 use globset::{GlobBuilder, GlobSet};
 use graph_search_types::result::{FileHit, FilesResult, Stats, Truncation};
 use std::path::Path;
@@ -19,6 +19,7 @@ use std::path::Path;
 ///
 /// [`Error::InvalidPattern`] when the pattern is empty or does not compile.
 pub fn compile_anchored_glob(pattern: &str) -> Result<GlobSet> {
+    crate::work::validate_query_bytes("file pattern", pattern)?;
     let trimmed = pattern.trim();
     if trimmed.is_empty() {
         return Err(Error::InvalidPattern {
@@ -51,44 +52,79 @@ pub fn search_files(
     query: &graph_search_types::FilesQuery,
     policy: &WalkPolicy,
 ) -> Result<FilesResult> {
-    let started = std::time::Instant::now();
-    let search_root = resolve_search_root(root, query.path.as_deref())?;
-    let set = compile_anchored_glob(&query.pattern)?;
+    search_files_with_work(
+        root,
+        query,
+        policy,
+        &mut crate::work::WorkBudget::new(crate::work::WorkLimits::default()),
+    )
+}
 
-    let entries = walk(&search_root, policy)?;
+/// Runs a file query with cooperative cancellation and deadline checks.
+/// # Errors
+/// On cancellation, deadline, missing root or invalid pattern.
+pub fn search_files_with_work(
+    root: &Path,
+    query: &graph_search_types::FilesQuery,
+    policy: &WalkPolicy,
+    work: &mut crate::work::WorkBudget,
+) -> Result<FilesResult> {
+    work.check()?;
+    let started = std::time::Instant::now();
+    if let Some(path) = query.path.as_deref() {
+        crate::work::validate_query_bytes("search path", path)?;
+    }
+    let set = compile_anchored_glob(&query.pattern)?;
+    let search_root = resolve_search_root(root, query.path.as_deref())?;
+
+    let report = crate::walk::walk_report_with_work(&search_root, policy, work)?;
+    let entries = report.entries;
     let mut items: Vec<FileHit> = Vec::new();
     let mut truncated = false;
+    let mut bytes = crate::payload::ScanBudget::default();
+    let mut byte_cap_hit = false;
+    let limit = query
+        .limit
+        .min(graph_search_types::limits::FILES_LIMIT_CEILING);
     for entry in &entries {
+        work.check()?;
         // Matched against the path relative to the search root, so the
         // pattern anchors where the caller asked it to (`SPEC.md` §8.1).
         let rel = crate::walk::rel_to_root(&search_root, &entry.path);
         if !set.is_match(rel) {
             continue;
         }
-        if items.len() >= usize::try_from(query.limit).unwrap_or(usize::MAX) {
+        if items.len() >= usize::try_from(limit).unwrap_or(usize::MAX) {
             truncated = true;
             break;
         }
-        items.push(FileHit {
+        let hit = FileHit {
             path: entry.rel.clone(),
             language: entry
                 .language
                 .unwrap_or(graph_search_types::Language::Unknown),
-        });
+        };
+        if !bytes.admit(&hit)? {
+            byte_cap_hit = true;
+            break;
+        }
+        items.push(hit);
     }
 
-    let mut truncations = Vec::new();
+    let mut truncations = report.coverage.truncations.clone();
+    if byte_cap_hit {
+        crate::payload::scan_notice(&mut truncations);
+    }
     if truncated {
         truncations.push(Truncation::new(
             graph_search_types::result::TruncationKind::Files,
-            u64::from(query.limit),
-            format!(
-                "(more than {} matches; narrow the pattern to see the rest)",
-                query.limit
-            ),
+            u64::from(limit),
+            format!("(more than {limit} matches; narrow the pattern to see the rest)"),
         ));
     }
-    Ok(FilesResult {
+    work.check()?;
+    let mut result = FilesResult {
+        context: graph_search_types::context::ResultContext::live(report.coverage),
         items,
         truncations,
         stats: Stats {
@@ -96,8 +132,12 @@ pub fn search_files(
             matches: 0,
             candidates: 0,
             elapsed_ms: u64::try_from(started.elapsed().as_millis()).unwrap_or(u64::MAX),
+            ..Stats::default()
         },
-    })
+    };
+    crate::payload::fit_files(&mut result)?;
+    work.check()?;
+    Ok(result)
 }
 
 #[cfg(test)]

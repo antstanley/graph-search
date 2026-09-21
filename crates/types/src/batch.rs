@@ -35,8 +35,14 @@ impl QuarantineRecord {
 /// edges among them and to other files (`SPEC.md` §6.2).
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 pub struct FileProjection {
+    /// File-owned reference occurrences, independent of aggregate edges.
+    #[serde(default)]
+    pub occurrences: Option<crate::occurrence::OccurrenceFile>,
     /// The `file` node. Present for every walked file, parsed or not.
     pub file: Node,
+    /// Hash-bound native source retrieval regions, including non-parser text.
+    #[serde(default)]
+    pub source: Option<crate::source::SourceFileUnits>,
     /// The symbol nodes, when the file was parsed.
     pub symbols: Vec<Node>,
     /// The edges: `contains` among the nodes above, and resolved or dangling
@@ -53,7 +59,10 @@ pub struct WriteBatch {
     /// Files whose previous projection is removed wholesale: their nodes and
     /// all incident edges.
     pub removed_files: Vec<String>,
-    /// Projections to insert or replace, keyed by file path.
+    /// Complete projections to insert or replace, keyed by file path. Nodes with
+    /// the same id, path and kind survive unless explicitly removed above.
+    /// Replace edges owned by these source paths (explicit edge path, otherwise
+    /// source-node path); retain untouched owners' edges to surviving endpoints.
     pub upserts: Vec<FileProjection>,
     /// The manifest state this batch produces. Committed last.
     pub manifest: Manifest,

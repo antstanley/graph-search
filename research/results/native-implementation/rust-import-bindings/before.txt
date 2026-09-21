@@ -1,0 +1,24 @@
+   Compiling graph-search v0.1.0 (/Volumes/Delorean/code/graph-search/crates/graph-search)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 8.56s
+     Running tests/rust_modules.rs (target/debug/deps/rust_modules-bfc3d79cb07fc4aa)
+
+running 1 test
+test named_import_aliases_and_module_aliases_bind_in_lexical_scope ... FAILED
+
+failures:
+
+---- named_import_aliases_and_module_aliases_bind_in_lexical_scope stdout ----
+
+thread 'named_import_aliases_and_module_aliases_bind_in_lexical_scope' (82163529) panicked at crates/graph-search/tests/rust_modules.rs:540:9:
+assertion `left == right` failed: ReferenceOccurrence { id: "occ:4dadd05729704347fc800ad99ed3d64493315c9a09d6b9aaa4885bb41364844f", owner: NodeId("sym:src/client.rs#function:imported"), kind: Calls, span: Some(Span { start_line: 1, end_line: 1, start_byte: 66, end_byte: 73 }), line: 1, extent: Expression, raw_name: Some("relay"), name: "relay", ordinal: 2, target: None, target_name: "relay", resolution: Unresolved, reason: Some("name_missing_or_ambiguous"), scope: Some(2), binding: None }
+  left: None
+ right: Some("sym:src/lib.rs#function:api::send")
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    named_import_aliases_and_module_aliases_bind_in_lexical_scope
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 9 filtered out; finished in 0.07s
+
+error: test failed, to rerun pass `-p graph-search --test rust_modules`

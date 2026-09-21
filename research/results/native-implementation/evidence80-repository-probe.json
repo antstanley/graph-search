@@ -1,0 +1,222 @@
+{
+  "counts": {
+    "edges": {
+      "calls": 4636,
+      "contains": 1331,
+      "exports": 7,
+      "extends": 1,
+      "implements": 26,
+      "imports": 673,
+      "loads_stylesheet": 1,
+      "selects": 7,
+      "type_uses": 594,
+      "uses_class": 5
+    },
+    "files_by_language": {
+      "css": 2,
+      "html": 2,
+      "java_script": 1,
+      "rust": 63,
+      "type_script": 4,
+      "unknown": 121
+    },
+    "nodes": {
+      "class": 2,
+      "const": 37,
+      "css_at_rule": 1,
+      "css_custom_property": 1,
+      "css_rule": 6,
+      "element": 6,
+      "enum": 13,
+      "field": 352,
+      "file": 193,
+      "function": 286,
+      "impl": 84,
+      "interface": 1,
+      "macro": 1,
+      "method": 279,
+      "module": 61,
+      "static": 3,
+      "struct": 96,
+      "trait": 5,
+      "type_alias": 7,
+      "variant": 90
+    },
+    "total_edges": 7281,
+    "total_nodes": 1524
+  },
+  "explore": [
+    {
+      "core_stats": {
+        "candidates": 520,
+        "elapsed_ms": 2,
+        "graph_edges_examined": 121,
+        "graph_nodes_visited": 15,
+        "lexical_postings_examined": 544,
+        "retrieval_candidates_admitted": 520
+      },
+      "items": [
+        {
+          "name": "LexicalIndex",
+          "path": "crates/core/src/lexical.rs"
+        },
+        {
+          "name": "impl LexicalIndex",
+          "path": "crates/core/src/lexical.rs"
+        },
+        {
+          "name": "lexical",
+          "path": "crates/core/src/lib.rs"
+        },
+        {
+          "name": "lexical_retrieval_matches_identifiers_signatures_and_exact_names",
+          "path": "crates/graph-search/tests/retrieval_incremental.rs"
+        },
+        {
+          "name": "self_receiver_uses_lexical_impl_owner",
+          "path": "crates/graph-search/tests/accuracy.rs"
+        },
+        {
+          "name": "Index",
+          "path": "crates/cli/src/main.rs"
+        },
+        {
+          "name": "index",
+          "path": "crates/graph-search/src/service.rs"
+        },
+        {
+          "name": "index",
+          "path": "crates/graph-search/tests/retrieval_incremental.rs"
+        }
+      ],
+      "query": "LexicalIndex",
+      "resident_ms": 11.710542
+    },
+    {
+      "core_stats": {
+        "candidates": 773,
+        "elapsed_ms": 2,
+        "graph_edges_examined": 430,
+        "graph_nodes_visited": 21,
+        "lexical_postings_examined": 829,
+        "retrieval_candidates_admitted": 773
+      },
+      "items": [
+        {
+          "name": "classify",
+          "path": "crates/core/src/manifest.rs"
+        },
+        {
+          "name": "modified",
+          "path": "crates/types/src/result.rs"
+        },
+        {
+          "name": "modified",
+          "path": "crates/core/src/manifest.rs"
+        },
+        {
+          "name": "reconcile",
+          "path": "crates/graph-search/src/index.rs"
+        },
+        {
+          "name": "reconcile",
+          "path": "crates/graph-search/src/index.rs"
+        },
+        {
+          "name": "reconcile",
+          "path": "crates/core/src/lib.rs"
+        },
+        {
+          "name": "no_reconcile",
+          "path": "crates/cli/src/main.rs"
+        },
+        {
+          "name": "apply",
+          "path": "crates/core/src/reconcile.rs"
+        }
+      ],
+      "query": "how does reconcile classify a modified file",
+      "resident_ms": 11.703458999999999
+    },
+    {
+      "core_stats": {
+        "candidates": 30,
+        "elapsed_ms": 3,
+        "graph_edges_examined": 11,
+        "graph_nodes_visited": 9,
+        "lexical_postings_examined": 31,
+        "retrieval_candidates_admitted": 30
+      },
+      "items": [
+        {
+          "name": "GrafeoSnapshot",
+          "path": "crates/engine/src/store.rs"
+        },
+        {
+          "name": "research/results/blogwright-expanded-baseline.json",
+          "path": "research/results/blogwright-expanded-baseline.json"
+        },
+        {
+          "name": "research/results/blogwright-expanded-fixed.json",
+          "path": "research/results/blogwright-expanded-fixed.json"
+        },
+        {
+          "name": "the_spec_example_parses_and_merges",
+          "path": "crates/graph-search/src/config.rs"
+        },
+        {
+          "name": "research/results/whatsurvey-expanded-baseline.json",
+          "path": "research/results/whatsurvey-expanded-baseline.json"
+        },
+        {
+          "name": "research/results/whatsurvey-expanded-fixed.json",
+          "path": "research/results/whatsurvey-expanded-fixed.json"
+        },
+        {
+          "name": "evaluation/taskbench/core.py",
+          "path": "evaluation/taskbench/core.py"
+        },
+        {
+          "name": "research/scripts/natural.py",
+          "path": "research/scripts/natural.py"
+        }
+      ],
+      "query": "cache invalidation",
+      "resident_ms": 13.513959000000002
+    }
+  ],
+  "graph_bytes": 762354,
+  "manifest_bytes": 2647402,
+  "open_empty_ms": 0.3005,
+  "reindex_ms": 291.776375,
+  "root": "git-archive:bdcbecef41d9863bca23830ed30615f1c219064d",
+  "source_coverage": {
+    "admitted_files": 193,
+    "entries_visited": 234,
+    "enumeration_complete": true,
+    "policy": {
+      "excludes": [
+        ".git",
+        ".graph-search",
+        "target",
+        "node_modules",
+        "dist",
+        "build",
+        "out",
+        ".venv",
+        "venv",
+        "vendor"
+      ],
+      "fingerprint": "caa18b25279ea24c2f8d5c95feb2e2cab911f7e876d32704b2f10ef50aec1c2a",
+      "include_hidden": false,
+      "max_file_bytes": 1048576,
+      "respect_ignore": true
+    },
+    "source_indexed_files": 193,
+    "source_units": 4042,
+    "unsupported_files": 121
+  },
+  "source_units_bytes": 3800722,
+  "symbol_resident_ms": 9.099083,
+  "corpus_commit": "bdcbecef41d9863bca23830ed30615f1c219064d"
+}

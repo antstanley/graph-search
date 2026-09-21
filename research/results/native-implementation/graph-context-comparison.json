@@ -1,0 +1,202 @@
+{
+  "provenance_equal": true,
+  "production_stable_and_current": true,
+  "external_sources_stable": true,
+  "codegraph_unchanged": {
+    "nanus": {
+      ".gitignore": "47c0dacebca9f56c9020b68584470dfc51f07650a3719904e98f4b447a5dd003",
+      "codegraph.db": "2c6e082433d5a5ca542cd9a7de0954dd67e02994008598e7414fa6abcebb2120",
+      "codegraph.db-shm": "fd4c9fda9cd3f9ae7c962b0ddf37232294d55580e1aa165aa06129b8549389eb",
+      "codegraph.db-wal": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "blogwright": {
+      ".gitignore": "47c0dacebca9f56c9020b68584470dfc51f07650a3719904e98f4b447a5dd003",
+      "codegraph.db": "ba63e56b19b331f82779f2338f90ac2a08540b73bb9cd6fd5e223e2c004940f3",
+      "codegraph.db-shm": "fd4c9fda9cd3f9ae7c962b0ddf37232294d55580e1aa165aa06129b8549389eb",
+      "codegraph.db-wal": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "whatsurvey": {
+      ".gitignore": "47c0dacebca9f56c9020b68584470dfc51f07650a3719904e98f4b447a5dd003",
+      "codegraph.db": "6bb399ea14365dfdc7e017c64897fef4926a15c7e997a393a2333fb6995d372f",
+      "codegraph.db-shm": "fd4c9fda9cd3f9ae7c962b0ddf37232294d55580e1aa165aa06129b8549389eb",
+      "codegraph.db-wal": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "daemon.log": "490111635bc733e80387d4570ebc4d2e4c2d40f5bae4551472c293e9f855e3d0",
+      "daemon.pid": "2cdce70b254fc589f2753b860ca81a42c53391b81fdfd2243297fd6b83867aa6"
+    }
+  },
+  "repeated_evidence_deterministic": true,
+  "trials": 276,
+  "protocol_errors": 0,
+  "budgets": {
+    "max_calls": 4,
+    "response_bytes": 16384,
+    "context_bytes": 49152,
+    "wall_seconds": 180
+  },
+  "suites": {
+    "established": {
+      "semantic": {
+        "options": {
+          "ranking": "auto",
+          "per_file": 0,
+          "graph_context": "semantic"
+        },
+        "tasks": 34,
+        "required_files": 28,
+        "complete_regions": 12,
+        "mean_per_task_region_coverage": 0.5105982578803557,
+        "mean_response_bytes": 33455.41176470588
+      },
+      "none": {
+        "options": {
+          "ranking": "auto",
+          "per_file": 0,
+          "graph_context": "none"
+        },
+        "tasks": 34,
+        "required_files": 28,
+        "complete_regions": 12,
+        "mean_per_task_region_coverage": 0.515413726029538,
+        "mean_response_bytes": 34087.117647058825
+      },
+      "evidence_changes": [
+        {
+          "task_id": "nanus.edit.change",
+          "semantic": {
+            "required_file_recall": 1.0,
+            "region_coverage": {
+              "r1": 0.13846153846153847
+            },
+            "evidence_ready": false,
+            "relationship_evidence_recall": 0.0,
+            "task_success": null
+          },
+          "none": {
+            "required_file_recall": 1.0,
+            "region_coverage": {
+              "r1": 0.49230769230769234
+            },
+            "evidence_ready": false,
+            "relationship_evidence_recall": 0.0,
+            "task_success": null
+          }
+        },
+        {
+          "task_id": "nanus.glob.debug",
+          "semantic": {
+            "required_file_recall": 1.0,
+            "region_coverage": {
+              "r1": 0.12
+            },
+            "evidence_ready": false,
+            "relationship_evidence_recall": 0.0,
+            "task_success": null
+          },
+          "none": {
+            "required_file_recall": 1.0,
+            "region_coverage": {
+              "r1": 0.05333333333333334
+            },
+            "evidence_ready": false,
+            "relationship_evidence_recall": 0.0,
+            "task_success": null
+          }
+        },
+        {
+          "task_id": "nanus.context.debug",
+          "semantic": {
+            "required_file_recall": 1.0,
+            "region_coverage": {
+              "r1": 0.0,
+              "r2": 0.09433962264150944
+            },
+            "evidence_ready": false,
+            "relationship_evidence_recall": 0.0,
+            "task_success": null
+          },
+          "none": {
+            "required_file_recall": 1.0,
+            "region_coverage": {
+              "r1": 0.0,
+              "r2": 0.07547169811320754
+            },
+            "evidence_ready": false,
+            "relationship_evidence_recall": 0.0,
+            "task_success": null
+          }
+        },
+        {
+          "task_id": "nanus.glob.change",
+          "semantic": {
+            "required_file_recall": 1.0,
+            "region_coverage": {
+              "r1": 0.16
+            },
+            "evidence_ready": false,
+            "relationship_evidence_recall": 0.0,
+            "task_success": null
+          },
+          "none": {
+            "required_file_recall": 1.0,
+            "region_coverage": {
+              "r1": 0.05333333333333334
+            },
+            "evidence_ready": false,
+            "relationship_evidence_recall": 0.0,
+            "task_success": null
+          }
+        },
+        {
+          "task_id": "nanus.grep.change",
+          "semantic": {
+            "required_file_recall": 1.0,
+            "region_coverage": {
+              "r1": 0.29411764705882354,
+              "r2": 1.0
+            },
+            "evidence_ready": false,
+            "relationship_evidence_recall": 0.0,
+            "task_success": null
+          },
+          "none": {
+            "required_file_recall": 1.0,
+            "region_coverage": {
+              "r1": 0.27941176470588236,
+              "r2": 1.0
+            },
+            "evidence_ready": false,
+            "relationship_evidence_recall": 0.0,
+            "task_success": null
+          }
+        }
+      ]
+    },
+    "newer": {
+      "semantic": {
+        "options": {
+          "ranking": "auto",
+          "per_file": 0,
+          "graph_context": "semantic"
+        },
+        "tasks": 12,
+        "required_files": 12,
+        "complete_regions": 10,
+        "mean_per_task_region_coverage": 0.8333333333333334,
+        "mean_response_bytes": 37679.416666666664
+      },
+      "none": {
+        "options": {
+          "ranking": "auto",
+          "per_file": 0,
+          "graph_context": "none"
+        },
+        "tasks": 12,
+        "required_files": 12,
+        "complete_regions": 10,
+        "mean_per_task_region_coverage": 0.8333333333333334,
+        "mean_response_bytes": 38032.75
+      },
+      "evidence_changes": []
+    }
+  }
+}

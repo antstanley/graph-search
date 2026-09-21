@@ -1,0 +1,4838 @@
+[
+  {
+    "task_id": "nanus.write.debug",
+    "repo": "nanus",
+    "split": "dev",
+    "kind": "debug",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 12.083749985322356,
+    "model_ms": 0,
+    "tool_ms": 9.523916058242321,
+    "response_bytes": 39380,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 9842.0,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 1.0
+      },
+      "evidence_ready": true,
+      "relationship_evidence_recall": 1.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 2,
+    "transcript_sha256": "d35cca2eeb596c10368329619d6c805cfc832b78dc08830f86b35212ca83cd6b",
+    "has_answer": false
+  },
+  {
+    "task_id": "nanus.write.change",
+    "repo": "nanus",
+    "split": "dev",
+    "kind": "change",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 10.153958923183382,
+    "model_ms": 0,
+    "tool_ms": 8.446876076050103,
+    "response_bytes": 37015,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 9253.75,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 1.0
+      },
+      "evidence_ready": true,
+      "relationship_evidence_recall": 1.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 1,
+    "transcript_sha256": "ca065deab33febf26dd131c6d22adb6507089822d55be58dd683e1dee80f6517",
+    "has_answer": false
+  },
+  {
+    "task_id": "nanus.read.debug",
+    "repo": "nanus",
+    "split": "dev",
+    "kind": "debug",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 10.776582988910377,
+    "model_ms": 0,
+    "tool_ms": 8.820290910080075,
+    "response_bytes": 37074,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 9265.0,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 1.0,
+        "r2": 0.4358974358974359
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 0,
+    "transcript_sha256": "d771c832a1d4cfcc0d600d2b7eccfef13ed028d133c6152034526ec7c82f0852",
+    "has_answer": false
+  },
+  {
+    "task_id": "nanus.glob.debug",
+    "repo": "nanus",
+    "split": "dev",
+    "kind": "debug",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 11.245207977481186,
+    "model_ms": 0,
+    "tool_ms": 9.436123888008296,
+    "response_bytes": 39256,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 9811.5,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 0.12
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 2,
+    "transcript_sha256": "5dd51aa3ce2a7794ea6b986be2b39a06ace08a4dd5e3b678e3f7271b2f3de39a",
+    "has_answer": false
+  },
+  {
+    "task_id": "nanus.temporary-paths.debug",
+    "repo": "nanus",
+    "split": "heldout",
+    "kind": "debug",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 11.188415926881135,
+    "model_ms": 0,
+    "tool_ms": 9.057415998540819,
+    "response_bytes": 32382,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 8093.0,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 0.0136986301369863
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 1,
+    "transcript_sha256": "799e888441b90fdc3c088b6e23a1e75f0642e3aaba76619852138df38809cec9",
+    "has_answer": false
+  },
+  {
+    "task_id": "nanus.context.debug",
+    "repo": "nanus",
+    "split": "dev",
+    "kind": "debug",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 11.614124989137053,
+    "model_ms": 0,
+    "tool_ms": 9.593374910764396,
+    "response_bytes": 30407,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 7599.25,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 0.0,
+        "r2": 0.22641509433962265
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 2,
+    "transcript_sha256": "efec637c4f087969fdce614e910dbd531bde4f82cfdc8aa4462f87211f6697b3",
+    "has_answer": false
+  },
+  {
+    "task_id": "nanus.temporary-paths.change",
+    "repo": "nanus",
+    "split": "heldout",
+    "kind": "change",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 10.8042499050498,
+    "model_ms": 0,
+    "tool_ms": 8.989416062831879,
+    "response_bytes": 27191,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 6797.75,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 0.0
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 1,
+    "transcript_sha256": "c3ffd3a9ab5903ddf2d7656c03cb05817f95a2b6becf524d2efbc4c4fe423d5d",
+    "has_answer": false
+  },
+  {
+    "task_id": "nanus.argument-types.debug",
+    "repo": "nanus",
+    "split": "heldout",
+    "kind": "debug",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 10.267917066812515,
+    "model_ms": 0,
+    "tool_ms": 8.762585115619004,
+    "response_bytes": 37333,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 9332.75,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 1.0
+      },
+      "evidence_ready": true,
+      "relationship_evidence_recall": 1.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 2,
+    "transcript_sha256": "794dbf501bf908ec116b4927d5dbe241f405d32f0365208f9e732df1b35c808a",
+    "has_answer": false
+  },
+  {
+    "task_id": "nanus.edit.change",
+    "repo": "nanus",
+    "split": "dev",
+    "kind": "change",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 10.24641701951623,
+    "model_ms": 0,
+    "tool_ms": 8.61704209819436,
+    "response_bytes": 24020,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 6004.5,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 0.06153846153846154
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 0,
+    "transcript_sha256": "4c52d9d0ddd85a4cf6b3f3ca7dd4a23d4feae4d46f3b6041ca1a4e1affd52ed4",
+    "has_answer": false
+  },
+  {
+    "task_id": "nanus.grep.debug",
+    "repo": "nanus",
+    "split": "dev",
+    "kind": "debug",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 9.976750006899238,
+    "model_ms": 0,
+    "tool_ms": 8.609415031969547,
+    "response_bytes": 38197,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 9548.75,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 1.0,
+        "r2": 0.625
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 2,
+    "transcript_sha256": "e2f3b78a669e8b1e933557305f97d98dd6767a7ee627b6f158ca44b4958ab943",
+    "has_answer": false
+  },
+  {
+    "task_id": "nanus.edit.change",
+    "repo": "nanus",
+    "split": "dev",
+    "kind": "change",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 9.899165946990252,
+    "model_ms": 0,
+    "tool_ms": 8.461583172902465,
+    "response_bytes": 24020,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 6004.5,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 0.06153846153846154
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 2,
+    "transcript_sha256": "43998e7b0b0c4916112cf27cc545e25760ade88fb4de839fe5e744bce248dfe8",
+    "has_answer": false
+  },
+  {
+    "task_id": "nanus.write.debug",
+    "repo": "nanus",
+    "split": "dev",
+    "kind": "debug",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 10.498084011487663,
+    "model_ms": 0,
+    "tool_ms": 8.835418033413589,
+    "response_bytes": 39380,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 9842.0,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 1.0
+      },
+      "evidence_ready": true,
+      "relationship_evidence_recall": 1.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 1,
+    "transcript_sha256": "1603c444a77ddab124fd7a6ce63d037c51b08ffbbea92a55eafb5c71c38da831",
+    "has_answer": false
+  },
+  {
+    "task_id": "nanus.glob.debug",
+    "repo": "nanus",
+    "split": "dev",
+    "kind": "debug",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 11.110124993138015,
+    "model_ms": 0,
+    "tool_ms": 9.349625906907022,
+    "response_bytes": 39256,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 9811.5,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 0.12
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 0,
+    "transcript_sha256": "a2b4c623c36a04055c1c073a52a7f55762a7adfa85c2a8c4305e54319f5ee6a3",
+    "has_answer": false
+  },
+  {
+    "task_id": "nanus.grep.change",
+    "repo": "nanus",
+    "split": "dev",
+    "kind": "change",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 10.086500085890293,
+    "model_ms": 0,
+    "tool_ms": 8.554000058211386,
+    "response_bytes": 29997,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 7498.75,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 0.29411764705882354,
+        "r2": 1.0
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 1,
+    "transcript_sha256": "d2031462ec6c55396f70dfad993c1a07617223ae9ca9b205c8004e86b3ce4d30",
+    "has_answer": false
+  },
+  {
+    "task_id": "nanus.read.change",
+    "repo": "nanus",
+    "split": "dev",
+    "kind": "change",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 10.815000045113266,
+    "model_ms": 0,
+    "tool_ms": 8.986250031739473,
+    "response_bytes": 33135,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 8282.75,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 1.0,
+        "r2": 0.4358974358974359
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 2,
+    "transcript_sha256": "05f89bdee38341e5a2d9b6ef986d0ae77db5336d0c885f6c8c6efddfbb746a9d",
+    "has_answer": false
+  },
+  {
+    "task_id": "nanus.edit.change",
+    "repo": "nanus",
+    "split": "dev",
+    "kind": "change",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 10.034249979071319,
+    "model_ms": 0,
+    "tool_ms": 8.517876034602523,
+    "response_bytes": 24020,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 6004.5,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 0.06153846153846154
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 1,
+    "transcript_sha256": "f5334d6f0459447189fe23d8595e5af1929f6d4982649f92ea4cf714c585187e",
+    "has_answer": false
+  },
+  {
+    "task_id": "nanus.argument-types.debug",
+    "repo": "nanus",
+    "split": "heldout",
+    "kind": "debug",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 10.670750052668154,
+    "model_ms": 0,
+    "tool_ms": 8.99645802564919,
+    "response_bytes": 37333,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 9332.75,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 1.0
+      },
+      "evidence_ready": true,
+      "relationship_evidence_recall": 1.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 1,
+    "transcript_sha256": "376b9119f609227b74f000c89b86ffc78cc14ad2763cdc22496ba67d62bdc994",
+    "has_answer": false
+  },
+  {
+    "task_id": "nanus.temporary-paths.change",
+    "repo": "nanus",
+    "split": "heldout",
+    "kind": "change",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 11.059583979658782,
+    "model_ms": 0,
+    "tool_ms": 9.117623907513916,
+    "response_bytes": 27191,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 6797.75,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 0.0
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 2,
+    "transcript_sha256": "d607f0d3721525e6a44580ac62ea00739c69334e2780d0fddb6b49bdbaebe7d6",
+    "has_answer": false
+  },
+  {
+    "task_id": "nanus.grep.debug",
+    "repo": "nanus",
+    "split": "dev",
+    "kind": "debug",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 10.003542061895132,
+    "model_ms": 0,
+    "tool_ms": 8.519167895428836,
+    "response_bytes": 38197,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 9548.75,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 1.0,
+        "r2": 0.625
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 0,
+    "transcript_sha256": "9b613b5618506fa461bec195bf80d2f6057b999bf862e032723cafa061ca1848",
+    "has_answer": false
+  },
+  {
+    "task_id": "nanus.temporary-paths.change",
+    "repo": "nanus",
+    "split": "heldout",
+    "kind": "change",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 11.114374967291951,
+    "model_ms": 0,
+    "tool_ms": 9.097624919377267,
+    "response_bytes": 27191,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 6797.75,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 0.0
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 0,
+    "transcript_sha256": "336983efa2150268c674df9296b26be940c2317900deeadd77ef2d89cd5bb664",
+    "has_answer": false
+  },
+  {
+    "task_id": "nanus.temporary-paths.debug",
+    "repo": "nanus",
+    "split": "heldout",
+    "kind": "debug",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 11.605125037021935,
+    "model_ms": 0,
+    "tool_ms": 9.534998913295567,
+    "response_bytes": 32382,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 8093.0,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 0.0136986301369863
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 2,
+    "transcript_sha256": "ff945c737d0cace86c0b49a4bc1b2da41c4cd902e661e53165f50cfa92fb2ca2",
+    "has_answer": false
+  },
+  {
+    "task_id": "nanus.grep.change",
+    "repo": "nanus",
+    "split": "dev",
+    "kind": "change",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 11.072875000536442,
+    "model_ms": 0,
+    "tool_ms": 9.304125094786286,
+    "response_bytes": 29997,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 7498.75,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 0.29411764705882354,
+        "r2": 1.0
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 2,
+    "transcript_sha256": "ede3b5a7897e2e872089a2016c2eb2ed3b9598f80c867895c2f56637fad1fb30",
+    "has_answer": false
+  },
+  {
+    "task_id": "nanus.argument-types.change",
+    "repo": "nanus",
+    "split": "heldout",
+    "kind": "change",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 11.831916053779423,
+    "model_ms": 0,
+    "tool_ms": 10.079293977469206,
+    "response_bytes": 27472,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 6868.0,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 0.0,
+      "region_coverage": {
+        "r1": 0.0
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 0,
+    "transcript_sha256": "2e904386324a37328f680b70d8e08634c526138d1801f02c9cd22c32171eb11d",
+    "has_answer": false
+  },
+  {
+    "task_id": "nanus.edit.debug",
+    "repo": "nanus",
+    "split": "dev",
+    "kind": "debug",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 11.216708924621344,
+    "model_ms": 0,
+    "tool_ms": 9.47950012050569,
+    "response_bytes": 37010,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 9252.5,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 1.0
+      },
+      "evidence_ready": true,
+      "relationship_evidence_recall": 1.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 1,
+    "transcript_sha256": "1c16c4fb117ee9cef63e5999494ab9ca80f841e4ad7a63d9ea57dae6cfc1f1ff",
+    "has_answer": false
+  },
+  {
+    "task_id": "nanus.read.debug",
+    "repo": "nanus",
+    "split": "dev",
+    "kind": "debug",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 11.105709010735154,
+    "model_ms": 0,
+    "tool_ms": 9.200292872264981,
+    "response_bytes": 37074,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 9265.0,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 1.0,
+        "r2": 0.4358974358974359
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 1,
+    "transcript_sha256": "9edd8b9549b017d4b9007f90346fe124c09c7fcd5dcb1ebe472b478d521b9a5f",
+    "has_answer": false
+  },
+  {
+    "task_id": "nanus.write.change",
+    "repo": "nanus",
+    "split": "dev",
+    "kind": "change",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 10.992666939273477,
+    "model_ms": 0,
+    "tool_ms": 9.274375042878091,
+    "response_bytes": 37015,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 9253.75,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 1.0
+      },
+      "evidence_ready": true,
+      "relationship_evidence_recall": 1.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 0,
+    "transcript_sha256": "aa1bafa801fc6ce94cd3e17a2a2b8f5f99a6e426a2c7bffb0a6b95aa9a6c3f27",
+    "has_answer": false
+  },
+  {
+    "task_id": "nanus.argument-types.debug",
+    "repo": "nanus",
+    "split": "heldout",
+    "kind": "debug",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 11.709999991580844,
+    "model_ms": 0,
+    "tool_ms": 9.808167000301182,
+    "response_bytes": 37333,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 9332.75,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 1.0
+      },
+      "evidence_ready": true,
+      "relationship_evidence_recall": 1.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 0,
+    "transcript_sha256": "ae1da1926f0b136e819a3dd7085638056a308584b582d2474b4907ddcdce4bfb",
+    "has_answer": false
+  },
+  {
+    "task_id": "nanus.temporary-paths.debug",
+    "repo": "nanus",
+    "split": "heldout",
+    "kind": "debug",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 12.307500001043081,
+    "model_ms": 0,
+    "tool_ms": 9.966916870325804,
+    "response_bytes": 32382,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 8093.0,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 0.0136986301369863
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 0,
+    "transcript_sha256": "7ddf6a8dc39bd83c04f268c1bba4410af70aec524fe0b0417560eed9a89b3b64",
+    "has_answer": false
+  },
+  {
+    "task_id": "nanus.glob.debug",
+    "repo": "nanus",
+    "split": "dev",
+    "kind": "debug",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 11.698666960000992,
+    "model_ms": 0,
+    "tool_ms": 9.773500845767558,
+    "response_bytes": 39256,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 9811.5,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 0.12
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 1,
+    "transcript_sha256": "dd12b1305cf7362d4baf5863e676d0962658fe135e96db1aa423071d1515c1f6",
+    "has_answer": false
+  },
+  {
+    "task_id": "nanus.context.debug",
+    "repo": "nanus",
+    "split": "dev",
+    "kind": "debug",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 11.415292043238878,
+    "model_ms": 0,
+    "tool_ms": 9.458583896048367,
+    "response_bytes": 30407,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 7599.25,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 0.0,
+        "r2": 0.22641509433962265
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 0,
+    "transcript_sha256": "e468bbf0782e648851653b1911e43c9101ec734e6e6dbd58a270de69c640b46d",
+    "has_answer": false
+  },
+  {
+    "task_id": "nanus.write.debug",
+    "repo": "nanus",
+    "split": "dev",
+    "kind": "debug",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 10.748000000603497,
+    "model_ms": 0,
+    "tool_ms": 8.937457925640047,
+    "response_bytes": 39380,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 9842.0,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 1.0
+      },
+      "evidence_ready": true,
+      "relationship_evidence_recall": 1.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 0,
+    "transcript_sha256": "cd516f442ea96953bbd908b6d1a1da71c582819a611080ba0d277c601e81893f",
+    "has_answer": false
+  },
+  {
+    "task_id": "nanus.glob.change",
+    "repo": "nanus",
+    "split": "dev",
+    "kind": "change",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 11.0832080245018,
+    "model_ms": 0,
+    "tool_ms": 9.182874928228557,
+    "response_bytes": 37317,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 9327.25,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 0.16
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 0,
+    "transcript_sha256": "0ab8d9ef0cec79fa65c66a1db5386dad8e687aee71251e745dede4c1cef8e616",
+    "has_answer": false
+  },
+  {
+    "task_id": "nanus.read.debug",
+    "repo": "nanus",
+    "split": "dev",
+    "kind": "debug",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 10.240042000077665,
+    "model_ms": 0,
+    "tool_ms": 8.630917058326304,
+    "response_bytes": 37074,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 9265.0,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 1.0,
+        "r2": 0.4358974358974359
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 2,
+    "transcript_sha256": "1a53408d70e0e6072f4febbfa32264773cb80741342d725162fa2eabd3872d87",
+    "has_answer": false
+  },
+  {
+    "task_id": "nanus.context.debug",
+    "repo": "nanus",
+    "split": "dev",
+    "kind": "debug",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 11.312249931506813,
+    "model_ms": 0,
+    "tool_ms": 9.44183289539069,
+    "response_bytes": 30407,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 7599.25,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 0.0,
+        "r2": 0.22641509433962265
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 1,
+    "transcript_sha256": "5376d50623c69dab6e50acab696bfaedfeea66314f6bc4e33f23f2e5dbc388fb",
+    "has_answer": false
+  },
+  {
+    "task_id": "nanus.glob.change",
+    "repo": "nanus",
+    "split": "dev",
+    "kind": "change",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 12.405457906425,
+    "model_ms": 0,
+    "tool_ms": 10.279457899741828,
+    "response_bytes": 37317,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 9327.25,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 0.16
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 1,
+    "transcript_sha256": "b99bd401cae3675994b54bf65ff198bd60f09a60e3ad07f362d1ca736bb5941e",
+    "has_answer": false
+  },
+  {
+    "task_id": "nanus.context.change",
+    "repo": "nanus",
+    "split": "dev",
+    "kind": "change",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 11.045749997720122,
+    "model_ms": 0,
+    "tool_ms": 9.1243339702487,
+    "response_bytes": 28370,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 7091.5,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 0.0,
+      "region_coverage": {
+        "r1": 0.0,
+        "r2": 0.0
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 2,
+    "transcript_sha256": "78b1306f3ecbb37cd1566493bbacf23eec632b0e00c5d5d63eadea221053a73e",
+    "has_answer": false
+  },
+  {
+    "task_id": "nanus.grep.change",
+    "repo": "nanus",
+    "split": "dev",
+    "kind": "change",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 10.186458006501198,
+    "model_ms": 0,
+    "tool_ms": 8.608291856944561,
+    "response_bytes": 29997,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 7498.75,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 0.29411764705882354,
+        "r2": 1.0
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 0,
+    "transcript_sha256": "13bb59e5deb209d191d399c6037c9ccc503f67a98c016c0bc55f9e524e6fb738",
+    "has_answer": false
+  },
+  {
+    "task_id": "nanus.context.change",
+    "repo": "nanus",
+    "split": "dev",
+    "kind": "change",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 10.636417078785598,
+    "model_ms": 0,
+    "tool_ms": 8.890668046660721,
+    "response_bytes": 28370,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 7091.5,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 0.0,
+      "region_coverage": {
+        "r1": 0.0,
+        "r2": 0.0
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 1,
+    "transcript_sha256": "b4a0233d6bf485039ef39ca8ff96d7914223d866784c25fac3a201edfe9e4794",
+    "has_answer": false
+  },
+  {
+    "task_id": "nanus.context.change",
+    "repo": "nanus",
+    "split": "dev",
+    "kind": "change",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 10.425749933347106,
+    "model_ms": 0,
+    "tool_ms": 8.716497803106904,
+    "response_bytes": 28370,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 7091.5,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 0.0,
+      "region_coverage": {
+        "r1": 0.0,
+        "r2": 0.0
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 0,
+    "transcript_sha256": "92a32fa4aa627ca5f8c71a60eb3602400f7a17234a1ab17cf5af8b3ce4f8f032",
+    "has_answer": false
+  },
+  {
+    "task_id": "nanus.write.change",
+    "repo": "nanus",
+    "split": "dev",
+    "kind": "change",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 10.535083012655377,
+    "model_ms": 0,
+    "tool_ms": 8.514833985827863,
+    "response_bytes": 37015,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 9253.75,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 1.0
+      },
+      "evidence_ready": true,
+      "relationship_evidence_recall": 1.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 2,
+    "transcript_sha256": "5fd0920ac4934f06b212ec1d140a0284ef4acd4f56a1f075b88fa26ae4458aee",
+    "has_answer": false
+  },
+  {
+    "task_id": "nanus.glob.change",
+    "repo": "nanus",
+    "split": "dev",
+    "kind": "change",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 10.76937501784414,
+    "model_ms": 0,
+    "tool_ms": 9.20504191890359,
+    "response_bytes": 37317,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 9327.25,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 0.16
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 2,
+    "transcript_sha256": "996c58b985802eaeaf74f0e9acb57552a1846ef22ac88e44c526417b7df2e144",
+    "has_answer": false
+  },
+  {
+    "task_id": "nanus.grep.debug",
+    "repo": "nanus",
+    "split": "dev",
+    "kind": "debug",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 10.504957986995578,
+    "model_ms": 0,
+    "tool_ms": 9.038335178047419,
+    "response_bytes": 38197,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 9548.75,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 1.0,
+        "r2": 0.625
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 1,
+    "transcript_sha256": "3855da7ce9bd9fc8e5983da392ff393b3d35c8e7b3524f29fb70950c925f0c77",
+    "has_answer": false
+  },
+  {
+    "task_id": "nanus.read.change",
+    "repo": "nanus",
+    "split": "dev",
+    "kind": "change",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 10.652124998159707,
+    "model_ms": 0,
+    "tool_ms": 8.933624834753573,
+    "response_bytes": 33135,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 8282.75,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 1.0,
+        "r2": 0.4358974358974359
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 0,
+    "transcript_sha256": "38cb73b8dd045734008aaa3e9b7a370cec3c17d9e40fc7eae0ef41c636863a78",
+    "has_answer": false
+  },
+  {
+    "task_id": "nanus.argument-types.change",
+    "repo": "nanus",
+    "split": "heldout",
+    "kind": "change",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 10.733374976553023,
+    "model_ms": 0,
+    "tool_ms": 9.076665970496833,
+    "response_bytes": 27472,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 6868.0,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 0.0,
+      "region_coverage": {
+        "r1": 0.0
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 2,
+    "transcript_sha256": "e2d3f89ac92bde1695e477fe39199ada12427c4fa0c19d2481a7f04d93b77d83",
+    "has_answer": false
+  },
+  {
+    "task_id": "nanus.edit.debug",
+    "repo": "nanus",
+    "split": "dev",
+    "kind": "debug",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 10.52712497767061,
+    "model_ms": 0,
+    "tool_ms": 8.875625091604888,
+    "response_bytes": 37010,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 9252.5,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 1.0
+      },
+      "evidence_ready": true,
+      "relationship_evidence_recall": 1.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 2,
+    "transcript_sha256": "f5477f168963f96d7a498f36b3075816a600a8920179212a27163daebcfcaa8c",
+    "has_answer": false
+  },
+  {
+    "task_id": "nanus.read.change",
+    "repo": "nanus",
+    "split": "dev",
+    "kind": "change",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 10.48937498126179,
+    "model_ms": 0,
+    "tool_ms": 8.88554088305682,
+    "response_bytes": 33135,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 8282.75,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 1.0,
+        "r2": 0.4358974358974359
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 1,
+    "transcript_sha256": "06ae5da1fd148c63673334cd7c286e4ab3636376dbeab6b9223a73d534446a52",
+    "has_answer": false
+  },
+  {
+    "task_id": "nanus.edit.debug",
+    "repo": "nanus",
+    "split": "dev",
+    "kind": "debug",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 10.882332921028137,
+    "model_ms": 0,
+    "tool_ms": 8.831916959024966,
+    "response_bytes": 37010,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 9252.5,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 1.0
+      },
+      "evidence_ready": true,
+      "relationship_evidence_recall": 1.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 0,
+    "transcript_sha256": "9a6cb8c730e65d172ad808894ed84c6f5d66ca235dbf1659f39dd00ae4028903",
+    "has_answer": false
+  },
+  {
+    "task_id": "nanus.argument-types.change",
+    "repo": "nanus",
+    "split": "heldout",
+    "kind": "change",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 10.871499893255532,
+    "model_ms": 0,
+    "tool_ms": 9.022334823384881,
+    "response_bytes": 27472,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 6868.0,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 0.0,
+      "region_coverage": {
+        "r1": 0.0
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 1,
+    "transcript_sha256": "5aaf3055664c59c03198dac95ab8ad16f9d0a440af68636ed03193a4a35d53ec",
+    "has_answer": false
+  },
+  {
+    "task_id": "blogwright.tag-encoding.change",
+    "repo": "blogwright",
+    "split": "heldout",
+    "kind": "change",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 8.942499989643693,
+    "model_ms": 0,
+    "tool_ms": 6.7575001157820225,
+    "response_bytes": 28196,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 7044.5,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 0.0,
+      "region_coverage": {
+        "r1": 0.0
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 2,
+    "transcript_sha256": "efe06aede6f5e4c796c9ab635426143169b1e07913955b76e3758015b3d57805",
+    "has_answer": false
+  },
+  {
+    "task_id": "blogwright.tag-encoding.debug",
+    "repo": "blogwright",
+    "split": "heldout",
+    "kind": "debug",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 7.3854170041158795,
+    "model_ms": 0,
+    "tool_ms": 5.867708940058947,
+    "response_bytes": 29569,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 7390.25,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 0.4
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 0,
+    "transcript_sha256": "5e1b3d3dd21effe5aab1fe6d0a970df06b2a4e7632285c9ecb15349d63bcc83a",
+    "has_answer": false
+  },
+  {
+    "task_id": "blogwright.secret-upsert.debug",
+    "repo": "blogwright",
+    "split": "heldout",
+    "kind": "debug",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 7.451541954651475,
+    "model_ms": 0,
+    "tool_ms": 5.923332995735109,
+    "response_bytes": 29497,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 7368.25,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 0.0,
+      "region_coverage": {
+        "r1": 0.0
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 0,
+    "transcript_sha256": "28bf23f228fbb29535ec94568859e3e367812992df38ab9803649c36a0a02089",
+    "has_answer": false
+  },
+  {
+    "task_id": "blogwright.tag-encoding.debug",
+    "repo": "blogwright",
+    "split": "heldout",
+    "kind": "debug",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 6.947458954527974,
+    "model_ms": 0,
+    "tool_ms": 5.5813329527154565,
+    "response_bytes": 29569,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 7390.25,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 0.4
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 2,
+    "transcript_sha256": "5c6d6b304c4e30a52a462fdb65458f6a79f3993d0db2daee6d12514c9f6961dd",
+    "has_answer": false
+  },
+  {
+    "task_id": "blogwright.secret-upsert.change",
+    "repo": "blogwright",
+    "split": "heldout",
+    "kind": "change",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 8.038542000576854,
+    "model_ms": 0,
+    "tool_ms": 6.240582908503711,
+    "response_bytes": 29874,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 7460.5,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 0.0,
+      "region_coverage": {
+        "r1": 0.0
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 1,
+    "transcript_sha256": "c97c6d6aef2933444b4a4a80b3895154e4fa444fbfccb17acf580fff372fde4d",
+    "has_answer": false
+  },
+  {
+    "task_id": "blogwright.tag-encoding.debug",
+    "repo": "blogwright",
+    "split": "heldout",
+    "kind": "debug",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 6.992042064666748,
+    "model_ms": 0,
+    "tool_ms": 5.690626101568341,
+    "response_bytes": 29569,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 7390.25,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 0.4
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 1,
+    "transcript_sha256": "bc4a793d68bc50a38c2756c9cefea5019fd4ca6b24235599f0ec34e4f5f88ac2",
+    "has_answer": false
+  },
+  {
+    "task_id": "blogwright.secret-upsert.change",
+    "repo": "blogwright",
+    "split": "heldout",
+    "kind": "change",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 7.760709035210311,
+    "model_ms": 0,
+    "tool_ms": 6.079664919525385,
+    "response_bytes": 29874,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 7460.5,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 0.0,
+      "region_coverage": {
+        "r1": 0.0
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 0,
+    "transcript_sha256": "1ef5664e1e3b7a180a2b26a576bf0552dcc0a8aeed202df3cfe6504dc2472321",
+    "has_answer": false
+  },
+  {
+    "task_id": "blogwright.tag-encoding.change",
+    "repo": "blogwright",
+    "split": "heldout",
+    "kind": "change",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 7.615874987095594,
+    "model_ms": 0,
+    "tool_ms": 5.957084009423852,
+    "response_bytes": 28196,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 7044.5,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 0.0,
+      "region_coverage": {
+        "r1": 0.0
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 0,
+    "transcript_sha256": "95e3e07069df0319cb534ec59549f9f380e2e3f8583cd049371c213081e26a31",
+    "has_answer": false
+  },
+  {
+    "task_id": "blogwright.secret-upsert.debug",
+    "repo": "blogwright",
+    "split": "heldout",
+    "kind": "debug",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 7.550582988187671,
+    "model_ms": 0,
+    "tool_ms": 5.870208144187927,
+    "response_bytes": 29497,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 7368.25,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 0.0,
+      "region_coverage": {
+        "r1": 0.0
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 2,
+    "transcript_sha256": "195953815fc39d6d64370de472ae69ccdc6d17be398b86c39b0cf46917e6301a",
+    "has_answer": false
+  },
+  {
+    "task_id": "blogwright.secret-upsert.change",
+    "repo": "blogwright",
+    "split": "heldout",
+    "kind": "change",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 7.637874921783805,
+    "model_ms": 0,
+    "tool_ms": 6.076085031963885,
+    "response_bytes": 29874,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 7460.5,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 0.0,
+      "region_coverage": {
+        "r1": 0.0
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 2,
+    "transcript_sha256": "7d8e20ccd6e0a591735882ef8ba816cbe0e82f49881c4610f8906c5027970432",
+    "has_answer": false
+  },
+  {
+    "task_id": "blogwright.secret-upsert.debug",
+    "repo": "blogwright",
+    "split": "heldout",
+    "kind": "debug",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 7.367582991719246,
+    "model_ms": 0,
+    "tool_ms": 5.8502499014139175,
+    "response_bytes": 29497,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 7368.25,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 0.0,
+      "region_coverage": {
+        "r1": 0.0
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 1,
+    "transcript_sha256": "dd4c93bd00a7cc60645d6f46b3fd9711925c2c47b05aa29826ee1f98899bba8a",
+    "has_answer": false
+  },
+  {
+    "task_id": "blogwright.tag-encoding.change",
+    "repo": "blogwright",
+    "split": "heldout",
+    "kind": "change",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 7.595999981276691,
+    "model_ms": 0,
+    "tool_ms": 5.899792187847197,
+    "response_bytes": 28196,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 7044.5,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 0.0,
+      "region_coverage": {
+        "r1": 0.0
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 1,
+    "transcript_sha256": "a1b2d3577fc1f95175f1cdc1f4e4b26cf29aef1a87d8081ef62faee3e8e637f8",
+    "has_answer": false
+  },
+  {
+    "task_id": "whatsurvey.captcha-retry.change",
+    "repo": "whatsurvey",
+    "split": "heldout",
+    "kind": "change",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 57.35145800281316,
+    "model_ms": 0,
+    "tool_ms": 54.410874960012734,
+    "response_bytes": 31366,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 7838.0,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 0.4461538461538462
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 2,
+    "transcript_sha256": "d803e6a852a7ac66520e8cd74d69f50d7907dbdc16a677903936e88c18cf8ae1",
+    "has_answer": false
+  },
+  {
+    "task_id": "whatsurvey.storage-envelope.debug",
+    "repo": "whatsurvey",
+    "split": "dev",
+    "kind": "debug",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 51.23175005428493,
+    "model_ms": 0,
+    "tool_ms": 49.219290958717465,
+    "response_bytes": 30479,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 7614.25,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 1.0
+      },
+      "evidence_ready": true,
+      "relationship_evidence_recall": 1.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 1,
+    "transcript_sha256": "73cd9afc6d8ec7cfc5a2e327042cd49652e6ce9136ba93d1368c53195a913135",
+    "has_answer": false
+  },
+  {
+    "task_id": "whatsurvey.storage-envelope.change",
+    "repo": "whatsurvey",
+    "split": "dev",
+    "kind": "change",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 43.53433405049145,
+    "model_ms": 0,
+    "tool_ms": 41.43899993505329,
+    "response_bytes": 32308,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 8071.0,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 1.0
+      },
+      "evidence_ready": true,
+      "relationship_evidence_recall": 1.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 0,
+    "transcript_sha256": "7812ef187ac18dce37bd3548f1941252e319ab083517cea87f42ebad72c07850",
+    "has_answer": false
+  },
+  {
+    "task_id": "whatsurvey.storage-envelope.debug",
+    "repo": "whatsurvey",
+    "split": "dev",
+    "kind": "debug",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 39.492040988989174,
+    "model_ms": 0,
+    "tool_ms": 37.7384580206126,
+    "response_bytes": 30479,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 7614.25,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 1.0
+      },
+      "evidence_ready": true,
+      "relationship_evidence_recall": 1.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 2,
+    "transcript_sha256": "e68714d0ab48ccd331c5d0d1bebdee28eaab0cc3542d0c62f0b09739ba1a78cf",
+    "has_answer": false
+  },
+  {
+    "task_id": "whatsurvey.settings-encryption.change",
+    "repo": "whatsurvey",
+    "split": "dev",
+    "kind": "change",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 38.07749995030463,
+    "model_ms": 0,
+    "tool_ms": 36.486875149421394,
+    "response_bytes": 38366,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 9591.5,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 0.0,
+        "r2": 1.0
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 0,
+    "transcript_sha256": "b769397f27afba822b937f68b490a30d0adcf2a97599abd371a4142894c597e7",
+    "has_answer": false
+  },
+  {
+    "task_id": "whatsurvey.contact-policy.change",
+    "repo": "whatsurvey",
+    "split": "dev",
+    "kind": "change",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 42.50829201191664,
+    "model_ms": 0,
+    "tool_ms": 40.02674878574908,
+    "response_bytes": 47986,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 11995.5,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 0.0,
+      "region_coverage": {
+        "r1": 0.0,
+        "r2": 0.0,
+        "r3": 0.0
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 1,
+    "transcript_sha256": "dc759172a8af83df0f9788579bcd3047fdd063272783bf9574fbe7609ca8db4b",
+    "has_answer": false
+  },
+  {
+    "task_id": "whatsurvey.money-rounding.change",
+    "repo": "whatsurvey",
+    "split": "heldout",
+    "kind": "change",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 37.85449999850243,
+    "model_ms": 0,
+    "tool_ms": 36.1696679610759,
+    "response_bytes": 27006,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 6748.0,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 1.0
+      },
+      "evidence_ready": true,
+      "relationship_evidence_recall": 1.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 2,
+    "transcript_sha256": "643cdfe9bcd830b53d3dd233f3ef95c04cf115f75a51f524d454501c8a47088a",
+    "has_answer": false
+  },
+  {
+    "task_id": "whatsurvey.money-rounding.debug",
+    "repo": "whatsurvey",
+    "split": "heldout",
+    "kind": "debug",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 39.908917038701475,
+    "model_ms": 0,
+    "tool_ms": 38.24179095681757,
+    "response_bytes": 19237,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 4807.25,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 1.0
+      },
+      "evidence_ready": true,
+      "relationship_evidence_recall": 1.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 0,
+    "transcript_sha256": "2d143aeed82575169f44981ad344d7356a0a8560ab613c97306587673489e877",
+    "has_answer": false
+  },
+  {
+    "task_id": "whatsurvey.survey-draft.debug",
+    "repo": "whatsurvey",
+    "split": "heldout",
+    "kind": "debug",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 37.63079200871289,
+    "model_ms": 0,
+    "tool_ms": 36.289541982114315,
+    "response_bytes": 34842,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 8710.5,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 0.0,
+        "r2": 1.0
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 2,
+    "transcript_sha256": "4ea49f5539fd483f0cbbd11af08d4a0aa8fbae8c64fb1de7495e044c7c16a378",
+    "has_answer": false
+  },
+  {
+    "task_id": "whatsurvey.webhook-signature.change",
+    "repo": "whatsurvey",
+    "split": "dev",
+    "kind": "change",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 39.358209003694355,
+    "model_ms": 0,
+    "tool_ms": 37.528999033384025,
+    "response_bytes": 33115,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 8275.25,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 1.0
+      },
+      "evidence_ready": true,
+      "relationship_evidence_recall": 1.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 2,
+    "transcript_sha256": "1388bb2b51a36312238826df4457d6680c21da0898282b9f70c673e50f80f724",
+    "has_answer": false
+  },
+  {
+    "task_id": "whatsurvey.settings-encryption.change",
+    "repo": "whatsurvey",
+    "split": "dev",
+    "kind": "change",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 36.468541948124766,
+    "model_ms": 0,
+    "tool_ms": 34.95212597772479,
+    "response_bytes": 38366,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 9591.5,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 0.0,
+        "r2": 1.0
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 2,
+    "transcript_sha256": "cf2270b96750ef61d1fe6dfa682c46f4e4aa4d69263b5419ec583cf8905ac78b",
+    "has_answer": false
+  },
+  {
+    "task_id": "whatsurvey.storage-envelope.debug",
+    "repo": "whatsurvey",
+    "split": "dev",
+    "kind": "debug",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 44.27816707175225,
+    "model_ms": 0,
+    "tool_ms": 42.43720800150186,
+    "response_bytes": 30479,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 7614.25,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 1.0
+      },
+      "evidence_ready": true,
+      "relationship_evidence_recall": 1.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 0,
+    "transcript_sha256": "457f7686d2de8d996f421865981716e002648b54e4e729c210112dcfa35dddf1",
+    "has_answer": false
+  },
+  {
+    "task_id": "whatsurvey.contact-policy.debug",
+    "repo": "whatsurvey",
+    "split": "dev",
+    "kind": "debug",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 40.522499941289425,
+    "model_ms": 0,
+    "tool_ms": 38.62566698808223,
+    "response_bytes": 44193,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 11038.0,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 1.0,
+        "r2": 0.0,
+        "r3": 0.1935483870967742
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 2,
+    "transcript_sha256": "f4aca947020dbb968c899594fff27a1f8fe2bcf05e1c414476cc0f56e929e917",
+    "has_answer": false
+  },
+  {
+    "task_id": "whatsurvey.captcha-retry.debug",
+    "repo": "whatsurvey",
+    "split": "heldout",
+    "kind": "debug",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 39.58862496074289,
+    "model_ms": 0,
+    "tool_ms": 37.841999903321266,
+    "response_bytes": 28508,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 7121.5,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 0.4461538461538462
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 2,
+    "transcript_sha256": "93944ecadf0b250bff3f4fa96b57a3f25aca5a42bb4bc7a4a754bcc1564ad7df",
+    "has_answer": false
+  },
+  {
+    "task_id": "whatsurvey.contact-policy.debug",
+    "repo": "whatsurvey",
+    "split": "dev",
+    "kind": "debug",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 39.12820899859071,
+    "model_ms": 0,
+    "tool_ms": 36.902207997627556,
+    "response_bytes": 44193,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 11038.0,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 1.0,
+        "r2": 0.0,
+        "r3": 0.1935483870967742
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 1,
+    "transcript_sha256": "ed7279ed6b5723c3573380205f26410448d2243eb23a9ab633ae094e8c084e1a",
+    "has_answer": false
+  },
+  {
+    "task_id": "whatsurvey.money-rounding.debug",
+    "repo": "whatsurvey",
+    "split": "heldout",
+    "kind": "debug",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 39.7354579763487,
+    "model_ms": 0,
+    "tool_ms": 37.68900001887232,
+    "response_bytes": 19237,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 4807.25,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 1.0
+      },
+      "evidence_ready": true,
+      "relationship_evidence_recall": 1.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 2,
+    "transcript_sha256": "4f7dd984d1b34b285e4c408398d166aa08f66a1cf029bd6bfb13c398a749acb5",
+    "has_answer": false
+  },
+  {
+    "task_id": "whatsurvey.money-rounding.change",
+    "repo": "whatsurvey",
+    "split": "heldout",
+    "kind": "change",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 41.22187499888241,
+    "model_ms": 0,
+    "tool_ms": 39.39633199479431,
+    "response_bytes": 27006,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 6748.0,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 1.0
+      },
+      "evidence_ready": true,
+      "relationship_evidence_recall": 1.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 0,
+    "transcript_sha256": "d0cb019a863c68164c8e28ebefc70231efd8d3c5c04496718a99d29cfea7153e",
+    "has_answer": false
+  },
+  {
+    "task_id": "whatsurvey.survey-draft.change",
+    "repo": "whatsurvey",
+    "split": "heldout",
+    "kind": "change",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 41.88708297442645,
+    "model_ms": 0,
+    "tool_ms": 39.25041703041643,
+    "response_bytes": 45282,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 11316.5,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 0.0,
+        "r2": 1.0
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 2,
+    "transcript_sha256": "e3736e62b5262aa4a8497ac5c8b6e3031033ed8ad681ee8d771961d9e92aab48",
+    "has_answer": false
+  },
+  {
+    "task_id": "whatsurvey.settings-encryption.debug",
+    "repo": "whatsurvey",
+    "split": "dev",
+    "kind": "debug",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 39.57620798610151,
+    "model_ms": 0,
+    "tool_ms": 37.96904208138585,
+    "response_bytes": 28825,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 7206.25,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 0.0,
+        "r2": 0.5147058823529411
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 1,
+    "transcript_sha256": "9a71fb9510dc1b9b6d045bce418cd48dbd5c0ea133e2d9d6d51521cff445a052",
+    "has_answer": false
+  },
+  {
+    "task_id": "whatsurvey.captcha-retry.debug",
+    "repo": "whatsurvey",
+    "split": "heldout",
+    "kind": "debug",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 37.85662504378706,
+    "model_ms": 0,
+    "tool_ms": 36.184206954203546,
+    "response_bytes": 28508,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 7121.5,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 0.4461538461538462
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 1,
+    "transcript_sha256": "8a25b87425f80a2f8c9737238a29cdcc161ebbf3d8bd08094719eee1f719c27d",
+    "has_answer": false
+  },
+  {
+    "task_id": "whatsurvey.contact-policy.change",
+    "repo": "whatsurvey",
+    "split": "dev",
+    "kind": "change",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 39.97508389875293,
+    "model_ms": 0,
+    "tool_ms": 37.26879088208079,
+    "response_bytes": 47986,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 11995.5,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 0.0,
+      "region_coverage": {
+        "r1": 0.0,
+        "r2": 0.0,
+        "r3": 0.0
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 0,
+    "transcript_sha256": "c72ed3f09b62a49ee74e9a40bc781b7ea1b0c20880e37a07e555a5dc42c59693",
+    "has_answer": false
+  },
+  {
+    "task_id": "whatsurvey.webhook-signature.debug",
+    "repo": "whatsurvey",
+    "split": "dev",
+    "kind": "debug",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 38.61991595476866,
+    "model_ms": 0,
+    "tool_ms": 37.27262595202774,
+    "response_bytes": 26685,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 6669.25,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 1.0
+      },
+      "evidence_ready": true,
+      "relationship_evidence_recall": 1.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 1,
+    "transcript_sha256": "13b2436e8966b7ba3b281fe9e0200c8e19ce41f731912a0716c91b4fd53f529d",
+    "has_answer": false
+  },
+  {
+    "task_id": "whatsurvey.survey-draft.debug",
+    "repo": "whatsurvey",
+    "split": "heldout",
+    "kind": "debug",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 37.3142909957096,
+    "model_ms": 0,
+    "tool_ms": 35.806499887257814,
+    "response_bytes": 34842,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 8710.5,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 0.0,
+        "r2": 1.0
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 0,
+    "transcript_sha256": "49e838b246c99e9417dc75d9f0ef190db775b4d9c443027f70b5d0ba147fcc12",
+    "has_answer": false
+  },
+  {
+    "task_id": "whatsurvey.contact-policy.debug",
+    "repo": "whatsurvey",
+    "split": "dev",
+    "kind": "debug",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 39.3609160091728,
+    "model_ms": 0,
+    "tool_ms": 37.234916002489626,
+    "response_bytes": 44193,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 11038.0,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 1.0,
+        "r2": 0.0,
+        "r3": 0.1935483870967742
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 0,
+    "transcript_sha256": "1c25d8a64e82289dfd0ed11f99e28741ee754bdc42e43de4abe345ddce16dc39",
+    "has_answer": false
+  },
+  {
+    "task_id": "whatsurvey.survey-draft.change",
+    "repo": "whatsurvey",
+    "split": "heldout",
+    "kind": "change",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 43.82745805196464,
+    "model_ms": 0,
+    "tool_ms": 40.29708309099078,
+    "response_bytes": 45282,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 11316.5,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 0.0,
+        "r2": 1.0
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 1,
+    "transcript_sha256": "78cacf54695bc43df8718a4e42f474015039bf6fe8a02d4413b125046680e6a1",
+    "has_answer": false
+  },
+  {
+    "task_id": "whatsurvey.money-rounding.debug",
+    "repo": "whatsurvey",
+    "split": "heldout",
+    "kind": "debug",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 38.79158291965723,
+    "model_ms": 0,
+    "tool_ms": 36.89904196653515,
+    "response_bytes": 19237,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 4807.25,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 1.0
+      },
+      "evidence_ready": true,
+      "relationship_evidence_recall": 1.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 1,
+    "transcript_sha256": "b702f0c9bccb3c00142e0f25234ff703cd942b1dc6ba48db3fac822662ace3bb",
+    "has_answer": false
+  },
+  {
+    "task_id": "whatsurvey.captcha-retry.debug",
+    "repo": "whatsurvey",
+    "split": "heldout",
+    "kind": "debug",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 37.8276250557974,
+    "model_ms": 0,
+    "tool_ms": 36.25570796430111,
+    "response_bytes": 28508,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 7121.5,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 0.4461538461538462
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 0,
+    "transcript_sha256": "f2a16eb1844ff72b485fa0b893940c85bdd620303bc88787d2599742da7f8efc",
+    "has_answer": false
+  },
+  {
+    "task_id": "whatsurvey.settings-encryption.change",
+    "repo": "whatsurvey",
+    "split": "dev",
+    "kind": "change",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 37.491500028409064,
+    "model_ms": 0,
+    "tool_ms": 35.746832843869925,
+    "response_bytes": 38366,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 9591.5,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 0.0,
+        "r2": 1.0
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 1,
+    "transcript_sha256": "f698ed4710d7eb1b20f5a389faf0483d2667b650aedff4a1d242aec20ac2b98f",
+    "has_answer": false
+  },
+  {
+    "task_id": "whatsurvey.webhook-signature.debug",
+    "repo": "whatsurvey",
+    "split": "dev",
+    "kind": "debug",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 36.4002090645954,
+    "model_ms": 0,
+    "tool_ms": 35.02925008069724,
+    "response_bytes": 26685,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 6669.25,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 1.0
+      },
+      "evidence_ready": true,
+      "relationship_evidence_recall": 1.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 0,
+    "transcript_sha256": "fe6810e9a2128b1d341569682f73f0b39b7aa8a2a5224d41b61466152d554c7a",
+    "has_answer": false
+  },
+  {
+    "task_id": "whatsurvey.storage-envelope.change",
+    "repo": "whatsurvey",
+    "split": "dev",
+    "kind": "change",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 39.09637499600649,
+    "model_ms": 0,
+    "tool_ms": 37.12070896290243,
+    "response_bytes": 32308,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 8071.0,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 1.0
+      },
+      "evidence_ready": true,
+      "relationship_evidence_recall": 1.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 1,
+    "transcript_sha256": "6f3b4bf467c9c90324555d3c77d594a5a94ce9b1bc448dd9ca1b859e504028c9",
+    "has_answer": false
+  },
+  {
+    "task_id": "whatsurvey.webhook-signature.debug",
+    "repo": "whatsurvey",
+    "split": "dev",
+    "kind": "debug",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 35.17137502785772,
+    "model_ms": 0,
+    "tool_ms": 34.08920706715435,
+    "response_bytes": 26685,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 6669.25,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 1.0
+      },
+      "evidence_ready": true,
+      "relationship_evidence_recall": 1.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 2,
+    "transcript_sha256": "cebf7efe2fc4694038d1e0e196dc61cb8f951da653bbc919c6026181877fcd79",
+    "has_answer": false
+  },
+  {
+    "task_id": "whatsurvey.survey-draft.change",
+    "repo": "whatsurvey",
+    "split": "heldout",
+    "kind": "change",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 38.560249959118664,
+    "model_ms": 0,
+    "tool_ms": 36.309832939878106,
+    "response_bytes": 45282,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 11316.5,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 0.0,
+        "r2": 1.0
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 0,
+    "transcript_sha256": "02769c73d8ea470d2e7392e96a693894665aa976c1b3011860679dbb8c0d8d7f",
+    "has_answer": false
+  },
+  {
+    "task_id": "whatsurvey.webhook-signature.change",
+    "repo": "whatsurvey",
+    "split": "dev",
+    "kind": "change",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 37.0894999941811,
+    "model_ms": 0,
+    "tool_ms": 35.07991589140147,
+    "response_bytes": 33115,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 8275.25,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 1.0
+      },
+      "evidence_ready": true,
+      "relationship_evidence_recall": 1.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 1,
+    "transcript_sha256": "09221bf393516727c1acbddc76bd10e52ed76bf8527ba538759b89017ab0e9bc",
+    "has_answer": false
+  },
+  {
+    "task_id": "whatsurvey.webhook-signature.change",
+    "repo": "whatsurvey",
+    "split": "dev",
+    "kind": "change",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 36.71283298172057,
+    "model_ms": 0,
+    "tool_ms": 34.86566594801843,
+    "response_bytes": 33115,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 8275.25,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 1.0
+      },
+      "evidence_ready": true,
+      "relationship_evidence_recall": 1.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 0,
+    "transcript_sha256": "43bbf4bc506a9876f75513cac30f93b10756097ed4418b29351e34166dd61f07",
+    "has_answer": false
+  },
+  {
+    "task_id": "whatsurvey.contact-policy.change",
+    "repo": "whatsurvey",
+    "split": "dev",
+    "kind": "change",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 38.664416992105544,
+    "model_ms": 0,
+    "tool_ms": 36.43874987028539,
+    "response_bytes": 47986,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 11995.5,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 0.0,
+      "region_coverage": {
+        "r1": 0.0,
+        "r2": 0.0,
+        "r3": 0.0
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 2,
+    "transcript_sha256": "0306d9bc03fcdcdae9a4598a9ba14bf508f771e3b844dac1029cd00754b04c2e",
+    "has_answer": false
+  },
+  {
+    "task_id": "whatsurvey.storage-envelope.change",
+    "repo": "whatsurvey",
+    "split": "dev",
+    "kind": "change",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 39.47654098737985,
+    "model_ms": 0,
+    "tool_ms": 37.44812496006489,
+    "response_bytes": 32308,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 8071.0,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 1.0
+      },
+      "evidence_ready": true,
+      "relationship_evidence_recall": 1.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 2,
+    "transcript_sha256": "4259cd9907dc230f9d00fb9ede9cef7d37bcbd3969ff97f0b7e7683d71f21bd8",
+    "has_answer": false
+  },
+  {
+    "task_id": "whatsurvey.survey-draft.debug",
+    "repo": "whatsurvey",
+    "split": "heldout",
+    "kind": "debug",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 37.152792094275355,
+    "model_ms": 0,
+    "tool_ms": 35.33670702017844,
+    "response_bytes": 34842,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 8710.5,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 0.0,
+        "r2": 1.0
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 1,
+    "transcript_sha256": "51f63bec0a031a48520c6c7fce97be55bd714ef394875d94d1a33e7ac4e2cfdd",
+    "has_answer": false
+  },
+  {
+    "task_id": "whatsurvey.captcha-retry.change",
+    "repo": "whatsurvey",
+    "split": "heldout",
+    "kind": "change",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 37.41283400449902,
+    "model_ms": 0,
+    "tool_ms": 35.81662382930517,
+    "response_bytes": 31366,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 7838.0,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 0.4461538461538462
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 0,
+    "transcript_sha256": "58618d6ad3de8aa86e1f9d70ad614311a671424d4ee9def08571b0d5d3098f20",
+    "has_answer": false
+  },
+  {
+    "task_id": "whatsurvey.settings-encryption.debug",
+    "repo": "whatsurvey",
+    "split": "dev",
+    "kind": "debug",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 37.585832993499935,
+    "model_ms": 0,
+    "tool_ms": 36.100834026001394,
+    "response_bytes": 28825,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 7206.25,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 0.0,
+        "r2": 0.5147058823529411
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 2,
+    "transcript_sha256": "6c28d71bffedfe568a566c33b6ad81147ef552f6bf88d052df632416a2f5e521",
+    "has_answer": false
+  },
+  {
+    "task_id": "whatsurvey.captcha-retry.change",
+    "repo": "whatsurvey",
+    "split": "heldout",
+    "kind": "change",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 37.48795797582716,
+    "model_ms": 0,
+    "tool_ms": 35.72770906612277,
+    "response_bytes": 31366,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 7838.0,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 0.4461538461538462
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 1,
+    "transcript_sha256": "04f9b7b65e666081f3bca86e08b7db055b5c59250a5b694a638aef698949029d",
+    "has_answer": false
+  },
+  {
+    "task_id": "whatsurvey.settings-encryption.debug",
+    "repo": "whatsurvey",
+    "split": "dev",
+    "kind": "debug",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 37.408457952551544,
+    "model_ms": 0,
+    "tool_ms": 35.90958297718316,
+    "response_bytes": 28825,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 7206.25,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 0.0,
+        "r2": 0.5147058823529411
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 0,
+    "transcript_sha256": "24f859689aab505ce0c3de4f22bde86a8644bace29625548a1310c4d95cc9787",
+    "has_answer": false
+  },
+  {
+    "task_id": "whatsurvey.money-rounding.change",
+    "repo": "whatsurvey",
+    "split": "heldout",
+    "kind": "change",
+    "arm": "graph-search",
+    "protocol": "evidence-v1",
+    "driver_metadata": null,
+    "status": "protocol_complete",
+    "errors": [],
+    "calls": 4,
+    "wall_ms": 36.08691703993827,
+    "model_ms": 0,
+    "tool_ms": 34.30529311299324,
+    "response_bytes": 27006,
+    "model_input_bytes": 0,
+    "estimated_response_tokens_chars_div_4": 6748.0,
+    "provider_tokens": null,
+    "provider_usage_complete": false,
+    "known_provider_tokens": null,
+    "backend_restarts": [],
+    "driver_steps": 0,
+    "task_success": null,
+    "budgets": {
+      "max_calls": 4,
+      "response_bytes": 16384,
+      "context_bytes": 49152,
+      "wall_seconds": 180
+    },
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 1.0
+      },
+      "evidence_ready": true,
+      "relationship_evidence_recall": 1.0,
+      "task_success": null
+    },
+    "variant": "auto-diversity-0",
+    "retrieval": {
+      "ranking": "auto",
+      "per_file": 0
+    },
+    "repeat": 1,
+    "transcript_sha256": "0bc1e2bbc169875925c575192464268f6e0bb1590459fd95db68682db159cbd4",
+    "has_answer": false
+  }
+]

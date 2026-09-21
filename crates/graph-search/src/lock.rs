@@ -1,7 +1,8 @@
 //! The advisory writer lock at `<store>/index.lock` (`SPEC.md` §6.6).
 //!
-//! One writer at a time; readers never lock. A refused writer is told who
-//! holds the lock, the same posture as `nanus`'s session claim.
+//! One writer at a time; readers do not take this writer lock. The engine
+//! separately leases immutable generations. A refused writer is told who holds
+//! the lock, the same posture as `nanus`'s session claim.
 
 use graph_search_core::Result;
 use graph_search_core::error::Error;

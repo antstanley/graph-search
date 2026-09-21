@@ -1,0 +1,942 @@
+--- a/crates/core/src/conformance.rs
++++ b/crates/core/src/conformance.rs
+@@ -317,6 +317,7 @@
+         let mut source = crate::units::extract(path, text, hash, language, &[]);
+         if path.ends_with("package.json") {
+             source.package_manifest = Some(PackageManifest {
++                node: None,
+                 cargo_targets: None,
+                 ecosystem: PackageEcosystem::Node,
+                 role: PackageRole::Package,
+--- a/crates/core/src/js_modules.rs
++++ b/crates/core/src/js_modules.rs
+@@ -1,6 +1,6 @@
+ //! Native bounded ESM export lookup. No runtime module loader is invoked.
+-use crate::resolve::{SymbolTable, compatible, resolve_specifier};
+-use graph_search_types::{EdgeKind, Language, NodeId, extraction::SharedExtraction};
++use crate::resolve::{SymbolTable, compatible};
++use graph_search_types::{EdgeKind, NodeId, extraction::SharedExtraction};
+ use std::collections::{BTreeMap, BTreeSet};
+ 
+ #[derive(Clone, Debug, Default)]
+@@ -90,8 +90,7 @@
+                 return Err("js_namespace_value_unmodeled");
+             }
+             if let Some(source) = &export.source {
+-                let target = resolve_specifier(path, source, self.known, Language::TypeScript)
+-                    .ok_or("js_export_module_missing")?;
++                let target = self.table.js_specifier(path, source, self.known)?;
+                 return self.visit(&target, local, kind);
+             }
+             let symbols: Vec<_> = self
+@@ -131,9 +130,7 @@
+                 if import.imported == "*" {
+                     return Err("js_namespace_value_unmodeled");
+                 }
+-                let target =
+-                    resolve_specifier(path, &import.source, self.known, Language::TypeScript)
+-                        .ok_or("js_export_module_missing")?;
++                let target = self.table.js_specifier(path, &import.source, self.known)?;
+                 return self.visit(&target, &import.imported, kind);
+             }
+             return Err("js_export_local_missing");
+@@ -145,8 +142,7 @@
+                     continue;
+                 }
+                 let source = export.source.as_ref().ok_or("js_export_module_missing")?;
+-                let target = resolve_specifier(path, source, self.known, Language::TypeScript)
+-                    .ok_or("js_export_module_missing")?;
++                let target = self.table.js_specifier(path, source, self.known)?;
+                 targets.extend(self.visit(&target, name, kind)?);
+             }
+         }
+--- a/crates/core/src/lib.rs
++++ b/crates/core/src/lib.rs
+@@ -29,6 +29,7 @@
+ pub mod memory;
+ pub mod metadata;
+ mod neighborhoods;
++mod node_packages;
+ pub mod occurrences;
+ mod packages;
+ pub mod payload;
+--- /dev/null
++++ b/crates/core/src/node_packages.rs
+@@ -0,0 +1,168 @@
++//! Native package self-references and private import maps from authored facts.
++use crate::resolve::resolve_specifier;
++use graph_search_types::{
++    Language, Node,
++    package::{NodePackageTarget, PackageEcosystem, PackageManifest, PackageRole},
++};
++use std::collections::{BTreeMap, BTreeSet};
++use std::path::Path;
++
++#[derive(Clone, Debug, Default)]
++pub(crate) struct Packages(BTreeMap<String, Option<PackageManifest>>);
++
++impl Packages {
++    pub(crate) fn build(files: &BTreeMap<String, Node>, boundaries: &BTreeSet<String>) -> Self {
++        Self(
++            boundaries
++                .iter()
++                .filter(|path| {
++                    Path::new(path)
++                        .file_name()
++                        .is_some_and(|name| name == "package.json")
++                })
++                .map(|path| {
++                    let definition = files
++                        .get(path)
++                        .and_then(|node| node.attribute("package_definition"))
++                        .and_then(|text| serde_json::from_str::<PackageManifest>(text).ok())
++                        .filter(|definition| {
++                            definition.ecosystem == PackageEcosystem::Node
++                                && definition.role == PackageRole::Package
++                                && definition.node.as_ref().is_some_and(|metadata| {
++                                    metadata.valid() && metadata.unavailable_reason.is_none()
++                                })
++                        });
++                    (path.clone(), definition)
++                })
++                .collect(),
++        )
++    }
++
++    pub(crate) fn resolve(
++        &self,
++        from: &str,
++        specifier: &str,
++        known: &BTreeSet<String>,
++    ) -> Result<String, &'static str> {
++        if specifier.starts_with('.') || specifier.starts_with('/') {
++            return resolve_specifier(from, specifier, known, Language::TypeScript)
++                .ok_or("module_target_missing");
++        }
++        if specifier.chars().any(char::is_control)
++            || specifier.contains(['\\', '%', '?', '*', '\0'])
++            || specifier.split('/').any(|part| {
++                part.is_empty()
++                    || (matches!(part, "." | "..") || part.eq_ignore_ascii_case("node_modules"))
++            })
++        {
++            return Err("node_specifier_unsupported");
++        }
++        let (manifest, package) = self.scope(from)?;
++        let metadata = package
++            .node
++            .as_ref()
++            .ok_or("node_package_facts_unavailable")?;
++        let (map, key) = if specifier.starts_with('#') {
++            (
++                metadata.imports.as_ref().ok_or("node_import_map_missing")?,
++                specifier.to_owned(),
++            )
++        } else {
++            let name = package.name.as_deref().ok_or("node_package_name_missing")?;
++            let key = if specifier == name {
++                ".".into()
++            } else if let Some(subpath) = specifier
++                .strip_prefix(name)
++                .and_then(|tail| tail.strip_prefix('/'))
++            {
++                format!("./{subpath}")
++            } else {
++                return Err("node_external_package_unmodeled");
++            };
++            (
++                metadata
++                    .exports
++                    .as_ref()
++                    .ok_or("node_self_export_map_missing")?,
++                key,
++            )
++        };
++        let target = map
++            .get(&key)
++            .ok_or(if map.keys().any(|key| key.contains('*')) {
++                "node_mapping_pattern_unmodeled"
++            } else {
++                "node_mapping_missing"
++            })?;
++        let path = match target {
++            NodePackageTarget::Path(path) => path,
++            NodePackageTarget::Blocked => return Err("node_mapping_blocked"),
++            NodePackageTarget::Unsupported => return Err("node_mapping_conditions_unmodeled"),
++        };
++        let relative = path
++            .strip_prefix("./")
++            .ok_or("node_mapping_target_unmodeled")?;
++        if relative.is_empty()
++            || relative.contains(['\\', '%', '?', '#', '*', '\0'])
++            || relative.split('/').any(|part| {
++                part.is_empty()
++                    || (matches!(part, "." | "..") || part.eq_ignore_ascii_case("node_modules"))
++            })
++        {
++            return Err("node_mapping_target_unmodeled");
++        }
++        // Package maps name exact files. Only the existing source/runtime extension
++        // substitution is available; directory and implicit-extension guessing is not.
++        let target = Path::new(manifest)
++            .parent()
++            .unwrap_or_else(|| Path::new(""))
++            .join(relative)
++            .to_string_lossy()
++            .replace('\\', "/");
++        if known.contains(&target) {
++            return Ok(target);
++        }
++        let substitute = match Path::new(&target)
++            .extension()
++            .and_then(std::ffi::OsStr::to_str)
++        {
++            Some("js") => &["ts", "tsx"][..],
++            Some("mjs") => &["mts"][..],
++            Some("cjs") => &["cts"][..],
++            _ => &[],
++        };
++        let choices: Vec<_> = substitute
++            .iter()
++            .map(|extension| {
++                Path::new(&target)
++                    .with_extension(extension)
++                    .to_string_lossy()
++                    .into_owned()
++            })
++            .filter(|path| known.contains(path))
++            .collect();
++        match choices.as_slice() {
++            [path] => Ok(path.clone()),
++            [] => Err("node_mapping_target_missing"),
++            _ => Err("node_mapping_target_ambiguous"),
++        }
++    }
++
++    fn scope(&self, from: &str) -> Result<(&str, &PackageManifest), &'static str> {
++        let mut directory = Path::new(from).parent();
++        while let Some(path) = directory {
++            let candidate = path
++                .join("package.json")
++                .to_string_lossy()
++                .replace('\\', "/");
++            if let Some((key, definition)) = self.0.get_key_value(&candidate) {
++                return definition
++                    .as_ref()
++                    .map(|definition| (key.as_str(), definition))
++                    .ok_or("node_package_facts_unavailable");
++            }
++            directory = path.parent();
++        }
++        Err("node_package_scope_missing")
++    }
++}
+--- a/crates/core/src/packages.rs
++++ b/crates/core/src/packages.rs
+@@ -85,6 +85,13 @@
+ }
+ 
+ fn valid_definition(definition: &PackageManifest) -> bool {
++    if let Some(metadata) = &definition.node
++        && (definition.ecosystem != PackageEcosystem::Node
++            || definition.role != PackageRole::Package
++            || !metadata.valid())
++    {
++        return false;
++    }
+     if let Some(metadata) = &definition.cargo_targets
+         && (definition.ecosystem != PackageEcosystem::Cargo
+             || definition.role != PackageRole::Package
+@@ -134,6 +141,7 @@
+                         (
+                             String::new(),
+                             PackageManifest {
++                                node: None,
+                                 cargo_targets: None,
+                                 ecosystem,
+                                 role: PackageRole::Unavailable,
+@@ -502,6 +510,7 @@
+             assert!(!valid_targets(&invalid));
+         }
+         let mut definition = PackageManifest {
++            node: None,
+             ecosystem: PackageEcosystem::Cargo,
+             role: PackageRole::Package,
+             name: Some("native".into()),
+@@ -517,3 +526,56 @@
+         assert!(!valid_definition(&definition));
+     }
+ }
++
++#[cfg(test)]
++mod node_metadata_tests {
++    use super::*;
++    use graph_search_types::package::{NodePackageMetadata, NodePackageTarget};
++    #[test]
++    fn persisted_node_metadata_rejects_partial_unavailable_and_invalid_keys() {
++        let mut definition = PackageManifest {
++            ecosystem: PackageEcosystem::Node,
++            role: PackageRole::Package,
++            name: Some("pkg".into()),
++            unavailable_reason: None,
++            cargo_targets: None,
++            node: Some(NodePackageMetadata::default()),
++        };
++        assert!(valid_definition(&definition));
++        definition.ecosystem = PackageEcosystem::Cargo;
++        assert!(!valid_definition(&definition));
++        definition.ecosystem = PackageEcosystem::Node;
++        for metadata in [
++            NodePackageMetadata {
++                unavailable_reason: Some("unavailable".into()),
++                main: Some(NodePackageTarget::Path("./index.js".into())),
++                ..Default::default()
++            },
++            NodePackageMetadata {
++                exports: Some(BTreeMap::from([(
++                    "invalid".into(),
++                    NodePackageTarget::Blocked,
++                )])),
++                ..Default::default()
++            },
++            NodePackageMetadata {
++                imports: Some(BTreeMap::from([(
++                    "#/invalid".into(),
++                    NodePackageTarget::Blocked,
++                )])),
++                ..Default::default()
++            },
++            NodePackageMetadata {
++                module_type: Some("unknown".into()),
++                ..Default::default()
++            },
++            NodePackageMetadata {
++                main: Some(NodePackageTarget::Path("a".repeat(4097))),
++                ..Default::default()
++            },
++        ] {
++            definition.node = Some(metadata);
++            assert!(!valid_definition(&definition));
++        }
++    }
++}
+--- a/crates/core/src/reconcile.rs
++++ b/crates/core/src/reconcile.rs
+@@ -325,6 +325,7 @@
+         }
+ 
+         table.prepare_rust_modules(&known_files, package_boundaries);
++        table.prepare_node_packages(package_boundaries);
+         table.prepare_js_modules(
+             previous
+                 .entries
+@@ -581,6 +582,32 @@
+                                         .get("rust_module_form")
+                                         .is_some_and(|form| form == "external")
+                                 })
++                            })
++                    })
++                    .map(|(path, _)| path.clone()),
++            );
++        }
++        if old_files != new_files {
++            dirty.extend(
++                previous
++                    .entries
++                    .iter()
++                    .filter(|(path, entry)| {
++                        new_files.contains(*path)
++                            && entry.extraction.as_ref().is_some_and(|facts| {
++                                facts.js_module.is_some()
++                                    && facts.references.iter().any(|fact| {
++                                        fact.via_import
++                                            .as_deref()
++                                            .or_else(|| {
++                                                (fact.kind == EdgeKind::Imports)
++                                                    .then_some(fact.name.as_str())
++                                            })
++                                            .is_some_and(|specifier| {
++                                                !specifier.starts_with('.')
++                                                    && !specifier.starts_with('/')
++                                            })
++                                    })
+                             })
+                     })
+                     .map(|(path, _)| path.clone()),
+--- a/crates/core/src/resolve.rs
++++ b/crates/core/src/resolve.rs
+@@ -57,6 +57,7 @@
+     pub(crate) rust_roots: crate::rust_modules::Catalog,
+     rust_paths: crate::rust_paths::Paths,
+     js_modules: crate::js_modules::Modules,
++    node_packages: crate::node_packages::Packages,
+     /// Bare name to symbol ids, workspace-wide.
+     pub by_name: BTreeMap<String, Vec<NodeId>>,
+     /// Qualified name to symbol id, workspace-wide.
+@@ -90,6 +91,19 @@
+             .map(|(path, facts)| (path.to_owned(), facts.clone()))
+             .collect();
+     }
++    /// Resolve a JS/TS module from relative paths or authored package maps.
++    pub(crate) fn js_specifier(
++        &self,
++        from: &str,
++        specifier: &str,
++        known: &BTreeSet<String>,
++    ) -> Result<String, &'static str> {
++        self.node_packages.resolve(from, specifier, known)
++    }
++    /// Prepare authored Node package boundaries after all file nodes are populated.
++    pub fn prepare_node_packages(&mut self, boundaries: &BTreeSet<String>) {
++        self.node_packages = crate::node_packages::Packages::build(&self.files, boundaries);
++    }
+     /// An empty table.
+     #[must_use]
+     pub fn new() -> Self {
+@@ -113,7 +127,7 @@
+         if node.is_file() {
+             if std::path::Path::new(&node.path)
+                 .file_name()
+-                .is_some_and(|name| name == "Cargo.toml")
++                .is_some_and(|name| name == "Cargo.toml" || name == "package.json")
+             {
+                 self.files.insert(node.path.clone(), node.clone());
+             }
+@@ -470,26 +484,35 @@
+ 
+     // File-level import statements become file->file (or file->module) edges.
+     if fact.kind == EdgeKind::Imports && fact.from_key.is_none() && fact.via_import.is_none() {
+-        if let Some(target) = resolve_specifier(from_path, &fact.name, known_files, language) {
+-            let to = NodeId::file(&target);
++        let target = if matches!(language, Language::JavaScript | Language::TypeScript) {
++            table.js_specifier(from_path, &fact.name, known_files)
++        } else {
++            resolve_specifier(from_path, &fact.name, known_files, language)
++                .ok_or("module_target_missing")
++        };
++        if let Ok(target) = &target {
++            let to = NodeId::file(target);
+             return Resolution {
+                 class: ResolutionClass::ExplicitImport,
+                 reason: None,
+                 fact: fact.clone(),
+                 to: Some(to.clone()),
+-                to_name: target,
++                to_name: target.clone(),
+             };
+         }
+-        return dangling(fact.name.clone(), "module_target_missing");
++        return dangling(
++            fact.name.clone(),
++            target.err().unwrap_or("module_target_missing"),
++        );
+     }
+ 
+     // Explicit import provenance is authoritative. Failure to resolve the
+     // module must not fall through to an unrelated workspace name.
+     if let Some(specifier) = &fact.via_import {
+         if matches!(language, Language::JavaScript | Language::TypeScript) {
+-            let Some(target) = resolve_specifier(from_path, specifier, known_files, language)
+-            else {
+-                return dangling(fact.name.clone(), "module_target_missing");
++            let target = match table.js_specifier(from_path, specifier, known_files) {
++                Ok(target) => target,
++                Err(reason) => return dangling(fact.name.clone(), reason),
+             };
+             if fact.kind == EdgeKind::Imports && fact.name == "*" {
+                 return Resolution {
+--- a/crates/core/src/rust_modules.rs
++++ b/crates/core/src/rust_modules.rs
+@@ -372,6 +372,7 @@
+ 
+     fn catalog(metadata: CargoTargetMetadata, paths: &[&str]) -> Catalog {
+         let definition = PackageManifest {
++            node: None,
+             ecosystem: PackageEcosystem::Cargo,
+             role: PackageRole::Package,
+             name: Some("p".into()),
+--- a/crates/graph-search/src/lib.rs
++++ b/crates/graph-search/src/lib.rs
+@@ -17,6 +17,7 @@
+ pub mod error;
+ pub mod index;
+ pub mod lock;
++mod node_package;
+ mod package_manifests;
+ pub mod service;
+ 
+--- /dev/null
++++ b/crates/graph-search/src/node_package.rs
+@@ -0,0 +1,164 @@
++//! Authored Node package decisions, using the existing JSON decoder only.
++use graph_search_types::package::{NodePackageMetadata, NodePackageTarget};
++use serde_json::Value;
++use std::collections::BTreeMap;
++
++fn target(value: &Value) -> NodePackageTarget {
++    match value {
++        Value::String(path) => NodePackageTarget::Path(path.clone()),
++        Value::Null => NodePackageTarget::Blocked,
++        _ => NodePackageTarget::Unsupported,
++    }
++}
++
++fn mapping(
++    value: &Value,
++    exports: bool,
++) -> Result<BTreeMap<String, NodePackageTarget>, &'static str> {
++    if exports {
++        let Some(object) = value.as_object() else {
++            return Ok(BTreeMap::from([(".".into(), target(value))]));
++        };
++        if !object.is_empty() && object.keys().all(|key| !key.starts_with('.')) {
++            return Ok(BTreeMap::from([(
++                ".".into(),
++                NodePackageTarget::Unsupported,
++            )]));
++        }
++    }
++    let object = value.as_object().ok_or("node_map_shape")?;
++    let mut result = BTreeMap::new();
++    for (key, value) in object {
++        let valid = if exports {
++            key == "." || key.starts_with("./")
++        } else {
++            key.starts_with('#') && key.len() > 1 && !key.starts_with("#/")
++        };
++        if !valid {
++            return Err("node_map_key");
++        }
++        result.insert(key.clone(), target(value));
++    }
++    Ok(result)
++}
++
++fn project(value: &Value) -> Result<NodePackageMetadata, &'static str> {
++    let mut metadata = NodePackageMetadata::default();
++    if let Some(kind) = value.get("type") {
++        metadata.module_type = Some(kind.as_str().ok_or("node_module_type")?.into());
++    }
++    metadata.main = value.get("main").map(target);
++    metadata.exports = value
++        .get("exports")
++        .map(|value| mapping(value, true))
++        .transpose()?;
++    metadata.imports = value
++        .get("imports")
++        .map(|value| mapping(value, false))
++        .transpose()?;
++    if let Some(workspaces) = value.get("workspaces") {
++        let entries = workspaces
++            .as_array()
++            .or_else(|| workspaces.get("packages").and_then(Value::as_array))
++            .ok_or("node_workspaces_shape")?;
++        metadata.workspaces = Some(
++            entries
++                .iter()
++                .map(|entry| {
++                    entry
++                        .as_str()
++                        .map(str::to_owned)
++                        .ok_or("node_workspace_pattern")
++                })
++                .collect::<Result<_, _>>()?,
++        );
++    }
++    for field in [
++        "dependencies",
++        "devDependencies",
++        "optionalDependencies",
++        "peerDependencies",
++    ] {
++        if let Some(dependencies) = value.get(field) {
++            for (name, specifier) in dependencies.as_object().ok_or("node_dependencies_shape")? {
++                let specifier = specifier.as_str().ok_or("node_dependency_specifier")?;
++                if let Some(previous) = metadata.dependencies.insert(name.clone(), specifier.into())
++                    && previous != specifier
++                {
++                    return Err("node_dependency_conflict");
++                }
++            }
++        }
++    }
++    if !metadata.valid() {
++        return Err("node_metadata_limit_or_value");
++    }
++    Ok(metadata)
++}
++
++pub(crate) fn extract(value: &Value) -> NodePackageMetadata {
++    project(value).unwrap_or_else(|reason| NodePackageMetadata {
++        unavailable_reason: Some(reason.into()),
++        ..NodePackageMetadata::default()
++    })
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++    #[test]
++    fn authored_maps_preserve_absence_empty_null_and_unsupported_targets() {
++        let value = serde_json::json!({"type":"module","main":"./legacy.js","exports":{".":"./index.js","./hidden":null,"./conditional":{"import":"./import.js","require":"./require.cjs"},"./array":["./a.js"],"./feature/*":"./src/*.js"},"imports":{"#local":"./local.js"},"workspaces":{"packages":["packages/*"]},"dependencies":{"@scope/api":"workspace:*"}});
++        let metadata = extract(&value);
++        assert!(metadata.valid());
++        assert!(metadata.unavailable_reason.is_none());
++        let exports = metadata.exports.unwrap();
++        assert_eq!(exports["./hidden"], NodePackageTarget::Blocked);
++        assert_eq!(exports["./conditional"], NodePackageTarget::Unsupported);
++        assert_eq!(exports["./array"], NodePackageTarget::Unsupported);
++        assert_eq!(
++            exports["./feature/*"],
++            NodePackageTarget::Path("./src/*.js".into())
++        );
++        assert!(extract(&serde_json::json!({})).exports.is_none());
++        assert_eq!(
++            extract(&serde_json::json!({"exports":{}})).exports,
++            Some(BTreeMap::new())
++        );
++        assert_eq!(
++            extract(&serde_json::json!({"exports":null}))
++                .exports
++                .unwrap()["."],
++            NodePackageTarget::Blocked
++        );
++        assert_eq!(
++            extract(&serde_json::json!({"exports":{"import":"./a.js"}}))
++                .exports
++                .unwrap()["."],
++            NodePackageTarget::Unsupported
++        );
++    }
++    #[test]
++    fn invalid_or_over_budget_metadata_never_leaves_partial_decisions() {
++        for value in [
++            serde_json::json!({"main":"./valid.js","exports":{".":"./index.js","import":"./other.js"}}),
++            serde_json::json!({"imports":{"ordinary":"./index.js"}}),
++            serde_json::json!({"workspaces":[3]}),
++            serde_json::json!({"exports":"./a\npi.js"}),
++            serde_json::json!({"dependencies":{"api":"workspace:*"},"devDependencies":{"api":"^1"}}),
++            serde_json::json!({"main":"a".repeat(4097)}),
++            serde_json::json!({"workspaces":vec!["packages/*";4097]}),
++        ] {
++            let metadata = extract(&value);
++            assert!(metadata.unavailable_reason.is_some(), "{metadata:?}");
++            assert!(metadata.valid());
++            assert!(
++                metadata.main.is_none()
++                    && metadata.exports.is_none()
++                    && metadata.imports.is_none()
++                    && metadata.workspaces.is_none()
++                    && metadata.dependencies.is_empty()
++            );
++        }
++    }
++}
+--- a/crates/graph-search/src/package_manifests.rs
++++ b/crates/graph-search/src/package_manifests.rs
+@@ -9,6 +9,7 @@
+         _ => return None,
+     };
+     let unavailable = |reason: &str| PackageManifest {
++        node: None,
+         cargo_targets: None,
+         ecosystem,
+         role: PackageRole::Unavailable,
+@@ -35,6 +36,7 @@
+                 .is_some_and(serde_json::Value::is_object) =>
+             {
+                 return Some(PackageManifest {
++                    node: None,
+                     cargo_targets: None,
+                     ecosystem,
+                     role: PackageRole::Workspace,
+@@ -59,6 +61,7 @@
+         return Some(unavailable("package_name_limit"));
+     }
+     Some(PackageManifest {
++        node: (ecosystem == PackageEcosystem::Node).then(|| crate::node_package::extract(&value)),
+         cargo_targets: (ecosystem == PackageEcosystem::Cargo)
+             .then(|| crate::cargo_targets::extract(&value, package)),
+         ecosystem,
+--- a/crates/graph-search/tests/js_modules.rs
++++ b/crates/graph-search/tests/js_modules.rs
+@@ -216,3 +216,117 @@
+     call(&index, "direct", Some(("api.js", "send")));
+     call(&index, "bounded", None);
+ }
++
++#[test]
++fn package_self_exports_and_private_maps_require_authored_targets() {
++    let root = tempfile::tempdir().unwrap();
++    std::fs::create_dir(root.path().join("nested")).unwrap();
++    for (path, source) in [
++        (
++            "package.json",
++            r##"{"name":"@demo/api","type":"module","main":"./wrong.js","exports":{".":"./api.js","./sub":"./sub.js","./hidden":null,"./conditional":{"import":"./api.js"},"./escape":"../outside.js","./wild/*":"./*.js"},"imports":{"#internal":"./api.js"}}"##,
++        ),
++        (
++            "api.ts",
++            "export function send(){} export default function primary(){} function hidden(){}",
++        ),
++        ("sub.ts", "export function sub(){}"),
++        ("wrong.ts", "export function send(){}"),
++        ("barrel.ts", "export {send as relay} from '@demo/api';"),
++        ("nested/package.json", "{}"),
++        (
++            "nested/client.ts",
++            "import {send} from '#internal'; function nested(){send();}",
++        ),
++        (
++            "client.ts",
++            "import main, {send,hidden} from '@demo/api'; import {sub} from '@demo/api/sub'; import {send as privateSend} from '#internal'; import {relay} from './barrel'; import {send as blocked} from '@demo/api/hidden'; import {send as conditional} from '@demo/api/conditional'; import {send as escape} from '@demo/api/escape'; import {send as wildcard} from '@demo/api/wild/api'; function namedPackage(){send();} function defaultPackage(){main();} function privateMap(){privateSend();} function subpath(){sub();} function forwarded(){relay();} function hiddenSymbol(){hidden();} function blockedPath(){blocked();} function conditionalPath(){conditional();} function escapedPath(){escape();} function wildcardPath(){wildcard();}",
++        ),
++    ] {
++        std::fs::write(root.path().join(path), source).unwrap();
++    }
++    let index = open(root.path(), None);
++    index.reindex().unwrap();
++    for owner in ["namedPackage", "privateMap", "forwarded"] {
++        call(&index, owner, Some(("api.ts", "send")));
++    }
++    call(&index, "defaultPackage", Some(("api.ts", "primary")));
++    call(&index, "subpath", Some(("sub.ts", "sub")));
++    for owner in [
++        "nested",
++        "hiddenSymbol",
++        "blockedPath",
++        "conditionalPath",
++        "escapedPath",
++        "wildcardPath",
++    ] {
++        call(&index, owner, None);
++    }
++}
++
++#[test]
++fn package_map_edits_and_missing_target_creation_rebind_after_reopen() {
++    use graph_search_types::occurrence::{OccurrenceBy, OccurrenceQuery};
++    let root = tempfile::tempdir().unwrap();
++    std::fs::write(
++        root.path().join("package.json"),
++        r#"{"name":"pkg","exports":"./api.js"}"#,
++    )
++    .unwrap();
++    std::fs::write(
++        root.path().join("client.ts"),
++        "import main from 'pkg'; export function entry(){main();}",
++    )
++    .unwrap();
++    let index = open(root.path(), None);
++    index.reindex().unwrap();
++    call(&index, "entry", None);
++    drop(index);
++    let query = OccurrenceQuery {
++        by: OccurrenceBy::Name,
++        target: "main".into(),
++        ..OccurrenceQuery::default()
++    };
++    for (path, source, resolved) in [
++        ("api.ts", "export default function primary(){}", true),
++        (
++            "package.json",
++            r#"{"name":"pkg","exports":null,"main":"./api.js"}"#,
++            false,
++        ),
++        (
++            "package.json",
++            r#"{"name":"pkg","exports":"./api.js"}"#,
++            true,
++        ),
++        ("api.tsx", "export default function primary(){}", false),
++        ("api.js", "export default function runtime(){}", true),
++        ("package.json", r#"{"name":"pkg","main":"./api.js"}"#, false),
++    ] {
++        std::fs::write(root.path().join(path), source).unwrap();
++        let index = open(root.path(), None);
++        index.sync().unwrap();
++        drop(index);
++        let index = open(root.path(), None);
++        let actual = index.search().occurrences(&query).unwrap();
++        let calls: Vec<_> = actual
++            .items
++            .iter()
++            .filter(|item| item.occurrence.kind == EdgeKind::Calls)
++            .collect();
++        assert_eq!(calls.len(), 1);
++        assert_eq!(
++            calls[0].occurrence.resolution == ResolutionClass::ExplicitImport,
++            resolved,
++            "{path}: {calls:?}"
++        );
++        let store = tempfile::tempdir().unwrap();
++        let clean = open(root.path(), Some(store.path().join("index")));
++        clean.reindex().unwrap();
++        assert_eq!(
++            actual.items,
++            clean.search().occurrences(&query).unwrap().items,
++            "{path}"
++        );
++    }
++}
+--- a/crates/types/src/limits.rs
++++ b/crates/types/src/limits.rs
+@@ -101,7 +101,7 @@
+ /// Source-owned reference and binding representation.
+ pub const OCCURRENCE_VERSION: u32 = 1;
+ /// Source retrieval serialization revision, independent of parser and chunker policy.
+-pub const SOURCE_INDEX_VERSION: u32 = 11;
++pub const SOURCE_INDEX_VERSION: u32 = 12;
+ /// Maximum authored links retained per original Markdown block.
+ pub const MAX_MARKDOWN_LINKS: usize = 256;
+ /// Maximum distinct authored links retained across one source file.
+--- a/crates/types/src/package.rs
++++ b/crates/types/src/package.rs
+@@ -26,6 +26,9 @@
+ /// Small raw manifest facts tied to the containing source record's hash.
+ #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+ pub struct PackageManifest {
++    /// Authored Node entry points and workspace declarations; absent in legacy facts.
++    #[serde(default, skip_serializing_if = "Option::is_none")]
++    pub node: Option<NodePackageMetadata>,
+     /// Manifest syntax family.
+     pub ecosystem: PackageEcosystem,
+     /// Declared boundary role.
+@@ -118,3 +121,138 @@
+     /// Unavailable projections contain no partial target/settings data.
+     pub unavailable_reason: Option<String>,
+ }
++
++/// An authored package-map target without selecting runtime conditions.
++#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
++#[serde(rename_all = "snake_case")]
++pub enum NodePackageTarget {
++    /// Raw authored path or package specifier; resolution validates its meaning.
++    Path(String),
++    /// Explicit null target, which blocks this mapping.
++    Blocked,
++    /// Conditional, array, or otherwise unsupported target; never a fallback path.
++    Unsupported,
++}
++
++/// Bounded authored Node package metadata. No dependency installation is implied.
++#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
++pub struct NodePackageMetadata {
++    /// Explicit module type, when authored.
++    pub module_type: Option<String>,
++    /// Legacy main entry, kept separately from the authoritative exports map.
++    pub main: Option<NodePackageTarget>,
++    /// None means absent; Some(empty) remains an explicitly empty export map.
++    pub exports: Option<std::collections::BTreeMap<String, NodePackageTarget>>,
++    /// Package-private specifier mappings, including unsupported branches.
++    pub imports: Option<std::collections::BTreeMap<String, NodePackageTarget>>,
++    /// Authored workspace patterns; no matching paths are inferred here.
++    pub workspaces: Option<Vec<String>>,
++    /// Authored dependency specifiers across dependency tables; conflicts invalidate metadata.
++    pub dependencies: std::collections::BTreeMap<String, String>,
++    /// Entire projection unavailable; all other fields must then be empty.
++    pub unavailable_reason: Option<String>,
++}
++
++impl NodePackageMetadata {
++    /// Check the persisted representation independently of the JSON adapter.
++    #[must_use]
++    pub fn valid(&self) -> bool {
++        fn target_text(target: &NodePackageTarget) -> Option<&str> {
++            match target {
++                NodePackageTarget::Path(path) => Some(path.as_str()),
++                _ => None,
++            }
++        }
++
++        if let Some(reason) = &self.unavailable_reason {
++            return !reason.is_empty()
++                && reason.len() <= 64
++                && !reason.chars().any(char::is_control)
++                && self.module_type.is_none()
++                && self.main.is_none()
++                && self.exports.is_none()
++                && self.imports.is_none()
++                && self.workspaces.is_none()
++                && self.dependencies.is_empty();
++        }
++        if self
++            .module_type
++            .as_deref()
++            .is_some_and(|kind| !matches!(kind, "module" | "commonjs"))
++        {
++            return false;
++        }
++        let mut records = 0usize;
++        let mut bytes = 0usize;
++        let mut admit = |text: &str| {
++            records = records.saturating_add(1);
++            bytes = bytes.saturating_add(text.len());
++            !text.is_empty()
++                && text.len() <= 4096
++                && !text.chars().any(char::is_control)
++                && records <= 4096
++                && bytes <= crate::limits::MAX_PACKAGE_MANIFEST_BYTES
++        };
++        if let Some(main) = self.main.as_ref().and_then(target_text)
++            && !admit(main)
++        {
++            return false;
++        }
++        for (map, exports) in [
++            (self.exports.as_ref(), true),
++            (self.imports.as_ref(), false),
++        ] {
++            let Some(map) = map else { continue };
++            for (key, target) in map {
++                let valid_key = if exports {
++                    key == "." || key.starts_with("./")
++                } else {
++                    key.starts_with('#') && key.len() > 1 && !key.starts_with("#/")
++                };
++                if !valid_key || !admit(key) || target_text(target).is_some_and(|path| !admit(path))
++                {
++                    return false;
++                }
++            }
++        }
++        for pattern in self.workspaces.iter().flatten() {
++            if !admit(pattern) {
++                return false;
++            }
++        }
++        for (name, specifier) in &self.dependencies {
++            if !admit(name) || !admit(specifier) {
++                return false;
++            }
++        }
++        true
++    }
++}
++
++#[cfg(test)]
++mod node_tests {
++    use super::*;
++    #[test]
++    fn node_facts_roundtrip_and_legacy_manifests_do_not_invent_metadata() {
++        let legacy: PackageManifest = serde_json::from_str(
++            r#"{"ecosystem":"node","role":"package","name":"pkg","unavailable_reason":null}"#,
++        )
++        .unwrap();
++        assert!(legacy.node.is_none());
++        let mut current = legacy;
++        current.node = Some(NodePackageMetadata {
++            exports: Some(std::collections::BTreeMap::from([(
++                ".".into(),
++                NodePackageTarget::Blocked,
++            )])),
++            workspaces: Some(Vec::new()),
++            ..NodePackageMetadata::default()
++        });
++        let encoded = serde_json::to_vec(&current).unwrap();
++        assert_eq!(
++            serde_json::from_slice::<PackageManifest>(&encoded).unwrap(),
++            current
++        );
++        assert!(current.node.unwrap().valid());
++    }
++}

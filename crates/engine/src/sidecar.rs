@@ -36,12 +36,14 @@ struct DanglingRecord {
 /// When the file exists but cannot be parsed.
 pub fn load_manifest(store_dir: &Path) -> std::io::Result<Option<Manifest>> {
     let path = store_dir.join(MANIFEST_FILE);
-    let Ok(text) = std::fs::read_to_string(&path) else {
-        return Ok(None);
+    let text = match std::fs::read_to_string(&path) {
+        Ok(text) => text,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(None),
+        Err(error) => return Err(error),
     };
-    serde_json::from_str(&text)
-        .map(Some)
-        .map_err(|error| std::io::Error::new(std::io::ErrorKind::InvalidData, error.to_string()))
+    let manifest = serde_json::from_str(&text)
+        .map_err(|error| std::io::Error::new(std::io::ErrorKind::InvalidData, error.to_string()))?;
+    crate::manifest_records::load(store_dir, manifest).map(Some)
 }
 
 /// Writes the manifest atomically.
@@ -49,12 +51,21 @@ pub fn load_manifest(store_dir: &Path) -> std::io::Result<Option<Manifest>> {
 /// # Errors
 /// When the store directory is unwritable.
 pub fn save_manifest(store_dir: &Path, manifest: &Manifest) -> std::io::Result<()> {
+    prepare_manifest(store_dir, manifest)?;
+    crate::generation::sync_dir(store_dir)
+}
+
+/// Sync the file; the unpublished-generation owner must sync its directory
+/// after all artifact renames and before publishing CURRENT.
+pub(crate) fn prepare_manifest(store_dir: &Path, manifest: &Manifest) -> std::io::Result<()> {
     std::fs::create_dir_all(store_dir)?;
     let target = store_dir.join(MANIFEST_FILE);
     let tmp = store_dir.join(format!("{MANIFEST_FILE}.tmp"));
     let text = serde_json::to_string_pretty(manifest)
         .map_err(|error| std::io::Error::new(std::io::ErrorKind::InvalidData, error.to_string()))?;
-    std::fs::write(&tmp, text)?;
+    let mut file = std::fs::File::create(&tmp)?;
+    file.write_all(text.as_bytes())?;
+    file.sync_all()?;
     std::fs::rename(&tmp, &target)
 }
 
@@ -64,8 +75,10 @@ pub fn save_manifest(store_dir: &Path, manifest: &Manifest) -> std::io::Result<(
 /// When the sidecar exists but cannot be parsed.
 pub fn load_dangling(store_dir: &Path) -> std::io::Result<Vec<Edge>> {
     let path = store_dir.join(DANGLING_FILE);
-    let Ok(text) = std::fs::read_to_string(&path) else {
-        return Ok(Vec::new());
+    let text = match std::fs::read_to_string(&path) {
+        Ok(text) => text,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(Vec::new()),
+        Err(error) => return Err(error),
     };
     let mut edges = Vec::new();
     for line in text.lines() {
@@ -100,16 +113,29 @@ pub fn save_dangling(
     edges: &[Edge],
     keep_paths: &std::collections::BTreeSet<String>,
 ) -> std::io::Result<()> {
+    let kept: Vec<_> = edges
+        .iter()
+        .filter(|edge| {
+            edge.path
+                .as_ref()
+                .is_some_and(|path| keep_paths.contains(path))
+        })
+        .cloned()
+        .collect();
+    prepare_dangling(store_dir, &kept)?;
+    crate::generation::sync_dir(store_dir)
+}
+
+/// Write the complete prepared edge set, including pathless references.
+/// The generation owner already applied source ownership filtering and must sync
+/// the directory before publishing CURRENT.
+pub(crate) fn prepare_dangling(store_dir: &Path, edges: &[Edge]) -> std::io::Result<()> {
     std::fs::create_dir_all(store_dir)?;
     let target = store_dir.join(DANGLING_FILE);
     let tmp = store_dir.join(format!("{DANGLING_FILE}.tmp"));
     let file = std::fs::File::create(&tmp)?;
     let mut writer = std::io::BufWriter::new(file);
     for edge in edges {
-        let Some(path) = &edge.path else { continue };
-        if !keep_paths.contains(path) {
-            continue;
-        }
         let record = DanglingRecord {
             from: edge.from.to_string(),
             kind: edge.kind.as_str().to_owned(),
@@ -123,7 +149,63 @@ pub fn save_dangling(
         writer.write_all(b"\n")?;
     }
     writer.flush()?;
+    writer.get_ref().sync_all()?;
     std::fs::rename(&tmp, &target)
+}
+
+/// Source retrieval facts published and checksummed with the graph generation.
+pub const SOURCE_FILE: &str = "source-units.json";
+/// Source-owned references, stored separately from aggregate adjacency.
+pub const OCCURRENCE_FILE: &str = "occurrences.json";
+
+/// Reads source occurrences; missing legacy artifacts have unknown occurrence coverage.
+/// # Errors
+/// On unreadable or malformed data.
+pub fn load_occurrences(
+    dir: &Path,
+) -> std::io::Result<
+    std::collections::BTreeMap<String, graph_search_types::occurrence::OccurrenceFile>,
+> {
+    let bytes = match std::fs::read(dir.join(OCCURRENCE_FILE)) {
+        Ok(bytes) => bytes,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+            return Ok(std::collections::BTreeMap::new());
+        }
+        Err(error) => return Err(error),
+    };
+    serde_json::from_slice(&bytes).map_err(std::io::Error::other)
+}
+
+/// Publishes and syncs occurrences inside an unpublished generation.
+/// # Errors
+/// On serialization, write or sync failure.
+pub fn save_occurrences(
+    dir: &Path,
+    files: &std::collections::BTreeMap<String, graph_search_types::occurrence::OccurrenceFile>,
+) -> std::io::Result<()> {
+    let bytes = serde_json::to_vec(files).map_err(std::io::Error::other)?;
+    crate::generation::replace(&dir.join(OCCURRENCE_FILE), &bytes)
+}
+
+/// Reads native source facts. Missing legacy sidecars have no source coverage.
+/// # Errors
+/// On unreadable or malformed data.
+pub fn load_sources(
+    dir: &Path,
+) -> std::io::Result<std::collections::BTreeMap<String, graph_search_types::source::SourceFileUnits>>
+{
+    crate::source_records::load(dir)
+}
+
+/// Writes native source facts inside an unpublished generation.
+/// # Errors
+/// On serialization, write or sync failure.
+pub fn save_sources(
+    dir: &Path,
+    sources: &std::collections::BTreeMap<String, graph_search_types::source::SourceFileUnits>,
+) -> std::io::Result<()> {
+    let bytes = serde_json::to_vec(sources).map_err(std::io::Error::other)?;
+    crate::generation::replace(&dir.join(SOURCE_FILE), &bytes)
 }
 
 #[cfg(test)]

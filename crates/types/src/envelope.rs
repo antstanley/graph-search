@@ -11,8 +11,14 @@ use serde::Serialize;
 /// The `--json` document (`SPEC.md` §9.1).
 #[derive(Clone, Debug, Serialize)]
 pub struct Envelope<R: Serialize> {
+    /// Optional explore route diagnostics from the library result.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub plan: Option<crate::retrieval::RetrievalPlan>,
     /// Bumped on any change to a result or edge field.
     pub schema_version: u32,
+    /// Provenance from the exact library result being rendered.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub context: Option<crate::context::ResultContext>,
     /// The dotted command path (`search.files`, `search.graph.callers`).
     pub command: String,
     /// The absolute workspace root.
@@ -47,7 +53,9 @@ impl<R: Serialize> Envelope<R> {
         results: R,
     ) -> Self {
         Self {
+            plan: None,
             schema_version,
+            context: None,
             command: command.into(),
             root: root.into(),
             query,

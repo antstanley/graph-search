@@ -1,0 +1,23 @@
+   Compiling graph-search-types v0.1.0 (/Volumes/Delorean/code/graph-search/crates/types)
+   Compiling graph-search-core v0.1.0 (/Volumes/Delorean/code/graph-search/crates/core)
+   Compiling graph-search-langs v0.1.0 (/Volumes/Delorean/code/graph-search/crates/langs)
+   Compiling graph-search-engine v0.1.0 (/Volumes/Delorean/code/graph-search/crates/engine)
+   Compiling graph-search v0.1.0 (/Volumes/Delorean/code/graph-search/crates/graph-search)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 29.10s
+     Running unittests src/lib.rs (target/debug/deps/graph_search-6d5a38aabd640ae8)
+
+running 11 tests
+test cargo_targets::tests::authored_targets_preserve_omissions_paths_flags_and_workspace_edition ... ok
+test cargo_targets::tests::explicit_empty_arrays_and_build_script_settings_are_distinct_from_omission ... ok
+test config::tests::replace_defaults_replaces ... ok
+test config::tests::the_spec_example_parses_and_merges ... ok
+test config::tests::a_missing_file_yields_the_defaults ... ok
+test node_package::tests::authored_maps_preserve_absence_empty_null_and_unsupported_targets ... ok
+test pnpm_workspace::tests::extracts_only_complete_declared_membership_in_the_supported_yaml_subset ... ok
+test package_manifests::tests::package_syntax_and_caps_do_not_guess_from_strings_or_invalid_metadata ... ok
+test node_package::tests::invalid_or_over_budget_metadata_never_leaves_partial_decisions ... ok
+test package_manifests::tests::cargo_target_caps_preserve_package_identity_and_legacy_defaults ... ok
+test cargo_targets::tests::invalid_or_over_budget_targets_never_leave_a_partial_projection ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+

@@ -1,0 +1,324 @@
+   Compiling graph-search-types v0.1.0 (/Volumes/Delorean/code/graph-search/crates/types)
+   Compiling graph-search-core v0.1.0 (/Volumes/Delorean/code/graph-search/crates/core)
+   Compiling graph-search-langs v0.1.0 (/Volumes/Delorean/code/graph-search/crates/langs)
+   Compiling graph-search-engine v0.1.0 (/Volumes/Delorean/code/graph-search/crates/engine)
+   Compiling graph-search v0.1.0 (/Volumes/Delorean/code/graph-search/crates/graph-search)
+   Compiling graph-search-cli v0.1.0 (/Volumes/Delorean/code/graph-search/crates/cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2m 06s
+     Running unittests src/lib.rs (target/debug/deps/graph_search-e08d22ed3a7ddc6d)
+
+running 15 tests
+test cargo_targets::tests::explicit_empty_arrays_and_build_script_settings_are_distinct_from_omission ... ok
+test cargo_targets::tests::authored_targets_preserve_omissions_paths_flags_and_workspace_edition ... ok
+test node_package::tests::conditions_bind_only_when_every_branch_has_the_same_path_and_a_default ... ok
+test node_package::tests::authored_maps_preserve_absence_empty_null_and_unsupported_targets ... ok
+test config::tests::replace_defaults_replaces ... ok
+test config::tests::the_spec_example_parses_and_merges ... ok
+test config::tests::a_missing_file_yields_the_defaults ... ok
+test typescript_config::tests::comments_bom_trailing_commas_and_quoted_delimiters_preserve_authored_values ... ok
+test typescript_config::tests::projection_keeps_empty_and_invalid_option_values_without_claiming_semantics ... ok
+test typescript_order::tests::paths_keep_first_property_order_but_last_duplicate_container_value ... ok
+test package_manifests::tests::package_syntax_and_caps_do_not_guess_from_strings_or_invalid_metadata ... ok
+test pnpm_workspace::tests::extracts_only_complete_declared_membership_in_the_supported_yaml_subset ... ok
+test node_package::tests::invalid_or_over_budget_metadata_never_leaves_partial_decisions ... ok
+test package_manifests::tests::cargo_target_caps_preserve_package_identity_and_legacy_defaults ... ok
+test cargo_targets::tests::invalid_or_over_budget_targets_never_leave_a_partial_projection ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/accuracy.rs (target/debug/deps/accuracy-330902e0e0d377f4)
+
+running 25 tests
+test explore_respects_index_exclusions ... ok
+test explore_serialized_budget_and_snippet_cap_are_real ... ok
+test ambiguous_targets_are_not_silently_selected ... ok
+test explore_punctuation_and_body_snippets_work ... ok
+test explore_two_hop_connections_include_intermediate_source ... ok
+test explore_body_hits_respect_filters ... ok
+test callable_parameters_remain_dynamic ... ok
+test deleting_a_target_rebinds_unchanged_callers ... ok
+test files_and_text_subdirectories_are_resolved_once_and_stay_fresh ... ok
+test first_graph_query_builds_missing_index ... ok
+test foreign_qualified_calls_do_not_bind_to_bare_local_names ... ok
+test graph_filters_are_applied_and_bad_globs_rejected ... ok
+test graph_limits_are_reported ... ok
+test impact_keeps_all_converging_edges_and_orders_by_depth ... ok
+test invalid_text_include_does_not_broaden_search ... ok
+test js_calls_belong_to_functions_and_nested_receivers_are_visited ... ok
+test js_initializer_calls_use_enclosing_function_and_destructured_bindings_are_siblings ... ok
+test self_receiver_uses_lexical_impl_owner ... ok
+test nested_qualified_names_do_not_repeat_ancestors ... ok
+test symbol_filters_precede_limit_and_ids_are_supported ... ok
+test rust_nested_receiver_calls_are_visited ... ok
+test named_import_aliases_and_js_extension_substitution_resolve ... ok
+test tsx_uses_the_tsx_grammar ... ok
+test zero_length_path_contains_its_endpoint ... ok
+test sync_rebinds_unchanged_callers_after_target_edits ... ok
+
+test result: ok. 25 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.04s
+
+     Running tests/body.rs (target/debug/deps/body-1aeadc287c75c7af)
+
+running 15 tests
+test body_excerpts_show_the_match_without_rewriting_declaration_coordinates ... ok
+test a_single_stopword_is_a_valid_body_query ... ok
+test context_cost_work_is_bounded_without_discarding_primary_evidence ... ok
+test expanded_context_preserves_headers_matches_and_hash_checks ... ok
+test body_matches_compete_with_metadata_and_exact_names_keep_priority ... ok
+test distant_body_matches_fit_when_the_whole_region_does_not ... ok
+test adjacent_call_windows_do_not_spend_one_interval_slot_per_site ... ok
+test distant_regions_of_one_owner_survive_without_duplicating_candidates ... ok
+test repeated_relationship_sites_expand_under_an_independent_work_budget ... ok
+test returned_connections_include_distant_call_site_context ... ok
+test oversized_source_lines_do_not_erase_navigation_metadata ... ok
+test small_implementations_expand_with_exact_lines_and_no_duplicate_extra_context ... ok
+test stale_body_facts_are_replaced_by_hash_bound_live_evidence ... ok
+test unselected_owners_do_not_report_context_loss_for_selected_results ... ok
+test indexed_body_queries_cross_the_old_scan_limit_without_reading_every_file ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.80s
+
+     Running tests/coverage.rs (target/debug/deps/coverage-4c4ce1f1706f0560)
+
+running 4 tests
+test source_read_exclusions_and_disabled_extraction_are_reported ... ok
+test a_file_disappearing_during_extraction_does_not_become_empty_source ... ok
+test incomplete_sync_and_reindex_preserve_the_whole_prior_projection ... ok
+test changing_extraction_policy_invalidates_cached_facts ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/doc_comments.rs (target/debug/deps/doc_comments-879e59e7d6f12b85)
+
+running 2 tests
+test documentation_facts_survive_packs_reopen_and_independent_file_edits ... ok
+test documentation_retrieves_the_documented_declaration_without_claiming_containment ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.27s
+
+     Running tests/end_to_end.rs (target/debug/deps/end_to_end-262ccaeac6ea25ca)
+
+running 4 tests
+test the_direction_filter_flows_through_deps ... ok
+test a_reader_never_writes_and_a_read_only_index_refuses ... ok
+test the_full_surface_answers_through_one_handle ... ok
+test a_stale_index_reconciles_before_answering ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.21s
+
+     Running tests/js_modules.rs (target/debug/deps/js_modules-82f394a6d42097dc)
+
+running 6 tests
+test reexports_follow_bindings_and_handle_stars_cycles_duplicates_and_type_only_calls ... ok
+test package_self_exports_and_private_maps_require_authored_targets ... ok
+test explicit_exports_override_stars_and_long_forwarding_chains_stop ... ok
+test imports_require_exports_and_preserve_named_default_and_namespace_identity ... ok
+test package_map_edits_and_missing_target_creation_rebind_after_reopen ... ok
+test export_edits_rebind_consumers_after_reopen_like_clean_rebuilds ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.37s
+
+     Running tests/markdown.rs (target/debug/deps/markdown-609115e3b15a076b)
+
+running 11 tests
+test long_fence_fragments_stay_inside_their_original_block ... ok
+test long_frontmatter_is_bounded_and_covers_raw_bytes_without_crossing_into_prose ... ok
+test frontmatter_is_searchable_after_reopen_without_prose_or_false_fence_context ... ok
+test setext_title_stays_with_its_searchable_section ... ok
+test fenced_examples_keep_their_delimiters_in_bounded_body_context ... ok
+test long_table_row_groups_retain_original_headers_after_reopen ... ok
+test heading_ancestry_survives_fragmentation_publication_and_reopen ... ok
+test paragraph_and_list_evidence_survive_reopen_and_live_edits ... ok
+test link_fields_persist_and_incremental_edits_match_fresh_extraction ... ok
+test identical_document_versions_keep_path_occurrences_through_updates_and_reopen ... ok
+test link_metadata_caps_are_visible_after_reopen_without_hiding_body_text ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.86s
+
+     Running tests/node_workspaces.rs (target/debug/deps/node_workspaces-9d5c0764d932abc0)
+
+running 5 tests
+test pnpm_workspace_dependencies_follow_declared_identity_and_uniform_exports ... ok
+test package_json_workspace_declarations_and_missing_dependencies_are_distinct ... ok
+test explicit_pnpm_manager_never_uses_package_json_workspaces_as_a_substitute ... ok
+test child_json_workspaces_cannot_override_an_enclosing_pnpm_workspace ... ok
+test edits_rebind_workspace_dependencies_after_reopen_like_a_clean_build ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.18s
+
+     Running tests/occurrences.rs (target/debug/deps/occurrences-945da69960426521)
+
+running 4 tests
+test caps_charge_filtered_occurrences_and_observe_cancellation ... ok
+test routes_preserve_distinct_unicode_crlf_sites_and_resolution_evidence ... ok
+test stale_queries_keep_indexed_coordinates_and_rebinding_keeps_source_ids ... ok
+test serialized_occurrence_payload_drops_whole_records_at_the_byte_cap ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.28s
+
+     Running tests/packages.rs (target/debug/deps/packages-7a64267537f18c55)
+
+running 5 tests
+test repeated_result_packages_share_identity_through_budget_trimming_and_roundtrip ... ok
+test nearest_manifest_scopes_distinguish_packages_and_expose_ambiguity ... ok
+test oversized_manifest_boundaries_invalidate_without_reading_or_inheriting_outer_scope ... ok
+test authored_cargo_targets_survive_edits_reopen_and_clean_rebuild ... ok
+test package_boundary_creation_invalid_edit_removal_and_rename_match_rebuilds ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.92s
+
+     Running tests/payload.rs (target/debug/deps/payload-270a7d0fc5875c77)
+
+running 7 tests
+test direct_core_navigation_enforces_byte_limits_without_changing_exact_boundary ... ok
+test oversized_scan_fields_fail_before_reading_the_tree ... ok
+test oversized_graph_fields_are_rejected_before_automatic_indexing ... ok
+test oversized_required_sync_metadata_fails_before_publication ... ok
+test directly_constructed_file_limits_cannot_bypass_the_execution_ceiling ... ok
+test scan_results_are_bounded_before_and_after_provenance ... ok
+test a_large_call_star_is_bounded_after_provenance_is_attached ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.36s
+
+     Running tests/planner.rs (target/debug/deps/planner-1329f68eca5aff50)
+
+running 12 tests
+test graph_context_admits_only_the_requested_relation_family ... ok
+test explicit_navigation_does_not_broaden_or_spend_posting_work ... ok
+test exact_fast_path_is_optional_and_filtered_misses_fall_back ... ok
+test graph_context_is_explicit_without_changing_lexical_seeds ... ok
+test automatic_multiword_discovery_uses_body_then_metadata_only_when_empty ... ok
+test bm25f_policy_preserves_explicit_intent_boolean_coverage_and_work_limits ... ok
+test incomplete_postings_cannot_claim_unobserved_boolean_coverage ... ok
+test identifier_analysis_recovers_whole_names_and_qualified_context ... ok
+test channels_and_minimum_coverage_are_independent_controls ... ok
+test query_limits_reject_instead_of_weakening_boolean_requirements ... ok
+test task_prompt_policy_is_opt_in_explained_and_preserves_explicit_intent ... ok
+test name_prefix_is_explicit_bounded_and_rebuilt_with_the_generation ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.45s
+
+     Running tests/positional.rs (target/debug/deps/positional-86873c4b9ebde49c)
+
+running 9 tests
+test unchecked_core_host_scans_source_without_spending_posting_allowance ... ok
+test invalid_contract_fails_before_freshness_work ... ok
+test positional_caps_are_shared_and_zero_context_preserves_proof ... ok
+test overlaps_and_different_owners_survive_single_source_scan ... ok
+test filters_precede_source_verification_and_exact_fill_is_complete ... ok
+test storage_windows_do_not_bound_matching_or_declaration_ownership ... ok
+test edited_source_uses_live_file_witnesses_without_stale_ownership ... ok
+test whole_lexemes_stopwords_multiplicity_and_no_metadata_fallback ... ok
+test unicode_original_offsets_survive_reopen_and_reindex ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.31s
+
+     Running tests/provenance.rs (target/debug/deps/provenance-02808d4df103f6b2)
+
+running 5 tests
+test live_text_and_body_evidence_carry_the_bytes_they_used ... ok
+test indexed_snippets_never_use_changed_source ... ok
+test graph_and_impact_context_describe_the_selected_generation ... ok
+test each_graph_request_uses_one_complete_freshness_observation ... ok
+test restored_mtime_is_detected_by_snippets_and_strict_graph_queries ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.22s
+
+     Running tests/retrieval_incremental.rs (target/debug/deps/retrieval_incremental-842c7b56a2310620)
+
+running 4 tests
+test old_manifests_rebuild_and_missing_fact_caches_fall_back_safely ... ok
+test lexical_retrieval_matches_identifiers_signatures_and_exact_names ... ok
+test selective_sync_reuses_persisted_facts_and_tracks_unresolved_and_ambiguous_names ... ok
+test import_precedence_and_cross_language_changes_match_clean_reindex ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.61s
+
+     Running tests/rust_modules.rs (target/debug/deps/rust_modules-1c6ec40f98108f3f)
+
+running 13 tests
+test file_inner_path_attributes_cannot_select_a_wrong_default_child ... ok
+test named_import_aliases_and_module_aliases_bind_in_lexical_scope ... ok
+test anchored_paths_follow_the_current_crate_and_module_tree ... ok
+test cargo_roots_inline_modules_path_attributes_and_ambiguity_have_distinct_paths ... ok
+test anchored_paths_enforce_basic_visibility_and_shared_root_ambiguity ... ok
+test rust_import_lookup_honors_hoisting_value_shadows_namespaces_and_module_barriers ... ok
+test shared_root_context_and_build_scripts_preserve_uncertainty_and_explicit_paths ... ok
+test unavailable_globs_and_type_only_imports_cannot_fall_back_to_global_calls ... ok
+test nonstandard_module_path_creation_and_removal_rebind_cached_declarations ... ok
+test path_loaded_diamonds_cycles_and_orphans_keep_distinct_directory_contexts ... ok
+test module_creation_conflicts_deletion_and_root_edits_rebind_like_clean_builds ... ok
+test anchored_target_creation_visibility_and_removal_match_clean_rebuilds ... ok
+test import_alias_edits_and_target_removal_match_rebuilds_after_reopen ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.80s
+
+     Running tests/scopes.rs (target/debug/deps/scopes-e7292146da47376a)
+
+running 16 tests
+test javascript_and_typescript_binding_patterns_and_hoisting_have_lexical_extent ... ok
+test conditional_declarations_keep_their_own_reference_sites ... ok
+test lexical_targets_and_unresolved_values_survive_publication_and_reopen ... ok
+test aggregate_edges_report_repeated_source_occurrences_after_reopen_and_edit ... ok
+test local_declarations_override_renamed_import_provenance ... ok
+test local_callable_shadow_cannot_inherit_an_outer_class_member ... ok
+test rust_qualified_type_path_is_not_shadowed_by_a_local_function_value ... ok
+test rust_values_patterns_closures_and_order_shadow_without_alias_guessing ... ok
+test rust_unqualified_calls_cannot_inherit_parent_module_items ... ok
+test qualified_class_calls_follow_the_visible_static_member ... ok
+test changing_shadow_bindings_matches_a_clean_build_and_persists_file_facts ... ok
+test rust_use_leaf_facts_survive_packs_reopen_and_alias_edits ... ok
+test static_members_distinguish_deferred_methods_from_accessors_and_initializers ... ok
+test qualified_callable_shadow_updates_preserve_occurrence_provenance ... ok
+test rust_module_binding_changes_match_clean_builds_after_reopen ... ok
+test class_member_changes_rebind_after_sync_and_reopen_like_a_clean_build ... ok
+
+test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.66s
+
+     Running tests/source_units.rs (target/debug/deps/source_units-dbf58eae96912055)
+
+running 7 tests
+test reopening_rejects_hash_consistent_facts_with_a_foreign_owner ... ok
+test parser_and_nonparser_text_publish_hash_bound_source_regions ... ok
+test a_legacy_generation_rebuilds_source_facts_before_automatic_queries ... ok
+test legacy_identifier_facts_upgrade_without_blocking_reopen_or_using_old_analysis ... ok
+test noop_sync_needs_only_the_header_and_timestamp_refresh_keeps_raw_facts ... ok
+test changed_removed_renamed_and_rebound_source_facts_match_a_clean_build ... ok
+test representation_drift_is_reported_and_cannot_reuse_same_hash_body_facts ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.63s
+
+     Running tests/store_exclusion.rs (target/debug/deps/store_exclusion-94257276f96f6e39)
+
+running 6 tests
+test store_cannot_contain_the_source_root ... ok
+test external_store_leaves_same_named_source_directory_searchable ... ok
+test configured_store_exclusion_survives_replacing_defaults ... ok
+test symlink_store_and_root_use_the_actual_subtree ... ok
+test policy_change_removes_previously_indexed_storage ... ok
+test custom_in_tree_store_stays_out_of_source_after_reopen ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.27s
+
+     Running tests/typescript_config.rs (target/debug/deps/typescript_config-3bf4110d10a8c8e2)
+
+running 3 tests
+test persisted_configuration_validation_rejects_invalid_bounds_paths_and_old_versions ... ok
+test declared_configuration_dependencies_do_not_bypass_source_exclusions ... FAILED
+test configuration_facts_survive_reopen_and_incremental_changes_match_clean_rebuild ... ok
+
+failures:
+
+---- declared_configuration_dependencies_do_not_bypass_source_exclusions stdout ----
+
+thread 'declared_configuration_dependencies_do_not_bypass_source_exclusions' (82862063) panicked at crates/graph-search/tests/typescript_config.rs:165:5:
+assertion failed: !sources.contains_key("hidden/base.json")
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    declared_configuration_dependencies_do_not_bypass_source_exclusions
+
+test result: FAILED. 2 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.48s
+
+error: test failed, to rerun pass `-p graph-search --test typescript_config`

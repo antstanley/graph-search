@@ -52,9 +52,29 @@ pub fn diff_against(search_root: &Path, manifest: &Manifest, policy: &WalkPolicy
     Ok(classify(&entries, manifest))
 }
 
-/// The pure classification over walked entries; also the unit-test seam.
+/// Classifies walked entries, reading changed content and rename candidates.
 #[must_use]
 pub fn classify(entries: &[WalkEntry], manifest: &Manifest) -> Diff {
+    let result = classify_with_hash(entries, manifest, |entry| {
+        Ok::<_, std::convert::Infallible>(
+            std::fs::read(&entry.path)
+                .ok()
+                .map(|bytes| crate::hash::content_hash(&bytes)),
+        )
+    });
+    match result {
+        Ok(diff) => diff,
+        Err(never) => match never {},
+    }
+}
+
+/// A fallible hash seam so maintenance can charge reads to its request budget.
+/// Unreadable content is never equivalent to an empty file.
+pub(crate) fn classify_with_hash<E>(
+    entries: &[WalkEntry],
+    manifest: &Manifest,
+    mut hash: impl FnMut(&WalkEntry) -> std::result::Result<Option<String>, E>,
+) -> std::result::Result<Diff, E> {
     let mut diff = Diff::default();
     let version_bump =
         manifest.parser_version != PARSER_VERSION || manifest.schema_version != SCHEMA_VERSION;
@@ -62,7 +82,7 @@ pub fn classify(entries: &[WalkEntry], manifest: &Manifest) -> Diff {
 
     // Hash-based rename detection needs content; it happens after the cheap
     // pass, over the `removed` and unmanifested `added` sets only.
-    let mut hash_pending: BTreeMap<String, String> = BTreeMap::new(); // path -> hash (lazily)
+    let mut hash_pending = Vec::new();
     let mut candidate_removed: BTreeMap<String, &FileEntry> = BTreeMap::new();
     let walked: std::collections::BTreeSet<&str> = entries.iter().map(|e| e.rel.as_str()).collect();
 
@@ -89,7 +109,7 @@ pub fn classify(entries: &[WalkEntry], manifest: &Manifest) -> Diff {
                     && entry.quarantine.is_none() =>
             {
                 // Size or mtime moved: hash before deciding modified.
-                hash_pending.insert(walked_entry.rel.clone(), entry.content_hash.clone());
+                hash_pending.push((walked_entry, &entry.content_hash));
             }
             Some(entry) if !version_bump && entry.quarantine.is_some() => {
                 // A quarantined file is re-attempted only when its bytes change.
@@ -106,16 +126,9 @@ pub fn classify(entries: &[WalkEntry], manifest: &Manifest) -> Diff {
     }
 
     // Hash the pending set and split into renamed vs modified.
-    for (path, old_hash) in &hash_pending {
-        let Some(entry) = entries.iter().find(|e| &e.rel == path) else {
-            continue;
-        };
-        let hash = crate::hash::content_hash(&std::fs::read(&entry.path).unwrap_or_default());
-        if *old_hash == hash {
-            diff.unchanged.push(path.clone());
-        } else if let Some(_removed) = candidate_removed.get(path) {
-            // Impossible in v1: a path cannot be both walked and removed.
-            diff.modified.push(entry.clone());
+    for (entry, old_hash) in hash_pending {
+        if hash(entry)?.as_ref() == Some(old_hash) {
+            diff.unchanged.push(entry.rel.clone());
         } else {
             diff.modified.push(entry.clone());
         }
@@ -135,8 +148,15 @@ pub fn classify(entries: &[WalkEntry], manifest: &Manifest) -> Diff {
     let mut consumed: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
     let mut still_added: Vec<WalkEntry> = Vec::new();
     for added in &diff.added {
-        let hash = crate::hash::content_hash(&std::fs::read(&added.path).unwrap_or_default());
-        if let Some(matches) = removed_by_hash.get_mut(hash.as_str())
+        // With no unpaired removals, a read cannot discover another rename.
+        let added_hash = if consumed.len() < candidate_removed.len() {
+            hash(added)?
+        } else {
+            None
+        };
+        if let Some(matches) = added_hash
+            .as_deref()
+            .and_then(|value| removed_by_hash.get_mut(value))
             && let Some(from) = matches.iter().find(|p| !consumed.contains(**p))
         {
             let from = (*from).clone();
@@ -168,7 +188,7 @@ pub fn classify(entries: &[WalkEntry], manifest: &Manifest) -> Diff {
         }
     }
 
-    diff
+    Ok(diff)
 }
 
 /// Whether `entry` is stale compared with what a fresh walk would record —
@@ -189,5 +209,68 @@ pub fn entry_for(walked: &WalkEntry, content_hash: &str, quarantine: Option<Stri
         schema_version: SCHEMA_VERSION,
         quarantine,
         extraction: None,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn entry(path: &str) -> WalkEntry {
+        WalkEntry {
+            path: path.into(),
+            rel: path.into(),
+            language: None,
+            size: 0,
+            mtime_ns: 1,
+        }
+    }
+
+    #[test]
+    fn additions_without_removals_do_not_read_content() {
+        let entries = [entry("new.rs")];
+        let manifest = Manifest::new(PARSER_VERSION, SCHEMA_VERSION);
+        let diff = classify_with_hash::<crate::Error>(&entries, &manifest, |_| {
+            panic!("there is no possible rename")
+        })
+        .unwrap();
+        assert_eq!(diff.added, entries);
+    }
+
+    #[test]
+    fn unreadable_changed_empty_file_is_not_unchanged() {
+        let current = entry("empty.rs");
+        let mut stored = entry_for(&current, &crate::hash::content_hash(b""), None);
+        stored.mtime_ns = 0;
+        let mut manifest = Manifest::new(PARSER_VERSION, SCHEMA_VERSION);
+        manifest.entries.insert(current.rel.clone(), stored);
+        let diff =
+            classify_with_hash::<crate::Error>(std::slice::from_ref(&current), &manifest, |_| {
+                Ok(None)
+            })
+            .unwrap();
+        assert_eq!(diff.modified, [current]);
+        assert!(diff.unchanged.is_empty());
+    }
+
+    #[test]
+    fn rename_hash_failure_propagates_and_unreadable_is_not_empty() {
+        let old = entry("old.rs");
+        let new = entry("new.rs");
+        let mut manifest = Manifest::new(PARSER_VERSION, SCHEMA_VERSION);
+        manifest.entries.insert(
+            old.rel.clone(),
+            entry_for(&old, &crate::hash::content_hash(b""), None),
+        );
+        let result = classify_with_hash(std::slice::from_ref(&new), &manifest, |_| {
+            Err(crate::Error::QueryCancelled)
+        });
+        assert!(matches!(result, Err(crate::Error::QueryCancelled)));
+        let diff =
+            classify_with_hash::<crate::Error>(std::slice::from_ref(&new), &manifest, |_| Ok(None))
+                .unwrap();
+        assert!(diff.renamed.is_empty());
+        assert_eq!(diff.added, [new]);
+        assert_eq!(diff.removed, [old.rel]);
     }
 }

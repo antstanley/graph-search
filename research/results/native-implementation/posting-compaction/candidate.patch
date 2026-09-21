@@ -1,0 +1,39 @@
+--- a/crates/core/src/body.rs
++++ b/crates/core/src/body.rs
+@@ -162,6 +162,10 @@
+                     }
+                 }
+             }
++        }
++        // Immutable generation lists cannot use the spare capacity left by pushes.
++        for list in index.postings.values_mut() {
++            list.shrink_to_fit();
+         }
+         index.average_length = (total as f32 / index.documents.len().max(1) as f32).max(1.0);
+         index
+--- a/crates/core/src/lexical.rs
++++ b/crates/core/src/lexical.rs
+@@ -180,7 +180,11 @@
+             whole_field_lengths,
+             postings
+                 .into_iter()
+-                .map(|(term, list)| (term, Arc::new(list)))
++                .map(|(term, mut list)| {
++                    // Published lists never grow; avoid retaining geometric build slack.
++                    list.shrink_to_fit();
++                    (term, Arc::new(list))
++                })
+                 .collect(),
+             (whole, qualified),
+             None,
+--- a/crates/core/src/lexical_update.rs
++++ b/crates/core/src/lexical_update.rs
+@@ -70,6 +70,8 @@
+             }
+             updated.sort_unstable_by_key(|posting| posting.document);
+             if !updated.is_empty() {
++                // Compact only newly built lists; unchanged Arc payloads stay shared.
++                updated.shrink_to_fit();
+                 postings.insert(term.clone(), Arc::new(updated));
+             }
+         }

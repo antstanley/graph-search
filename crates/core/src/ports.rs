@@ -63,6 +63,24 @@ pub trait LanguageExtractor: Send + Sync {
 /// Answers "which extractor, if any, handles this path". The library wires a
 /// registry over the language adapters; `core` never names one.
 pub trait LanguageRegistry {
+    /// Optional raw JSON/JSONC configuration projection over captured source bytes.
+    /// This does not declare project membership or resolve inheritance/aliases.
+    fn typescript_config(
+        &self,
+        _file: &SourceFile<'_>,
+    ) -> Option<graph_search_types::typescript::TypeScriptConfig> {
+        None
+    }
+
+    /// Optional manifest syntax adapter over the same captured source bytes.
+    /// `None` means this registry does not recognize/support the manifest.
+    fn package_manifest(
+        &self,
+        _file: &SourceFile<'_>,
+    ) -> Option<graph_search_types::package::PackageManifest> {
+        None
+    }
+
     /// The extractor that claims `path`, when its language is enabled.
     fn extractor_for(&self, path: &Path) -> Option<&dyn LanguageExtractor>;
 }
@@ -89,6 +107,10 @@ impl LanguageRegistry for ListRegistry {
     }
 }
 
+/// File-keyed raw extraction facts; absent keys mean no cached facts are available.
+pub type ExtractionFacts =
+    std::collections::BTreeMap<String, graph_search_types::extraction::SharedExtraction>;
+
 /// The projected store the projector writes and the query engine reads
 /// (`SPEC.md` §4.2).
 pub trait GraphStore: Send {
@@ -97,12 +119,61 @@ pub trait GraphStore: Send {
     ///
     /// # Errors
     ///
-    /// When the store cannot complete the write; the batch is then abandoned
-    /// whole and the old manifest still stands.
+    /// Preparation failures abandon the batch whole. If a persistent adapter
+    /// cannot confirm durability after publication, it must refuse subsequent
+    /// reads until reopened. Use `publish` for graph and manifest coherence.
     fn apply(
         &mut self,
         batch: graph_search_types::WriteBatch,
     ) -> Result<graph_search_types::ApplyOutcome>;
+
+    /// Publishes graph and manifest as one coherent generation. Persistent
+    /// adapters must override this to prepare all state before making it visible.
+    /// The default is suitable for infallible in-memory implementations.
+    ///
+    /// # Errors
+    /// When preparation or publication fails.
+    fn publish(
+        &mut self,
+        batch: graph_search_types::WriteBatch,
+    ) -> Result<graph_search_types::ApplyOutcome> {
+        let manifest = batch.manifest.clone();
+        let outcome = self.apply(batch)?;
+        self.commit_manifest(manifest)?;
+        Ok(outcome)
+    }
+
+    /// Publishes while explicitly retaining cached facts from an observed header.
+    /// The compatibility path loads only retained facts before normal publication.
+    /// Native persistent adapters can retain verified packed records directly.
+    /// # Errors
+    /// On stale retention identity, missing records or publication failure.
+    fn publish_retaining(
+        &mut self,
+        mut batch: graph_search_types::WriteBatch,
+        retention: &crate::retention::FactRetention,
+    ) -> Result<graph_search_types::ApplyOutcome> {
+        retention.validate_batch(self, &batch)?;
+        let facts = self.extraction_facts(&retention.paths)?;
+        if facts.len() != retention.paths.len() {
+            return Err(crate::Error::Store("missing retained extraction".into()));
+        }
+        for (path, facts) in facts {
+            if let Some(entry) = batch.manifest.entries.get_mut(&path) {
+                entry.extraction = Some(facts);
+            }
+        }
+        self.publish(batch)
+    }
+
+    /// Identity of the currently opened committed generation, if supported.
+    /// This must describe the same state as this handle's snapshots.
+    ///
+    /// # Errors
+    /// When publication left the handle unavailable.
+    fn generation(&self) -> Result<Option<String>> {
+        Ok(None)
+    }
 
     /// A point-in-time read view.
     ///
@@ -116,6 +187,53 @@ pub trait GraphStore: Send {
     /// When the stored manifest cannot be read.
     fn manifest(&self) -> Result<Option<graph_search_types::Manifest>>;
 
+    /// Compact dependencies from the same committed generation as the snapshot.
+    /// `None` selects conservative compatibility repair.
+    /// # Errors
+    /// When the selected generation is unavailable.
+    fn dependency_index(&self) -> Result<Option<&crate::dependencies::DependencyIndex>> {
+        Ok(None)
+    }
+
+    /// Raw extraction facts for the requested paths in this committed generation.
+    /// Unknown paths and unavailable caches are omitted. Native adapters avoid
+    /// cloning/decoding unrequested facts; the compatibility default hydrates the
+    /// full manifest for a nonempty request. An empty request performs no I/O.
+    /// # Errors
+    /// On unavailable generation, unreadable facts or mismatched fingerprints.
+    fn extraction_facts(
+        &self,
+        paths: &std::collections::BTreeSet<String>,
+    ) -> Result<ExtractionFacts> {
+        if paths.is_empty() {
+            return Ok(ExtractionFacts::new());
+        }
+        let manifest = self.manifest()?;
+        Ok(paths
+            .iter()
+            .filter_map(|path| {
+                manifest
+                    .as_ref()?
+                    .entries
+                    .get(path)?
+                    .extraction
+                    .as_ref()
+                    .map(|facts| (path.clone(), facts.clone()))
+            })
+            .collect())
+    }
+
+    /// Freshness/version metadata without raw extraction facts. Native adapters
+    /// serve this from the selected generation without reading its raw-fact file.
+    /// # Errors
+    /// When the selected generation is unavailable.
+    fn manifest_header(&self) -> Result<Option<graph_search_types::Manifest>> {
+        Ok(self
+            .manifest()?
+            .as_ref()
+            .map(graph_search_types::Manifest::header))
+    }
+
     /// Commits the manifest after a successful apply (`SPEC.md` §6.4).
     ///
     /// # Errors
@@ -125,6 +243,26 @@ pub trait GraphStore: Send {
 
 /// A point-in-time read view of the store (`SPEC.md` §4.2).
 pub trait GraphSnapshot {
+    /// Exact cached counts from this generation; does not enumerate graph facts.
+    fn counts(&self) -> &graph_search_types::result::StoreCounts;
+
+    /// File-owned reference occurrences from the selected graph generation.
+    fn occurrence_files(
+        &self,
+    ) -> &std::collections::BTreeMap<String, graph_search_types::occurrence::OccurrenceFile>;
+    /// Native occurrence lookup positions from the same generation.
+    fn occurrences(&self) -> &crate::occurrences::OccurrenceIndex;
+    /// Immutable source-region postings from the same generation.
+    fn body(&self) -> &crate::body::BodyIndex;
+
+    /// Hash-bound native source facts from this same committed generation.
+    fn source_files(
+        &self,
+    ) -> &std::collections::BTreeMap<String, graph_search_types::source::SourceFileUnits>;
+
+    /// Immutable native metadata retrieval structures owned by this generation.
+    fn metadata(&self) -> &crate::metadata::MetadataIndex;
+
     /// The node with this exact id.
     ///
     /// # Errors
@@ -144,6 +282,19 @@ pub trait GraphSnapshot {
     /// # Errors
     /// When the read fails.
     fn edges_from(&self, id: &NodeId, kinds: &[EdgeKind], dir: Direction) -> Result<Vec<Edge>>;
+
+    /// Bounded adjacency. Implementations must stop before materializing omitted
+    /// edges and charge every examined candidate, including filtered kinds.
+    ///
+    /// # Errors
+    /// On read failure, cancellation, or deadline.
+    fn edges_bounded(
+        &self,
+        id: &NodeId,
+        kinds: &[EdgeKind],
+        dir: Direction,
+        budget: &mut crate::work::WorkBudget,
+    ) -> Result<Vec<Edge>>;
 
     /// The subgraph within `hops` of `seeds` along `kinds` in `dir`.
     ///

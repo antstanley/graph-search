@@ -1,0 +1,6 @@
+{
+  "file": "crates/engine/src/store.rs",
+  "before": "        prepared.refresh_indexes(Some(&self.metadata))?;\n",
+  "after": "        prepared.refresh_indexes(None)?;\n",
+  "control_file_sha256": "13504156cb44102397cdb36dd45dad962ff83642113f2fdd5e2961486b723ed7"
+}

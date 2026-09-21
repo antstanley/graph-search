@@ -1,0 +1,96 @@
+{
+  "node": "v24.19.0",
+  "files": {
+    "api.mjs": "function privateSend(){} export function send(){return 'send'} export default function primary(){return 'primary'}",
+    "other.mjs": "export function send(){return 'other'}",
+    "named.mjs": "export {send as deliver, default} from './api.mjs';",
+    "local.mjs": "import {send as local} from './api.mjs'; export {local as deliver};",
+    "cycle.mjs": "export * from './star.mjs';",
+    "star.mjs": "export * from './api.mjs'; export * from './cycle.mjs';",
+    "diamond.mjs": "export * from './api.mjs'; export * from './star.mjs';",
+    "ambiguous.mjs": "export * from './api.mjs'; export * from './other.mjs';",
+    "override.mjs": "export * from './ambiguous.mjs'; export {send} from './api.mjs';"
+  },
+  "cases": [
+    {
+      "name": "named",
+      "source": "import {deliver} from './named.mjs'; assert.equal(deliver(),'send');",
+      "expected_success": true,
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "default",
+      "source": "import main from './named.mjs'; assert.equal(main(),'primary');",
+      "expected_success": true,
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "namespace",
+      "source": "import * as api from './api.mjs'; assert.equal(api.send(),'send'); assert.equal(api.privateSend,undefined);",
+      "expected_success": true,
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "private",
+      "source": "import {privateSend} from './api.mjs'; privateSend();",
+      "expected_success": false,
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "file:///private/var/folders/ft/6fdqp3c914xfdlk47w5cblzc0000gn/T/graph-search-js-module-m62en6cw/case.mjs:2\nimport {privateSend} from './api.mjs'; privateSend();\n        ^^^^^^^^^^^\nSyntaxError: The requested module './api.mjs' does not provide an export named 'privateSend'\n    at #asyncInstantiate (node:internal/modules/esm/module_job:327:21)\n    at async ModuleJob.run (node:internal/modules/esm/module_job:431:5)\n    at async node:internal/modules/esm/loader:643:26\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)\n\nNode.js v24.19.0\n"
+    },
+    {
+      "name": "local_forward",
+      "source": "import {deliver} from './local.mjs'; assert.equal(deliver(),'send');",
+      "expected_success": true,
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "cycle",
+      "source": "import {send} from './star.mjs'; assert.equal(send(),'send');",
+      "expected_success": true,
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "diamond",
+      "source": "import {send} from './diamond.mjs'; assert.equal(send(),'send');",
+      "expected_success": true,
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "ambiguous",
+      "source": "import {send} from './ambiguous.mjs'; send();",
+      "expected_success": false,
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "file:///private/var/folders/ft/6fdqp3c914xfdlk47w5cblzc0000gn/T/graph-search-js-module-m62en6cw/case.mjs:2\nimport {send} from './ambiguous.mjs'; send();\n        ^^^^\nSyntaxError: The requested module './ambiguous.mjs' contains conflicting star exports for name 'send'\n    at #asyncInstantiate (node:internal/modules/esm/module_job:327:21)\n    at async ModuleJob.run (node:internal/modules/esm/module_job:431:5)\n    at async node:internal/modules/esm/loader:643:26\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)\n\nNode.js v24.19.0\n"
+    },
+    {
+      "name": "explicit_over_star",
+      "source": "import {send} from './override.mjs'; assert.equal(send(),'send');",
+      "expected_success": true,
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "name": "star_excludes_default",
+      "source": "import main from './star.mjs'; main();",
+      "expected_success": false,
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "file:///private/var/folders/ft/6fdqp3c914xfdlk47w5cblzc0000gn/T/graph-search-js-module-m62en6cw/case.mjs:2\nimport main from './star.mjs'; main();\n       ^^^^\nSyntaxError: The requested module './star.mjs' does not provide an export named 'default'\n    at #asyncInstantiate (node:internal/modules/esm/module_job:327:21)\n    at async ModuleJob.run (node:internal/modules/esm/module_job:431:5)\n    at async node:internal/modules/esm/loader:643:26\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)\n\nNode.js v24.19.0\n"
+    }
+  ]
+}

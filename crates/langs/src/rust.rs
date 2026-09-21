@@ -40,6 +40,19 @@ impl LanguageExtractor for RustExtractor {
             scope: Vec::new(),
         };
         extractor.walk_node(tree.root_node());
+        let (root_path, root_unsupported) = module_path(tree.root_node(), file.text);
+        if root_path.is_some() || root_unsupported {
+            for symbol in &mut extractor.extraction.symbols {
+                if symbol.kind == NodeKind::Module {
+                    symbol.attributes.insert(
+                        "rust_module_unavailable".into(),
+                        "file_inner_attribute_unsupported".into(),
+                    );
+                }
+            }
+        }
+        crate::scopes::enrich(tree.root_node(), file.text, &mut extractor.extraction);
+        crate::doc_comments::enrich(tree.root_node(), file.text, true, &mut extractor.extraction);
         Ok(extractor.extraction)
     }
 }
@@ -68,12 +81,7 @@ impl Extractor<'_> {
     }
 
     fn span(node: Node<'_>) -> Span {
-        Span::new(
-            crate::walk::line_of(node.start_position().row),
-            crate::walk::line_of(node.end_position().row),
-            crate::walk::line_of(node.start_byte()),
-            crate::walk::line_of(node.end_byte()),
-        )
+        crate::walk::span_of(node)
     }
 
     fn line(node: Node<'_>) -> u32 {
@@ -95,19 +103,30 @@ impl Extractor<'_> {
         }
         qualified.push_str(name);
         let mut key = format!("{}:{qualified}", kind.as_str());
-        for scope in self.scope.iter().rev() {
+        // The immediate parent's key already contains its full ancestry.
+        // Prepending every ancestor again makes nested keys grow exponentially.
+        if let Some(scope) = self.scope.last() {
             key = format!("{}>{}", scope.key, key);
         }
         (key, qualified)
     }
 
     fn visibility(&self, node: Node<'_>) -> Option<Visibility> {
-        let child = node.child_by_field_name("visibility")?;
-        match self.text(child) {
-            text if text.starts_with("pub(crate)") => Some(Visibility::Crate),
-            text if text.starts_with("pub(super)") => Some(Visibility::Super),
-            text if text.starts_with("pub") => Some(Visibility::Public),
-            _ => Some(Visibility::Private),
+        let child = visibility_modifier(node)?;
+        if child.has_error() {
+            return None;
+        }
+        let mut cursor = child.walk();
+        let path = child
+            .named_children(&mut cursor)
+            .find(|n| !matches!(n.kind(), "line_comment" | "block_comment"));
+        match path.map(|n| n.kind()) {
+            Some("crate") => Some(Visibility::Crate),
+            Some("super") => Some(Visibility::Super),
+            Some("self") => Some(Visibility::Private),
+            None if self.text(child).trim() == "pub" => Some(Visibility::Public),
+            // Arbitrary restricted paths need module identity, not a public guess.
+            _ => None,
         }
     }
 
@@ -119,14 +138,11 @@ impl Extractor<'_> {
     }
 
     fn reference_from(&self, kind: EdgeKind, name: String, node: Node<'_>) -> ReferenceFact {
-        let dynamic =
-            kind == EdgeKind::Calls && crate::walk::parameter_shadows(node, self.source, &name);
-        let mut fact = match self.scope.last().map(|scope| scope.key.clone()) {
+        let fact = match self.scope.last().map(|scope| scope.key.clone()) {
             Some(key) => ReferenceFact::from_symbol(key, kind, name, Self::line(node)),
             None => ReferenceFact::file_level(kind, name, Self::line(node)),
         };
-        fact.dynamic = dynamic;
-        fact
+        fact.at(Self::span(node))
     }
 
     // ------------------------------------------------------------------
@@ -190,6 +206,12 @@ impl Extractor<'_> {
         let mut fact =
             SymbolFact::new(key, kind, name, qualified, Self::span(node)).with_signature(signature);
         fact = fact.with_visibility(self.visibility(node), self.is_async(node));
+        if let Some(modifier) = visibility_modifier(node) {
+            fact.attributes.insert(
+                "rust_visibility_modifier".into(),
+                self.text(modifier).into(),
+            );
+        }
         if let Some(parent) = parent {
             fact = fact.with_parent(parent);
         }
@@ -285,13 +307,34 @@ impl Extractor<'_> {
         };
         let name = self.text(name_node).to_owned();
         self.emit(node, NodeKind::Module, name.clone(), format!("mod {name}"));
-        // `mod helper;` names a file: an import edge (`SPEC.md` §7.1).
+        let (module_path, unsupported) = module_path(node, self.source);
+        if let Some(fact) = self.extraction.symbols.last_mut() {
+            fact.attributes.insert(
+                "rust_module_form".into(),
+                if node.child_by_field_name("body").is_some() {
+                    "inline"
+                } else {
+                    "external"
+                }
+                .into(),
+            );
+            if let Some(path) = module_path {
+                fact.attributes.insert("rust_module_path".into(), path);
+            }
+            if unsupported {
+                fact.attributes.insert(
+                    "rust_module_unavailable".into(),
+                    "attribute_unsupported".into(),
+                );
+            }
+        }
+        // `mod helper;` names a file: preserve its exact declaration context.
         if node.child_by_field_name("body").is_none() {
-            self.extraction.references.push(ReferenceFact::file_level(
-                EdgeKind::Imports,
-                name.clone(),
-                Self::line(node),
-            ));
+            let mut reference =
+                ReferenceFact::file_level(EdgeKind::Imports, name.clone(), Self::line(node))
+                    .at(Self::span(node));
+            reference.rust_module_declaration = true;
+            self.extraction.references.push(reference);
         }
         let (key, qualified) = self.qualify(&name, NodeKind::Module);
         self.scope.push(Scope {
@@ -333,21 +376,18 @@ impl Extractor<'_> {
         let Some(arg) = node.child_by_field_name("argument") else {
             return;
         };
-        // `use a::b as c;` and `use a::{b, c};` — one fact per emitted path.
-        for spec in use_paths(self.text(arg)) {
-            self.extraction.references.push(ReferenceFact::file_level(
-                EdgeKind::Imports,
-                spec,
-                Self::line(node),
-            ));
-        }
+        let visibility = visibility_modifier(node).map(|n| self.text(n).to_owned());
+        self.extraction
+            .references
+            .extend(crate::rust_use::extract(arg, self.source, visibility));
     }
 
     fn call(&mut self, node: Node<'_>) {
         let Some(function) = node.child_by_field_name("function") else {
             return;
         };
-        let mut callee = self.text(function).trim().to_owned();
+        let mut callee = crate::rust_use::path_text(function, self.source)
+            .unwrap_or_else(|| self.text(function).trim().to_owned());
         if let Some(member) = callee.strip_prefix("self.")
             && !member.contains('.')
             && let Some(scope) = self.scope.last()
@@ -359,9 +399,9 @@ impl Extractor<'_> {
             // `0()`, string literals: not name references.
             return;
         }
-        self.extraction
-            .references
-            .push(self.reference_from(EdgeKind::Calls, callee, node));
+        let mut reference = self.reference_from(EdgeKind::Calls, callee, node);
+        reference.raw_name = Some(self.text(function).trim().to_owned());
+        self.extraction.references.push(reference);
         // The receiver may itself be a call (factory().run()).
         self.walk_node(function);
         // Arguments can call too: walk the argument list.
@@ -429,49 +469,93 @@ fn type_names(node: Node<'_>, source: &str) -> Vec<String> {
     names
 }
 
-/// `a::b as c` -> `a::b`; `a::{b, c}` -> one entry per path.
-fn use_paths(argument: &str) -> Vec<String> {
-    let mut paths = Vec::new();
-    expand_use(argument.trim(), String::new(), &mut paths);
-    paths
+// Attribute syntax is owned by the parser. Unknown macro/cfg_attr attributes
+// may rewrite module paths and must not silently fall back to default filenames.
+fn visibility_modifier(node: Node<'_>) -> Option<Node<'_>> {
+    let mut cursor = node.walk();
+    node.named_children(&mut cursor)
+        .find(|child| child.kind() == "visibility_modifier")
 }
 
-fn expand_use(text: &str, prefix: String, out: &mut Vec<String>) {
-    let text = text.trim();
-    if let Some(open) = text.find('{') {
-        let head = text[..open].trim().trim_end_matches("::");
-        let close = text.rfind('}').unwrap_or(text.len());
-        let inner = &text[open.saturating_add(1)..close];
-        let base = if head.is_empty() {
-            prefix
-        } else {
-            join_use(&prefix, head)
-        };
-        for piece in inner.split(',') {
-            expand_use(piece, base.clone(), out);
+fn module_path(node: Node<'_>, source: &str) -> (Option<String>, bool) {
+    let mut attributes = Vec::new();
+    let mut previous = node.prev_named_sibling();
+    while let Some(attribute) = previous {
+        match attribute.kind() {
+            "line_comment" | "block_comment" => {}
+            "attribute_item" => attributes.push(attribute),
+            _ => break,
         }
-        return;
+        previous = attribute.prev_named_sibling();
     }
-    let path = text.split(" as ").next().unwrap_or(text).trim();
-    if path.is_empty() || path == "self" {
-        return;
+    let attribute_body = if node.kind() == "source_file" {
+        Some(node)
+    } else {
+        node.child_by_field_name("body")
+    };
+    if let Some(body) = attribute_body {
+        let mut cursor = body.walk();
+        attributes.extend(
+            body.named_children(&mut cursor)
+                .filter(|child| child.kind() == "inner_attribute_item"),
+        );
     }
-    out.push(join_use(&prefix, path));
+    let mut path = None;
+    let mut unsupported = false;
+    for attribute in attributes {
+        let text = crate::walk::text(attribute, source).trim();
+        let text = text
+            .strip_prefix("#[")
+            .or_else(|| text.strip_prefix("#!["))
+            .and_then(|text| text.strip_suffix(']'))
+            .unwrap_or("")
+            .trim();
+        let name = text
+            .split(|ch: char| !ch.is_alphanumeric() && ch != '_')
+            .next()
+            .unwrap_or("");
+        if name == "path" {
+            let value = text
+                .strip_prefix("path")
+                .and_then(|text| text.trim_start().strip_prefix('='))
+                .and_then(|text| module_string(text.trim()));
+            if path.is_some() || value.is_none() {
+                unsupported = true;
+            }
+            path = value;
+        } else if !matches!(
+            name,
+            "cfg" | "doc" | "allow" | "warn" | "deny" | "forbid" | "expect" | "deprecated"
+        ) {
+            unsupported = true;
+        }
+    }
+    (path, unsupported)
 }
 
-fn join_use(prefix: &str, path: &str) -> String {
-    if prefix.is_empty() {
-        path.to_owned()
+fn module_string(text: &str) -> Option<String> {
+    let value = if let Some(raw) = text.strip_prefix('r') {
+        let hashes = raw.bytes().take_while(|byte| *byte == b'#').count();
+        let quote = raw.get(hashes..)?.strip_prefix('"')?;
+        quote.strip_suffix(&format!("\"{}", "#".repeat(hashes)))?
     } else {
-        format!("{prefix}::{path}")
-    }
+        let value = text.strip_prefix('"')?.strip_suffix('"')?;
+        if value.contains('\\') || value.contains('"') {
+            return None;
+        }
+        value
+    };
+    (!value.is_empty()
+        && !value.contains('\0')
+        && value.len() <= graph_search_types::limits::MAX_CARGO_TARGET_PATH_BYTES)
+        .then(|| value.to_owned())
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    fn extract(text: &'static str) -> Extraction {
+    fn extract(text: &str) -> Extraction {
         let file = SourceFile {
             path: Path::new("src/t.rs"),
             text,
@@ -479,6 +563,51 @@ mod tests {
         RustExtractor
             .extract(&file)
             .unwrap_or_else(|e| panic!("extract: {e}"))
+    }
+
+    #[test]
+    fn module_attributes_and_reference_spans_preserve_declaration_context() {
+        let code = r##"#[path = r#"é.rs"#] mod external;
+mod inline { #![path="custom"] mod child; }
+#[cfg_attr(unix,path="other.rs")] mod conditional;
+#[path="one.rs"] #[path="two.rs"] mod duplicate;
+#[path="escaped\x2ers"] mod escaped;
+"##;
+        let extraction = extract(code);
+        let modules: Vec<_> = extraction
+            .symbols
+            .iter()
+            .filter(|node| node.kind == NodeKind::Module)
+            .collect();
+        assert_eq!(
+            modules[0]
+                .attributes
+                .get("rust_module_path")
+                .map(String::as_str),
+            Some("é.rs")
+        );
+        assert_eq!(
+            modules[1]
+                .attributes
+                .get("rust_module_path")
+                .map(String::as_str),
+            Some("custom")
+        );
+        for name in ["conditional", "duplicate", "escaped"] {
+            assert!(
+                modules
+                    .iter()
+                    .find(|node| node.name == name)
+                    .unwrap()
+                    .attributes
+                    .contains_key("rust_module_unavailable")
+            );
+        }
+        for reference in &extraction.references {
+            assert!(reference.rust_module_declaration);
+            let span = reference.span.unwrap();
+            assert!(code[span.start_byte as usize..span.end_byte as usize].starts_with("mod "));
+        }
     }
 
     #[test]
@@ -531,6 +660,120 @@ impl Read for Parser { fn parse(&self) {} }
     }
 
     #[test]
+    fn nested_use_groups_preserve_self_and_sibling_paths() {
+        let extraction =
+            extract("use crate::outer::{self, nested::{alpha, beta as renamed}, gamma};");
+        let paths: Vec<_> = extraction
+            .references
+            .iter()
+            .filter(|r| r.kind == EdgeKind::Imports)
+            .map(|r| r.name.as_str())
+            .collect();
+        assert_eq!(
+            paths,
+            [
+                "crate::outer",
+                "crate::outer::nested::alpha",
+                "crate::outer::nested::beta",
+                "crate::outer::gamma"
+            ]
+        );
+    }
+
+    #[test]
+    fn use_leaves_keep_aliases_globs_visibility_and_original_scopes() {
+        let source = "// é\r\nmod inner { pub(crate) use crate /* comment */ :: outer::{self as base, nested::{alpha as renamed, beta}, r#type as _, *}; }";
+        let extraction = extract(source);
+        let facts: Vec<_> = extraction
+            .references
+            .iter()
+            .filter(|r| r.rust_use.is_some())
+            .collect();
+        let expected = [
+            ("crate::outer", Some("base"), false),
+            ("crate::outer::nested::alpha", Some("renamed"), false),
+            ("crate::outer::nested::beta", Some("beta"), false),
+            ("crate::outer::r#type", None, false),
+            ("crate::outer::*", None, true),
+        ];
+        assert_eq!(facts.len(), expected.len());
+        for (fact, (path, local, glob)) in facts.iter().zip(expected) {
+            assert_eq!(fact.name, path);
+            let import = fact.rust_use.as_ref().unwrap();
+            assert_eq!(import.local_name.as_deref(), local);
+            assert_eq!(import.glob, glob);
+            assert_eq!(import.visibility.as_deref(), Some("pub(crate)"));
+            let span = fact.span.unwrap();
+            assert_eq!(
+                fact.raw_name.as_deref(),
+                Some(&source[span.start_byte as usize..span.end_byte as usize])
+            );
+            assert_eq!(extraction.scopes[fact.scope.unwrap()].kind, "module");
+            assert!(!fact.dynamic);
+        }
+        assert!(facts[0].rust_use.as_ref().unwrap().type_only);
+        assert!(
+            facts[1..]
+                .iter()
+                .all(|r| !r.rust_use.as_ref().unwrap().type_only)
+        );
+        let trailing = extract("use crate::api::self as api; use self::*;");
+        assert_eq!(trailing.references[0].name, "crate::api");
+        assert!(trailing.references[0].rust_use.as_ref().unwrap().type_only);
+        assert!(!trailing.references[1].rust_use.as_ref().unwrap().type_only);
+        let absolute = extract("use ::package::{item, nested::{self, leaf}};");
+        assert_eq!(
+            absolute
+                .references
+                .iter()
+                .map(|r| r.name.as_str())
+                .collect::<Vec<_>>(),
+            [
+                "::package::item",
+                "::package::nested",
+                "::package::nested::leaf"
+            ]
+        );
+    }
+
+    #[test]
+    fn unsupported_use_leaf_discards_partial_expansion() {
+        let extraction = extract("use crate::{known, $unknown};");
+        assert_eq!(extraction.references.len(), 1);
+        let fact = &extraction.references[0];
+        assert!(fact.dynamic);
+        assert_eq!(
+            fact.unresolved_reason.as_deref(),
+            Some("rust_use_syntax_unsupported")
+        );
+        assert_eq!(fact.rust_use.as_ref().unwrap().local_name, None);
+        assert!(extract("use crate::empty::{};").references.is_empty());
+    }
+
+    #[test]
+    fn oversized_import_alias_expansion_stays_explicitly_unresolved() {
+        let source = format!(
+            "use crate::{} as relay; fn call() {{ relay(); }}",
+            "x".repeat(4096)
+        );
+        let extraction = extract(&source);
+        let call = extraction
+            .references
+            .iter()
+            .find(|r| r.kind == EdgeKind::Calls)
+            .unwrap();
+        assert!(call.dynamic);
+        assert_eq!(
+            call.unresolved_reason.as_deref(),
+            Some("rust_import_expansion_limit")
+        );
+        assert_eq!(call.name, "relay");
+        assert_eq!(call.raw_name.as_deref(), Some("relay"));
+        assert!(call.binding.is_some());
+        assert!(call.via_import.is_none());
+    }
+
+    #[test]
     fn use_statements_expand_groups_and_aliases() {
         let extraction = extract(
             "use std::{io, fs};
@@ -558,6 +801,119 @@ use a::b as c;
             .map(|fact| fact.name.as_str())
             .collect();
         assert!(type_uses.contains(&"Vec"), "{type_uses:?}");
+    }
+
+    #[test]
+    fn nested_scope_keys_do_not_repeat_entire_ancestor_chains() {
+        for depth in [4, 8, 12, 16] {
+            let text = format!(
+                "{}fn caller() {{ target(); }} fn target() {{}}{}",
+                "mod layer {".repeat(depth),
+                "}".repeat(depth)
+            );
+            let extraction = extract(&text);
+            let bytes: usize = extraction.symbols.iter().map(|s| s.key.len()).sum();
+            assert!(bytes < 64 * (depth + 2).pow(3), "depth={depth}: {bytes}");
+            for symbol in &extraction.symbols {
+                if let Some(parent) = &symbol.parent_key {
+                    assert_eq!(
+                        extraction
+                            .symbols
+                            .iter()
+                            .filter(|s| &s.key == parent)
+                            .count(),
+                        1
+                    );
+                }
+            }
+            let caller = extraction
+                .symbols
+                .iter()
+                .find(|s| s.name == "caller")
+                .unwrap();
+            let call = extraction
+                .references
+                .iter()
+                .find(|r| r.kind == EdgeKind::Calls)
+                .unwrap();
+            assert_eq!(call.from_key.as_deref(), Some(caller.key.as_str()));
+        }
+    }
+
+    #[test]
+    fn nested_keys_preserve_duplicate_groups_and_distinct_parents() {
+        let extraction = extract(
+            "mod a { mod inner { fn same() {} fn same() {} } }
+             mod b { mod inner { fn same() {} } }",
+        );
+        let same: Vec<_> = extraction
+            .symbols
+            .iter()
+            .filter(|s| s.name == "same")
+            .collect();
+        assert_eq!(same.len(), 3);
+        // Duplicate declarations remain a group for core's ambiguity handling.
+        assert_eq!(same[0].key, same[1].key);
+        assert_eq!(same[0].parent_key, same[1].parent_key);
+        assert_ne!(same[0].key, same[2].key);
+        assert_ne!(same[0].parent_key, same[2].parent_key);
+        assert_eq!(same[0].qualified_name, "a::inner::same");
+        assert_eq!(same[2].qualified_name, "b::inner::same");
+    }
+
+    #[test]
+    fn explicit_visibility_uses_the_grammar_modifier_node() {
+        let extraction = extract(
+            "pub fn public() {} pub(crate) fn internal() {} pub(super) fn parent() {} pub(self) fn local() {} fn omitted() {} pub(in crate::area) fn restricted() {}",
+        );
+        let actual: Vec<_> = extraction
+            .symbols
+            .iter()
+            .map(|s| (s.name.as_str(), s.visibility))
+            .collect();
+        assert_eq!(
+            actual,
+            vec![
+                ("public", Some(Visibility::Public)),
+                ("internal", Some(Visibility::Crate)),
+                ("parent", Some(Visibility::Super)),
+                ("local", Some(Visibility::Private)),
+                ("omitted", None),
+                ("restricted", None)
+            ]
+        );
+        assert_eq!(
+            extraction.symbols[5]
+                .attributes
+                .get("rust_visibility_modifier")
+                .map(String::as_str),
+            Some("pub(in crate::area)")
+        );
+        assert!(
+            !extraction.symbols[4]
+                .attributes
+                .contains_key("rust_visibility_modifier")
+        );
+        for (modifier, expected) in [
+            ("pub ( crate )", Visibility::Crate),
+            ("pub(/* scope */super)", Visibility::Super),
+            ("pub(in self)", Visibility::Private),
+            ("pub(in crate)", Visibility::Crate),
+        ] {
+            let source = format!("{modifier} struct Example {{ {modifier} field: u8 }}");
+            let extraction = extract(&source);
+            assert_eq!(extraction.symbols.len(), 2);
+            for symbol in extraction.symbols {
+                assert_eq!(symbol.visibility, Some(expected), "{modifier}: {symbol:?}");
+                assert_eq!(
+                    symbol
+                        .attributes
+                        .get("rust_visibility_modifier")
+                        .map(String::as_str),
+                    Some(modifier)
+                );
+            }
+        }
     }
 
     #[test]

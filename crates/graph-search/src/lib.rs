@@ -12,15 +12,23 @@
 #![forbid(unsafe_code)]
 #![warn(missing_docs)]
 
+mod cargo_targets;
 pub mod config;
 pub mod error;
 pub mod index;
 pub mod lock;
+pub mod module_presence;
+mod node_package;
+mod package_manifests;
+mod pnpm_workspace;
 pub mod service;
+mod typescript_config;
+mod typescript_order;
 
 pub use error::Error;
 pub use graph_search_core as core;
-pub use index::{Index, OpenOptions, Reconcile};
+pub use graph_search_core::work::{CancellationToken, WorkLimits};
+pub use index::{Index, OpenOptions, Reconcile, Verification};
 pub use service::SearchService;
 
 /// A `Result` whose error is this crate's [`Error`].

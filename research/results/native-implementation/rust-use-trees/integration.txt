@@ -1,0 +1,41 @@
+    Blocking waiting for file lock on build directory
+   Compiling graph-search-types v0.1.0 (/Volumes/Delorean/code/graph-search/crates/types)
+   Compiling graph-search-core v0.1.0 (/Volumes/Delorean/code/graph-search/crates/core)
+   Compiling graph-search-langs v0.1.0 (/Volumes/Delorean/code/graph-search/crates/langs)
+   Compiling graph-search-engine v0.1.0 (/Volumes/Delorean/code/graph-search/crates/engine)
+   Compiling graph-search v0.1.0 (/Volumes/Delorean/code/graph-search/crates/graph-search)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 09s
+     Running tests/rust_modules.rs (target/debug/deps/rust_modules-bfc3d79cb07fc4aa)
+
+running 6 tests
+test file_inner_path_attributes_cannot_select_a_wrong_default_child ... ok
+test shared_root_context_and_build_scripts_preserve_uncertainty_and_explicit_paths ... ok
+test cargo_roots_inline_modules_path_attributes_and_ambiguity_have_distinct_paths ... ok
+test nonstandard_module_path_creation_and_removal_rebind_cached_declarations ... ok
+test path_loaded_diamonds_cycles_and_orphans_keep_distinct_directory_contexts ... ok
+test module_creation_conflicts_deletion_and_root_edits_rebind_like_clean_builds ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.91s
+
+     Running tests/scopes.rs (target/debug/deps/scopes-c62a40e7d4e32ef0)
+
+running 16 tests
+test javascript_and_typescript_binding_patterns_and_hoisting_have_lexical_extent ... ok
+test conditional_declarations_keep_their_own_reference_sites ... ok
+test lexical_targets_and_unresolved_values_survive_publication_and_reopen ... ok
+test aggregate_edges_report_repeated_source_occurrences_after_reopen_and_edit ... ok
+test local_declarations_override_renamed_import_provenance ... ok
+test local_callable_shadow_cannot_inherit_an_outer_class_member ... ok
+test rust_qualified_type_path_is_not_shadowed_by_a_local_function_value ... ok
+test rust_values_patterns_closures_and_order_shadow_without_alias_guessing ... ok
+test rust_unqualified_calls_cannot_inherit_parent_module_items ... ok
+test qualified_class_calls_follow_the_visible_static_member ... ok
+test changing_shadow_bindings_matches_a_clean_build_and_persists_file_facts ... ok
+test rust_use_leaf_facts_survive_packs_reopen_and_alias_edits ... ok
+test static_members_distinguish_deferred_methods_from_accessors_and_initializers ... ok
+test qualified_callable_shadow_updates_preserve_occurrence_provenance ... ok
+test rust_module_binding_changes_match_clean_builds_after_reopen ... ok
+test class_member_changes_rebind_after_sync_and_reopen_like_a_clean_build ... ok
+
+test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.59s
+

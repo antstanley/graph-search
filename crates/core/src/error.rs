@@ -7,6 +7,27 @@ use std::path::PathBuf;
 /// Everything that can fail operatively.
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
+    /// Structured query input exceeds a limit or is inconsistent.
+    #[error("invalid query: {0}")]
+    InvalidQuery(String),
+    /// The host cancelled the running query.
+    #[error("query cancelled")]
+    QueryCancelled,
+    /// The monotonic query deadline elapsed.
+    #[error("query deadline exceeded")]
+    QueryDeadline,
+    /// Required result metadata cannot fit the byte ceiling.
+    #[error("required result metadata exceeds the {0}-byte payload budget")]
+    ResultBudget(usize),
+    /// Reconciliation cannot infer deletions from incomplete enumeration.
+    #[error("incomplete source enumeration: {0}; the prior index was preserved")]
+    IncompleteWalk(String),
+    /// A bounded freshness check could not verify every required source.
+    #[error("incomplete freshness verification: {0}")]
+    IncompleteVerification(String),
+    /// Automatic maintenance could not complete its required source reads.
+    #[error("incomplete index maintenance: {0}; the prior index was preserved")]
+    IncompleteMaintenance(String),
     /// The store could not be opened, read, or written.
     #[error("store error: {0}")]
     Store(String),

@@ -1,0 +1,6 @@
+{
+  "file": "crates/engine/src/store.rs",
+  "before": "        if let Some(manifest) = manifest {\n            self.extraction_records = Some(\n                crate::manifest_records::save(\n                    dir,\n                    manifest,\n                    &previous.data_dir,\n                    previous.extraction_records.as_ref(),\n                )\n                .map_err(store_io)?,\n            );\n            self.inject(\"after_extraction_persist\")?;\n            sidecar::save_manifest(dir, &manifest.header()).map_err(store_io)?;\n        }\n",
+  "after": "        if let Some(manifest) = manifest {\n            sidecar::save_manifest(dir, manifest).map_err(store_io)?;\n            self.extraction_records = None;\n        }\n",
+  "control_file_sha256": "ba09f6278d3cf6fe7f380d8a594ffc6091861901cbb89613c18c51cc4a51a650"
+}

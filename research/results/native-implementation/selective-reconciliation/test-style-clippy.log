@@ -1,0 +1,17 @@
+    Checking graph-search-core v0.1.0 (/Volumes/Delorean/code/graph-search/crates/core)
+    Checking graph-search-langs v0.1.0 (/Volumes/Delorean/code/graph-search/crates/langs)
+    Checking graph-search-engine v0.1.0 (/Volumes/Delorean/code/graph-search/crates/engine)
+    Checking graph-search v0.1.0 (/Volumes/Delorean/code/graph-search/crates/graph-search)
+    Checking graph-search-cli v0.1.0 (/Volumes/Delorean/code/graph-search/crates/cli)
+error: assigning the result of `Clone::clone()` may be inefficient
+  --> crates/graph-search/tests/selective_sync.rs:32:9
+   |
+32 |         self.retained = retention.paths.clone();
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use `clone_from()`: `self.retained.clone_from(&retention.paths)`
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#assigning_clones
+   = note: `-D clippy::assigning-clones` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::assigning_clones)]`
+
+error: could not compile `graph-search` (test "selective_sync") due to 1 previous error
+warning: build failed, waiting for other jobs to finish...

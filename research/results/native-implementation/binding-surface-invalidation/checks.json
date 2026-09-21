@@ -1,0 +1,104 @@
+{
+  "source_inputs": 159,
+  "source_inputs_unchanged": true,
+  "binary_sha256": "a4a82485d0c7d32dbcc72a4ae320ef7e27f5aaa5ab4c69661f5b74dbec1477ab",
+  "results_sha256": "f7ffd8ab1d055678f73ff7a7136d84ecab4bb67a4aaa934091039f6f3e847e98",
+  "checks": [
+    {
+      "name": "initial existing incremental tests",
+      "session": 78287,
+      "exit_code": 0,
+      "passed": 4
+    },
+    {
+      "name": "initial matrix and incremental tests",
+      "session": 77329,
+      "exit_code": 0,
+      "passed": 6,
+      "adapter_scenario_combinations": 24
+    },
+    {
+      "name": "broad core library and affected integration validation",
+      "session": 65064,
+      "exit_code": 0,
+      "passed": 265,
+      "suites": 11
+    },
+    {
+      "name": "initial strict workspace lint; documentation markup only",
+      "session": 70059,
+      "exit_code": 101
+    },
+    {
+      "name": "initial release probe",
+      "session": 37937,
+      "exit_code": 0
+    },
+    {
+      "name": "final strengthened matrix and missing-cache tests",
+      "session": 10656,
+      "exit_code": 0,
+      "passed": 6,
+      "adapter_scenario_combinations": 24
+    },
+    {
+      "name": "final strict workspace lint",
+      "session": 67104,
+      "exit_code": 0
+    },
+    {
+      "name": "strict native probe lint",
+      "session": 49848,
+      "exit_code": 0
+    },
+    {
+      "name": "final native release probe",
+      "session": 6451,
+      "exit_code": 0
+    }
+  ],
+  "changes_after_broad_validation": [
+    "documentation backticks in binding_surface.rs",
+    "stronger missing-cache regression in retrieval_incremental.rs"
+  ],
+  "chain_cases": [
+    {
+      "adapter": "memory",
+      "files": 2,
+      "upserts": 1,
+      "matches_clean_rebuild": true
+    },
+    {
+      "adapter": "grafeo_reopened",
+      "files": 2,
+      "upserts": 1,
+      "matches_clean_rebuild": true
+    },
+    {
+      "adapter": "memory",
+      "files": 8,
+      "upserts": 1,
+      "matches_clean_rebuild": true
+    },
+    {
+      "adapter": "grafeo_reopened",
+      "files": 8,
+      "upserts": 1,
+      "matches_clean_rebuild": true
+    },
+    {
+      "adapter": "memory",
+      "files": 32,
+      "upserts": 1,
+      "matches_clean_rebuild": true
+    },
+    {
+      "adapter": "grafeo_reopened",
+      "files": 32,
+      "upserts": 1,
+      "matches_clean_rebuild": true
+    }
+  ],
+  "performance_claim": "submitted file upsert counts only; no latency or memory claim",
+  "remaining": "persisted reverse dependencies and selective fact loading; recommendation 23 stays open"
+}

@@ -6,7 +6,7 @@ import tempfile
 import time
 from pathlib import Path
 from .backends import command
-from .core import bounded, canonical, delivered_lines, digest, read_source
+from .core import bounded, canonical, delivered_lines, digest, explore_items, read_source
 
 TOOLS = [
     {'name':'search','arguments':{'query':'string'}},
@@ -16,8 +16,18 @@ TOOLS = [
 
 def candidates(text):
     result=[]; seen=set()
+    items=explore_items(text)
+    if items is not None:
+        for item in items:
+            if not isinstance(item,dict) or not isinstance(item.get('node'),dict):
+                continue
+            node=item['node'];path=node.get('path');start=node.get('start_line',1)
+            if isinstance(path,str) and path and type(start) is int and start>0 and path not in seen:
+                result.append((path,start));seen.add(path)
+        return result
     for line in text.splitlines():
-        match=re.match(r'^(?:candidate )?(.+?):(\d+)(?:\t| )',line)
+        match=(re.match(r'^candidate (.+?):(\d+)(?:\t| )',line)
+               or re.match(r'^(.+?):(\d+)\t',line))
         if match and match[1] not in seen:
             result.append((match[1],int(match[2])))
             seen.add(match[1])

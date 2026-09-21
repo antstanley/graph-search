@@ -12,6 +12,38 @@ use std::collections::BTreeMap;
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum TruncationKind {
+    /// Positional verification exceeded its original-byte scan allowance.
+    PositionalBytes,
+    /// Positional verification exceeded its token comparison allowance.
+    PositionalTokens,
+    /// Positional verification omitted a witness beyond its request allowance.
+    PositionalWitnesses,
+    /// Unscored metadata records exceeded their independent examination budget.
+    MetadataEntries,
+    /// Source-file open attempts exceeded their independent work budget.
+    SourceFiles,
+    /// Context-window cost evaluations exceeded their independent work budget.
+    ContextWindows,
+    /// Raw occurrence entries exceeded their independent work budget.
+    Occurrences,
+    /// The independent delivered-edge limit omitted relationships.
+    ReturnedEdges,
+    /// Prefix expansion exceeded its dictionary-entry cap.
+    DictionaryEntries,
+    /// Request-local source reads exceeded their total byte budget.
+    SourceBytes,
+    /// A source read exceeded the per-file byte ceiling.
+    SourceFileBytes,
+    /// Per-file source-region indexing reached its cap.
+    SourceUnits,
+    /// Retrieval candidate admissions exceeded their work cap.
+    Candidates,
+    /// Lexical postings exceeded their work cap.
+    Postings,
+    /// Distinct graph nodes exceeded the work budget.
+    GraphNodes,
+    /// Adjacency entries exceeded the work budget.
+    GraphEdges,
     /// The result list was cut.
     Results,
     /// A match line was shortened.
@@ -22,6 +54,8 @@ pub enum TruncationKind {
     Snippet,
     /// The file list was cut.
     Files,
+    /// The directory-entry enumeration budget was exhausted.
+    WalkEntries,
     /// The whole payload hit the byte budget.
     Bytes,
 }
@@ -79,14 +113,63 @@ impl Default for Approximation {
 /// between two runs over an unchanged tree (`SPEC.md` §9.4).
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Stats {
+    /// Unscored metadata records examined, including those rejected by filters.
+    #[serde(default, skip_serializing_if = "zero_count")]
+    pub metadata_entries_examined: u64,
+    /// Query source open attempts, including freshness checks and failed reads.
+    /// Includes automatic index-maintenance reads.
+    #[serde(default, skip_serializing_if = "zero_count")]
+    pub source_files_attempted: u64,
+    /// Query source bytes read, including freshness, invalid files and overflow probes.
+    /// Includes automatic index-maintenance reads.
+    #[serde(default, skip_serializing_if = "zero_count")]
+    pub source_bytes_read: u64,
+    /// Original bytes examined by positional verification across source fields.
+    #[serde(default, skip_serializing_if = "zero_count")]
+    pub positional_bytes_examined: u64,
+    /// Complete lexemes compared by positional verification.
+    #[serde(default, skip_serializing_if = "zero_count")]
+    pub positional_tokens_examined: u64,
+    /// Positional witnesses retained before result packing.
+    #[serde(default, skip_serializing_if = "zero_count")]
+    pub positional_witnesses: u64,
+    /// Context-window cost evaluations, including re-evaluations after source admission.
+    #[serde(default, skip_serializing_if = "zero_count")]
+    pub context_windows_examined: u64,
+    /// Raw occurrence entries examined, including filtered entries.
+    #[serde(default, skip_serializing_if = "zero_count")]
+    pub occurrences_examined: u64,
+    /// Dictionary entries expanded by explicit prefix retrieval.
+    #[serde(default, skip_serializing_if = "zero_count")]
+    pub dictionary_entries_examined: u64,
+    /// Native metadata candidate admissions.
+    #[serde(default, skip_serializing_if = "zero_count")]
+    pub retrieval_candidates_admitted: u64,
+    /// Lexical posting entries examined.
+    #[serde(default, skip_serializing_if = "zero_count")]
+    pub lexical_postings_examined: u64,
+    /// Distinct graph node identities examined under the work budget.
+    #[serde(default, skip_serializing_if = "zero_count")]
+    pub graph_nodes_visited: u64,
+    /// Adjacency entries examined, including entries rejected by filters.
+    #[serde(default, skip_serializing_if = "zero_count")]
+    pub graph_edges_examined: u64,
     /// Files the walk considered.
+    #[serde(default, skip_serializing_if = "zero_count")]
     pub files_scanned: u64,
     /// Matches found (`text`).
+    #[serde(default, skip_serializing_if = "zero_count")]
     pub matches: u64,
     /// Candidate definitions considered (`graph`, `explore`).
+    #[serde(default, skip_serializing_if = "zero_count")]
     pub candidates: u64,
     /// Wall time in milliseconds.
     pub elapsed_ms: u64,
+}
+
+#[allow(clippy::trivially_copy_pass_by_ref)] // serde predicate signature
+fn zero_count(value: &u64) -> bool {
+    *value == 0
 }
 
 /// One `files` hit (`SPEC.md` §9.1).
@@ -153,6 +236,10 @@ pub struct EdgeHit {
     pub line: Option<u32>,
     /// Whether the target resolved.
     pub resolved: bool,
+    /// Number of indexed raw reference occurrences for this aggregate edge.
+    /// Absent for legacy or synthetic relationships without occurrence facts.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub occurrence_count: Option<usize>,
 }
 
 impl SymbolHit {
@@ -187,6 +274,7 @@ impl EdgeHit {
             path: edge.path.clone(),
             line: edge.line,
             resolved: edge.resolved,
+            occurrence_count: None,
         }
     }
 }
@@ -214,15 +302,54 @@ pub struct ImpactSummary {
 /// A bounded source excerpt (`SPEC.md` §9.3).
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Snippet {
+    /// SHA-256 of the original file bytes from which these lines were read.
+    #[serde(default)]
+    pub source_hash: String,
     /// The 1-based line of the first line in `lines`.
     pub start_line: u32,
     /// The excerpt, one entry per line.
     pub lines: Vec<String>,
 }
 
+/// Why an additional source interval was selected.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ExcerptRole {
+    /// Declaration header or a small complete implementation.
+    Declaration,
+    /// Region containing matched body terms.
+    Body,
+    /// Site supporting a returned graph relationship.
+    Reference,
+    /// Authored Markdown heading providing parent document context.
+    DocumentHeading,
+    /// Original fence delimiter/info line providing context for a code fragment.
+    DocumentFence,
+    /// Authored table header/delimiter lines giving a row group its labels.
+    DocumentTableHeader,
+}
+
+/// A labeled, contiguous interval of verified original source lines.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SourceExcerpt {
+    /// Retrieval reason, not a completeness claim about the enclosing symbol.
+    pub role: ExcerptRole,
+    /// Verbatim source with original line numbers and full-file fingerprint.
+    pub snippet: Snippet,
+}
+
 /// One assembled seed of an `explore` answer (`SPEC.md` §8.4, §9.1).
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ExploreItem {
+    /// Optional per-channel diagnostic support.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub retrieval: Option<crate::retrieval::RetrievalEvidence>,
+    /// Additional verified intervals, without lines already delivered elsewhere.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub excerpts: Vec<SourceExcerpt>,
+    /// Matched body region, kept separate from graph declaration coordinates.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub evidence: Option<crate::source::SourceEvidence>,
     /// The definition.
     pub node: SymbolHit,
     /// The bounded excerpt around it, when context was requested.
@@ -234,6 +361,9 @@ pub struct ExploreItem {
 /// A `graph` mode answer.
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 pub struct GraphResult {
+    /// Generation, freshness, and source identity for this answer.
+    #[serde(default)]
+    pub context: crate::context::ResultContext,
     /// The nodes, ordered by the mode's ranking then path then line.
     pub nodes: Vec<SymbolHit>,
     /// The edges among (or pointing at) the nodes.
@@ -250,6 +380,9 @@ pub struct GraphResult {
 /// (`SPEC.md` §8.3).
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 pub struct ImpactResult {
+    /// Generation, freshness, and source identity for this answer.
+    #[serde(default)]
+    pub context: crate::context::ResultContext,
     /// Counts by depth and kind.
     pub by_depth: Vec<DepthCount>,
     /// The top nodes of the cone.
@@ -267,6 +400,12 @@ pub struct ImpactResult {
 /// An `explore` answer (`SPEC.md` §8.4).
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 pub struct ExploreResult {
+    /// Optional query plan and executed routes.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub plan: Option<crate::retrieval::RetrievalPlan>,
+    /// Generation, freshness, and source identity for this answer.
+    #[serde(default)]
+    pub context: crate::context::ResultContext,
     /// The assembled seeds, best first.
     pub items: Vec<ExploreItem>,
     /// Edges among the returned nodes, up to `hops`.
@@ -282,6 +421,9 @@ pub struct ExploreResult {
 /// A `files` answer (`SPEC.md` §8.1).
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 pub struct FilesResult {
+    /// Generation, freshness, and source identity for this answer.
+    #[serde(default)]
+    pub context: crate::context::ResultContext,
     /// The matching files.
     pub items: Vec<FileHit>,
     /// Caps that fired.
@@ -293,6 +435,9 @@ pub struct FilesResult {
 /// A `text` answer (`SPEC.md` §8.2).
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 pub struct TextResult {
+    /// Generation, freshness, and source identity for this answer.
+    #[serde(default)]
+    pub context: crate::context::ResultContext,
     /// The matching lines, grouped by file.
     pub items: Vec<TextHit>,
     /// Caps that fired.
@@ -319,15 +464,22 @@ pub struct StoreCounts {
 /// Why (and how far behind) an index is behind the tree (`SPEC.md` §6.5).
 #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Staleness {
-    /// Paths whose size or mtime differs from the manifest, sorted.
+    /// Paths whose observed metadata or content differs, sorted.
+    /// Status may omit a suffix under its byte cap and report a coverage notice.
     pub changed_paths: Vec<String>,
-    /// How many paths changed.
+    /// Total observed changed paths, including details omitted from status.
     pub changed: u64,
 }
 
-/// What `status` reports (`SPEC.md` §8.5). Exit code is 0 either way.
+/// What a completed `status` inspection reports (`SPEC.md` §8.5).
 #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct IndexStatus {
+    /// Generation whose counts and manifest were inspected.
+    #[serde(default)]
+    pub generation: Option<String>,
+    /// Coverage of the status freshness check.
+    #[serde(default)]
+    pub coverage: crate::coverage::Coverage,
     /// Whether a store exists at the store path.
     pub exists: bool,
     /// The store path (absolute).
@@ -346,9 +498,30 @@ pub struct IndexStatus {
     pub staleness: Option<Staleness>,
 }
 
+/// Exact reconciliation totals, independent of delivered detail lists.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SyncCounts {
+    /// Files inserted (includes the destination of a rename).
+    pub added: u64,
+    /// Files replaced or rebound.
+    pub modified: u64,
+    /// Files removed (includes the source of a rename).
+    pub removed: u64,
+    /// Recognized moves; overlaps added and removed.
+    pub renamed: u64,
+    /// Files quarantined during this reconciliation.
+    pub quarantined: u64,
+}
+
 /// One reconcile class per path (`SPEC.md` §6.3); the `sync` report.
 #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct SyncReport {
+    /// Exact totals before detail truncation; absent in older serialized reports.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub counts: Option<SyncCounts>,
+    /// Enumeration and parser coverage of this reconciliation.
+    #[serde(default)]
+    pub coverage: crate::coverage::Coverage,
     /// Paths parsed and inserted.
     pub added: Vec<String>,
     /// Paths replaced after parsing or rebinding cached extraction facts.
@@ -368,13 +541,26 @@ pub struct SyncReport {
 }
 
 impl SyncReport {
-    /// Whether anything changed.
+    /// Exact totals, falling back to complete detail lists in older reports.
+    #[must_use]
+    pub fn totals(&self) -> SyncCounts {
+        self.counts.unwrap_or(SyncCounts {
+            added: self.added.len() as u64,
+            modified: self.modified.len() as u64,
+            removed: self.removed.len() as u64,
+            renamed: self.renamed.len() as u64,
+            quarantined: self.quarantined.len() as u64,
+        })
+    }
+
+    /// Whether the report contains no classified paths, including unchanged paths.
     #[must_use]
     pub fn is_empty(&self) -> bool {
-        self.added.is_empty()
-            && self.modified.is_empty()
-            && self.removed.is_empty()
-            && self.renamed.is_empty()
+        let totals = self.totals();
+        totals.added == 0
+            && totals.modified == 0
+            && totals.removed == 0
+            && totals.renamed == 0
             && self.unchanged == 0
     }
 }

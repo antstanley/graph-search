@@ -1,0 +1,99 @@
+{
+  "method": "Seven alternating pairs per corpus, with one unmeasured warmup per binary/corpus; control built in a disposable source checkout.",
+  "corpora": {
+    "git-archive:bdcbecef41d9863bca23830ed30615f1c219064d": {
+      "pairs": 7,
+      "median_ms": {
+        "packed": {
+          "initial_ms": 559,
+          "sync_ms": 482,
+          "clean_reindex_ms": 507,
+          "noop_ms": 9
+        },
+        "whole": {
+          "initial_ms": 536,
+          "sync_ms": 484,
+          "clean_reindex_ms": 481,
+          "noop_ms": 9
+        }
+      },
+      "paired_sync_delta_ms": [
+        -4,
+        -2,
+        -9,
+        13,
+        -7,
+        -5,
+        11
+      ],
+      "median_paired_sync_delta_ms": -4,
+      "median_paired_initial_delta_ms": 23,
+      "packed_sync_wins": 5,
+      "logical_storage": {
+        "packed": {
+          "generation_bytes": 19481378,
+          "shared_inode_bytes": 7145489,
+          "source_files_on_disk": 2
+        },
+        "whole": {
+          "generation_bytes": 19354585,
+          "shared_inode_bytes": 0,
+          "source_files_on_disk": 0
+        }
+      }
+    },
+    "synthetic-markdown:files=512,body_lines=512": {
+      "pairs": 7,
+      "median_ms": {
+        "packed": {
+          "initial_ms": 1923,
+          "sync_ms": 1039,
+          "clean_reindex_ms": 1823,
+          "noop_ms": 2
+        },
+        "whole": {
+          "initial_ms": 1777,
+          "sync_ms": 1152,
+          "clean_reindex_ms": 1676,
+          "noop_ms": 3
+        }
+      },
+      "paired_sync_delta_ms": [
+        -69,
+        -80,
+        -201,
+        -116,
+        -148,
+        -98,
+        -113
+      ],
+      "median_paired_sync_delta_ms": -113,
+      "median_paired_initial_delta_ms": 146,
+      "packed_sync_wins": 7,
+      "logical_storage": {
+        "packed": {
+          "generation_bytes": 47908838,
+          "shared_inode_bytes": 47320876,
+          "source_files_on_disk": 7
+        },
+        "whole": {
+          "generation_bytes": 47725360,
+          "shared_inode_bytes": 0,
+          "source_files_on_disk": 0
+        }
+      }
+    }
+  },
+  "verification": {
+    "trials": 28,
+    "all_graph_fact_reopen_and_noop_checks": true,
+    "layout_variants_verified": true,
+    "production_source_hashes_unchanged": true,
+    "production_binary_restored": true
+  },
+  "limits": [
+    "Logical file bytes and inode sharing are not physical I/O or peak-memory measurements.",
+    "The synthetic Markdown corpus measures source-fact storage, not code-search relevance or model task success.",
+    "Alternating pairs reduce temporal bias but do not prove a general latency improvement; initial indexing has a measured overhead."
+  ]
+}

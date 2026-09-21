@@ -1,0 +1,235 @@
+{
+  "stable_provenance": true,
+  "errors": {},
+  "results": {
+    "nanus": [
+      {
+        "query": "return None",
+        "mode": "phrase",
+        "median_ms": 43.679750000000006,
+        "files_scanned": 86,
+        "oracle_files": 28,
+        "returned_files": 28,
+        "verified_evidence": 51,
+        "truncations": []
+      },
+      {
+        "query": "not found",
+        "mode": "phrase",
+        "median_ms": 27.336958000000003,
+        "files_scanned": 54,
+        "oracle_files": 5,
+        "returned_files": 5,
+        "verified_evidence": 6,
+        "truncations": []
+      },
+      {
+        "query": "pub fn",
+        "mode": "phrase",
+        "median_ms": 71.137625,
+        "files_scanned": 106,
+        "oracle_files": 76,
+        "returned_files": 15,
+        "verified_evidence": 88,
+        "truncations": [
+          {
+            "cap": 500,
+            "dropped": true,
+            "kind": "results",
+            "message": "matching nodes exceeded the result cap"
+          },
+          {
+            "cap": 65536,
+            "dropped": true,
+            "kind": "bytes",
+            "message": "payload byte cap omitted source excerpts or results"
+          }
+        ]
+      },
+      {
+        "query": "throw new Error",
+        "mode": "phrase",
+        "median_ms": 9.693375000000001,
+        "files_scanned": 4,
+        "oracle_files": 1,
+        "returned_files": 1,
+        "verified_evidence": 1,
+        "truncations": []
+      },
+      {
+        "query": "export async function",
+        "mode": "phrase",
+        "median_ms": 7.213709,
+        "files_scanned": 4,
+        "oracle_files": 0,
+        "returned_files": 0,
+        "verified_evidence": 0,
+        "truncations": []
+      },
+      {
+        "query": "request response",
+        "mode": "near",
+        "median_ms": 16.537125,
+        "files_scanned": 28,
+        "oracle_files": 9,
+        "returned_files": 9,
+        "verified_evidence": 10,
+        "truncations": []
+      }
+    ],
+    "blogwright": [
+      {
+        "query": "return None",
+        "mode": "phrase",
+        "median_ms": 4.861416,
+        "files_scanned": 8,
+        "oracle_files": 0,
+        "returned_files": 0,
+        "verified_evidence": 0,
+        "truncations": []
+      },
+      {
+        "query": "not found",
+        "mode": "phrase",
+        "median_ms": 7.800083,
+        "files_scanned": 30,
+        "oracle_files": 9,
+        "returned_files": 9,
+        "verified_evidence": 12,
+        "truncations": []
+      },
+      {
+        "query": "pub fn",
+        "mode": "phrase",
+        "median_ms": 3.4391249999999998,
+        "files_scanned": 0,
+        "oracle_files": 0,
+        "returned_files": 0,
+        "verified_evidence": 0,
+        "truncations": []
+      },
+      {
+        "query": "throw new Error",
+        "mode": "phrase",
+        "median_ms": 15.485958,
+        "files_scanned": 48,
+        "oracle_files": 33,
+        "returned_files": 33,
+        "verified_evidence": 72,
+        "truncations": []
+      },
+      {
+        "query": "export async function",
+        "mode": "phrase",
+        "median_ms": 11.173916,
+        "files_scanned": 38,
+        "oracle_files": 22,
+        "returned_files": 22,
+        "verified_evidence": 22,
+        "truncations": []
+      },
+      {
+        "query": "request response",
+        "mode": "near",
+        "median_ms": 5.0966249999999995,
+        "files_scanned": 14,
+        "oracle_files": 0,
+        "returned_files": 0,
+        "verified_evidence": 0,
+        "truncations": []
+      }
+    ],
+    "whatsurvey": [
+      {
+        "query": "return None",
+        "mode": "phrase",
+        "median_ms": 63.93124999999999,
+        "files_scanned": 138,
+        "oracle_files": 0,
+        "returned_files": 0,
+        "verified_evidence": 0,
+        "truncations": []
+      },
+      {
+        "query": "not found",
+        "mode": "phrase",
+        "median_ms": 98.66108299999999,
+        "files_scanned": 123,
+        "oracle_files": 76,
+        "returned_files": 59,
+        "verified_evidence": 75,
+        "truncations": [
+          {
+            "cap": 65536,
+            "dropped": true,
+            "kind": "bytes",
+            "message": "serialized explore result exceeded its byte cap"
+          }
+        ]
+      },
+      {
+        "query": "pub fn",
+        "mode": "phrase",
+        "median_ms": 29.693125000000002,
+        "files_scanned": 1,
+        "oracle_files": 0,
+        "returned_files": 0,
+        "verified_evidence": 0,
+        "truncations": []
+      },
+      {
+        "query": "throw new Error",
+        "mode": "phrase",
+        "median_ms": 103.964708,
+        "files_scanned": 157,
+        "oracle_files": 67,
+        "returned_files": 39,
+        "verified_evidence": 78,
+        "truncations": [
+          {
+            "cap": 65536,
+            "dropped": true,
+            "kind": "bytes",
+            "message": "payload byte cap omitted source excerpts or results"
+          }
+        ]
+      },
+      {
+        "query": "export async function",
+        "mode": "phrase",
+        "median_ms": 78.605833,
+        "files_scanned": 128,
+        "oracle_files": 74,
+        "returned_files": 74,
+        "verified_evidence": 74,
+        "truncations": [
+          {
+            "cap": 65536,
+            "dropped": true,
+            "kind": "bytes",
+            "message": "serialized explore result exceeded its byte cap"
+          }
+        ]
+      },
+      {
+        "query": "request response",
+        "mode": "near",
+        "median_ms": 84.217792,
+        "files_scanned": 107,
+        "oracle_files": 33,
+        "returned_files": 28,
+        "verified_evidence": 83,
+        "truncations": [
+          {
+            "cap": 65536,
+            "dropped": true,
+            "kind": "bytes",
+            "message": "serialized explore result exceeded its byte cap"
+          }
+        ]
+      }
+    ]
+  },
+  "timing": "release, in-process warmup then five repetitions per query; sequential repository workloads; no causal comparison",
+  "scope": "explicit positional predicates, source verification and work; not conceptual relevance or model success"
+}

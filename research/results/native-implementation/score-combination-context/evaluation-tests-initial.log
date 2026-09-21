@@ -1,0 +1,80 @@
+EEEEE
+======================================================================
+ERROR: test_backends (unittest.loader._FailedTest.test_backends)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_backends
+Traceback (most recent call last):
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/unittest/loader.py", line 433, in _find_test_path
+    module = self._get_module_from_name(name)
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/unittest/loader.py", line 374, in _get_module_from_name
+    __import__(name)
+    ~~~~~~~~~~^^^^^^
+  File "/Volumes/Delorean/code/graph-search/evaluation/tests/test_backends.py", line 7, in <module>
+    from taskbench.backends import CodeGraph, TextSearch, Unavailable, command, render_graph_explore
+ModuleNotFoundError: No module named 'taskbench'
+
+
+======================================================================
+ERROR: test_cli (unittest.loader._FailedTest.test_cli)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_cli
+Traceback (most recent call last):
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/unittest/loader.py", line 433, in _find_test_path
+    module = self._get_module_from_name(name)
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/unittest/loader.py", line 374, in _get_module_from_name
+    __import__(name)
+    ~~~~~~~~~~^^^^^^
+  File "/Volumes/Delorean/code/graph-search/evaluation/tests/test_cli.py", line 8, in <module>
+    from taskbench.core import digest
+ModuleNotFoundError: No module named 'taskbench'
+
+
+======================================================================
+ERROR: test_core (unittest.loader._FailedTest.test_core)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_core
+Traceback (most recent call last):
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/unittest/loader.py", line 433, in _find_test_path
+    module = self._get_module_from_name(name)
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/unittest/loader.py", line 374, in _get_module_from_name
+    __import__(name)
+    ~~~~~~~~~~^^^^^^
+  File "/Volumes/Delorean/code/graph-search/evaluation/tests/test_core.py", line 6, in <module>
+    from taskbench.core import bounded, coverage, delivered_lines, digest, grade, grading_packet, read_source, source_path, validate
+ModuleNotFoundError: No module named 'taskbench'
+
+
+======================================================================
+ERROR: test_failure_isolation (unittest.loader._FailedTest.test_failure_isolation)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_failure_isolation
+Traceback (most recent call last):
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/unittest/loader.py", line 433, in _find_test_path
+    module = self._get_module_from_name(name)
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/unittest/loader.py", line 374, in _get_module_from_name
+    __import__(name)
+    ~~~~~~~~~~^^^^^^
+  File "/Volumes/Delorean/code/graph-search/evaluation/tests/test_failure_isolation.py", line 7, in <module>
+    from taskbench.backends import GraphSearch, command
+ModuleNotFoundError: No module named 'taskbench'
+
+
+======================================================================
+ERROR: test_runner (unittest.loader._FailedTest.test_runner)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_runner
+Traceback (most recent call last):
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/unittest/loader.py", line 433, in _find_test_path
+    module = self._get_module_from_name(name)
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/unittest/loader.py", line 374, in _get_module_from_name
+    __import__(name)
+    ~~~~~~~~~~^^^^^^
+  File "/Volumes/Delorean/code/graph-search/evaluation/tests/test_runner.py", line 6, in <module>
+    from taskbench.runner import trial, sanitized
+ModuleNotFoundError: No module named 'taskbench'
+
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.000s
+
+FAILED (errors=5)

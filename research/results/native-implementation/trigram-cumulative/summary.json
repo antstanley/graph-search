@@ -1,0 +1,43 @@
+{
+  "decision": "defer persistent prefilter for current live literal API",
+  "production_prefilter_shipped": false,
+  "repositories": {
+    "nanus": {
+      "literal_cases": 15,
+      "production_hits_identical": true,
+      "trusted_winning_tested_batch_sizes": [
+        16,
+        32
+      ],
+      "strict_winning_tested_batch_sizes": [],
+      "logical_index_bytes_excluding_overhead": 3420504
+    },
+    "blogwright": {
+      "literal_cases": 15,
+      "production_hits_identical": true,
+      "trusted_winning_tested_batch_sizes": [
+        16,
+        32
+      ],
+      "strict_winning_tested_batch_sizes": [],
+      "logical_index_bytes_excluding_overhead": 2389816
+    },
+    "whatsurvey": {
+      "literal_cases": 15,
+      "production_hits_identical": true,
+      "trusted_winning_tested_batch_sizes": [
+        16,
+        32
+      ],
+      "strict_winning_tested_batch_sizes": [],
+      "logical_index_bytes_excluding_overhead": 12154688
+    }
+  },
+  "stability": {
+    "production_and_drivers": true,
+    "probe": true,
+    "binary": true,
+    "siblings": true,
+    "indexes": true
+  }
+}

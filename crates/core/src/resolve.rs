@@ -52,6 +52,12 @@ pub fn compatible(edge_kind: EdgeKind, node_kind: NodeKind) -> bool {
 /// the store plus the batch (`SPEC.md` §6.2).
 #[derive(Clone, Debug, Default)]
 pub struct SymbolTable {
+    /// Cargo manifest nodes retained separately from symbol-name lookup.
+    files: BTreeMap<String, Node>,
+    pub(crate) rust_roots: crate::rust_modules::Catalog,
+    rust_paths: crate::rust_paths::Paths,
+    js_modules: crate::js_modules::Modules,
+    node_packages: crate::node_packages::Packages,
     /// Bare name to symbol ids, workspace-wide.
     pub by_name: BTreeMap<String, Vec<NodeId>>,
     /// Qualified name to symbol id, workspace-wide.
@@ -69,14 +75,77 @@ pub struct SymbolTable {
 }
 
 impl SymbolTable {
+    /// Prepare file-owned ESM surfaces from current raw extraction identities.
+    pub fn prepare_js_modules<'a>(
+        &mut self,
+        files: impl IntoIterator<
+            Item = (
+                &'a str,
+                &'a graph_search_types::extraction::SharedExtraction,
+            ),
+        >,
+    ) {
+        self.prepare_js_surfaces(
+            files
+                .into_iter()
+                .filter_map(|(path, facts)| facts.js_module.as_ref().map(|module| (path, module))),
+        );
+    }
+
+    /// Prepare compact authored module surfaces without retaining parser payloads.
+    pub fn prepare_js_surfaces<'a>(
+        &mut self,
+        files: impl IntoIterator<Item = (&'a str, &'a graph_search_types::js_module::JsModule)>,
+    ) {
+        self.js_modules.0 = files
+            .into_iter()
+            .map(|(path, module)| (path.to_owned(), module.clone()))
+            .collect();
+    }
+    /// Resolve a JS/TS module from relative paths or authored package maps.
+    pub(crate) fn js_specifier(
+        &self,
+        from: &str,
+        specifier: &str,
+        known: &BTreeSet<String>,
+    ) -> Result<String, &'static str> {
+        self.node_packages.resolve(from, specifier, known)
+    }
+    /// Prepare authored Node package boundaries after all file nodes are populated.
+    pub fn prepare_node_packages(&mut self, boundaries: &BTreeSet<String>) {
+        self.node_packages = crate::node_packages::Packages::build(&self.files, boundaries);
+    }
     /// An empty table.
     #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
 
-    /// Adds one symbol node.
+    /// Prepare native Rust module paths from the post-update file set.
+    pub fn prepare_rust_modules(
+        &mut self,
+        known: &BTreeSet<String>,
+        boundaries: &BTreeSet<String>,
+    ) {
+        let mut catalog = crate::rust_modules::Catalog::build(&self.files, known, boundaries);
+        catalog.populate(&self.symbols, known);
+        self.rust_paths = crate::rust_paths::Paths::build(&self.symbols, &catalog);
+        self.rust_roots = catalog;
+    }
+
+    /// Adds a file or symbol node; files never enter symbol-name lookup.
     pub fn add(&mut self, node: &Node) {
+        if node.is_file() {
+            if std::path::Path::new(&node.path)
+                .file_name()
+                .is_some_and(|name| {
+                    name == "Cargo.toml" || name == "package.json" || name == "pnpm-workspace.yaml"
+                })
+            {
+                self.files.insert(node.path.clone(), node.clone());
+            }
+            return;
+        }
         let name = node.name.clone().unwrap_or_default();
         let qualified = node.qualified_name.clone().unwrap_or_else(|| name.clone());
         self.by_name
@@ -144,9 +213,10 @@ impl SymbolTable {
         let compatible: Vec<&NodeId> = candidates
             .iter()
             .filter(|id| {
-                self.symbols
-                    .get(*id)
-                    .is_some_and(|node| compatible(edge_kind, node.kind))
+                self.symbols.get(*id).is_some_and(|node| {
+                    compatible(edge_kind, node.kind)
+                        && node.attribute("lexical_local") != Some("true")
+                })
             })
             .collect();
         match compatible.as_slice() {
@@ -299,6 +369,10 @@ fn join_dir(from_path: &str, tail: &str) -> String {
 /// One resolved or dangling edge, ready to store.
 #[derive(Clone, Debug, PartialEq)]
 pub struct Resolution {
+    /// Evidence class, independent of the resolved/unresolved boolean.
+    pub class: graph_search_types::occurrence::ResolutionClass,
+    /// Why no static target was established.
+    pub reason: Option<String>,
     /// The edge as extracted (kind, name, line).
     pub fact: ReferenceFact,
     /// The target when resolved.
@@ -319,38 +393,177 @@ pub fn resolve_reference(
     known_files: &BTreeSet<String>,
     language: Language,
 ) -> Resolution {
-    let dangling = |to_name: String| Resolution {
+    use graph_search_types::occurrence::ResolutionClass;
+    let dangling = |to_name: String, reason: &str| Resolution {
+        class: ResolutionClass::Unresolved,
+        reason: Some(reason.into()),
         fact: fact.clone(),
         to: None,
         to_name,
     };
 
     if fact.dynamic {
-        return dangling(fact.name.clone());
+        return dangling(
+            fact.name.clone(),
+            fact.unresolved_reason
+                .as_deref()
+                .unwrap_or("dynamic_target"),
+        );
+    }
+    if let Some(key) = &fact.lexical_target {
+        let matches: Vec<_> = table
+            .named(&fact.name)
+            .into_iter()
+            .filter(|node| {
+                node.path == from_path
+                    && node.attribute("lexical_key") == Some(key.as_str())
+                    && compatible(fact.kind, node.kind)
+            })
+            .collect();
+        if let [node] = matches.as_slice() {
+            return Resolution {
+                class: ResolutionClass::ExplicitLexical,
+                reason: None,
+                fact: fact.clone(),
+                to: Some(node.id.clone()),
+                to_name: node
+                    .qualified_name
+                    .clone()
+                    .unwrap_or_else(|| fact.name.clone()),
+            };
+        }
+        // An explicit lexical binding never falls through to a workspace heuristic.
+        return dangling(fact.name.clone(), "lexical_target_missing_or_ambiguous");
+    }
+
+    // A Rust `mod name;` declaration carries its original syntax span. Resolve
+    // it from the declared module context before generic use/import handling.
+    if language == Language::Rust && fact.rust_module_declaration {
+        let modules: Vec<_> = table
+            .named(&fact.name)
+            .into_iter()
+            .filter(|node| {
+                node.path == from_path
+                    && node.kind == NodeKind::Module
+                    && node.attribute("rust_module_form") == Some("external")
+                    && fact.span.is_some()
+                    && node.span == fact.span
+            })
+            .collect();
+        if let [module] = modules.as_slice() {
+            return match table.rust_roots.declaration(&module.id) {
+                Ok(target) => Resolution {
+                    class: ResolutionClass::ExplicitImport,
+                    reason: None,
+                    fact: fact.clone(),
+                    to: Some(NodeId::file(&target)),
+                    to_name: target,
+                },
+                Err(reason) => dangling(fact.name.clone(), reason),
+            };
+        }
+        return dangling(
+            fact.name.clone(),
+            "rust_module_declaration_missing_or_ambiguous",
+        );
+    }
+
+    if language == Language::Rust
+        && (fact.rust_use.is_some()
+            || fact.via_import.is_some()
+            || fact.name.starts_with("crate::")
+            || fact.name.starts_with("self::")
+            || fact.name.starts_with("super::"))
+    {
+        return match table.rust_paths.resolve(fact, from_path, &table.symbols) {
+            Ok(id) => Resolution {
+                class: if fact.rust_use.is_some() || fact.via_import.is_some() {
+                    ResolutionClass::ExplicitImport
+                } else {
+                    ResolutionClass::Qualified
+                },
+                reason: None,
+                fact: fact.clone(),
+                to_name: table
+                    .symbols
+                    .get(&id)
+                    .and_then(|node| node.qualified_name.clone())
+                    .unwrap_or_else(|| fact.name.clone()),
+                to: Some(id),
+            },
+            Err(reason) => dangling(fact.name.clone(), reason),
+        };
     }
 
     // File-level import statements become file->file (or file->module) edges.
     if fact.kind == EdgeKind::Imports && fact.from_key.is_none() && fact.via_import.is_none() {
-        if let Some(target) = resolve_specifier(from_path, &fact.name, known_files, language) {
-            let to = NodeId::file(&target);
+        let target = if matches!(language, Language::JavaScript | Language::TypeScript) {
+            table.js_specifier(from_path, &fact.name, known_files)
+        } else {
+            resolve_specifier(from_path, &fact.name, known_files, language)
+                .ok_or("module_target_missing")
+        };
+        if let Ok(target) = &target {
+            let to = NodeId::file(target);
             return Resolution {
+                class: ResolutionClass::ExplicitImport,
+                reason: None,
                 fact: fact.clone(),
                 to: Some(to.clone()),
-                to_name: target,
+                to_name: target.clone(),
             };
         }
-        return dangling(fact.name.clone());
+        return dangling(
+            fact.name.clone(),
+            target.err().unwrap_or("module_target_missing"),
+        );
     }
 
     // Explicit import provenance is authoritative. Failure to resolve the
     // module must not fall through to an unrelated workspace name.
     if let Some(specifier) = &fact.via_import {
+        if matches!(language, Language::JavaScript | Language::TypeScript) {
+            let target = match table.js_specifier(from_path, specifier, known_files) {
+                Ok(target) => target,
+                Err(reason) => return dangling(fact.name.clone(), reason),
+            };
+            if fact.kind == EdgeKind::Imports && fact.name == "*" {
+                return Resolution {
+                    class: ResolutionClass::ExplicitImport,
+                    reason: None,
+                    fact: fact.clone(),
+                    to: Some(NodeId::file(&target)),
+                    to_name: target,
+                };
+            }
+            return match table.js_modules.resolve(
+                &target,
+                &fact.name,
+                fact.kind,
+                table,
+                known_files,
+            ) {
+                Ok(id) => Resolution {
+                    class: ResolutionClass::ExplicitImport,
+                    reason: None,
+                    fact: fact.clone(),
+                    to_name: table
+                        .symbols
+                        .get(&id)
+                        .and_then(|node| node.qualified_name.clone())
+                        .unwrap_or_else(|| fact.name.clone()),
+                    to: Some(id),
+                },
+                Err(reason) => dangling(fact.name.clone(), reason),
+            };
+        }
         if let Some(target) = resolve_specifier(from_path, specifier, known_files, language) {
             let matches: Vec<&Node> = table
                 .named(&fact.name)
                 .into_iter()
                 .filter(|n| {
                     n.path == target
+                        && n.attribute("lexical_local") != Some("true")
                         && n.name.as_deref() == Some(fact.name.as_str())
                         && (fact.kind == EdgeKind::Imports
                             || n.kind == NodeKind::Export
@@ -359,6 +572,8 @@ pub fn resolve_reference(
                 .collect();
             if let [node] = matches.as_slice() {
                 return Resolution {
+                    class: ResolutionClass::ExplicitImport,
+                    reason: None,
                     fact: fact.clone(),
                     to: Some(node.id.clone()),
                     to_name: node
@@ -368,7 +583,7 @@ pub fn resolve_reference(
                 };
             }
         }
-        return dangling(fact.name.clone());
+        return dangling(fact.name.clone(), "import_target_missing_or_ambiguous");
     }
 
     // A same-file name must be unique and kind-compatible. Duplicate
@@ -378,6 +593,7 @@ pub fn resolve_reference(
         .into_iter()
         .filter(|n| {
             n.path == from_path
+                && lexically_visible(n, fact, from_path)
                 && compatible(fact.kind, n.kind)
                 && (n.qualified_name.as_deref() == Some(fact.name.as_str())
                     || n.name.as_deref() == Some(fact.name.as_str()))
@@ -385,6 +601,8 @@ pub fn resolve_reference(
         .collect();
     if let [node] = local.as_slice() {
         return Resolution {
+            class: ResolutionClass::SameFile,
+            reason: None,
             fact: fact.clone(),
             to: Some(node.id.clone()),
             to_name: node
@@ -394,7 +612,12 @@ pub fn resolve_reference(
         };
     }
     if !local.is_empty() {
-        return dangling(fact.name.clone());
+        return dangling(fact.name.clone(), "ambiguous_same_file");
+    }
+    if fact.kind == EdgeKind::Exports
+        && matches!(language, Language::JavaScript | Language::TypeScript)
+    {
+        return dangling(fact.name.clone(), "js_export_local_missing");
     }
 
     // Qualified references require the whole lexical path. Stripping an
@@ -402,7 +625,9 @@ pub fn resolve_reference(
     // must not bind to an unrelated workspace run).
     if fact.name.contains("::") || fact.name.contains('.') {
         let mut matches = table.named(&fact.name).into_iter().filter(|n| {
-            n.qualified_name.as_deref() == Some(fact.name.as_str()) && compatible(fact.kind, n.kind)
+            n.qualified_name.as_deref() == Some(fact.name.as_str())
+                && compatible(fact.kind, n.kind)
+                && lexically_visible(n, fact, from_path)
         });
         if let Some(node) = matches.next()
             && matches.next().is_none()
@@ -411,9 +636,11 @@ pub fn resolve_reference(
                 fact: fact.clone(),
                 to: Some(node.id.clone()),
                 to_name: fact.name.clone(),
+                class: ResolutionClass::Qualified,
+                reason: None,
             };
         }
-        return dangling(fact.name.clone());
+        return dangling(fact.name.clone(), "qualified_target_missing_or_ambiguous");
     }
 
     // Rule 4: exactly one workspace symbol of a compatible kind.
@@ -427,11 +654,29 @@ pub fn resolve_reference(
             fact: fact.clone(),
             to: Some(id),
             to_name: name,
+            class: ResolutionClass::UniqueName,
+            reason: None,
         };
     }
 
     // Rule 5: dangling, recorded with the name it referred to.
-    dangling(fact.name.clone())
+    dangling(fact.name.clone(), "name_missing_or_ambiguous")
+}
+
+fn lexically_visible(node: &Node, fact: &ReferenceFact, path: &str) -> bool {
+    if node.attribute("lexical_local") != Some("true") {
+        return true;
+    }
+    node.path == path
+        && fact.span.is_some_and(|span| {
+            node.attribute("lexical_start")
+                .and_then(|s| s.parse::<u32>().ok())
+                .is_some_and(|start| start <= span.start_byte)
+                && node
+                    .attribute("lexical_end")
+                    .and_then(|s| s.parse::<u32>().ok())
+                    .is_some_and(|end| span.end_byte <= end)
+        })
 }
 
 /// Builds the resolved and dangling edges for one file's extraction.
@@ -449,15 +694,74 @@ pub fn edges_for_extraction(
     known_files: &BTreeSet<String>,
     language: Language,
 ) -> Vec<Edge> {
+    project_references(
+        file_id,
+        file_path,
+        "",
+        extraction,
+        symbol_ids,
+        table,
+        known_files,
+        language,
+    )
+    .0
+}
+
+/// Projects aggregate relationships and independent source occurrences in one resolution pass.
+#[must_use]
+#[allow(clippy::too_many_arguments)]
+pub fn project_references(
+    file_id: &NodeId,
+    file_path: &str,
+    source_hash: &str,
+    extraction: &Extraction,
+    symbol_ids: &BTreeMap<String, NodeId>,
+    table: &SymbolTable,
+    known_files: &BTreeSet<String>,
+    language: Language,
+) -> (Vec<Edge>, graph_search_types::occurrence::OccurrenceFile) {
+    use graph_search_types::occurrence::{OccurrenceExtent, OccurrenceFile, ReferenceOccurrence};
     let mut edges = Vec::new();
-    for fact in &extraction.references {
+    let mut occurrences = OccurrenceFile {
+        source_hash: source_hash.into(),
+        version: graph_search_types::limits::OCCURRENCE_VERSION,
+        complete: true,
+        records: Vec::new(),
+    };
+    for (ordinal, fact) in extraction.references.iter().enumerate() {
         let from = fact
             .from_key
             .as_ref()
             .and_then(|key| symbol_ids.get(key))
             .cloned()
             .unwrap_or_else(|| file_id.clone());
+        let from = occurrence_owner(&from, fact, file_id, table);
         let resolution = resolve_reference(fact, file_path, table, known_files, language);
+        let mut record = ReferenceOccurrence {
+            id: String::new(),
+            owner: from.clone(),
+            kind: fact.kind,
+            span: fact.span,
+            line: fact.line,
+            extent: if fact.span.is_none() {
+                OccurrenceExtent::LineOnly
+            } else if fact.kind == EdgeKind::Calls {
+                OccurrenceExtent::Expression
+            } else {
+                OccurrenceExtent::EnclosingSyntax
+            },
+            raw_name: fact.raw_name.clone(),
+            name: fact.name.clone(),
+            ordinal: u32::try_from(ordinal).unwrap_or(u32::MAX),
+            target: resolution.to.clone(),
+            target_name: resolution.to_name.clone(),
+            resolution: resolution.class,
+            reason: resolution.reason.clone(),
+            scope: fact.scope,
+            binding: fact.binding,
+        };
+        record.id = crate::occurrences::identity(file_path, source_hash, &record);
+        occurrences.records.push(record);
         let edge = match resolution.to {
             Some(to) => Edge::resolved(
                 &from,
@@ -477,7 +781,44 @@ pub fn edges_for_extraction(
         };
         edges.push(edge);
     }
-    edges
+    (edges, occurrences)
+}
+
+/// Repeated parser keys (for example cfg alternatives) cannot select an owner
+/// by last-name-wins. Original coordinates select the actual declaration.
+fn occurrence_owner(
+    candidate: &NodeId,
+    fact: &ReferenceFact,
+    file: &NodeId,
+    table: &SymbolTable,
+) -> NodeId {
+    let Some(span) = fact.span else {
+        return candidate.clone();
+    };
+    let Some(node) = table.symbols.get(candidate) else {
+        return file.clone();
+    };
+    let encloses = |node: &&Node| {
+        node.span.is_some_and(|owner| {
+            owner.start_byte <= span.start_byte && span.end_byte <= owner.end_byte
+        })
+    };
+    if encloses(&node) {
+        return candidate.clone();
+    }
+    let mut owners = node
+        .qualified_name
+        .as_ref()
+        .and_then(|name| table.qualified_candidates.get(name))
+        .into_iter()
+        .flatten()
+        .filter_map(|id| table.symbols.get(id))
+        .filter(|other| other.path == node.path && other.kind == node.kind)
+        .filter(encloses);
+    match (owners.next(), owners.next()) {
+        (Some(owner), None) => owner.id.clone(),
+        _ => file.clone(),
+    }
 }
 
 /// Extracts `.class` (sep `.`) or `#id` (sep `#`) tokens from a CSS selector.
@@ -740,6 +1081,7 @@ mod cross_tests {
         let extraction = Extraction {
             symbols: vec![fact],
             references: Vec::new(),
+            ..Extraction::default()
         };
         let ids = BTreeMap::from([(String::from("el:link@3"), NodeId::new("sym:x#element:link"))]);
         let mut known = BTreeSet::new();
@@ -831,6 +1173,38 @@ mod tests {
     }
 
     #[test]
+    fn explicit_module_syntax_cannot_fall_through_when_projection_is_missing() {
+        let mut fact =
+            ReferenceFact::file_level(EdgeKind::Imports, "child", 1).at(Span::new(1, 1, 0, 10));
+        let legacy = serde_json::to_value(&fact).unwrap();
+        assert!(legacy.get("rust_module_declaration").is_none());
+        assert!(
+            !serde_json::from_value::<ReferenceFact>(legacy)
+                .unwrap()
+                .rust_module_declaration
+        );
+        fact.rust_module_declaration = true;
+        let known = BTreeSet::from(["src/child.rs".into()]);
+        let result = resolve_reference(
+            &fact,
+            "src/lib.rs",
+            &SymbolTable::new(),
+            &known,
+            Language::Rust,
+        );
+        assert!(result.to.is_none());
+        assert_eq!(
+            result.reason.as_deref(),
+            Some("rust_module_declaration_missing_or_ambiguous")
+        );
+        assert!(
+            serde_json::from_value::<ReferenceFact>(serde_json::to_value(&fact).unwrap())
+                .unwrap()
+                .rust_module_declaration
+        );
+    }
+
+    #[test]
     fn imports_resolve_to_workspace_files() {
         let mut known = BTreeSet::new();
         known.insert(String::from("src/util.rs"));
@@ -851,16 +1225,31 @@ mod tests {
 
     #[test]
     fn imported_bindings_find_the_export() {
-        let exported = symbol("src/lib.ts", NodeKind::Export, "SearchQuery", "SearchQuery");
+        let exported = symbol(
+            "src/lib.ts",
+            NodeKind::TypeAlias,
+            "SearchQuery",
+            "SearchQuery",
+        );
         let mut table = table_with(&[exported]);
-        table
-            .exports_by_file
-            .entry(String::from("src/lib.ts"))
-            .or_default()
-            .insert(
-                String::from("SearchQuery"),
-                NodeId::symbol("src/lib.ts", NodeKind::Export, "SearchQuery", None),
-            );
+        let extraction = graph_search_types::extraction::SharedExtraction::from(
+            graph_search_types::extraction::Extraction {
+                js_module: Some(graph_search_types::js_module::JsModule {
+                    complete: true,
+                    is_module: true,
+                    imports: Vec::new(),
+                    exports: vec![graph_search_types::js_module::JsExport {
+                        exported: "SearchQuery".into(),
+                        local: Some("SearchQuery".into()),
+                        source: None,
+                        type_only: false,
+                        span: graph_search_types::node::Span::default(),
+                    }],
+                }),
+                ..Default::default()
+            },
+        );
+        table.prepare_js_modules([("src/lib.ts", &extraction)]);
         let mut known = BTreeSet::new();
         known.insert(String::from("src/lib.ts"));
         let mut fact = ReferenceFact::from_symbol("x", EdgeKind::TypeUses, "SearchQuery", 12);
@@ -868,7 +1257,7 @@ mod tests {
         let resolved = resolve_reference(&fact, "src/app.ts", &table, &known, Language::TypeScript);
         assert_eq!(
             resolved.to.as_ref().map(NodeId::as_str),
-            Some("sym:src/lib.ts#export:SearchQuery")
+            Some("sym:src/lib.ts#type_alias:SearchQuery")
         );
     }
 }

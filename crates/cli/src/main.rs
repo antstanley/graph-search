@@ -17,6 +17,7 @@
     clippy::struct_excessive_bools
 )]
 
+mod budget;
 mod render;
 
 use clap::{Parser, Subcommand};
@@ -60,6 +61,10 @@ struct Cli {
     #[arg(long, global = true)]
     no_reconcile: bool,
 
+    /// Verify source contents as well as metadata before graph queries.
+    #[arg(long, global = true)]
+    verify_content: bool,
+
     /// Fail with exit code 3 when the index was stale at answer time.
     #[arg(long, global = true)]
     fail_if_stale: bool,
@@ -99,6 +104,27 @@ enum Command {
         #[command(subcommand)]
         mode: SearchMode,
     },
+}
+
+#[derive(Clone, Copy, Debug, clap::ValueEnum)]
+enum Normalization {
+    Combined,
+    Bm25f,
+}
+
+#[derive(Clone, Copy, Debug, clap::ValueEnum)]
+enum GraphContextMode {
+    Semantic,
+    None,
+    Calls,
+    Imports,
+    Types,
+}
+
+#[derive(Clone, Copy, Debug, clap::ValueEnum)]
+enum QueryPolicyMode {
+    Verbatim,
+    Task,
 }
 
 #[derive(Debug, Subcommand)]
@@ -152,6 +178,20 @@ enum SearchMode {
     Refs {
         /// A symbol name, qualified name, or exact id.
         target: String,
+        #[arg(long)]
+        lang: Option<String>,
+        #[arg(long, value_name = "GLOB")]
+        path: Option<String>,
+        #[arg(long)]
+        limit: Option<u32>,
+    },
+    /// Individual source references, including repeated and unresolved sites.
+    Occurrences {
+        target: String,
+        #[arg(long, default_value = "target", value_parser = ["target", "owner", "name"])]
+        by: String,
+        #[arg(long)]
+        rel: Option<String>,
         #[arg(long)]
         lang: Option<String>,
         #[arg(long, value_name = "GLOB")]
@@ -248,7 +288,7 @@ enum SearchMode {
         /// How many hops to connect over (default 1).
         #[arg(long)]
         hops: Option<u8>,
-        /// Snippet context lines around each definition (default 2, ceiling 10).
+        /// Primary match context radius (default 2, ceiling 10); 0 disables excerpts.
         #[arg(long)]
         context_lines: Option<u32>,
         /// The whole-payload byte budget (default 64 KiB).
@@ -258,6 +298,45 @@ enum SearchMode {
         lang: Option<String>,
         #[arg(long, value_name = "GLOB")]
         path: Option<String>,
+        /// Protect explicit navigation intent instead of broadening to discovery.
+        #[arg(long, default_value = "auto", value_parser = ["auto", "exact-name", "exact-id", "name-prefix", "path", "terms", "phrase", "near"])]
+        intent: String,
+        /// Total intervening whole tokens for phrase intent (0 means adjacency).
+        #[arg(long, default_value_t = 0, value_parser = clap::value_parser!(u16).range(0..=4096))]
+        phrase_gap: u16,
+        /// Inclusive whole-token window for near intent.
+        #[arg(long, default_value_t = 8, value_parser = clap::value_parser!(u16).range(1..=4096))]
+        near_window: u16,
+        /// Compare split-only with whole-identifier and qualified-name fields.
+        #[arg(long, default_value = "split", value_parser = ["split", "identifiers"])]
+        analysis: String,
+        /// Remove documented procedural suffixes in auto/terms queries (opt-in).
+        #[arg(long, default_value = "verbatim", value_enum)]
+        query_policy: QueryPolicyMode,
+        /// Retrieval channels for ranked discovery.
+        #[arg(long, default_value = "auto", value_parser = ["auto", "fusion", "metadata", "body"])]
+        ranking: String,
+        /// Metadata field-length normalization (does not change body scoring).
+        #[arg(long, default_value = "combined", value_enum)]
+        normalization: Normalization,
+        /// Relationships used for context; none disables connections and caller impact.
+        #[arg(long, default_value = "semantic", value_enum)]
+        graph_context: GraphContextMode,
+        /// Require every analyzed term in one candidate.
+        #[arg(long, conflicts_with = "min_terms")]
+        all_terms: bool,
+        /// Require this many distinct analyzed terms in one candidate.
+        #[arg(long, value_parser = clap::value_parser!(u16).range(1..))]
+        min_terms: Option<u16>,
+        /// First-pass candidates per file; 0 disables file diversity.
+        #[arg(long, default_value_t = 0)]
+        per_file: u16,
+        /// Stop automatic discovery when an exact name survives filtering.
+        #[arg(long)]
+        exact_fast_path: bool,
+        /// Include executed routes, analyzed terms, and per-channel ranks.
+        #[arg(long)]
+        explain: bool,
     },
 }
 
@@ -279,6 +358,8 @@ fn exit_code(error: &Error) -> u8 {
         Error::Core(
             graph_search::core::Error::InvalidPattern { .. }
             | graph_search::core::Error::InvalidInclude(_)
+            | graph_search::core::Error::InvalidQuery(_)
+            | graph_search::core::Error::ResultBudget(_)
             | graph_search::core::Error::RootMissing { .. },
         ) => 2,
         Error::Core(graph_search::core::Error::NoIndex) => 4,
@@ -319,17 +400,35 @@ fn run(cli: &Cli) -> Result<ExitCode, Error> {
             Ok(ExitCode::SUCCESS)
         }
         Command::Search { mode } => {
+            if let SearchMode::Explore {
+                query,
+                intent,
+                phrase_gap,
+                near_window,
+                ..
+            } = mode
+            {
+                let predicate = match intent.as_str() {
+                    "phrase" => Some(graph_search::core::positional::Predicate::Ordered {
+                        intervening: *phrase_gap,
+                    }),
+                    "near" => Some(graph_search::core::positional::Predicate::Unordered {
+                        tokens: *near_window,
+                    }),
+                    _ => None,
+                };
+                if let Some(predicate) = predicate {
+                    graph_search::core::positional::PositionalQuery::new(query, predicate)
+                        .map_err(Error::Core)?;
+                }
+            }
             let index = open_index(cli, false)?;
             // `--fail-if-stale` with `--no-reconcile`: staleness is fatal
             // before answering (`SPEC.md` §6.5.3).
             if cli.fail_if_stale && cli.no_reconcile {
                 let status = index.search().status()?;
                 if status.staleness.as_ref().is_some_and(|s| s.changed > 0) {
-                    let paths = status
-                        .staleness
-                        .map(|s| s.changed_paths)
-                        .unwrap_or_default();
-                    render::stale_notice(&paths, format)?;
+                    render::stale_notice(&status, format)?;
                     return Ok(ExitCode::from(3));
                 }
             }
@@ -369,6 +468,11 @@ fn open_index(cli: &Cli, _status_only: bool) -> Result<Index, Error> {
         } else {
             Reconcile::BeforeQuery
         },
+        verification: if cli.verify_content {
+            graph_search::Verification::Content
+        } else {
+            graph_search::Verification::Metadata
+        },
         read_only: false,
     };
     Index::open(options)
@@ -384,14 +488,7 @@ fn search(
     format: render::Format,
 ) -> Result<ExitCode, Error> {
     let service = index.search();
-    // With `--no-reconcile` the answer may be stale by choice; the envelope
-    // and the notice say so instead of pretending freshness (`SPEC.md` §9.1).
-    let stale = if cli.no_reconcile {
-        Some(index.search().status()?.staleness.map(|s| s.changed_paths))
-    } else {
-        None
-    };
-    let stale = stale.flatten();
+    let observed_stale;
     match mode {
         SearchMode::Files {
             pattern,
@@ -407,14 +504,8 @@ fn search(
             query.include_hidden = cli.hidden;
             query.no_ignore = cli.no_ignore;
             let result = service.files(&query)?;
-            render::files(
-                "search.files",
-                index,
-                &query,
-                &result,
-                format,
-                stale.clone(),
-            )?;
+            observed_stale = result.context.staleness.changed > 0;
+            render::files("search.files", index, &query, &result, format)?;
         }
         SearchMode::Text {
             pattern,
@@ -435,7 +526,8 @@ fn search(
             query.include_hidden = cli.hidden;
             query.no_ignore = cli.no_ignore;
             let result = service.text(&query)?;
-            render::text("search.text", index, &query, &result, format, stale.clone())?;
+            observed_stale = result.context.staleness.changed > 0;
+            render::text("search.text", index, &query, &result, format)?;
         }
         SearchMode::Symbol {
             target,
@@ -456,13 +548,13 @@ fn search(
                 query.limit = *limit;
             }
             let result = service.symbol(&query)?;
+            observed_stale = result.context.staleness.changed > 0;
             render::graph(
                 "search.graph.symbol",
                 index,
                 &query_echo(&query),
                 &result,
                 format,
-                stale.clone(),
             )?;
         }
         SearchMode::Refs {
@@ -477,14 +569,38 @@ fn search(
                 query.limit = *limit;
             }
             let result = service.refs(&query)?;
+            observed_stale = result.context.staleness.changed > 0;
             render::graph(
                 "search.graph.refs",
                 index,
                 &query_echo(&query),
                 &result,
                 format,
-                stale.clone(),
             )?;
+        }
+        SearchMode::Occurrences {
+            target,
+            by,
+            rel,
+            lang,
+            path,
+            limit,
+        } => {
+            use graph_search_types::occurrence::{OccurrenceBy, OccurrenceQuery};
+            let query = OccurrenceQuery {
+                target: target.clone(),
+                by: match by.as_str() {
+                    "owner" => OccurrenceBy::Owner,
+                    "name" => OccurrenceBy::Name,
+                    _ => OccurrenceBy::Target,
+                },
+                kind: rel.as_deref().map(parse_edge_kind).transpose()?,
+                filters: filters(lang.as_ref(), path.as_ref())?,
+                limit: limit.unwrap_or_default(),
+            };
+            let result = service.occurrences(&query)?;
+            observed_stale = result.context.staleness.changed > 0;
+            render::occurrences(index, &query_echo(&query), &result, format)?;
         }
         SearchMode::Callers {
             target,
@@ -499,13 +615,13 @@ fn search(
                 query.limit = *limit;
             }
             let result = service.callers(&query)?;
+            observed_stale = result.context.staleness.changed > 0;
             render::graph(
                 "search.graph.callers",
                 index,
                 &query_echo(&query),
                 &result,
                 format,
-                stale.clone(),
             )?;
         }
         SearchMode::Callees {
@@ -521,13 +637,13 @@ fn search(
                 query.limit = *limit;
             }
             let result = service.callees(&query)?;
+            observed_stale = result.context.staleness.changed > 0;
             render::graph(
                 "search.graph.callees",
                 index,
                 &query_echo(&query),
                 &result,
                 format,
-                stale.clone(),
             )?;
         }
         SearchMode::Impact {
@@ -543,13 +659,13 @@ fn search(
                 query.limit = *limit;
             }
             let result = service.impact(&query)?;
+            observed_stale = result.context.staleness.changed > 0;
             render::impact(
                 "search.graph.impact",
                 index,
                 &query_echo(&query),
                 &result,
                 format,
-                stale.clone(),
             )?;
         }
         SearchMode::Deps {
@@ -566,13 +682,13 @@ fn search(
                 query.limit = *limit;
             }
             let result = service.deps(&query)?;
+            observed_stale = result.context.staleness.changed > 0;
             render::graph(
                 "search.graph.deps",
                 index,
                 &query_echo(&query),
                 &result,
                 format,
-                stale.clone(),
             )?;
         }
         SearchMode::Neighbors {
@@ -595,13 +711,13 @@ fn search(
                 query.limit = *limit;
             }
             let result = service.neighbors(&query)?;
+            observed_stale = result.context.staleness.changed > 0;
             render::graph(
                 "search.graph.neighbors",
                 index,
                 &query_echo(&query),
                 &result,
                 format,
-                stale.clone(),
             )?;
         }
         SearchMode::Path { from, to, max_hops } => {
@@ -610,13 +726,13 @@ fn search(
                 query.max_hops = *max_hops;
             }
             let result = service.path(&query)?;
+            observed_stale = result.context.staleness.changed > 0;
             render::graph(
                 "search.graph.path",
                 index,
                 &query_echo(&query),
                 &result,
                 format,
-                stale.clone(),
             )?;
         }
         SearchMode::Explore {
@@ -627,8 +743,73 @@ fn search(
             max_bytes,
             lang,
             path,
+            intent,
+            phrase_gap,
+            near_window,
+            analysis,
+            query_policy,
+            ranking,
+            normalization,
+            graph_context,
+            all_terms,
+            min_terms,
+            per_file,
+            exact_fast_path,
+            explain,
         } => {
             let mut query = ExploreQuery::new(query.clone());
+            query.retrieval = graph_search_types::RetrievalOptions {
+                query_policy: if matches!(query_policy, QueryPolicyMode::Task) {
+                    graph_search_types::QueryPolicy::Task
+                } else {
+                    graph_search_types::QueryPolicy::Verbatim
+                },
+                analysis: if analysis == "identifiers" {
+                    graph_search_types::AnalysisMode::Identifiers
+                } else {
+                    graph_search_types::AnalysisMode::Split
+                },
+                mode: match intent.as_str() {
+                    "exact-name" => graph_search_types::ExploreMode::ExactName,
+                    "exact-id" => graph_search_types::ExploreMode::ExactId,
+                    "name-prefix" => graph_search_types::ExploreMode::NamePrefix,
+                    "path" => graph_search_types::ExploreMode::PathGlob,
+                    "terms" => graph_search_types::ExploreMode::Terms,
+                    "phrase" => graph_search_types::ExploreMode::Phrase,
+                    "near" => graph_search_types::ExploreMode::Near,
+                    _ => graph_search_types::ExploreMode::Auto,
+                },
+                ranking: match ranking.as_str() {
+                    "metadata" => graph_search_types::RankingStrategy::Metadata,
+                    "body" => graph_search_types::RankingStrategy::Body,
+                    "fusion" => graph_search_types::RankingStrategy::Fusion,
+                    _ => graph_search_types::RankingStrategy::Auto,
+                },
+                normalization: if matches!(normalization, Normalization::Bm25f) {
+                    graph_search_types::FieldNormalization::Bm25f
+                } else {
+                    graph_search_types::FieldNormalization::Combined
+                },
+                graph_context: match graph_context {
+                    GraphContextMode::Semantic => graph_search_types::GraphContext::Semantic,
+                    GraphContextMode::None => graph_search_types::GraphContext::None,
+                    GraphContextMode::Calls => graph_search_types::GraphContext::Calls,
+                    GraphContextMode::Imports => graph_search_types::GraphContext::Imports,
+                    GraphContextMode::Types => graph_search_types::GraphContext::Types,
+                },
+                term_match: if *all_terms {
+                    graph_search_types::TermMatch::All
+                } else if let Some(n) = min_terms {
+                    graph_search_types::TermMatch::AtLeast(*n)
+                } else {
+                    graph_search_types::TermMatch::Any
+                },
+                phrase_gap: *phrase_gap,
+                near_window: *near_window,
+                per_file: *per_file,
+                exact_fast_path: *exact_fast_path,
+                explain: *explain,
+            };
             if let Some(k) = k {
                 query.k = *k;
             }
@@ -643,17 +824,15 @@ fn search(
             }
             query.filters = filters(lang.as_ref(), path.as_ref())?;
             let result = service.explore(&query)?;
-            render::explore(
-                "search.explore",
-                index,
-                &query,
-                &result,
-                format,
-                stale.clone(),
-            )?;
+            observed_stale = result.context.staleness.changed > 0;
+            render::explore("search.explore", index, &query, &result, format)?;
         }
     }
-    Ok(ExitCode::SUCCESS)
+    Ok(if cli.fail_if_stale && observed_stale {
+        ExitCode::from(3)
+    } else {
+        ExitCode::SUCCESS
+    })
 }
 
 /// Parses `--direction`.

@@ -1,0 +1,860 @@
+{
+  "nanus.edit.change": {
+    "verbatim": [
+      {
+        "name": "search",
+        "arguments": {
+          "query": "Plan a clearer diagnostic for no-op edits without changing replacement behavior or the successful diff response. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository."
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "AGENTS.md",
+          "start": 7,
+          "count": 100
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "crates/nanus-bundle/src/tools/edit.rs",
+          "start": 198,
+          "count": 100
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "crates/nanus-ports/src/fs.rs",
+          "start": 1,
+          "count": 100
+        }
+      }
+    ],
+    "task": [
+      {
+        "name": "search",
+        "arguments": {
+          "query": "Plan a clearer diagnostic for no-op edits without changing replacement behavior or the successful diff response. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository."
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "crates/nanus-link/src/protocol.rs",
+          "start": 124,
+          "count": 100
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "crates/nanus-tui/src/view.rs",
+          "start": 876,
+          "count": 100
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "cordis-mechanisms-report.md",
+          "start": 118,
+          "count": 100
+        }
+      }
+    ]
+  },
+  "nanus.glob.debug": {
+    "verbatim": [
+      {
+        "name": "search",
+        "arguments": {
+          "query": "A file-pattern search at its result cap sometimes has no truncation warning. Explain the validation and warning decision. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions."
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "crates/nanus-adapter-local/src/fs.rs",
+          "start": 272,
+          "count": 100
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "crates/nanus-adapter-local/tests/fs.rs",
+          "start": 271,
+          "count": 100
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "crates/nanus-bundle/src/tools/grep.rs",
+          "start": 76,
+          "count": 100
+        }
+      }
+    ],
+    "task": [
+      {
+        "name": "search",
+        "arguments": {
+          "query": "A file-pattern search at its result cap sometimes has no truncation warning. Explain the validation and warning decision. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions."
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "crates/nanus-adapter-local/tests/fs.rs",
+          "start": 308,
+          "count": 100
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "crates/nanus-adapter-local/src/fs.rs",
+          "start": 272,
+          "count": 100
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "crates/nanus-bundle/src/tools/grep.rs",
+          "start": 76,
+          "count": 100
+        }
+      }
+    ]
+  },
+  "nanus.temporary-paths.change": {
+    "verbatim": [
+      {
+        "name": "search",
+        "arguments": {
+          "query": "Plan tests for destructive-command temporary-path exemptions, including parent traversal, relative paths, multiple targets, and commands without a recognized target. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository."
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "crates/nanus-bundle/src/guard.rs",
+          "start": 212,
+          "count": 100
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "crates/nanus-bundle/src/agent_loop.rs",
+          "start": 1068,
+          "count": 100
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "SAFETY.md",
+          "start": 26,
+          "count": 100
+        }
+      }
+    ],
+    "task": [
+      {
+        "name": "search",
+        "arguments": {
+          "query": "Plan tests for destructive-command temporary-path exemptions, including parent traversal, relative paths, multiple targets, and commands without a recognized target. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository."
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "crates/nanus-bundle/src/guard.rs",
+          "start": 212,
+          "count": 100
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "crates/nanus-bundle/src/agent_loop.rs",
+          "start": 1068,
+          "count": 100
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "SAFETY.md",
+          "start": 26,
+          "count": 100
+        }
+      }
+    ]
+  },
+  "nanus.temporary-paths.debug": {
+    "verbatim": [
+      {
+        "name": "search",
+        "arguments": {
+          "query": "A destructive command referring to a relative temporary path does not receive the temporary-target exemption. Explain the path checks and the no-target case. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions."
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "crates/nanus-bundle/src/guard.rs",
+          "start": 212,
+          "count": 100
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "crates/nanus-bundle/src/agent_loop.rs",
+          "start": 1068,
+          "count": 100
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "SAFETY.md",
+          "start": 26,
+          "count": 100
+        }
+      }
+    ],
+    "task": [
+      {
+        "name": "search",
+        "arguments": {
+          "query": "A destructive command referring to a relative temporary path does not receive the temporary-target exemption. Explain the path checks and the no-target case. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions."
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "crates/nanus-bundle/src/guard.rs",
+          "start": 212,
+          "count": 100
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "crates/nanus-bundle/src/agent_loop.rs",
+          "start": 1068,
+          "count": 100
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "SAFETY.md",
+          "start": 26,
+          "count": 100
+        }
+      }
+    ]
+  },
+  "nanus.context.debug": {
+    "verbatim": [
+      {
+        "name": "search",
+        "arguments": {
+          "query": "A long conversation cannot fit even after older turns are removed. Explain what the context fitter preserves and why it can still fail. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions."
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "crates/nanus-bundle/src/agent_loop.rs",
+          "start": 296,
+          "count": 100
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "AGENTS.md",
+          "start": 7,
+          "count": 100
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "crates/nanus-domain/src/context.rs",
+          "start": 412,
+          "count": 100
+        }
+      }
+    ],
+    "task": [
+      {
+        "name": "search",
+        "arguments": {
+          "query": "A long conversation cannot fit even after older turns are removed. Explain what the context fitter preserves and why it can still fail. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions."
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "crates/nanus-bundle/src/agent_loop.rs",
+          "start": 296,
+          "count": 100
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "crates/nanus-domain/src/context.rs",
+          "start": 412,
+          "count": 100
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "crates/nanus-tui/src/mentions.rs",
+          "start": 43,
+          "count": 100
+        }
+      }
+    ]
+  },
+  "nanus.glob.change": {
+    "verbatim": [
+      {
+        "name": "search",
+        "arguments": {
+          "query": "Plan a file-pattern search response that exposes the applied cap while preserving the distinction between exactly-at-cap and truncated results. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository."
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "crates/nanus-adapter-local/src/fs.rs",
+          "start": 272,
+          "count": 100
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "crates/nanus-adapter-local/tests/fs.rs",
+          "start": 289,
+          "count": 100
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "crates/nanus-bundle/src/tools/grep.rs",
+          "start": 76,
+          "count": 100
+        }
+      }
+    ],
+    "task": [
+      {
+        "name": "search",
+        "arguments": {
+          "query": "Plan a file-pattern search response that exposes the applied cap while preserving the distinction between exactly-at-cap and truncated results. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository."
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "crates/nanus-adapter-local/src/fs.rs",
+          "start": 272,
+          "count": 100
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "crates/nanus-bundle/src/tools/grep.rs",
+          "start": 76,
+          "count": 100
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "crates/nanus-adapter-local/tests/fs.rs",
+          "start": 289,
+          "count": 100
+        }
+      }
+    ]
+  },
+  "nanus.grep.change": {
+    "verbatim": [
+      {
+        "name": "search",
+        "arguments": {
+          "query": "Plan to apply include filtering before the text-search cap, preserving truthful truncation reporting. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository."
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "crates/nanus-adapter-local/src/fs.rs",
+          "start": 197,
+          "count": 100
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "AGENTS.md",
+          "start": 425,
+          "count": 100
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "crates/nanus-adapter-local/tests/fs.rs",
+          "start": 308,
+          "count": 100
+        }
+      }
+    ],
+    "task": [
+      {
+        "name": "search",
+        "arguments": {
+          "query": "Plan to apply include filtering before the text-search cap, preserving truthful truncation reporting. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository."
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "crates/nanus-adapter-local/tests/fs.rs",
+          "start": 308,
+          "count": 100
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "crates/nanus-bundle/src/tools/grep.rs",
+          "start": 76,
+          "count": 100
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "crates/nanus-adapter-local/src/fs.rs",
+          "start": 413,
+          "count": 100
+        }
+      }
+    ]
+  },
+  "nanus.read.change": {
+    "verbatim": [
+      {
+        "name": "search",
+        "arguments": {
+          "query": "Plan a streaming implementation for bounded file reads that preserves the current line-window response and explicit limit validation. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository."
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "docs/roadmap.md",
+          "start": 201,
+          "count": 100
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "crates/nanus-adapter-config/src/config.rs",
+          "start": 332,
+          "count": 100
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "crates/nanus-bundle/src/tools/read.rs",
+          "start": 99,
+          "count": 100
+        }
+      }
+    ],
+    "task": [
+      {
+        "name": "search",
+        "arguments": {
+          "query": "Plan a streaming implementation for bounded file reads that preserves the current line-window response and explicit limit validation. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository."
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "crates/nanus-bundle/src/tools/read.rs",
+          "start": 165,
+          "count": 100
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "docs/roadmap.md",
+          "start": 201,
+          "count": 100
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "crates/nanus-cli/src/approve.rs",
+          "start": 143,
+          "count": 100
+        }
+      }
+    ]
+  },
+  "blogwright.secret-upsert.debug": {
+    "verbatim": [
+      {
+        "name": "search",
+        "arguments": {
+          "query": "Updating an existing AWS secret starts with a create request. Explain which error causes an update and which failures must propagate. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions."
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "packages/core/src/aws/cloudfront.ts",
+          "start": 311,
+          "count": 100
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "packages/cli/src/graph.test.ts",
+          "start": 112,
+          "count": 100
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "packages/pds/src/commands.ts",
+          "start": 108,
+          "count": 100
+        }
+      }
+    ],
+    "task": [
+      {
+        "name": "search",
+        "arguments": {
+          "query": "Updating an existing AWS secret starts with a create request. Explain which error causes an update and which failures must propagate. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions."
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "packages/cli/src/graph.test.ts",
+          "start": 112,
+          "count": 100
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "packages/core/src/aws/cloudfront.ts",
+          "start": 311,
+          "count": 100
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "packages/cli/src/graph.ts",
+          "start": 45,
+          "count": 100
+        }
+      }
+    ]
+  },
+  "whatsurvey.settings-encryption.change": {
+    "verbatim": [
+      {
+        "name": "search",
+        "arguments": {
+          "query": "Plan tests for settings encryption across fields and rows, including multibyte size limits and local versus deployed behavior. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository."
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "workspaces/backend/tests/functions/admin-api/routes/settings.floci.test.ts",
+          "start": 16,
+          "count": 100
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "workspaces/backend/src/core/settings/crypto.ts",
+          "start": 122,
+          "count": 100
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "workspaces/backend/tests/functions/auth/upstream-contract.test.ts",
+          "start": 63,
+          "count": 100
+        }
+      }
+    ],
+    "task": [
+      {
+        "name": "search",
+        "arguments": {
+          "query": "Plan tests for settings encryption across fields and rows, including multibyte size limits and local versus deployed behavior. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository."
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "workspaces/backend/src/core/settings/crypto.ts",
+          "start": 122,
+          "count": 100
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "workspaces/backend/tests/core/settings/crypto.test.ts",
+          "start": 72,
+          "count": 100
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "workspaces/backend/src/functions/admin-api/routes/contacts.ts",
+          "start": 1283,
+          "count": 100
+        }
+      }
+    ]
+  },
+  "whatsurvey.contact-policy.change": {
+    "verbatim": [
+      {
+        "name": "search",
+        "arguments": {
+          "query": "Plan policy tests for recruitment versus live conversation, preserving explicit withdrawal and channel-specific consent behavior. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository."
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "workspaces/frontend/src/routes/contacts/[contactId]/__tests__/page.test.ts",
+          "start": 105,
+          "count": 100
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "workspaces/backend/tests/functions/auth/upstream-contract.test.ts",
+          "start": 63,
+          "count": 100
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "workspaces/backend/test-fixtures/oidc-04-refresh-contract.json",
+          "start": 1,
+          "count": 100
+        }
+      }
+    ],
+    "task": [
+      {
+        "name": "search",
+        "arguments": {
+          "query": "Plan policy tests for recruitment versus live conversation, preserving explicit withdrawal and channel-specific consent behavior. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository."
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "workspaces/backend/tests/core/consent/can-contact.test.ts",
+          "start": 993,
+          "count": 100
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "workspaces/backend/src/core/consent/policy.ts",
+          "start": 34,
+          "count": 100
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "workspaces/backend/src/core/consent/can-contact.ts",
+          "start": 81,
+          "count": 100
+        }
+      }
+    ]
+  },
+  "whatsurvey.captcha-retry.debug": {
+    "verbatim": [
+      {
+        "name": "search",
+        "arguments": {
+          "query": "A CAPTCHA response saying success=false is not retried, but an HTTP failure is. Explain retry and timeout behavior. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions."
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "workspaces/backend/tests/core/captcha.test.ts",
+          "start": 123,
+          "count": 100
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "workspaces/frontend/src/lib/auth/http.ts",
+          "start": 1,
+          "count": 100
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "CHANGELOG.md",
+          "start": 28,
+          "count": 100
+        }
+      }
+    ],
+    "task": [
+      {
+        "name": "search",
+        "arguments": {
+          "query": "A CAPTCHA response saying success=false is not retried, but an HTTP failure is. Explain retry and timeout behavior. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions."
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "workspaces/backend/tests/core/captcha.test.ts",
+          "start": 123,
+          "count": 100
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "CHANGELOG.md",
+          "start": 28,
+          "count": 100
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "workspaces/backend/src/core/captcha.ts",
+          "start": 68,
+          "count": 100
+        }
+      }
+    ]
+  },
+  "whatsurvey.webhook-signature.change": {
+    "verbatim": [
+      {
+        "name": "search",
+        "arguments": {
+          "query": "Plan signature-verification regression tests for changed raw payloads, missing prefixes, wrong lengths, and mismatched digests. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository."
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "workspaces/backend/src/functions/auth-mock/signing.ts",
+          "start": 31,
+          "count": 100
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "docs/whatsapp-survey-spec.md",
+          "start": 212,
+          "count": 100
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "workspaces/backend/tests/core/whatsapp/signature.test.ts",
+          "start": 26,
+          "count": 100
+        }
+      }
+    ],
+    "task": [
+      {
+        "name": "search",
+        "arguments": {
+          "query": "Plan signature-verification regression tests for changed raw payloads, missing prefixes, wrong lengths, and mismatched digests. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository."
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "workspaces/backend/src/functions/auth-mock/signing.ts",
+          "start": 31,
+          "count": 100
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "docs/whatsapp-survey-spec.md",
+          "start": 212,
+          "count": 100
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "workspaces/backend/tests/core/whatsapp/signature.test.ts",
+          "start": 26,
+          "count": 100
+        }
+      }
+    ]
+  }
+}

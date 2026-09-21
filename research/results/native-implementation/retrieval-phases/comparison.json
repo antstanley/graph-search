@@ -1,0 +1,2498 @@
+[
+  {
+    "id": "nanus.context.debug",
+    "repo": "nanus",
+    "query": "A long conversation cannot fit even after older turns are removed. Explain what the context fitter preserves and why it can still fail. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions.",
+    "ranking": "auto",
+    "family": "task",
+    "median_phases_ns": {
+      "service": 11985583,
+      "seed": 5817250,
+      "service_context": 1853333,
+      "query": 8304625,
+      "evidence": 587334,
+      "body_topk": 518501,
+      "freshness": 1892000,
+      "body_postings": 1321125,
+      "connect": 121166
+    },
+    "median_external_ns": {
+      "baseline": 12783459,
+      "profile": 12609375
+    },
+    "posting_fraction_service": 0.11022617756683176,
+    "posting_fraction_query": 0.15908304107650859
+  },
+  {
+    "id": "nanus.context.change",
+    "repo": "nanus",
+    "query": "Plan a change to the context token estimator while preserving whole-turn eviction and valid tool-call histories. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository.",
+    "ranking": "auto",
+    "family": "task",
+    "median_phases_ns": {
+      "service": 10342541,
+      "seed": 5277334,
+      "service_context": 1750875,
+      "query": 6773625,
+      "evidence": 431000,
+      "body_topk": 497375,
+      "freshness": 1812125,
+      "body_postings": 1066500,
+      "connect": 144250
+    },
+    "median_external_ns": {
+      "baseline": 11028375,
+      "profile": 10964000
+    },
+    "posting_fraction_service": 0.10311779281319745,
+    "posting_fraction_query": 0.1574489287493772
+  },
+  {
+    "id": "nanus.edit.debug",
+    "repo": "nanus",
+    "query": "An edit request with identical old and new text fails before changing the file. Trace validation and explain what a successful edit returns. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions.",
+    "ranking": "auto",
+    "family": "task",
+    "median_phases_ns": {
+      "service": 10754583,
+      "seed": 5380250,
+      "service_context": 1747625,
+      "query": 7203042,
+      "evidence": 616417,
+      "body_topk": 506084,
+      "freshness": 1795917,
+      "body_postings": 1100167,
+      "connect": 226083
+    },
+    "median_external_ns": {
+      "baseline": 11139541,
+      "profile": 11325708
+    },
+    "posting_fraction_service": 0.10229750423610103,
+    "posting_fraction_query": 0.15273644107586767
+  },
+  {
+    "id": "nanus.edit.change",
+    "repo": "nanus",
+    "query": "Plan a clearer diagnostic for no-op edits without changing replacement behavior or the successful diff response. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository.",
+    "ranking": "auto",
+    "family": "task",
+    "median_phases_ns": {
+      "service": 8764708,
+      "seed": 4570791,
+      "service_context": 1473750,
+      "query": 5739208,
+      "evidence": 298084,
+      "body_topk": 410583,
+      "freshness": 1567500,
+      "body_postings": 941666,
+      "connect": 152708
+    },
+    "median_external_ns": {
+      "baseline": 10635042,
+      "profile": 9226333
+    },
+    "posting_fraction_service": 0.10743837672629825,
+    "posting_fraction_query": 0.16407594915535384
+  },
+  {
+    "id": "nanus.write.debug",
+    "repo": "nanus",
+    "query": "A write request omitting its mode fails instead of overwriting a file. Explain the accepted modes and the write path. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions.",
+    "ranking": "auto",
+    "family": "task",
+    "median_phases_ns": {
+      "service": 11225791,
+      "seed": 5415375,
+      "service_context": 1870250,
+      "query": 7368500,
+      "evidence": 629875,
+      "body_topk": 421208,
+      "freshness": 1972333,
+      "body_postings": 982875,
+      "connect": 285417
+    },
+    "median_external_ns": {
+      "baseline": 11233292,
+      "profile": 11734083
+    },
+    "posting_fraction_service": 0.08755507741058069,
+    "posting_fraction_query": 0.13338874940625636
+  },
+  {
+    "id": "nanus.write.change",
+    "repo": "nanus",
+    "query": "Plan improved write-mode error messages while preserving explicit create versus overwrite selection. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository.",
+    "ranking": "auto",
+    "family": "task",
+    "median_phases_ns": {
+      "service": 10922291,
+      "seed": 5555625,
+      "service_context": 1832916,
+      "query": 7299833,
+      "evidence": 615084,
+      "body_topk": 471791,
+      "freshness": 1779375,
+      "body_postings": 1084167,
+      "connect": 232750
+    },
+    "median_external_ns": {
+      "baseline": 11077500,
+      "profile": 11432459
+    },
+    "posting_fraction_service": 0.0992618673133686,
+    "posting_fraction_query": 0.148519425033422
+  },
+  {
+    "id": "nanus.read.debug",
+    "repo": "nanus",
+    "query": "Reading a small line window from a very large file is rejected. Explain the size guard, line numbering, and limit handling. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions.",
+    "ranking": "auto",
+    "family": "task",
+    "median_phases_ns": {
+      "service": 9724375,
+      "seed": 4575333,
+      "service_context": 1640792,
+      "query": 6433167,
+      "evidence": 564125,
+      "body_topk": 337501,
+      "freshness": 1638459,
+      "body_postings": 663084,
+      "connect": 244834
+    },
+    "median_external_ns": {
+      "baseline": 11079625,
+      "profile": 10342042
+    },
+    "posting_fraction_service": 0.06818782698116846,
+    "posting_fraction_query": 0.10307271675055225
+  },
+  {
+    "id": "nanus.read.change",
+    "repo": "nanus",
+    "query": "Plan a streaming implementation for bounded file reads that preserves the current line-window response and explicit limit validation. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository.",
+    "ranking": "auto",
+    "family": "task",
+    "median_phases_ns": {
+      "service": 11592834,
+      "seed": 5670667,
+      "service_context": 1837375,
+      "query": 7755958,
+      "evidence": 672250,
+      "body_topk": 487375,
+      "freshness": 1831958,
+      "body_postings": 1269916,
+      "connect": 326625
+    },
+    "median_external_ns": {
+      "baseline": 12127917,
+      "profile": 12219875
+    },
+    "posting_fraction_service": 0.10954318849040709,
+    "posting_fraction_query": 0.16373425436290398
+  },
+  {
+    "id": "nanus.grep.debug",
+    "repo": "nanus",
+    "query": "A text search with an include filter returns fewer matches than its limit although matching files exist. Explain where filtering and truncation occur. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions.",
+    "ranking": "auto",
+    "family": "task",
+    "median_phases_ns": {
+      "service": 11316750,
+      "seed": 5841000,
+      "service_context": 1815833,
+      "query": 7596833,
+      "evidence": 740375,
+      "body_topk": 544793,
+      "freshness": 2055833,
+      "body_postings": 1267668,
+      "connect": 253667
+    },
+    "median_external_ns": {
+      "baseline": 11562542,
+      "profile": 11918417
+    },
+    "posting_fraction_service": 0.1120169660017231,
+    "posting_fraction_query": 0.16686795668668772
+  },
+  {
+    "id": "nanus.grep.change",
+    "repo": "nanus",
+    "query": "Plan to apply include filtering before the text-search cap, preserving truthful truncation reporting. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository.",
+    "ranking": "auto",
+    "family": "task",
+    "median_phases_ns": {
+      "service": 10210750,
+      "seed": 5048208,
+      "service_context": 1725750,
+      "query": 6657292,
+      "evidence": 536167,
+      "body_topk": 420500,
+      "freshness": 1779250,
+      "body_postings": 854458,
+      "connect": 275333
+    },
+    "median_external_ns": {
+      "baseline": 10788750,
+      "profile": 10710625
+    },
+    "posting_fraction_service": 0.08368219768381363,
+    "posting_fraction_query": 0.12834918462341746
+  },
+  {
+    "id": "nanus.glob.debug",
+    "repo": "nanus",
+    "query": "A file-pattern search at its result cap sometimes has no truncation warning. Explain the validation and warning decision. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions.",
+    "ranking": "auto",
+    "family": "task",
+    "median_phases_ns": {
+      "service": 10675333,
+      "seed": 5207459,
+      "service_context": 1613500,
+      "query": 7445208,
+      "evidence": 796958,
+      "body_topk": 458583,
+      "freshness": 1601833,
+      "body_postings": 1183041,
+      "connect": 420584
+    },
+    "median_external_ns": {
+      "baseline": 12281084,
+      "profile": 11311500
+    },
+    "posting_fraction_service": 0.11082005591769362,
+    "posting_fraction_query": 0.15889965733663855
+  },
+  {
+    "id": "nanus.glob.change",
+    "repo": "nanus",
+    "query": "Plan a file-pattern search response that exposes the applied cap while preserving the distinction between exactly-at-cap and truncated results. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository.",
+    "ranking": "auto",
+    "family": "task",
+    "median_phases_ns": {
+      "service": 11743709,
+      "seed": 5838542,
+      "service_context": 1778708,
+      "query": 8030208,
+      "evidence": 877959,
+      "body_topk": 488707,
+      "freshness": 1782083,
+      "body_postings": 1362916,
+      "connect": 298208
+    },
+    "median_external_ns": {
+      "baseline": 11614333,
+      "profile": 12344666
+    },
+    "posting_fraction_service": 0.11605498739793366,
+    "posting_fraction_query": 0.16972362359729662
+  },
+  {
+    "id": "nanus.argument-types.debug",
+    "repo": "nanus",
+    "query": "Tool arguments containing the string \"true\" or a negative numeric limit fail. Explain accepted optional boolean and unsigned integer values. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions.",
+    "ranking": "auto",
+    "family": "task",
+    "median_phases_ns": {
+      "service": 9162333,
+      "seed": 4692500,
+      "service_context": 1525833,
+      "query": 6174208,
+      "evidence": 501834,
+      "body_topk": 457541,
+      "freshness": 1540417,
+      "body_postings": 987958,
+      "connect": 199625
+    },
+    "median_external_ns": {
+      "baseline": 10254541,
+      "profile": 9668542
+    },
+    "posting_fraction_service": 0.10782821362201091,
+    "posting_fraction_query": 0.1600137215979766
+  },
+  {
+    "id": "nanus.argument-types.change",
+    "repo": "nanus",
+    "query": "Plan better type-error diagnostics for optional tool arguments without coercing strings to booleans or accepting overflowing limits. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository.",
+    "ranking": "auto",
+    "family": "task",
+    "median_phases_ns": {
+      "service": 11624750,
+      "seed": 5654666,
+      "service_context": 1873334,
+      "query": 7833250,
+      "evidence": 596125,
+      "body_topk": 508083,
+      "freshness": 1910000,
+      "body_postings": 1275251,
+      "connect": 337958
+    },
+    "median_external_ns": {
+      "baseline": 12238000,
+      "profile": 12156041
+    },
+    "posting_fraction_service": 0.1097013699219338,
+    "posting_fraction_query": 0.1627997319120416
+  },
+  {
+    "id": "nanus.temporary-paths.debug",
+    "repo": "nanus",
+    "query": "A destructive command referring to a relative temporary path does not receive the temporary-target exemption. Explain the path checks and the no-target case. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions.",
+    "ranking": "auto",
+    "family": "task",
+    "median_phases_ns": {
+      "service": 10857416,
+      "seed": 5222667,
+      "service_context": 1859375,
+      "query": 6984459,
+      "evidence": 485250,
+      "body_topk": 429500,
+      "freshness": 1886000,
+      "body_postings": 936501,
+      "connect": 140959
+    },
+    "median_external_ns": {
+      "baseline": 11073625,
+      "profile": 11455667
+    },
+    "posting_fraction_service": 0.08625450107097306,
+    "posting_fraction_query": 0.1340835417603568
+  },
+  {
+    "id": "nanus.temporary-paths.change",
+    "repo": "nanus",
+    "query": "Plan tests for destructive-command temporary-path exemptions, including parent traversal, relative paths, multiple targets, and commands without a recognized target. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository.",
+    "ranking": "auto",
+    "family": "task",
+    "median_phases_ns": {
+      "service": 10297125,
+      "seed": 4866916,
+      "service_context": 1754458,
+      "query": 6747459,
+      "evidence": 428833,
+      "body_topk": 328709,
+      "freshness": 1858375,
+      "body_postings": 741792,
+      "connect": 178750
+    },
+    "median_external_ns": {
+      "baseline": 11169625,
+      "profile": 10840667
+    },
+    "posting_fraction_service": 0.07203874867984995,
+    "posting_fraction_query": 0.1099364960943075
+  },
+  {
+    "id": "blogwright.secret-upsert.debug",
+    "repo": "blogwright",
+    "query": "Updating an existing AWS secret starts with a create request. Explain which error causes an update and which failures must propagate. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions.",
+    "ranking": "auto",
+    "family": "task",
+    "median_phases_ns": {
+      "service": 7199750,
+      "seed": 2714041,
+      "service_context": 1404167,
+      "query": 4267375,
+      "evidence": 584000,
+      "body_topk": 164292,
+      "freshness": 1512667,
+      "body_postings": 409625,
+      "connect": 378500
+    },
+    "median_external_ns": {
+      "baseline": 7705875,
+      "profile": 7776667
+    },
+    "posting_fraction_service": 0.05689433660891003,
+    "posting_fraction_query": 0.09598992354784851
+  },
+  {
+    "id": "blogwright.secret-upsert.change",
+    "repo": "blogwright",
+    "query": "Plan tests for secret upsert and lookup that distinguish already-existing, missing, permission-denied, and transport failures. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository.",
+    "ranking": "auto",
+    "family": "task",
+    "median_phases_ns": {
+      "service": 7211458,
+      "seed": 2691042,
+      "service_context": 1510333,
+      "query": 4272166,
+      "evidence": 419417,
+      "body_topk": 134834,
+      "freshness": 1511333,
+      "body_postings": 324250,
+      "connect": 254500
+    },
+    "median_external_ns": {
+      "baseline": 7694334,
+      "profile": 7733458
+    },
+    "posting_fraction_service": 0.04496316833572351,
+    "posting_fraction_query": 0.07589826799801319
+  },
+  {
+    "id": "whatsurvey.webhook-signature.debug",
+    "repo": "whatsurvey",
+    "query": "A webhook signature with the wrong digest length is rejected before comparison. Explain which bytes are authenticated and the acceptance checks. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions.",
+    "ranking": "auto",
+    "family": "task",
+    "median_phases_ns": {
+      "service": 35430292,
+      "seed": 13944333,
+      "service_context": 10053708,
+      "query": 15269292,
+      "evidence": 435583,
+      "body_topk": 623208,
+      "freshness": 10235959,
+      "body_postings": 1740082,
+      "connect": 235667
+    },
+    "median_external_ns": {
+      "baseline": 35766792,
+      "profile": 35970167
+    },
+    "posting_fraction_service": 0.04911283260098449,
+    "posting_fraction_query": 0.11395957324020001
+  },
+  {
+    "id": "whatsurvey.webhook-signature.change",
+    "repo": "whatsurvey",
+    "query": "Plan signature-verification regression tests for changed raw payloads, missing prefixes, wrong lengths, and mismatched digests. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository.",
+    "ranking": "auto",
+    "family": "task",
+    "median_phases_ns": {
+      "service": 34316458,
+      "seed": 13079875,
+      "service_context": 9797792,
+      "query": 14440292,
+      "evidence": 322042,
+      "body_topk": 481417,
+      "freshness": 10026875,
+      "body_postings": 1265957,
+      "connect": 214834
+    },
+    "median_external_ns": {
+      "baseline": 35362000,
+      "profile": 34846084
+    },
+    "posting_fraction_service": 0.036890666280302006,
+    "posting_fraction_query": 0.08766837955908371
+  },
+  {
+    "id": "whatsurvey.settings-encryption.debug",
+    "repo": "whatsurvey",
+    "query": "An encrypted settings value cannot be moved to another settings field and decrypted there. Explain context binding and failure reporting. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions.",
+    "ranking": "auto",
+    "family": "task",
+    "median_phases_ns": {
+      "service": 36452791,
+      "seed": 14742875,
+      "service_context": 9860583,
+      "query": 16709541,
+      "evidence": 672750,
+      "body_topk": 892083,
+      "freshness": 9977500,
+      "body_postings": 2742583,
+      "connect": 543959
+    },
+    "median_external_ns": {
+      "baseline": 37696500,
+      "profile": 36967417
+    },
+    "posting_fraction_service": 0.07523657104883957,
+    "posting_fraction_query": 0.16413275505293654
+  },
+  {
+    "id": "whatsurvey.settings-encryption.change",
+    "repo": "whatsurvey",
+    "query": "Plan tests for settings encryption across fields and rows, including multibyte size limits and local versus deployed behavior. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository.",
+    "ranking": "auto",
+    "family": "task",
+    "median_phases_ns": {
+      "service": 35897000,
+      "seed": 13920958,
+      "service_context": 9970500,
+      "query": 15961417,
+      "evidence": 903583,
+      "body_topk": 619916,
+      "freshness": 9940084,
+      "body_postings": 1672584,
+      "connect": 506250
+    },
+    "median_external_ns": {
+      "baseline": 36639834,
+      "profile": 36395334
+    },
+    "posting_fraction_service": 0.04659397721258044,
+    "posting_fraction_query": 0.10478919258860288
+  },
+  {
+    "id": "whatsurvey.contact-policy.debug",
+    "repo": "whatsurvey",
+    "query": "A contact decision differs between recruitment and an ongoing conversation for the same participant. Explain which refusal checks always apply and which are recruitment-only. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions.",
+    "ranking": "auto",
+    "family": "task",
+    "median_phases_ns": {
+      "service": 38868583,
+      "seed": 14633583,
+      "service_context": 10195042,
+      "query": 17004875,
+      "evidence": 504333,
+      "body_topk": 853708,
+      "freshness": 10881750,
+      "body_postings": 2285042,
+      "connect": 716417
+    },
+    "median_external_ns": {
+      "baseline": 37448166,
+      "profile": 39430625
+    },
+    "posting_fraction_service": 0.058788919575483364,
+    "posting_fraction_query": 0.13437570108571806
+  },
+  {
+    "id": "whatsurvey.contact-policy.change",
+    "repo": "whatsurvey",
+    "query": "Plan policy tests for recruitment versus live conversation, preserving explicit withdrawal and channel-specific consent behavior. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository.",
+    "ranking": "auto",
+    "family": "task",
+    "median_phases_ns": {
+      "service": 37155125,
+      "seed": 14007375,
+      "service_context": 10235167,
+      "query": 16604917,
+      "evidence": 689208,
+      "body_topk": 727458,
+      "freshness": 10283542,
+      "body_postings": 2107542,
+      "connect": 506750
+    },
+    "median_external_ns": {
+      "baseline": 37323459,
+      "profile": 37671417
+    },
+    "posting_fraction_service": 0.0567227805047083,
+    "posting_fraction_query": 0.1269227663107259
+  },
+  {
+    "id": "whatsurvey.captcha-retry.debug",
+    "repo": "whatsurvey",
+    "query": "A CAPTCHA response saying success=false is not retried, but an HTTP failure is. Explain retry and timeout behavior. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions.",
+    "ranking": "auto",
+    "family": "task",
+    "median_phases_ns": {
+      "service": 35914208,
+      "seed": 14119208,
+      "service_context": 9872584,
+      "query": 16042958,
+      "evidence": 627167,
+      "body_topk": 789124,
+      "freshness": 9823958,
+      "body_postings": 2240166,
+      "connect": 305666
+    },
+    "median_external_ns": {
+      "baseline": 36880458,
+      "profile": 36438375
+    },
+    "posting_fraction_service": 0.062375481035249335,
+    "posting_fraction_query": 0.1396354712142237
+  },
+  {
+    "id": "whatsurvey.captcha-retry.change",
+    "repo": "whatsurvey",
+    "query": "Plan CAPTCHA tests that distinguish a negative verification from transport or provider errors, preserving the bounded retry count. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository.",
+    "ranking": "auto",
+    "family": "task",
+    "median_phases_ns": {
+      "service": 36449334,
+      "seed": 14739375,
+      "service_context": 9896875,
+      "query": 16310958,
+      "evidence": 409959,
+      "body_topk": 795291,
+      "freshness": 10488708,
+      "body_postings": 2453625,
+      "connect": 292917
+    },
+    "median_external_ns": {
+      "baseline": 36370625,
+      "profile": 36964875
+    },
+    "posting_fraction_service": 0.06731604478699117,
+    "posting_fraction_query": 0.15042801287330884
+  },
+  {
+    "id": "whatsurvey.survey-draft.debug",
+    "repo": "whatsurvey",
+    "query": "Opening a legacy survey for editing creates a published version before a draft. Explain why and how concurrent changes are guarded. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions.",
+    "ranking": "auto",
+    "family": "task",
+    "median_phases_ns": {
+      "service": 36540584,
+      "seed": 14099542,
+      "service_context": 10077291,
+      "query": 16159917,
+      "evidence": 788125,
+      "body_topk": 762708,
+      "freshness": 10124167,
+      "body_postings": 2064999,
+      "connect": 361250
+    },
+    "median_external_ns": {
+      "baseline": 36379000,
+      "profile": 37035792
+    },
+    "posting_fraction_service": 0.05651247938456594,
+    "posting_fraction_query": 0.12778524790690446
+  },
+  {
+    "id": "whatsurvey.survey-draft.change",
+    "repo": "whatsurvey",
+    "query": "Plan tests for legacy survey adoption that preserve historical content, existing drafts, archived-survey rejection, and optimistic concurrency. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository.",
+    "ranking": "auto",
+    "family": "task",
+    "median_phases_ns": {
+      "service": 38555791,
+      "seed": 14534042,
+      "service_context": 9950250,
+      "query": 17217916,
+      "evidence": 413334,
+      "body_topk": 721291,
+      "freshness": 10608333,
+      "body_postings": 2070374,
+      "connect": 807083
+    },
+    "median_external_ns": {
+      "baseline": 37496500,
+      "profile": 39138458
+    },
+    "posting_fraction_service": 0.05369813318056424,
+    "posting_fraction_query": 0.12024533050341284
+  },
+  {
+    "id": "blogwright.tag-encoding.debug",
+    "repo": "blogwright",
+    "query": "Resource tag values containing ampersands and spaces must survive an S3 tagging header. Explain the encoding boundary and empty input behavior. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions.",
+    "ranking": "auto",
+    "family": "task",
+    "median_phases_ns": {
+      "service": 6789667,
+      "seed": 2601750,
+      "service_context": 1555875,
+      "query": 3751792,
+      "evidence": 309000,
+      "body_topk": 129958,
+      "freshness": 1531792,
+      "body_postings": 328625,
+      "connect": 235541
+    },
+    "median_external_ns": {
+      "baseline": 7834000,
+      "profile": 7341417
+    },
+    "posting_fraction_service": 0.04840075367466475,
+    "posting_fraction_query": 0.08759147628653187
+  },
+  {
+    "id": "blogwright.tag-encoding.change",
+    "repo": "blogwright",
+    "query": "Plan tag-encoding tests for reserved characters, Unicode, empty tags, and keys as well as values without double encoding. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository.",
+    "ranking": "auto",
+    "family": "task",
+    "median_phases_ns": {
+      "service": 6500375,
+      "seed": 2544250,
+      "service_context": 1416042,
+      "query": 3613792,
+      "evidence": 323792,
+      "body_topk": 132459,
+      "freshness": 1462458,
+      "body_postings": 281167,
+      "connect": 151458
+    },
+    "median_external_ns": {
+      "baseline": 7303083,
+      "profile": 7044958
+    },
+    "posting_fraction_service": 0.043253966117339386,
+    "posting_fraction_query": 0.07780386917675394
+  },
+  {
+    "id": "whatsurvey.storage-envelope.debug",
+    "repo": "whatsurvey",
+    "query": "A database read must remove internal storage keys without dropping domain fields that also support indexes. Explain the cleanup helper and whether it mutates input. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions.",
+    "ranking": "auto",
+    "family": "task",
+    "median_phases_ns": {
+      "service": 37816625,
+      "seed": 15747833,
+      "service_context": 10181292,
+      "query": 17580084,
+      "evidence": 322500,
+      "body_topk": 958292,
+      "freshness": 10031917,
+      "body_postings": 3370250,
+      "connect": 549000
+    },
+    "median_external_ns": {
+      "baseline": 38595125,
+      "profile": 38352083
+    },
+    "posting_fraction_service": 0.08912085623717082,
+    "posting_fraction_query": 0.19170841276981385
+  },
+  {
+    "id": "whatsurvey.storage-envelope.change",
+    "repo": "whatsurvey",
+    "query": "Plan storage-envelope tests that preserve domain keys and input objects while stripping database-only fields from individual items and lists. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository.",
+    "ranking": "auto",
+    "family": "task",
+    "median_phases_ns": {
+      "service": 38174625,
+      "seed": 15486875,
+      "service_context": 10045125,
+      "query": 17381625,
+      "evidence": 249750,
+      "body_topk": 925750,
+      "freshness": 10481833,
+      "body_postings": 3078458,
+      "connect": 567917
+    },
+    "median_external_ns": {
+      "baseline": 37947209,
+      "profile": 38708250
+    },
+    "posting_fraction_service": 0.08064147322992694,
+    "posting_fraction_query": 0.17710990773302265
+  },
+  {
+    "id": "whatsurvey.money-rounding.debug",
+    "repo": "whatsurvey",
+    "query": "An LLM cost estimate retains fractions of a cent instead of rounding to two decimal places. Explain the precision and return type. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions.",
+    "ranking": "auto",
+    "family": "task",
+    "median_phases_ns": {
+      "service": 37120500,
+      "seed": 14730875,
+      "service_context": 9996250,
+      "query": 16783416,
+      "evidence": 604250,
+      "body_topk": 1019291,
+      "freshness": 10648000,
+      "body_postings": 2405417,
+      "connect": 321959
+    },
+    "median_external_ns": {
+      "baseline": 36546792,
+      "profile": 37651666
+    },
+    "posting_fraction_service": 0.06480023167791382,
+    "posting_fraction_query": 0.14332106169566433
+  },
+  {
+    "id": "whatsurvey.money-rounding.change",
+    "repo": "whatsurvey",
+    "query": "Plan rounding tests for micro-dollar estimates while preserving numeric output and the shared six-decimal convention. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository.",
+    "ranking": "auto",
+    "family": "task",
+    "median_phases_ns": {
+      "service": 34869958,
+      "seed": 13172375,
+      "service_context": 9968750,
+      "query": 14810041,
+      "evidence": 227292,
+      "body_topk": 472125,
+      "freshness": 10071916,
+      "body_postings": 1316583,
+      "connect": 396000
+    },
+    "median_external_ns": {
+      "baseline": 36321250,
+      "profile": 35423291
+    },
+    "posting_fraction_service": 0.03775694252341801,
+    "posting_fraction_query": 0.08889799832424501
+  },
+  {
+    "id": "nanus.fresh-turn-closure.debug",
+    "repo": "nanus",
+    "query": "A provider failure must not leave an unfinished step or turn in a conversation that can later resume. Locate the error paths that close both records.",
+    "ranking": "auto",
+    "family": "task",
+    "median_phases_ns": {
+      "service": 12833208,
+      "seed": 5971417,
+      "service_context": 1836584,
+      "query": 8992792,
+      "evidence": 616625,
+      "body_topk": 557917,
+      "freshness": 1925375,
+      "body_postings": 1574166,
+      "connect": 178250
+    },
+    "median_external_ns": {
+      "baseline": 13284750,
+      "profile": 13402625
+    },
+    "posting_fraction_service": 0.12266348367454186,
+    "posting_fraction_query": 0.17504752695269724
+  },
+  {
+    "id": "nanus.fresh-runtime-tools.debug",
+    "repo": "nanus",
+    "query": "After registering another tool at runtime, what makes its schema appear on the very next model request without rebuilding the runner?",
+    "ranking": "auto",
+    "family": "task",
+    "median_phases_ns": {
+      "service": 11714959,
+      "seed": 5676959,
+      "service_context": 1876167,
+      "query": 8181958,
+      "evidence": 650708,
+      "body_topk": 506625,
+      "freshness": 1762083,
+      "body_postings": 1314250,
+      "connect": 202834
+    },
+    "median_external_ns": {
+      "baseline": 12062500,
+      "profile": 12311000
+    },
+    "posting_fraction_service": 0.11218562523351554,
+    "posting_fraction_query": 0.16062781060474768
+  },
+  {
+    "id": "nanus.fresh-legacy-approval.debug",
+    "repo": "nanus",
+    "query": "Which approval behavior does the old configuration spelling \"never\" select, and how does it differ from allowing every outside-sandbox call?",
+    "ranking": "auto",
+    "family": "task",
+    "median_phases_ns": {
+      "service": 11627458,
+      "seed": 5357542,
+      "service_context": 1847458,
+      "query": 7552292,
+      "evidence": 472042,
+      "body_topk": 437500,
+      "freshness": 1796500,
+      "body_postings": 1133583,
+      "connect": 155167
+    },
+    "median_external_ns": {
+      "baseline": 11894833,
+      "profile": 12164041
+    },
+    "posting_fraction_service": 0.09749190235733382,
+    "posting_fraction_query": 0.15009787757147103
+  },
+  {
+    "id": "nanus.fresh-delete-symlink.debug",
+    "repo": "nanus",
+    "query": "Deleting a saved conversation must not recursively remove the target of a planted directory symlink. Locate the handling of that case and of a missing session.",
+    "ranking": "auto",
+    "family": "task",
+    "median_phases_ns": {
+      "service": 11331750,
+      "seed": 5425459,
+      "service_context": 1857625,
+      "query": 7575917,
+      "evidence": 560416,
+      "body_topk": 492708,
+      "freshness": 1896333,
+      "body_postings": 1121334,
+      "connect": 240333
+    },
+    "median_external_ns": {
+      "baseline": 11723750,
+      "profile": 11878458
+    },
+    "posting_fraction_service": 0.098955059898074,
+    "posting_fraction_query": 0.14801297321499166
+  },
+  {
+    "id": "blogwright.fresh-refresh-metadata.debug",
+    "repo": "blogwright",
+    "query": "A deployment has unchanged file bytes but needs new object metadata. Where can it force an upload despite a matching content checksum?",
+    "ranking": "auto",
+    "family": "task",
+    "median_phases_ns": {
+      "service": 6941250,
+      "seed": 2668166,
+      "service_context": 1423458,
+      "query": 4031083,
+      "evidence": 418833,
+      "body_topk": 146167,
+      "freshness": 1497625,
+      "body_postings": 355542,
+      "connect": 204209
+    },
+    "median_external_ns": {
+      "baseline": 7694542,
+      "profile": 7484708
+    },
+    "posting_fraction_service": 0.05122160994057266,
+    "posting_fraction_query": 0.0882001189258569
+  },
+  {
+    "id": "blogwright.fresh-tagging-fallback.debug",
+    "repo": "blogwright",
+    "query": "A deployment role can write objects but cannot attach tags. Find the retry logic that still publishes files and avoids repeating the tagging failure for every upload.",
+    "ranking": "auto",
+    "family": "task",
+    "median_phases_ns": {
+      "service": 7378375,
+      "seed": 2498000,
+      "service_context": 1413750,
+      "query": 4586208,
+      "evidence": 998750,
+      "body_topk": 111042,
+      "freshness": 1467125,
+      "body_postings": 277166,
+      "connect": 367708
+    },
+    "median_external_ns": {
+      "baseline": 8337708,
+      "profile": 7907166
+    },
+    "posting_fraction_service": 0.03756463991054941,
+    "posting_fraction_query": 0.060434677188649095
+  },
+  {
+    "id": "blogwright.fresh-invalid-date-rkey.debug",
+    "repo": "blogwright",
+    "query": "A post URL contains digits that look like a date but are not a real calendar date. How does record-key derivation avoid an invalid timestamp?",
+    "ranking": "auto",
+    "family": "task",
+    "median_phases_ns": {
+      "service": 6318833,
+      "seed": 2463708,
+      "service_context": 1438666,
+      "query": 3427708,
+      "evidence": 304125,
+      "body_topk": 106791,
+      "freshness": 1473459,
+      "body_postings": 260041,
+      "connect": 202000
+    },
+    "median_external_ns": {
+      "baseline": 6978125,
+      "profile": 6814041
+    },
+    "posting_fraction_service": 0.04115332688805037,
+    "posting_fraction_query": 0.07586439685060688
+  },
+  {
+    "id": "blogwright.fresh-sitemap-pages.debug",
+    "repo": "blogwright",
+    "query": "Where are generated HTML pages converted to sitemap URLs, with error pages excluded and stable ordering applied?",
+    "ranking": "auto",
+    "family": "task",
+    "median_phases_ns": {
+      "service": 6921000,
+      "seed": 2280959,
+      "service_context": 1545084,
+      "query": 3783375,
+      "evidence": 511458,
+      "body_topk": 65000,
+      "freshness": 1595125,
+      "body_postings": 130458,
+      "connect": 230500
+    },
+    "median_external_ns": {
+      "baseline": 6987292,
+      "profile": 7429667
+    },
+    "posting_fraction_service": 0.01884958820979627,
+    "posting_fraction_query": 0.03448191099216969
+  },
+  {
+    "id": "whatsurvey.fresh-option-code-collision.debug",
+    "repo": "whatsurvey",
+    "query": "Two survey answer labels must not share the same stored code, even if one code has surrounding whitespace. Locate the validation that rejects this ambiguity.",
+    "ranking": "auto",
+    "family": "task",
+    "median_phases_ns": {
+      "service": 37641041,
+      "seed": 15591541,
+      "service_context": 9838666,
+      "query": 17913792,
+      "evidence": 555417,
+      "body_topk": 942750,
+      "freshness": 9718250,
+      "body_postings": 3316791,
+      "connect": 409292
+    },
+    "median_external_ns": {
+      "baseline": 38706708,
+      "profile": 38141042
+    },
+    "posting_fraction_service": 0.08811634619775792,
+    "posting_fraction_query": 0.18515292574570477
+  },
+  {
+    "id": "whatsurvey.fresh-media-flow.debug",
+    "repo": "whatsurvey",
+    "query": "Why can a media question not bind to a Flow, and where are empty, unknown, or repeated accepted media kinds refused?",
+    "ranking": "auto",
+    "family": "task",
+    "median_phases_ns": {
+      "service": 36384333,
+      "seed": 13970209,
+      "service_context": 9934667,
+      "query": 16044334,
+      "evidence": 606875,
+      "body_topk": 732541,
+      "freshness": 10517125,
+      "body_postings": 2019126,
+      "connect": 343416
+    },
+    "median_external_ns": {
+      "baseline": 36406250,
+      "profile": 36905209
+    },
+    "posting_fraction_service": 0.055494379957439374,
+    "posting_fraction_query": 0.1258466696093462
+  },
+  {
+    "id": "whatsurvey.fresh-study-anchor.debug",
+    "repo": "whatsurvey",
+    "query": "After a form is created, what prevents an update from moving it to a different study or clearing its study association?",
+    "ranking": "auto",
+    "family": "task",
+    "median_phases_ns": {
+      "service": 38332459,
+      "seed": 14957084,
+      "service_context": 9933125,
+      "query": 18149708,
+      "evidence": 953541,
+      "body_topk": 903084,
+      "freshness": 10556125,
+      "body_postings": 2796625,
+      "connect": 803625
+    },
+    "median_external_ns": {
+      "baseline": 40783667,
+      "profile": 38829209
+    },
+    "posting_fraction_service": 0.07295709883887178,
+    "posting_fraction_query": 0.1540865010059666
+  },
+  {
+    "id": "whatsurvey.fresh-refusal-observability.debug",
+    "repo": "whatsurvey",
+    "query": "When a form submission is refused, where are a warning and refusal metric recorded without logging the submitted API key or client input?",
+    "ranking": "auto",
+    "family": "task",
+    "median_phases_ns": {
+      "service": 37928583,
+      "seed": 15029500,
+      "service_context": 9860375,
+      "query": 17847500,
+      "evidence": 530834,
+      "body_topk": 991042,
+      "freshness": 10218917,
+      "body_postings": 2763000,
+      "connect": 623667
+    },
+    "median_external_ns": {
+      "baseline": 38455125,
+      "profile": 38459125
+    },
+    "posting_fraction_service": 0.07284743540247733,
+    "posting_fraction_query": 0.15481159826306207
+  },
+  {
+    "id": "nanus.markdown-provider-tools.debug",
+    "repo": "nanus",
+    "query": "Locate the introductory documentation explaining how to replace the model provider without changing tools, and how removing a tool changes the prompt.",
+    "ranking": "auto",
+    "family": "task",
+    "median_phases_ns": {
+      "service": 11754250,
+      "seed": 4728000,
+      "service_context": 1779625,
+      "query": 8140917,
+      "evidence": 657334,
+      "body_topk": 357042,
+      "freshness": 1826541,
+      "body_postings": 667292,
+      "connect": 117917
+    },
+    "median_external_ns": {
+      "baseline": 11680625,
+      "profile": 12360500
+    },
+    "posting_fraction_service": 0.05677027458153434,
+    "posting_fraction_query": 0.08196767022683071
+  },
+  {
+    "id": "nanus.markdown-unload.debug",
+    "repo": "nanus",
+    "query": "Find the documented guarantee for unloading a component: how registrations are reversed and what happens to services, listeners and consumers.",
+    "ranking": "auto",
+    "family": "task",
+    "median_phases_ns": {
+      "service": 9228292,
+      "seed": 3872916,
+      "service_context": 1725375,
+      "query": 5650292,
+      "evidence": 445625,
+      "body_topk": 51250,
+      "freshness": 1845542,
+      "body_postings": 104625,
+      "connect": 115584
+    },
+    "median_external_ns": {
+      "baseline": 9126209,
+      "profile": 9777834
+    },
+    "posting_fraction_service": 0.011337417584965885,
+    "posting_fraction_query": 0.01851674214359187
+  },
+  {
+    "id": "nanus.markdown-resume.debug",
+    "repo": "nanus",
+    "query": "Find the documented commands for running a named conversation and resuming it in the terminal interface, plus the explanation of multiple clients observing the same turn.",
+    "ranking": "auto",
+    "family": "task",
+    "median_phases_ns": {
+      "service": 12709000,
+      "seed": 5376708,
+      "service_context": 1820583,
+      "query": 8707125,
+      "evidence": 1022584,
+      "body_topk": 401792,
+      "freshness": 1921958,
+      "body_postings": 833042,
+      "connect": 152875
+    },
+    "median_external_ns": {
+      "baseline": 11967208,
+      "profile": 13307458
+    },
+    "posting_fraction_service": 0.06554740734912266,
+    "posting_fraction_query": 0.09567360064315145
+  },
+  {
+    "id": "nanus.markdown-stdio.debug",
+    "repo": "nanus",
+    "query": "Find the documented stdout, stderr and exit-code contract for scripts invoking a one-shot agent run.",
+    "ranking": "auto",
+    "family": "task",
+    "median_phases_ns": {
+      "service": 10103458,
+      "seed": 4800291,
+      "service_context": 1806667,
+      "query": 6456250,
+      "evidence": 497417,
+      "body_topk": 337625,
+      "freshness": 1791042,
+      "body_postings": 616708,
+      "connect": 211250
+    },
+    "median_external_ns": {
+      "baseline": 9586750,
+      "profile": 10629292
+    },
+    "posting_fraction_service": 0.06103929961405293,
+    "posting_fraction_query": 0.09552108422071635
+  },
+  {
+    "id": "blogwright.markdown-packages.debug",
+    "repo": "blogwright",
+    "query": "Locate the package responsibility table: which package owns SigV4 clients and shared ports, which publishes to AT Protocol, and how the builder server is shipped.",
+    "ranking": "auto",
+    "family": "task",
+    "median_phases_ns": {
+      "service": 6819459,
+      "seed": 2420750,
+      "service_context": 1512959,
+      "query": 3723875,
+      "evidence": 399208,
+      "body_topk": 97292,
+      "freshness": 1572916,
+      "body_postings": 191249,
+      "connect": 335958
+    },
+    "median_external_ns": {
+      "baseline": 6943834,
+      "profile": 7403834
+    },
+    "posting_fraction_service": 0.0280446000188578,
+    "posting_fraction_query": 0.051357524084455035
+  },
+  {
+    "id": "blogwright.markdown-testing.debug",
+    "repo": "blogwright",
+    "query": "Find the contributor instructions for emulator integration tests and the documented reason MicroVM orchestration instead uses transport mocks.",
+    "ranking": "auto",
+    "family": "task",
+    "median_phases_ns": {
+      "service": 6304500,
+      "seed": 2098583,
+      "service_context": 1412625,
+      "query": 3267250,
+      "evidence": 356500,
+      "body_topk": 51874,
+      "freshness": 1476959,
+      "body_postings": 126916,
+      "connect": 241375
+    },
+    "median_external_ns": {
+      "baseline": 6839208,
+      "profile": 6856917
+    },
+    "posting_fraction_service": 0.020131017527163137,
+    "posting_fraction_query": 0.0388449001453822
+  },
+  {
+    "id": "blogwright.markdown-doc-links.debug",
+    "repo": "blogwright",
+    "query": "Find the documentation index entries for keyless GitHub CI deploys and per-PR preview URLs, and how to retrieve documentation pages as plain Markdown.",
+    "ranking": "auto",
+    "family": "task",
+    "median_phases_ns": {
+      "service": 6879500,
+      "seed": 2590541,
+      "service_context": 1519667,
+      "query": 3607208,
+      "evidence": 387125,
+      "body_topk": 92458,
+      "freshness": 1641292,
+      "body_postings": 241167,
+      "connect": 49042
+    },
+    "median_external_ns": {
+      "baseline": 7146833,
+      "profile": 7423542
+    },
+    "posting_fraction_service": 0.035055890689730355,
+    "posting_fraction_query": 0.06685697082064578
+  },
+  {
+    "id": "blogwright.markdown-initial-setup.debug",
+    "repo": "blogwright",
+    "query": "Find the getting-started command sequence for initialization, infrastructure bootstrap and deploy, including the minimum hand-written config when there is no terminal.",
+    "ranking": "auto",
+    "family": "task",
+    "median_phases_ns": {
+      "service": 6754750,
+      "seed": 2489208,
+      "service_context": 1393500,
+      "query": 3854209,
+      "evidence": 677708,
+      "body_topk": 132791,
+      "freshness": 1508416,
+      "body_postings": 288374,
+      "connect": 127333
+    },
+    "median_external_ns": {
+      "baseline": 7097667,
+      "profile": 7317708
+    },
+    "posting_fraction_service": 0.04269203153336541,
+    "posting_fraction_query": 0.07482054034952437
+  },
+  {
+    "id": "whatsurvey.markdown-local-loop.debug",
+    "repo": "whatsurvey",
+    "query": "Find the documented local-development command, browser address and mock operator behavior, including which WhatsApp components are excluded from the local loop.",
+    "ranking": "auto",
+    "family": "task",
+    "median_phases_ns": {
+      "service": 36037792,
+      "seed": 14036667,
+      "service_context": 9900542,
+      "query": 16081417,
+      "evidence": 771375,
+      "body_topk": 736958,
+      "freshness": 10085875,
+      "body_postings": 2154751,
+      "connect": 338000
+    },
+    "median_external_ns": {
+      "baseline": 36591208,
+      "profile": 36537583
+    },
+    "posting_fraction_service": 0.05979142673335814,
+    "posting_fraction_query": 0.1339901203979724
+  },
+  {
+    "id": "whatsurvey.markdown-stacks.debug",
+    "repo": "whatsurvey",
+    "query": "Find the documented backend and frontend stack layout and the environment naming constraint used for deployment resources.",
+    "ranking": "auto",
+    "family": "task",
+    "median_phases_ns": {
+      "service": 33163500,
+      "seed": 12179459,
+      "service_context": 10239667,
+      "query": 13275375,
+      "evidence": 141208,
+      "body_topk": 221000,
+      "freshness": 9882416,
+      "body_postings": 596542,
+      "connect": 163167
+    },
+    "median_external_ns": {
+      "baseline": 33216875,
+      "profile": 33639750
+    },
+    "posting_fraction_service": 0.01798790839326368,
+    "posting_fraction_query": 0.04493598109281282
+  },
+  {
+    "id": "whatsurvey.markdown-trace-correlation.debug",
+    "repo": "whatsurvey",
+    "query": "Find the operator instructions for correlating a browser request with backend logs and following a WhatsApp webhook into an orchestrator turn.",
+    "ranking": "auto",
+    "family": "task",
+    "median_phases_ns": {
+      "service": 37151916,
+      "seed": 13055250,
+      "service_context": 9958083,
+      "query": 17055666,
+      "evidence": 1594375,
+      "body_topk": 465876,
+      "freshness": 10117250,
+      "body_postings": 1398167,
+      "connect": 98083
+    },
+    "median_external_ns": {
+      "baseline": 37308208,
+      "profile": 37680333
+    },
+    "posting_fraction_service": 0.03763377910307506,
+    "posting_fraction_query": 0.08197668739526208
+  },
+  {
+    "id": "whatsurvey.markdown-survey-flow.debug",
+    "repo": "whatsurvey",
+    "query": "Locate the documented survey lifecycle, explaining who controls branching versus language generation and how web forms share the submission destination.",
+    "ranking": "auto",
+    "family": "task",
+    "median_phases_ns": {
+      "service": 34442959,
+      "seed": 12463792,
+      "service_context": 10067916,
+      "query": 14035292,
+      "evidence": 264584,
+      "body_topk": 319084,
+      "freshness": 10273542,
+      "body_postings": 773708,
+      "connect": 157542
+    },
+    "median_external_ns": {
+      "baseline": 34580208,
+      "profile": 35264375
+    },
+    "posting_fraction_service": 0.02246345907736905,
+    "posting_fraction_query": 0.05512589264263259
+  },
+  {
+    "id": "nanus.broad.return.auto",
+    "repo": "nanus",
+    "query": "return",
+    "ranking": "auto",
+    "family": "broad",
+    "median_phases_ns": {
+      "service": 9264083,
+      "seed": 3863000,
+      "service_context": 1897500,
+      "query": 5565041,
+      "evidence": 372667,
+      "metadata_postings": 1750,
+      "body_topk": 74250,
+      "freshness": 1796583,
+      "body_postings": 91625,
+      "connect": 138209,
+      "metadata_retrieval": 4250
+    },
+    "median_external_ns": {
+      "baseline": 8660291,
+      "profile": 9723958
+    },
+    "posting_fraction_service": 0.010079249074085368,
+    "posting_fraction_query": 0.016778852123461443
+  },
+  {
+    "id": "nanus.broad.return.metadata",
+    "repo": "nanus",
+    "query": "return",
+    "ranking": "metadata",
+    "family": "broad",
+    "median_phases_ns": {
+      "service": 3850541,
+      "seed": 8208,
+      "service_context": 1813167,
+      "query": 161333,
+      "evidence": 19125,
+      "metadata_postings": 2042,
+      "freshness": 1803209,
+      "connect": 42,
+      "metadata_retrieval": 4542
+    },
+    "median_external_ns": {
+      "baseline": 3909250,
+      "profile": 4042375
+    },
+    "posting_fraction_service": 0.0005303150907885411,
+    "posting_fraction_query": 0.012657050944320132
+  },
+  {
+    "id": "nanus.broad.return.body",
+    "repo": "nanus",
+    "query": "return",
+    "ranking": "body",
+    "family": "broad",
+    "median_phases_ns": {
+      "service": 9948541,
+      "seed": 3917167,
+      "service_context": 1862500,
+      "query": 6158875,
+      "evidence": 437000,
+      "body_topk": 75250,
+      "freshness": 1910667,
+      "body_postings": 90791,
+      "connect": 205417
+    },
+    "median_external_ns": {
+      "baseline": 10187625,
+      "profile": 10502959
+    },
+    "posting_fraction_service": 0.009126061801423948,
+    "posting_fraction_query": 0.014741490937874207
+  },
+  {
+    "id": "nanus.broad.const.auto",
+    "repo": "nanus",
+    "query": "const",
+    "ranking": "auto",
+    "family": "broad",
+    "median_phases_ns": {
+      "service": 8680833,
+      "seed": 3803000,
+      "service_context": 1779625,
+      "query": 5111167,
+      "evidence": 161500,
+      "metadata_postings": 51292,
+      "body_topk": 63041,
+      "freshness": 1787084,
+      "body_postings": 61208,
+      "connect": 55250,
+      "metadata_retrieval": 95666
+    },
+    "median_external_ns": {
+      "baseline": 9449625,
+      "profile": 9055667
+    },
+    "posting_fraction_service": 0.012959585790902785,
+    "posting_fraction_query": 0.022010628883775467
+  },
+  {
+    "id": "nanus.broad.const.metadata",
+    "repo": "nanus",
+    "query": "const",
+    "ranking": "metadata",
+    "family": "broad",
+    "median_phases_ns": {
+      "service": 4867958,
+      "seed": 103042,
+      "service_context": 1762541,
+      "query": 1240500,
+      "evidence": 129125,
+      "metadata_postings": 46167,
+      "freshness": 1816416,
+      "connect": 80334,
+      "metadata_retrieval": 85250
+    },
+    "median_external_ns": {
+      "baseline": 5135042,
+      "profile": 5279375
+    },
+    "posting_fraction_service": 0.009483853393969299,
+    "posting_fraction_query": 0.037216444981862155
+  },
+  {
+    "id": "nanus.broad.const.body",
+    "repo": "nanus",
+    "query": "const",
+    "ranking": "body",
+    "family": "broad",
+    "median_phases_ns": {
+      "service": 8565833,
+      "seed": 3687291,
+      "service_context": 1832083,
+      "query": 4926750,
+      "evidence": 145542,
+      "body_topk": 50417,
+      "freshness": 1803750,
+      "body_postings": 62083,
+      "connect": 55084
+    },
+    "median_external_ns": {
+      "baseline": 9100125,
+      "profile": 8927292
+    },
+    "posting_fraction_service": 0.007247748117433529,
+    "posting_fraction_query": 0.012601207692698025
+  },
+  {
+    "id": "nanus.broad.error.auto",
+    "repo": "nanus",
+    "query": "error",
+    "ranking": "auto",
+    "family": "broad",
+    "median_phases_ns": {
+      "service": 9349083,
+      "seed": 4076583,
+      "service_context": 1821333,
+      "query": 5564542,
+      "evidence": 201292,
+      "metadata_postings": 43459,
+      "body_topk": 145375,
+      "freshness": 1915750,
+      "body_postings": 158875,
+      "connect": 158333,
+      "metadata_retrieval": 92708
+    },
+    "median_external_ns": {
+      "baseline": 9719625,
+      "profile": 9738417
+    },
+    "posting_fraction_service": 0.02164212254827559,
+    "posting_fraction_query": 0.03636130341005603
+  },
+  {
+    "id": "nanus.broad.error.metadata",
+    "repo": "nanus",
+    "query": "error",
+    "ranking": "metadata",
+    "family": "broad",
+    "median_phases_ns": {
+      "service": 4685917,
+      "seed": 125083,
+      "service_context": 1780042,
+      "query": 940459,
+      "evidence": 76542,
+      "metadata_postings": 40750,
+      "freshness": 1961458,
+      "connect": 97125,
+      "metadata_retrieval": 90791
+    },
+    "median_external_ns": {
+      "baseline": 4746792,
+      "profile": 5007333
+    },
+    "posting_fraction_service": 0.008696270121728576,
+    "posting_fraction_query": 0.043329905928913434
+  },
+  {
+    "id": "nanus.broad.error.body",
+    "repo": "nanus",
+    "query": "error",
+    "ranking": "body",
+    "family": "broad",
+    "median_phases_ns": {
+      "service": 8198583,
+      "seed": 3577583,
+      "service_context": 1550375,
+      "query": 4825792,
+      "evidence": 203583,
+      "body_topk": 135541,
+      "freshness": 1656125,
+      "body_postings": 156417,
+      "connect": 119042
+    },
+    "median_external_ns": {
+      "baseline": 9717584,
+      "profile": 8613541
+    },
+    "posting_fraction_service": 0.019078540767349675,
+    "posting_fraction_query": 0.032412710701165734
+  },
+  {
+    "id": "nanus.broad.source.auto",
+    "repo": "nanus",
+    "query": "source",
+    "ranking": "auto",
+    "family": "broad",
+    "median_phases_ns": {
+      "service": 11500667,
+      "seed": 3728292,
+      "service_context": 1833292,
+      "query": 7712708,
+      "evidence": 449583,
+      "metadata_postings": 7000,
+      "body_topk": 41834,
+      "freshness": 1945125,
+      "body_postings": 45708,
+      "connect": 174708,
+      "metadata_retrieval": 28750
+    },
+    "median_external_ns": {
+      "baseline": 11616291,
+      "profile": 11965791
+    },
+    "posting_fraction_service": 0.004583038531591255,
+    "posting_fraction_query": 0.006833916180931522
+  },
+  {
+    "id": "nanus.broad.source.metadata",
+    "repo": "nanus",
+    "query": "source",
+    "ranking": "metadata",
+    "family": "broad",
+    "median_phases_ns": {
+      "service": 7221500,
+      "seed": 40417,
+      "service_context": 1777041,
+      "query": 3567292,
+      "evidence": 375875,
+      "metadata_postings": 6834,
+      "freshness": 1843375,
+      "connect": 160708,
+      "metadata_retrieval": 28083
+    },
+    "median_external_ns": {
+      "baseline": 7832333,
+      "profile": 7618458
+    },
+    "posting_fraction_service": 0.0009463407879249464,
+    "posting_fraction_query": 0.0019157388854066334
+  },
+  {
+    "id": "nanus.broad.source.body",
+    "repo": "nanus",
+    "query": "source",
+    "ranking": "body",
+    "family": "broad",
+    "median_phases_ns": {
+      "service": 8232959,
+      "seed": 3926208,
+      "service_context": 1795625,
+      "query": 4475375,
+      "evidence": 115750,
+      "body_topk": 35874,
+      "freshness": 1920083,
+      "body_postings": 42917,
+      "connect": 89292
+    },
+    "median_external_ns": {
+      "baseline": 8251500,
+      "profile": 8670666
+    },
+    "posting_fraction_service": 0.00521282809740702,
+    "posting_fraction_query": 0.009589587464737592
+  },
+  {
+    "id": "nanus.broad.error response.auto",
+    "repo": "nanus",
+    "query": "error response",
+    "ranking": "auto",
+    "family": "broad",
+    "median_phases_ns": {
+      "service": 9067000,
+      "seed": 3822209,
+      "service_context": 1748875,
+      "query": 5309125,
+      "evidence": 207875,
+      "body_topk": 142083,
+      "freshness": 1822625,
+      "body_postings": 172666,
+      "connect": 96792
+    },
+    "median_external_ns": {
+      "baseline": 9079458,
+      "profile": 9492709
+    },
+    "posting_fraction_service": 0.01904334399470608,
+    "posting_fraction_query": 0.032522496644927366
+  },
+  {
+    "id": "nanus.broad.error response.metadata",
+    "repo": "nanus",
+    "query": "error response",
+    "ranking": "metadata",
+    "family": "broad",
+    "median_phases_ns": {
+      "service": 5954291,
+      "seed": 112958,
+      "service_context": 1754666,
+      "query": 2343875,
+      "evidence": 270125,
+      "metadata_postings": 47791,
+      "freshness": 1891333,
+      "connect": 140167,
+      "metadata_retrieval": 90541
+    },
+    "median_external_ns": {
+      "baseline": 6220875,
+      "profile": 6339625
+    },
+    "posting_fraction_service": 0.008026312452649694,
+    "posting_fraction_query": 0.020389739213908593
+  },
+  {
+    "id": "nanus.broad.error response.body",
+    "repo": "nanus",
+    "query": "error response",
+    "ranking": "body",
+    "family": "broad",
+    "median_phases_ns": {
+      "service": 9533708,
+      "seed": 4214417,
+      "service_context": 1792000,
+      "query": 5958375,
+      "evidence": 234375,
+      "body_topk": 168874,
+      "freshness": 1808125,
+      "body_postings": 207958,
+      "connect": 115667
+    },
+    "median_external_ns": {
+      "baseline": 9883292,
+      "profile": 10014375
+    },
+    "posting_fraction_service": 0.021812918960807275,
+    "posting_fraction_query": 0.03490179788952525
+  },
+  {
+    "id": "blogwright.broad.return.auto",
+    "repo": "blogwright",
+    "query": "return",
+    "ranking": "auto",
+    "family": "broad",
+    "median_phases_ns": {
+      "service": 5972917,
+      "seed": 2028833,
+      "service_context": 1437208,
+      "query": 3060625,
+      "evidence": 168583,
+      "metadata_postings": 1000,
+      "body_topk": 65000,
+      "freshness": 1498375,
+      "body_postings": 59124,
+      "connect": 286083,
+      "metadata_retrieval": 2500
+    },
+    "median_external_ns": {
+      "baseline": 6516625,
+      "profile": 6700584
+    },
+    "posting_fraction_service": 0.010066103379638458,
+    "posting_fraction_query": 0.01964435368593016
+  },
+  {
+    "id": "blogwright.broad.return.metadata",
+    "repo": "blogwright",
+    "query": "return",
+    "ranking": "metadata",
+    "family": "broad",
+    "median_phases_ns": {
+      "service": 2954292,
+      "seed": 5042,
+      "service_context": 1436000,
+      "query": 16292,
+      "evidence": 2416,
+      "metadata_postings": 1000,
+      "freshness": 1500750,
+      "connect": 42,
+      "metadata_retrieval": 2583
+    },
+    "median_external_ns": {
+      "baseline": 2992667,
+      "profile": 3106125
+    },
+    "posting_fraction_service": 0.0003384905757453901,
+    "posting_fraction_query": 0.061379818315737786
+  },
+  {
+    "id": "blogwright.broad.return.body",
+    "repo": "blogwright",
+    "query": "return",
+    "ranking": "body",
+    "family": "broad",
+    "median_phases_ns": {
+      "service": 6552125,
+      "seed": 2221125,
+      "service_context": 1476375,
+      "query": 3371250,
+      "evidence": 167833,
+      "body_topk": 59583,
+      "freshness": 1528375,
+      "body_postings": 56875,
+      "connect": 293209
+    },
+    "median_external_ns": {
+      "baseline": 6919083,
+      "profile": 7078542
+    },
+    "posting_fraction_service": 0.008680389949825439,
+    "posting_fraction_query": 0.016870596959584722
+  },
+  {
+    "id": "blogwright.broad.const.auto",
+    "repo": "blogwright",
+    "query": "const",
+    "ranking": "auto",
+    "family": "broad",
+    "median_phases_ns": {
+      "service": 6396667,
+      "seed": 2169834,
+      "service_context": 1402542,
+      "query": 3266667,
+      "evidence": 173041,
+      "metadata_postings": 2125,
+      "body_topk": 120208,
+      "freshness": 1590084,
+      "body_postings": 167125,
+      "connect": 257125,
+      "metadata_retrieval": 7833
+    },
+    "median_external_ns": {
+      "baseline": 7109916,
+      "profile": 6962333
+    },
+    "posting_fraction_service": 0.026459091898953003,
+    "posting_fraction_query": 0.05181121920293682
+  },
+  {
+    "id": "blogwright.broad.const.metadata",
+    "repo": "blogwright",
+    "query": "const",
+    "ranking": "metadata",
+    "family": "broad",
+    "median_phases_ns": {
+      "service": 3395416,
+      "seed": 7584,
+      "service_context": 1450333,
+      "query": 374958,
+      "evidence": 31125,
+      "metadata_postings": 2167,
+      "freshness": 1546834,
+      "connect": 38042,
+      "metadata_retrieval": 5459
+    },
+    "median_external_ns": {
+      "baseline": 3774958,
+      "profile": 3644959
+    },
+    "posting_fraction_service": 0.0006382134030115897,
+    "posting_fraction_query": 0.005779313949829047
+  },
+  {
+    "id": "blogwright.broad.const.body",
+    "repo": "blogwright",
+    "query": "const",
+    "ranking": "body",
+    "family": "broad",
+    "median_phases_ns": {
+      "service": 7125791,
+      "seed": 2298209,
+      "service_context": 1582750,
+      "query": 3912208,
+      "evidence": 313709,
+      "body_topk": 138416,
+      "freshness": 1617542,
+      "body_postings": 192333,
+      "connect": 379834
+    },
+    "median_external_ns": {
+      "baseline": 7255250,
+      "profile": 7635208
+    },
+    "posting_fraction_service": 0.026991108776555472,
+    "posting_fraction_query": 0.04916226335614057
+  },
+  {
+    "id": "blogwright.broad.error.auto",
+    "repo": "blogwright",
+    "query": "error",
+    "ranking": "auto",
+    "family": "broad",
+    "median_phases_ns": {
+      "service": 5569084,
+      "seed": 1977375,
+      "service_context": 1512333,
+      "query": 2581458,
+      "evidence": 74875,
+      "metadata_postings": 4125,
+      "body_topk": 43168,
+      "freshness": 1468250,
+      "body_postings": 50374,
+      "connect": 181709,
+      "metadata_retrieval": 19083
+    },
+    "median_external_ns": {
+      "baseline": 6042208,
+      "profile": 6039041
+    },
+    "posting_fraction_service": 0.009785989940176876,
+    "posting_fraction_query": 0.021111712838248774
+  },
+  {
+    "id": "blogwright.broad.error.metadata",
+    "repo": "blogwright",
+    "query": "error",
+    "ranking": "metadata",
+    "family": "broad",
+    "median_phases_ns": {
+      "service": 3620792,
+      "seed": 25375,
+      "service_context": 1414916,
+      "query": 766292,
+      "evidence": 88667,
+      "metadata_postings": 4166,
+      "freshness": 1474875,
+      "connect": 176708,
+      "metadata_retrieval": 17209
+    },
+    "median_external_ns": {
+      "baseline": 4383875,
+      "profile": 3972917
+    },
+    "posting_fraction_service": 0.001150577000832967,
+    "posting_fraction_query": 0.0054365698715372205
+  },
+  {
+    "id": "blogwright.broad.error.body",
+    "repo": "blogwright",
+    "query": "error",
+    "ranking": "body",
+    "family": "broad",
+    "median_phases_ns": {
+      "service": 5929458,
+      "seed": 2191416,
+      "service_context": 1495333,
+      "query": 2898083,
+      "evidence": 98750,
+      "body_topk": 69000,
+      "freshness": 1507625,
+      "body_postings": 55292,
+      "connect": 161542
+    },
+    "median_external_ns": {
+      "baseline": 6201250,
+      "profile": 6391000
+    },
+    "posting_fraction_service": 0.00932496696999962,
+    "posting_fraction_query": 0.019078818653572034
+  },
+  {
+    "id": "blogwright.broad.source.auto",
+    "repo": "blogwright",
+    "query": "source",
+    "ranking": "auto",
+    "family": "broad",
+    "median_phases_ns": {
+      "service": 5483541,
+      "seed": 2012292,
+      "service_context": 1408083,
+      "query": 2589541,
+      "evidence": 82042,
+      "metadata_postings": 5375,
+      "body_topk": 22499,
+      "freshness": 1482541,
+      "body_postings": 27667,
+      "connect": 69250,
+      "metadata_retrieval": 21625
+    },
+    "median_external_ns": {
+      "baseline": 5708750,
+      "profile": 5876042
+    },
+    "posting_fraction_service": 0.0060256684503681105,
+    "posting_fraction_query": 0.012759790248542116
+  },
+  {
+    "id": "blogwright.broad.source.metadata",
+    "repo": "blogwright",
+    "query": "source",
+    "ranking": "metadata",
+    "family": "broad",
+    "median_phases_ns": {
+      "service": 3451333,
+      "seed": 29417,
+      "service_context": 1388208,
+      "query": 626750,
+      "evidence": 62083,
+      "metadata_postings": 4709,
+      "freshness": 1450208,
+      "connect": 107000,
+      "metadata_retrieval": 19834
+    },
+    "median_external_ns": {
+      "baseline": 3817708,
+      "profile": 3765167
+    },
+    "posting_fraction_service": 0.00136440036356967,
+    "posting_fraction_query": 0.0075133625847626645
+  },
+  {
+    "id": "blogwright.broad.source.body",
+    "repo": "blogwright",
+    "query": "source",
+    "ranking": "body",
+    "family": "broad",
+    "median_phases_ns": {
+      "service": 5899000,
+      "seed": 1985375,
+      "service_context": 1493875,
+      "query": 2885042,
+      "evidence": 160750,
+      "body_topk": 26291,
+      "freshness": 1517375,
+      "body_postings": 26458,
+      "connect": 123834
+    },
+    "median_external_ns": {
+      "baseline": 6285000,
+      "profile": 6363917
+    },
+    "posting_fraction_service": 0.004485166977453806,
+    "posting_fraction_query": 0.009170750373824714
+  },
+  {
+    "id": "blogwright.broad.error response.auto",
+    "repo": "blogwright",
+    "query": "error response",
+    "ranking": "auto",
+    "family": "broad",
+    "median_phases_ns": {
+      "service": 5623083,
+      "seed": 2030833,
+      "service_context": 1420083,
+      "query": 2729250,
+      "evidence": 126209,
+      "body_topk": 46083,
+      "freshness": 1452125,
+      "body_postings": 75500,
+      "connect": 112916
+    },
+    "median_external_ns": {
+      "baseline": 6071458,
+      "profile": 6060833
+    },
+    "posting_fraction_service": 0.013426798075006184,
+    "posting_fraction_query": 0.02766327745717688
+  },
+  {
+    "id": "blogwright.broad.error response.metadata",
+    "repo": "blogwright",
+    "query": "error response",
+    "ranking": "metadata",
+    "family": "broad",
+    "median_phases_ns": {
+      "service": 3789375,
+      "seed": 44209,
+      "service_context": 1419875,
+      "query": 861167,
+      "evidence": 88250,
+      "metadata_postings": 7500,
+      "freshness": 1478000,
+      "connect": 212583,
+      "metadata_retrieval": 30958
+    },
+    "median_external_ns": {
+      "baseline": 4068792,
+      "profile": 4233000
+    },
+    "posting_fraction_service": 0.0019792182088075212,
+    "posting_fraction_query": 0.008709112169881104
+  },
+  {
+    "id": "blogwright.broad.error response.body",
+    "repo": "blogwright",
+    "query": "error response",
+    "ranking": "body",
+    "family": "broad",
+    "median_phases_ns": {
+      "service": 5872125,
+      "seed": 2135166,
+      "service_context": 1522708,
+      "query": 2808958,
+      "evidence": 111875,
+      "body_topk": 45792,
+      "freshness": 1547458,
+      "body_postings": 65541,
+      "connect": 107500
+    },
+    "median_external_ns": {
+      "baseline": 6299666,
+      "profile": 6279375
+    },
+    "posting_fraction_service": 0.011161376843987483,
+    "posting_fraction_query": 0.02333285154139008
+  },
+  {
+    "id": "whatsurvey.broad.return.auto",
+    "repo": "whatsurvey",
+    "query": "return",
+    "ranking": "auto",
+    "family": "broad",
+    "median_phases_ns": {
+      "service": 33725792,
+      "seed": 12467209,
+      "service_context": 9953625,
+      "query": 13797500,
+      "evidence": 146667,
+      "metadata_postings": 7917,
+      "body_topk": 430667,
+      "freshness": 10100375,
+      "body_postings": 599750,
+      "connect": 179750,
+      "metadata_retrieval": 33042
+    },
+    "median_external_ns": {
+      "baseline": 34056667,
+      "profile": 34199708
+    },
+    "posting_fraction_service": 0.01801787190053239,
+    "posting_fraction_query": 0.044041819170139516
+  },
+  {
+    "id": "whatsurvey.broad.return.metadata",
+    "repo": "whatsurvey",
+    "query": "return",
+    "ranking": "metadata",
+    "family": "broad",
+    "median_phases_ns": {
+      "service": 20622792,
+      "seed": 45708,
+      "service_context": 9901875,
+      "query": 934208,
+      "evidence": 91666,
+      "metadata_postings": 7291,
+      "freshness": 9807709,
+      "connect": 121083,
+      "metadata_retrieval": 32334
+    },
+    "median_external_ns": {
+      "baseline": 21072167,
+      "profile": 20929916
+    },
+    "posting_fraction_service": 0.00035354087846107353,
+    "posting_fraction_query": 0.007804471809275878
+  },
+  {
+    "id": "whatsurvey.broad.return.body",
+    "repo": "whatsurvey",
+    "query": "return",
+    "ranking": "body",
+    "family": "broad",
+    "median_phases_ns": {
+      "service": 34003042,
+      "seed": 12146500,
+      "service_context": 10058667,
+      "query": 13941167,
+      "evidence": 251208,
+      "body_topk": 432125,
+      "freshness": 10104042,
+      "body_postings": 591792,
+      "connect": 237583
+    },
+    "median_external_ns": {
+      "baseline": 33841875,
+      "profile": 34715292
+    },
+    "posting_fraction_service": 0.017404089904662058,
+    "posting_fraction_query": 0.04244924402670164
+  },
+  {
+    "id": "whatsurvey.broad.const.auto",
+    "repo": "whatsurvey",
+    "query": "const",
+    "ranking": "auto",
+    "family": "broad",
+    "median_phases_ns": {
+      "service": 36313042,
+      "seed": 13552833,
+      "service_context": 9888084,
+      "query": 16279291,
+      "evidence": 364041,
+      "metadata_postings": 9666,
+      "body_topk": 626959,
+      "freshness": 10163209,
+      "body_postings": 1710125,
+      "connect": 678750,
+      "metadata_retrieval": 46208
+    },
+    "median_external_ns": {
+      "baseline": 36904750,
+      "profile": 36865583
+    },
+    "posting_fraction_service": 0.04736014680345425,
+    "posting_fraction_query": 0.10564286859913002
+  },
+  {
+    "id": "whatsurvey.broad.const.metadata",
+    "repo": "whatsurvey",
+    "query": "const",
+    "ranking": "metadata",
+    "family": "broad",
+    "median_phases_ns": {
+      "service": 21533333,
+      "seed": 58625,
+      "service_context": 9921708,
+      "query": 1562250,
+      "evidence": 189958,
+      "metadata_postings": 9750,
+      "freshness": 10111750,
+      "connect": 115959,
+      "metadata_retrieval": 41791
+    },
+    "median_external_ns": {
+      "baseline": 21900833,
+      "profile": 21832042
+    },
+    "posting_fraction_service": 0.0004527863847180555,
+    "posting_fraction_query": 0.006240998559769563
+  },
+  {
+    "id": "whatsurvey.broad.const.body",
+    "repo": "whatsurvey",
+    "query": "const",
+    "ranking": "body",
+    "family": "broad",
+    "median_phases_ns": {
+      "service": 38137459,
+      "seed": 13655458,
+      "service_context": 10737792,
+      "query": 16325917,
+      "evidence": 420541,
+      "body_topk": 635916,
+      "freshness": 11027500,
+      "body_postings": 1670834,
+      "connect": 721333
+    },
+    "median_external_ns": {
+      "baseline": 36448542,
+      "profile": 38650500
+    },
+    "posting_fraction_service": 0.04381083700411189,
+    "posting_fraction_query": 0.10234242891226263
+  },
+  {
+    "id": "whatsurvey.broad.error.auto",
+    "repo": "whatsurvey",
+    "query": "error",
+    "ranking": "auto",
+    "family": "broad",
+    "median_phases_ns": {
+      "service": 33105292,
+      "seed": 12035875,
+      "service_context": 10089292,
+      "query": 13042917,
+      "evidence": 88250,
+      "metadata_postings": 76500,
+      "body_topk": 284708,
+      "freshness": 9967833,
+      "body_postings": 475666,
+      "connect": 83500,
+      "metadata_retrieval": 131750
+    },
+    "median_external_ns": {
+      "baseline": 32927041,
+      "profile": 33510917
+    },
+    "posting_fraction_service": 0.016679085627760055,
+    "posting_fraction_query": 0.04233454832228097
+  },
+  {
+    "id": "whatsurvey.broad.error.metadata",
+    "repo": "whatsurvey",
+    "query": "error",
+    "ranking": "metadata",
+    "family": "broad",
+    "median_phases_ns": {
+      "service": 21035666,
+      "seed": 144750,
+      "service_context": 9840791,
+      "query": 1082792,
+      "evidence": 102541,
+      "metadata_postings": 74292,
+      "freshness": 10107375,
+      "connect": 111084,
+      "metadata_retrieval": 125875
+    },
+    "median_external_ns": {
+      "baseline": 21112125,
+      "profile": 21422583
+    },
+    "posting_fraction_service": 0.0035317160863839537,
+    "posting_fraction_query": 0.06861151541570311
+  },
+  {
+    "id": "whatsurvey.broad.error.body",
+    "repo": "whatsurvey",
+    "query": "error",
+    "ranking": "body",
+    "family": "broad",
+    "median_phases_ns": {
+      "service": 33745917,
+      "seed": 11934875,
+      "service_context": 9825542,
+      "query": 13715542,
+      "evidence": 296042,
+      "body_topk": 288792,
+      "freshness": 10189875,
+      "body_postings": 490750,
+      "connect": 295625
+    },
+    "median_external_ns": {
+      "baseline": 37449917,
+      "profile": 34227167
+    },
+    "posting_fraction_service": 0.014542500060081343,
+    "posting_fraction_query": 0.035780576516771995
+  },
+  {
+    "id": "whatsurvey.broad.source.auto",
+    "repo": "whatsurvey",
+    "query": "source",
+    "ranking": "auto",
+    "family": "broad",
+    "median_phases_ns": {
+      "service": 32685375,
+      "seed": 11349750,
+      "service_context": 9993709,
+      "query": 12753833,
+      "evidence": 134458,
+      "metadata_postings": 19750,
+      "body_topk": 78333,
+      "freshness": 10054917,
+      "body_postings": 137667,
+      "connect": 82625,
+      "metadata_retrieval": 72750
+    },
+    "median_external_ns": {
+      "baseline": 33625167,
+      "profile": 33097916
+    },
+    "posting_fraction_service": 0.0048161295380579235,
+    "posting_fraction_query": 0.01234272081185319
+  },
+  {
+    "id": "whatsurvey.broad.source.metadata",
+    "repo": "whatsurvey",
+    "query": "source",
+    "ranking": "metadata",
+    "family": "broad",
+    "median_phases_ns": {
+      "service": 22541250,
+      "seed": 94250,
+      "service_context": 10116917,
+      "query": 2104834,
+      "evidence": 233750,
+      "metadata_postings": 21833,
+      "freshness": 10390666,
+      "connect": 117541,
+      "metadata_retrieval": 73667
+    },
+    "median_external_ns": {
+      "baseline": 22940167,
+      "profile": 22880542
+    },
+    "posting_fraction_service": 0.0009685798258747851,
+    "posting_fraction_query": 0.010372789493138176
+  },
+  {
+    "id": "whatsurvey.broad.source.body",
+    "repo": "whatsurvey",
+    "query": "source",
+    "ranking": "body",
+    "family": "broad",
+    "median_phases_ns": {
+      "service": 32501375,
+      "seed": 11188541,
+      "service_context": 10075583,
+      "query": 12504583,
+      "evidence": 133042,
+      "body_topk": 78000,
+      "freshness": 9916625,
+      "body_postings": 142208,
+      "connect": 67250
+    },
+    "median_external_ns": {
+      "baseline": 32684542,
+      "profile": 32920333
+    },
+    "posting_fraction_service": 0.004375445654222322,
+    "posting_fraction_query": 0.011372470397453477
+  },
+  {
+    "id": "whatsurvey.broad.error response.auto",
+    "repo": "whatsurvey",
+    "query": "error response",
+    "ranking": "auto",
+    "family": "broad",
+    "median_phases_ns": {
+      "service": 34217125,
+      "seed": 12328834,
+      "service_context": 10056167,
+      "query": 14215958,
+      "evidence": 256791,
+      "body_topk": 345584,
+      "freshness": 9918541,
+      "body_postings": 654791,
+      "connect": 470750
+    },
+    "median_external_ns": {
+      "baseline": 34260083,
+      "profile": 34678625
+    },
+    "posting_fraction_service": 0.019136353507198514,
+    "posting_fraction_query": 0.04606027958158008
+  },
+  {
+    "id": "whatsurvey.broad.error response.metadata",
+    "repo": "whatsurvey",
+    "query": "error response",
+    "ranking": "metadata",
+    "family": "broad",
+    "median_phases_ns": {
+      "service": 22010000,
+      "seed": 185500,
+      "service_context": 10004042,
+      "query": 1941791,
+      "evidence": 209459,
+      "metadata_postings": 111667,
+      "freshness": 10158292,
+      "connect": 176666,
+      "metadata_retrieval": 165041
+    },
+    "median_external_ns": {
+      "baseline": 21992750,
+      "profile": 22333875
+    },
+    "posting_fraction_service": 0.005073466606088142,
+    "posting_fraction_query": 0.057507218851050396
+  },
+  {
+    "id": "whatsurvey.broad.error response.body",
+    "repo": "whatsurvey",
+    "query": "error response",
+    "ranking": "body",
+    "family": "broad",
+    "median_phases_ns": {
+      "service": 33677208,
+      "seed": 11882875,
+      "service_context": 9940250,
+      "query": 13757041,
+      "evidence": 264416,
+      "body_topk": 345917,
+      "freshness": 9874750,
+      "body_postings": 651875,
+      "connect": 411958
+    },
+    "median_external_ns": {
+      "baseline": 34581375,
+      "profile": 34353458
+    },
+    "posting_fraction_service": 0.019356563050001056,
+    "posting_fraction_query": 0.04738482643178864
+  }
+]

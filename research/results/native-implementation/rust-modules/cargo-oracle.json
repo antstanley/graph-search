@@ -1,0 +1,732 @@
+{
+  "cargo": "cargo 1.98.0 (797e8a9bc 2026-08-05)",
+  "rustc": "rustc 1.98.0 (88d9e12ae 2026-08-18)",
+  "cases": [
+    {
+      "case": "2015-explicit-lib",
+      "manifest": "[package]\nname='p'\nversion='0.1.0'\nedition='2015'\n[lib]\nname='explicit'\npath='entry.rs'\n",
+      "files": [
+        "src/lib.rs",
+        "src/main.rs",
+        "src/bin/worker.rs",
+        "examples/demo.rs",
+        "tests/check.rs",
+        "benches/speed.rs",
+        "entry.rs"
+      ],
+      "expected_paths": [
+        "src/main.rs",
+        "src/bin/worker.rs",
+        "examples/demo.rs",
+        "tests/check.rs",
+        "benches/speed.rs",
+        "entry.rs"
+      ],
+      "actual_paths": [
+        "benches/speed.rs",
+        "entry.rs",
+        "examples/demo.rs",
+        "src/bin/worker.rs",
+        "src/main.rs",
+        "tests/check.rs"
+      ],
+      "exit_code": 0,
+      "passed": true,
+      "stderr": ""
+    },
+    {
+      "case": "2015-explicit-bin",
+      "manifest": "[package]\nname='p'\nversion='0.1.0'\nedition='2015'\n[[bin]]\nname='explicit'\npath='entry.rs'\n",
+      "files": [
+        "src/lib.rs",
+        "src/main.rs",
+        "src/bin/worker.rs",
+        "examples/demo.rs",
+        "tests/check.rs",
+        "benches/speed.rs",
+        "entry.rs"
+      ],
+      "expected_paths": [
+        "src/lib.rs",
+        "examples/demo.rs",
+        "tests/check.rs",
+        "benches/speed.rs",
+        "entry.rs"
+      ],
+      "actual_paths": [
+        "benches/speed.rs",
+        "entry.rs",
+        "examples/demo.rs",
+        "src/lib.rs",
+        "tests/check.rs"
+      ],
+      "exit_code": 0,
+      "passed": true,
+      "stderr": ""
+    },
+    {
+      "case": "2015-empty-bin",
+      "manifest": "bin=[]\n[package]\nname='p'\nversion='0.1.0'\nedition='2015'\n",
+      "files": [
+        "src/lib.rs",
+        "src/main.rs",
+        "src/bin/worker.rs",
+        "examples/demo.rs",
+        "tests/check.rs",
+        "benches/speed.rs"
+      ],
+      "expected_paths": [
+        "src/lib.rs",
+        "examples/demo.rs",
+        "tests/check.rs",
+        "benches/speed.rs"
+      ],
+      "actual_paths": [
+        "benches/speed.rs",
+        "examples/demo.rs",
+        "src/lib.rs",
+        "tests/check.rs"
+      ],
+      "exit_code": 0,
+      "passed": true,
+      "stderr": ""
+    },
+    {
+      "case": "2015-explicit-example",
+      "manifest": "[package]\nname='p'\nversion='0.1.0'\nedition='2015'\n[[example]]\nname='explicit'\npath='entry.rs'\n",
+      "files": [
+        "src/lib.rs",
+        "src/main.rs",
+        "src/bin/worker.rs",
+        "examples/demo.rs",
+        "tests/check.rs",
+        "benches/speed.rs",
+        "entry.rs"
+      ],
+      "expected_paths": [
+        "src/lib.rs",
+        "src/main.rs",
+        "src/bin/worker.rs",
+        "tests/check.rs",
+        "benches/speed.rs",
+        "entry.rs"
+      ],
+      "actual_paths": [
+        "benches/speed.rs",
+        "entry.rs",
+        "src/bin/worker.rs",
+        "src/lib.rs",
+        "src/main.rs",
+        "tests/check.rs"
+      ],
+      "exit_code": 0,
+      "passed": true,
+      "stderr": ""
+    },
+    {
+      "case": "2015-empty-example",
+      "manifest": "example=[]\n[package]\nname='p'\nversion='0.1.0'\nedition='2015'\n",
+      "files": [
+        "src/lib.rs",
+        "src/main.rs",
+        "src/bin/worker.rs",
+        "examples/demo.rs",
+        "tests/check.rs",
+        "benches/speed.rs"
+      ],
+      "expected_paths": [
+        "src/lib.rs",
+        "src/main.rs",
+        "src/bin/worker.rs",
+        "tests/check.rs",
+        "benches/speed.rs"
+      ],
+      "actual_paths": [
+        "benches/speed.rs",
+        "src/bin/worker.rs",
+        "src/lib.rs",
+        "src/main.rs",
+        "tests/check.rs"
+      ],
+      "exit_code": 0,
+      "passed": true,
+      "stderr": ""
+    },
+    {
+      "case": "2015-explicit-test",
+      "manifest": "[package]\nname='p'\nversion='0.1.0'\nedition='2015'\n[[test]]\nname='explicit'\npath='entry.rs'\n",
+      "files": [
+        "src/lib.rs",
+        "src/main.rs",
+        "src/bin/worker.rs",
+        "examples/demo.rs",
+        "tests/check.rs",
+        "benches/speed.rs",
+        "entry.rs"
+      ],
+      "expected_paths": [
+        "src/lib.rs",
+        "src/main.rs",
+        "src/bin/worker.rs",
+        "examples/demo.rs",
+        "benches/speed.rs",
+        "entry.rs"
+      ],
+      "actual_paths": [
+        "benches/speed.rs",
+        "entry.rs",
+        "examples/demo.rs",
+        "src/bin/worker.rs",
+        "src/lib.rs",
+        "src/main.rs"
+      ],
+      "exit_code": 0,
+      "passed": true,
+      "stderr": ""
+    },
+    {
+      "case": "2015-empty-test",
+      "manifest": "test=[]\n[package]\nname='p'\nversion='0.1.0'\nedition='2015'\n",
+      "files": [
+        "src/lib.rs",
+        "src/main.rs",
+        "src/bin/worker.rs",
+        "examples/demo.rs",
+        "tests/check.rs",
+        "benches/speed.rs"
+      ],
+      "expected_paths": [
+        "src/lib.rs",
+        "src/main.rs",
+        "src/bin/worker.rs",
+        "examples/demo.rs",
+        "benches/speed.rs"
+      ],
+      "actual_paths": [
+        "benches/speed.rs",
+        "examples/demo.rs",
+        "src/bin/worker.rs",
+        "src/lib.rs",
+        "src/main.rs"
+      ],
+      "exit_code": 0,
+      "passed": true,
+      "stderr": ""
+    },
+    {
+      "case": "2015-explicit-bench",
+      "manifest": "[package]\nname='p'\nversion='0.1.0'\nedition='2015'\n[[bench]]\nname='explicit'\npath='entry.rs'\n",
+      "files": [
+        "src/lib.rs",
+        "src/main.rs",
+        "src/bin/worker.rs",
+        "examples/demo.rs",
+        "tests/check.rs",
+        "benches/speed.rs",
+        "entry.rs"
+      ],
+      "expected_paths": [
+        "src/lib.rs",
+        "src/main.rs",
+        "src/bin/worker.rs",
+        "examples/demo.rs",
+        "tests/check.rs",
+        "entry.rs"
+      ],
+      "actual_paths": [
+        "entry.rs",
+        "examples/demo.rs",
+        "src/bin/worker.rs",
+        "src/lib.rs",
+        "src/main.rs",
+        "tests/check.rs"
+      ],
+      "exit_code": 0,
+      "passed": true,
+      "stderr": ""
+    },
+    {
+      "case": "2015-empty-bench",
+      "manifest": "bench=[]\n[package]\nname='p'\nversion='0.1.0'\nedition='2015'\n",
+      "files": [
+        "src/lib.rs",
+        "src/main.rs",
+        "src/bin/worker.rs",
+        "examples/demo.rs",
+        "tests/check.rs",
+        "benches/speed.rs"
+      ],
+      "expected_paths": [
+        "src/lib.rs",
+        "src/main.rs",
+        "src/bin/worker.rs",
+        "examples/demo.rs",
+        "tests/check.rs"
+      ],
+      "actual_paths": [
+        "examples/demo.rs",
+        "src/bin/worker.rs",
+        "src/lib.rs",
+        "src/main.rs",
+        "tests/check.rs"
+      ],
+      "exit_code": 0,
+      "passed": true,
+      "stderr": ""
+    },
+    {
+      "case": "2021-explicit-lib",
+      "manifest": "[package]\nname='p'\nversion='0.1.0'\nedition='2021'\n[lib]\nname='explicit'\npath='entry.rs'\n",
+      "files": [
+        "src/lib.rs",
+        "src/main.rs",
+        "src/bin/worker.rs",
+        "examples/demo.rs",
+        "tests/check.rs",
+        "benches/speed.rs",
+        "entry.rs"
+      ],
+      "expected_paths": [
+        "src/main.rs",
+        "src/bin/worker.rs",
+        "examples/demo.rs",
+        "tests/check.rs",
+        "benches/speed.rs",
+        "entry.rs"
+      ],
+      "actual_paths": [
+        "benches/speed.rs",
+        "entry.rs",
+        "examples/demo.rs",
+        "src/bin/worker.rs",
+        "src/main.rs",
+        "tests/check.rs"
+      ],
+      "exit_code": 0,
+      "passed": true,
+      "stderr": ""
+    },
+    {
+      "case": "2021-explicit-bin",
+      "manifest": "[package]\nname='p'\nversion='0.1.0'\nedition='2021'\n[[bin]]\nname='explicit'\npath='entry.rs'\n",
+      "files": [
+        "src/lib.rs",
+        "src/main.rs",
+        "src/bin/worker.rs",
+        "examples/demo.rs",
+        "tests/check.rs",
+        "benches/speed.rs",
+        "entry.rs"
+      ],
+      "expected_paths": [
+        "src/lib.rs",
+        "src/main.rs",
+        "src/bin/worker.rs",
+        "examples/demo.rs",
+        "tests/check.rs",
+        "benches/speed.rs",
+        "entry.rs"
+      ],
+      "actual_paths": [
+        "benches/speed.rs",
+        "entry.rs",
+        "examples/demo.rs",
+        "src/bin/worker.rs",
+        "src/lib.rs",
+        "src/main.rs",
+        "tests/check.rs"
+      ],
+      "exit_code": 0,
+      "passed": true,
+      "stderr": ""
+    },
+    {
+      "case": "2021-empty-bin",
+      "manifest": "bin=[]\n[package]\nname='p'\nversion='0.1.0'\nedition='2021'\n",
+      "files": [
+        "src/lib.rs",
+        "src/main.rs",
+        "src/bin/worker.rs",
+        "examples/demo.rs",
+        "tests/check.rs",
+        "benches/speed.rs"
+      ],
+      "expected_paths": [
+        "src/lib.rs",
+        "src/main.rs",
+        "src/bin/worker.rs",
+        "examples/demo.rs",
+        "tests/check.rs",
+        "benches/speed.rs"
+      ],
+      "actual_paths": [
+        "benches/speed.rs",
+        "examples/demo.rs",
+        "src/bin/worker.rs",
+        "src/lib.rs",
+        "src/main.rs",
+        "tests/check.rs"
+      ],
+      "exit_code": 0,
+      "passed": true,
+      "stderr": ""
+    },
+    {
+      "case": "2021-explicit-example",
+      "manifest": "[package]\nname='p'\nversion='0.1.0'\nedition='2021'\n[[example]]\nname='explicit'\npath='entry.rs'\n",
+      "files": [
+        "src/lib.rs",
+        "src/main.rs",
+        "src/bin/worker.rs",
+        "examples/demo.rs",
+        "tests/check.rs",
+        "benches/speed.rs",
+        "entry.rs"
+      ],
+      "expected_paths": [
+        "src/lib.rs",
+        "src/main.rs",
+        "src/bin/worker.rs",
+        "examples/demo.rs",
+        "tests/check.rs",
+        "benches/speed.rs",
+        "entry.rs"
+      ],
+      "actual_paths": [
+        "benches/speed.rs",
+        "entry.rs",
+        "examples/demo.rs",
+        "src/bin/worker.rs",
+        "src/lib.rs",
+        "src/main.rs",
+        "tests/check.rs"
+      ],
+      "exit_code": 0,
+      "passed": true,
+      "stderr": ""
+    },
+    {
+      "case": "2021-empty-example",
+      "manifest": "example=[]\n[package]\nname='p'\nversion='0.1.0'\nedition='2021'\n",
+      "files": [
+        "src/lib.rs",
+        "src/main.rs",
+        "src/bin/worker.rs",
+        "examples/demo.rs",
+        "tests/check.rs",
+        "benches/speed.rs"
+      ],
+      "expected_paths": [
+        "src/lib.rs",
+        "src/main.rs",
+        "src/bin/worker.rs",
+        "examples/demo.rs",
+        "tests/check.rs",
+        "benches/speed.rs"
+      ],
+      "actual_paths": [
+        "benches/speed.rs",
+        "examples/demo.rs",
+        "src/bin/worker.rs",
+        "src/lib.rs",
+        "src/main.rs",
+        "tests/check.rs"
+      ],
+      "exit_code": 0,
+      "passed": true,
+      "stderr": ""
+    },
+    {
+      "case": "2021-explicit-test",
+      "manifest": "[package]\nname='p'\nversion='0.1.0'\nedition='2021'\n[[test]]\nname='explicit'\npath='entry.rs'\n",
+      "files": [
+        "src/lib.rs",
+        "src/main.rs",
+        "src/bin/worker.rs",
+        "examples/demo.rs",
+        "tests/check.rs",
+        "benches/speed.rs",
+        "entry.rs"
+      ],
+      "expected_paths": [
+        "src/lib.rs",
+        "src/main.rs",
+        "src/bin/worker.rs",
+        "examples/demo.rs",
+        "tests/check.rs",
+        "benches/speed.rs",
+        "entry.rs"
+      ],
+      "actual_paths": [
+        "benches/speed.rs",
+        "entry.rs",
+        "examples/demo.rs",
+        "src/bin/worker.rs",
+        "src/lib.rs",
+        "src/main.rs",
+        "tests/check.rs"
+      ],
+      "exit_code": 0,
+      "passed": true,
+      "stderr": ""
+    },
+    {
+      "case": "2021-empty-test",
+      "manifest": "test=[]\n[package]\nname='p'\nversion='0.1.0'\nedition='2021'\n",
+      "files": [
+        "src/lib.rs",
+        "src/main.rs",
+        "src/bin/worker.rs",
+        "examples/demo.rs",
+        "tests/check.rs",
+        "benches/speed.rs"
+      ],
+      "expected_paths": [
+        "src/lib.rs",
+        "src/main.rs",
+        "src/bin/worker.rs",
+        "examples/demo.rs",
+        "tests/check.rs",
+        "benches/speed.rs"
+      ],
+      "actual_paths": [
+        "benches/speed.rs",
+        "examples/demo.rs",
+        "src/bin/worker.rs",
+        "src/lib.rs",
+        "src/main.rs",
+        "tests/check.rs"
+      ],
+      "exit_code": 0,
+      "passed": true,
+      "stderr": ""
+    },
+    {
+      "case": "2021-explicit-bench",
+      "manifest": "[package]\nname='p'\nversion='0.1.0'\nedition='2021'\n[[bench]]\nname='explicit'\npath='entry.rs'\n",
+      "files": [
+        "src/lib.rs",
+        "src/main.rs",
+        "src/bin/worker.rs",
+        "examples/demo.rs",
+        "tests/check.rs",
+        "benches/speed.rs",
+        "entry.rs"
+      ],
+      "expected_paths": [
+        "src/lib.rs",
+        "src/main.rs",
+        "src/bin/worker.rs",
+        "examples/demo.rs",
+        "tests/check.rs",
+        "benches/speed.rs",
+        "entry.rs"
+      ],
+      "actual_paths": [
+        "benches/speed.rs",
+        "entry.rs",
+        "examples/demo.rs",
+        "src/bin/worker.rs",
+        "src/lib.rs",
+        "src/main.rs",
+        "tests/check.rs"
+      ],
+      "exit_code": 0,
+      "passed": true,
+      "stderr": ""
+    },
+    {
+      "case": "2021-empty-bench",
+      "manifest": "bench=[]\n[package]\nname='p'\nversion='0.1.0'\nedition='2021'\n",
+      "files": [
+        "src/lib.rs",
+        "src/main.rs",
+        "src/bin/worker.rs",
+        "examples/demo.rs",
+        "tests/check.rs",
+        "benches/speed.rs"
+      ],
+      "expected_paths": [
+        "src/lib.rs",
+        "src/main.rs",
+        "src/bin/worker.rs",
+        "examples/demo.rs",
+        "tests/check.rs",
+        "benches/speed.rs"
+      ],
+      "actual_paths": [
+        "benches/speed.rs",
+        "examples/demo.rs",
+        "src/bin/worker.rs",
+        "src/lib.rs",
+        "src/main.rs",
+        "tests/check.rs"
+      ],
+      "exit_code": 0,
+      "passed": true,
+      "stderr": ""
+    },
+    {
+      "case": "build-omitted",
+      "manifest": "[package]\nname='p'\nversion='0.1.0'\nedition='2021'\n",
+      "files": [
+        "src/lib.rs",
+        "build.rs",
+        "tools/setup.rs"
+      ],
+      "expected_paths": [
+        "src/lib.rs",
+        "build.rs"
+      ],
+      "actual_paths": [
+        "build.rs",
+        "src/lib.rs"
+      ],
+      "exit_code": 0,
+      "passed": true,
+      "stderr": ""
+    },
+    {
+      "case": "build-build=true\n",
+      "manifest": "[package]\nname='p'\nversion='0.1.0'\nedition='2021'\nbuild=true\n",
+      "files": [
+        "src/lib.rs",
+        "build.rs",
+        "tools/setup.rs"
+      ],
+      "expected_paths": [
+        "src/lib.rs",
+        "build.rs"
+      ],
+      "actual_paths": [
+        "build.rs",
+        "src/lib.rs"
+      ],
+      "exit_code": 0,
+      "passed": true,
+      "stderr": ""
+    },
+    {
+      "case": "build-build=false\n",
+      "manifest": "[package]\nname='p'\nversion='0.1.0'\nedition='2021'\nbuild=false\n",
+      "files": [
+        "src/lib.rs",
+        "build.rs",
+        "tools/setup.rs"
+      ],
+      "expected_paths": [
+        "src/lib.rs"
+      ],
+      "actual_paths": [
+        "src/lib.rs"
+      ],
+      "exit_code": 0,
+      "passed": true,
+      "stderr": ""
+    },
+    {
+      "case": "build-build='tools/setup.rs'\n",
+      "manifest": "[package]\nname='p'\nversion='0.1.0'\nedition='2021'\nbuild='tools/setup.rs'\n",
+      "files": [
+        "src/lib.rs",
+        "build.rs",
+        "tools/setup.rs"
+      ],
+      "expected_paths": [
+        "src/lib.rs",
+        "tools/setup.rs"
+      ],
+      "actual_paths": [
+        "src/lib.rs",
+        "tools/setup.rs"
+      ],
+      "exit_code": 0,
+      "passed": true,
+      "stderr": ""
+    },
+    {
+      "case": "hidden-layout-is-not-auto-discovered",
+      "manifest": "[package]\nname='p'\nversion='0.1.0'\nedition='2021'\n",
+      "files": [
+        "src/lib.rs",
+        "src/bin/.hidden.rs",
+        "src/bin/.folder/main.rs",
+        "src/bin/task.rs",
+        "src/bin/task/helpers.rs",
+        "examples/.hidden.rs",
+        "tests/.hidden/main.rs",
+        "benches/.hidden.rs"
+      ],
+      "expected_paths": [
+        "src/lib.rs",
+        "src/bin/task.rs"
+      ],
+      "actual_paths": [
+        "src/bin/task.rs",
+        "src/lib.rs"
+      ],
+      "exit_code": 0,
+      "passed": true,
+      "stderr": ""
+    },
+    {
+      "case": "duplicate-binary-layout",
+      "manifest": "[package]\nname='p'\nversion='0.1.0'\nedition='2021'\n",
+      "files": [
+        "src/lib.rs",
+        "src/main.rs",
+        "src/bin/worker.rs",
+        "examples/demo.rs",
+        "tests/check.rs",
+        "benches/speed.rs",
+        "src/bin/worker/main.rs"
+      ],
+      "expected_paths": null,
+      "actual_paths": [],
+      "exit_code": 101,
+      "passed": true,
+      "stderr": "error: failed to parse manifest at `<fixture>/Cargo.toml`\n\nCaused by:\n  found duplicate binary name worker, but all binary targets must have a unique name\n"
+    },
+    {
+      "case": "missing-binary-name",
+      "manifest": "[package]\nname='p'\nversion='0.1.0'\nedition='2021'\n[[bin]]\npath='entry.rs'\n",
+      "files": [
+        "src/lib.rs",
+        "src/main.rs",
+        "src/bin/worker.rs",
+        "examples/demo.rs",
+        "tests/check.rs",
+        "benches/speed.rs",
+        "entry.rs"
+      ],
+      "expected_paths": null,
+      "actual_paths": [],
+      "exit_code": 101,
+      "passed": true,
+      "stderr": "error: failed to parse manifest at `<fixture>/Cargo.toml`\n\nCaused by:\n  binary target bin.name is required\n"
+    }
+  ],
+  "module_paths": {
+    "files": {
+      "custom/entry.rs": "#[path=\"flat.rs\"] pub mod path_loaded; pub mod inner_file; pub mod outer; pub mod inline { pub mod child; }\n#[path=\"thread_files\"] pub mod threaded { #[path=\"tls.rs\"] pub mod data; }\n",
+      "custom/flat.rs": "pub mod special;\n",
+      "custom/special.rs": "",
+      "custom/flat/special.rs": "compile_error!(\"path-loaded child uses physical parent\");\n",
+      "custom/inner_file.rs": "#![path=\"ignored_name.rs\"]\npub mod ghost;\n",
+      "custom/ghost.rs": "",
+      "custom/inner_file/ghost.rs": "compile_error!(\"inner file attribute changes lookup\");\n",
+      "custom/outer.rs": "pub mod child; #[path=\"near.rs\"] pub mod near; pub mod nested { #[path=\"other.rs\"] pub mod file; }\n",
+      "custom/outer/child.rs": "",
+      "custom/near.rs": "",
+      "custom/outer/nested/other.rs": "",
+      "custom/inline/child.rs": "",
+      "custom/thread_files/tls.rs": "",
+      "custom/child.rs": "compile_error!(\"wrong sibling\");\n",
+      "custom/entry/outer.rs": "compile_error!(\"root treated as ordinary module\");\n"
+    },
+    "exit_code": 0,
+    "passed": true,
+    "stderr": ""
+  },
+  "passed": true
+}

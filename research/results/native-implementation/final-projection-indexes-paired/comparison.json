@@ -1,0 +1,84 @@
+{
+  "results": [
+    {
+      "corpus": "git-archive:bdcbecef41d9863bca23830ed30615f1c219064d",
+      "pairs": 7,
+      "medians": {
+        "final": {
+          "initial_ms": 570,
+          "sync_ms": 376,
+          "clean_reindex_ms": 513,
+          "noop_ms": 10,
+          "reopen_ms": 278,
+          "generation_bytes": 19481378,
+          "shared_inode_bytes": 7145489,
+          "source_files_on_disk": 2
+        },
+        "intermediate": {
+          "initial_ms": 575,
+          "sync_ms": 480,
+          "clean_reindex_ms": 510,
+          "noop_ms": 9,
+          "reopen_ms": 278,
+          "generation_bytes": 19481378,
+          "shared_inode_bytes": 7145489,
+          "source_files_on_disk": 2
+        }
+      },
+      "paired_sync_delta_ms": [
+        -107,
+        -110,
+        -82,
+        -95,
+        -109,
+        -100,
+        -101
+      ],
+      "median_paired_sync_delta_ms": -101,
+      "median_paired_initial_delta_ms": -4,
+      "faster_pairs": 7
+    },
+    {
+      "corpus": "synthetic-markdown:files=512,body_lines=512",
+      "pairs": 7,
+      "medians": {
+        "final": {
+          "initial_ms": 1904,
+          "sync_ms": 698,
+          "clean_reindex_ms": 1822,
+          "noop_ms": 2,
+          "reopen_ms": 801,
+          "generation_bytes": 47908838,
+          "shared_inode_bytes": 47320876,
+          "source_files_on_disk": 7
+        },
+        "intermediate": {
+          "initial_ms": 1949,
+          "sync_ms": 1024,
+          "clean_reindex_ms": 1818,
+          "noop_ms": 2,
+          "reopen_ms": 791,
+          "generation_bytes": 47908838,
+          "shared_inode_bytes": 47320876,
+          "source_files_on_disk": 7
+        }
+      },
+      "paired_sync_delta_ms": [
+        -298,
+        -301,
+        -395,
+        -339,
+        -342,
+        -319,
+        -325
+      ],
+      "median_paired_sync_delta_ms": -325,
+      "median_paired_initial_delta_ms": -45,
+      "faster_pairs": 7
+    }
+  ],
+  "verified_trials": 28,
+  "production_sources_unchanged": true,
+  "production_binary_restored": true,
+  "note": "Warm local paired measurements; corpus and binary identities in provenance.json. No physical I/O, peak-memory, query-latency or search-quality inference."
+}

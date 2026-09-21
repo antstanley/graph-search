@@ -1,0 +1,224 @@
+{
+  "in_tree_store": true,
+  "scope": "four-file source-backed fixture, not a repository-wide benchmark; no application code executes",
+  "source_sha256": {
+    "workspaces/backend/package.json": "5a78f2b50aba0bfcf385e874c4ff80ca8b724c35dc9c15d67b3d3d4b917f6d5d",
+    "workspaces/backend/src/core/index.ts": "e5e1fb7977efc59501b59e65f5ad87bb125b4957d9976f4941a977d4b61cc78d",
+    "workspaces/backend/src/core/whatsapp/flow-json.ts": "481c0551d6f0b7ad2f639d4fe8a6b7e8317cf7ffea9b8d96c7c81106a48f8993",
+    "workspaces/backend/src/functions/admin-api/routes/flows.ts": "3351f9d537098b33a9b0b6e24d821d8d683b94d905777480332e52b7e73d2dd9"
+  },
+  "cli_sha256": "f40eac6cc615c782d9c435b0fc0368ea9131089da5344398c5e5de42602dcd00",
+  "sources_unchanged": true,
+  "captures": {
+    "mapped": {
+      "items": [
+        {
+          "path": "workspaces/backend/src/functions/admin-api/routes/flows.ts",
+          "source_hash": "3351f9d537098b33a9b0b6e24d821d8d683b94d905777480332e52b7e73d2dd9",
+          "occurrence": {
+            "id": "occ:ffcd82345a8f134ec64eb2a39b63e463f366111a672e35e11cb235f2732600e2",
+            "owner": "sym:workspaces/backend/src/functions/admin-api/routes/flows.ts#function:syncDraft",
+            "kind": "calls",
+            "span": {
+              "start_line": 178,
+              "end_line": 178,
+              "start_byte": 6846,
+              "end_byte": 6879
+            },
+            "line": 178,
+            "extent": "expression",
+            "raw_name": "compileFlowJson",
+            "name": "compileFlowJson",
+            "ordinal": 62,
+            "target": "sym:workspaces/backend/src/core/whatsapp/flow-json.ts#function:compileFlowJson",
+            "target_name": "compileFlowJson",
+            "resolution": "explicit_import",
+            "reason": null,
+            "scope": 34,
+            "binding": null
+          }
+        },
+        {
+          "path": "workspaces/backend/src/functions/admin-api/routes/flows.ts",
+          "source_hash": "3351f9d537098b33a9b0b6e24d821d8d683b94d905777480332e52b7e73d2dd9",
+          "occurrence": {
+            "id": "occ:9aebc2b4dab752e55cff1ee0e648ecc845501ec19df18c73830393534025566e",
+            "owner": "file:workspaces/backend/src/functions/admin-api/routes/flows.ts",
+            "kind": "calls",
+            "span": {
+              "start_line": 316,
+              "end_line": 316,
+              "start_byte": 12406,
+              "end_byte": 12439
+            },
+            "line": 316,
+            "extent": "expression",
+            "raw_name": "compileFlowJson",
+            "name": "compileFlowJson",
+            "ordinal": 146,
+            "target": "sym:workspaces/backend/src/core/whatsapp/flow-json.ts#function:compileFlowJson",
+            "target_name": "compileFlowJson",
+            "resolution": "explicit_import",
+            "reason": null,
+            "scope": 58,
+            "binding": null
+          }
+        }
+      ],
+      "indexed_files": 4,
+      "versions": {
+        "occurrences": 1,
+        "parser": 18,
+        "schema": 2,
+        "source": 12,
+        "analyzer": 2,
+        "unicode": [
+          17,
+          0,
+          0
+        ],
+        "chunker": 9
+      }
+    },
+    "mapping_removed_in_copy": {
+      "items": [
+        {
+          "path": "workspaces/backend/src/functions/admin-api/routes/flows.ts",
+          "source_hash": "3351f9d537098b33a9b0b6e24d821d8d683b94d905777480332e52b7e73d2dd9",
+          "occurrence": {
+            "id": "occ:ffcd82345a8f134ec64eb2a39b63e463f366111a672e35e11cb235f2732600e2",
+            "owner": "sym:workspaces/backend/src/functions/admin-api/routes/flows.ts#function:syncDraft",
+            "kind": "calls",
+            "span": {
+              "start_line": 178,
+              "end_line": 178,
+              "start_byte": 6846,
+              "end_byte": 6879
+            },
+            "line": 178,
+            "extent": "expression",
+            "raw_name": "compileFlowJson",
+            "name": "compileFlowJson",
+            "ordinal": 62,
+            "target": null,
+            "target_name": "compileFlowJson",
+            "resolution": "unresolved",
+            "reason": "node_import_map_missing",
+            "scope": 34,
+            "binding": null
+          }
+        },
+        {
+          "path": "workspaces/backend/src/functions/admin-api/routes/flows.ts",
+          "source_hash": "3351f9d537098b33a9b0b6e24d821d8d683b94d905777480332e52b7e73d2dd9",
+          "occurrence": {
+            "id": "occ:9aebc2b4dab752e55cff1ee0e648ecc845501ec19df18c73830393534025566e",
+            "owner": "file:workspaces/backend/src/functions/admin-api/routes/flows.ts",
+            "kind": "calls",
+            "span": {
+              "start_line": 316,
+              "end_line": 316,
+              "start_byte": 12406,
+              "end_byte": 12439
+            },
+            "line": 316,
+            "extent": "expression",
+            "raw_name": "compileFlowJson",
+            "name": "compileFlowJson",
+            "ordinal": 146,
+            "target": null,
+            "target_name": "compileFlowJson",
+            "resolution": "unresolved",
+            "reason": "node_import_map_missing",
+            "scope": 58,
+            "binding": null
+          }
+        }
+      ],
+      "indexed_files": 4,
+      "versions": {
+        "occurrences": 1,
+        "parser": 18,
+        "schema": 2,
+        "source": 12,
+        "analyzer": 2,
+        "unicode": [
+          17,
+          0,
+          0
+        ],
+        "chunker": 9
+      }
+    },
+    "mapping_restored_in_copy": {
+      "items": [
+        {
+          "path": "workspaces/backend/src/functions/admin-api/routes/flows.ts",
+          "source_hash": "3351f9d537098b33a9b0b6e24d821d8d683b94d905777480332e52b7e73d2dd9",
+          "occurrence": {
+            "id": "occ:ffcd82345a8f134ec64eb2a39b63e463f366111a672e35e11cb235f2732600e2",
+            "owner": "sym:workspaces/backend/src/functions/admin-api/routes/flows.ts#function:syncDraft",
+            "kind": "calls",
+            "span": {
+              "start_line": 178,
+              "end_line": 178,
+              "start_byte": 6846,
+              "end_byte": 6879
+            },
+            "line": 178,
+            "extent": "expression",
+            "raw_name": "compileFlowJson",
+            "name": "compileFlowJson",
+            "ordinal": 62,
+            "target": "sym:workspaces/backend/src/core/whatsapp/flow-json.ts#function:compileFlowJson",
+            "target_name": "compileFlowJson",
+            "resolution": "explicit_import",
+            "reason": null,
+            "scope": 34,
+            "binding": null
+          }
+        },
+        {
+          "path": "workspaces/backend/src/functions/admin-api/routes/flows.ts",
+          "source_hash": "3351f9d537098b33a9b0b6e24d821d8d683b94d905777480332e52b7e73d2dd9",
+          "occurrence": {
+            "id": "occ:9aebc2b4dab752e55cff1ee0e648ecc845501ec19df18c73830393534025566e",
+            "owner": "file:workspaces/backend/src/functions/admin-api/routes/flows.ts",
+            "kind": "calls",
+            "span": {
+              "start_line": 316,
+              "end_line": 316,
+              "start_byte": 12406,
+              "end_byte": 12439
+            },
+            "line": 316,
+            "extent": "expression",
+            "raw_name": "compileFlowJson",
+            "name": "compileFlowJson",
+            "ordinal": 146,
+            "target": "sym:workspaces/backend/src/core/whatsapp/flow-json.ts#function:compileFlowJson",
+            "target_name": "compileFlowJson",
+            "resolution": "explicit_import",
+            "reason": null,
+            "scope": 58,
+            "binding": null
+          }
+        }
+      ],
+      "indexed_files": 4,
+      "versions": {
+        "occurrences": 1,
+        "parser": 18,
+        "schema": 2,
+        "source": 12,
+        "analyzer": 2,
+        "unicode": [
+          17,
+          0,
+          0
+        ],
+        "chunker": 9
+      }
+    }
+  }
+}

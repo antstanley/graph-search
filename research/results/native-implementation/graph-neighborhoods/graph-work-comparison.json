@@ -1,0 +1,495 @@
+{
+  "scope": "First query at repeat zero, 58 paired API responses; counters include adjacency and path-search work, not CPU or I/O measurements",
+  "summary": {
+    "nanus": {
+      "candidate": 2139,
+      "control": 3687,
+      "reduction_percent": 41.985353946297806,
+      "improved": 24,
+      "unchanged": 0,
+      "increased": 0
+    },
+    "blogwright": {
+      "candidate": 1488,
+      "control": 1967,
+      "reduction_percent": 24.351804778851044,
+      "improved": 10,
+      "unchanged": 2,
+      "increased": 0
+    },
+    "whatsurvey": {
+      "candidate": 5936,
+      "control": 6754,
+      "reduction_percent": 12.111341427302339,
+      "improved": 21,
+      "unchanged": 1,
+      "increased": 0
+    }
+  },
+  "details": [
+    {
+      "task_id": "blogwright.secret-upsert.debug",
+      "candidate": 237,
+      "control": 333,
+      "same_items": true,
+      "same_truncations": true,
+      "same_other_work": true
+    },
+    {
+      "task_id": "blogwright.secret-upsert.change",
+      "candidate": 127,
+      "control": 236,
+      "same_items": true,
+      "same_truncations": true,
+      "same_other_work": true
+    },
+    {
+      "task_id": "blogwright.tag-encoding.debug",
+      "candidate": 162,
+      "control": 188,
+      "same_items": true,
+      "same_truncations": true,
+      "same_other_work": true
+    },
+    {
+      "task_id": "blogwright.tag-encoding.change",
+      "candidate": 99,
+      "control": 137,
+      "same_items": true,
+      "same_truncations": true,
+      "same_other_work": true
+    },
+    {
+      "task_id": "blogwright.fresh-refresh-metadata.debug",
+      "candidate": 120,
+      "control": 205,
+      "same_items": true,
+      "same_truncations": true,
+      "same_other_work": true
+    },
+    {
+      "task_id": "blogwright.fresh-tagging-fallback.debug",
+      "candidate": 269,
+      "control": 285,
+      "same_items": true,
+      "same_truncations": true,
+      "same_other_work": true
+    },
+    {
+      "task_id": "blogwright.fresh-invalid-date-rkey.debug",
+      "candidate": 105,
+      "control": 144,
+      "same_items": true,
+      "same_truncations": true,
+      "same_other_work": true
+    },
+    {
+      "task_id": "blogwright.fresh-sitemap-pages.debug",
+      "candidate": 154,
+      "control": 181,
+      "same_items": true,
+      "same_truncations": true,
+      "same_other_work": true
+    },
+    {
+      "task_id": "blogwright.markdown-packages.debug",
+      "candidate": 75,
+      "control": 82,
+      "same_items": true,
+      "same_truncations": true,
+      "same_other_work": true
+    },
+    {
+      "task_id": "blogwright.markdown-testing.debug",
+      "candidate": 78,
+      "control": 78,
+      "same_items": true,
+      "same_truncations": true,
+      "same_other_work": true
+    },
+    {
+      "task_id": "blogwright.markdown-doc-links.debug",
+      "candidate": 0,
+      "control": 0,
+      "same_items": true,
+      "same_truncations": true,
+      "same_other_work": true
+    },
+    {
+      "task_id": "blogwright.markdown-initial-setup.debug",
+      "candidate": 62,
+      "control": 98,
+      "same_items": true,
+      "same_truncations": true,
+      "same_other_work": true
+    },
+    {
+      "task_id": "nanus.context.debug",
+      "candidate": 36,
+      "control": 61,
+      "same_items": true,
+      "same_truncations": true,
+      "same_other_work": true
+    },
+    {
+      "task_id": "nanus.context.change",
+      "candidate": 57,
+      "control": 81,
+      "same_items": true,
+      "same_truncations": true,
+      "same_other_work": true
+    },
+    {
+      "task_id": "nanus.edit.debug",
+      "candidate": 84,
+      "control": 149,
+      "same_items": true,
+      "same_truncations": true,
+      "same_other_work": true
+    },
+    {
+      "task_id": "nanus.edit.change",
+      "candidate": 72,
+      "control": 113,
+      "same_items": true,
+      "same_truncations": true,
+      "same_other_work": true
+    },
+    {
+      "task_id": "nanus.write.debug",
+      "candidate": 131,
+      "control": 252,
+      "same_items": true,
+      "same_truncations": true,
+      "same_other_work": true
+    },
+    {
+      "task_id": "nanus.write.change",
+      "candidate": 92,
+      "control": 180,
+      "same_items": true,
+      "same_truncations": true,
+      "same_other_work": true
+    },
+    {
+      "task_id": "nanus.read.debug",
+      "candidate": 100,
+      "control": 195,
+      "same_items": true,
+      "same_truncations": true,
+      "same_other_work": true
+    },
+    {
+      "task_id": "nanus.read.change",
+      "candidate": 110,
+      "control": 183,
+      "same_items": true,
+      "same_truncations": true,
+      "same_other_work": true
+    },
+    {
+      "task_id": "nanus.grep.debug",
+      "candidate": 138,
+      "control": 251,
+      "same_items": true,
+      "same_truncations": true,
+      "same_other_work": true
+    },
+    {
+      "task_id": "nanus.grep.change",
+      "candidate": 146,
+      "control": 234,
+      "same_items": true,
+      "same_truncations": true,
+      "same_other_work": true
+    },
+    {
+      "task_id": "nanus.glob.debug",
+      "candidate": 193,
+      "control": 345,
+      "same_items": true,
+      "same_truncations": true,
+      "same_other_work": true
+    },
+    {
+      "task_id": "nanus.glob.change",
+      "candidate": 151,
+      "control": 263,
+      "same_items": true,
+      "same_truncations": true,
+      "same_other_work": true
+    },
+    {
+      "task_id": "nanus.argument-types.debug",
+      "candidate": 99,
+      "control": 179,
+      "same_items": true,
+      "same_truncations": true,
+      "same_other_work": true
+    },
+    {
+      "task_id": "nanus.argument-types.change",
+      "candidate": 79,
+      "control": 147,
+      "same_items": true,
+      "same_truncations": true,
+      "same_other_work": true
+    },
+    {
+      "task_id": "nanus.temporary-paths.debug",
+      "candidate": 36,
+      "control": 62,
+      "same_items": true,
+      "same_truncations": true,
+      "same_other_work": true
+    },
+    {
+      "task_id": "nanus.temporary-paths.change",
+      "candidate": 68,
+      "control": 136,
+      "same_items": true,
+      "same_truncations": true,
+      "same_other_work": true
+    },
+    {
+      "task_id": "nanus.fresh-turn-closure.debug",
+      "candidate": 49,
+      "control": 78,
+      "same_items": true,
+      "same_truncations": true,
+      "same_other_work": true
+    },
+    {
+      "task_id": "nanus.fresh-runtime-tools.debug",
+      "candidate": 107,
+      "control": 175,
+      "same_items": true,
+      "same_truncations": true,
+      "same_other_work": true
+    },
+    {
+      "task_id": "nanus.fresh-legacy-approval.debug",
+      "candidate": 53,
+      "control": 92,
+      "same_items": true,
+      "same_truncations": true,
+      "same_other_work": true
+    },
+    {
+      "task_id": "nanus.fresh-delete-symlink.debug",
+      "candidate": 161,
+      "control": 238,
+      "same_items": true,
+      "same_truncations": true,
+      "same_other_work": true
+    },
+    {
+      "task_id": "nanus.markdown-provider-tools.debug",
+      "candidate": 18,
+      "control": 32,
+      "same_items": true,
+      "same_truncations": true,
+      "same_other_work": true
+    },
+    {
+      "task_id": "nanus.markdown-unload.debug",
+      "candidate": 69,
+      "control": 86,
+      "same_items": true,
+      "same_truncations": true,
+      "same_other_work": true
+    },
+    {
+      "task_id": "nanus.markdown-resume.debug",
+      "candidate": 23,
+      "control": 40,
+      "same_items": true,
+      "same_truncations": true,
+      "same_other_work": true
+    },
+    {
+      "task_id": "nanus.markdown-stdio.debug",
+      "candidate": 67,
+      "control": 115,
+      "same_items": true,
+      "same_truncations": true,
+      "same_other_work": true
+    },
+    {
+      "task_id": "whatsurvey.webhook-signature.debug",
+      "candidate": 174,
+      "control": 222,
+      "same_items": true,
+      "same_truncations": true,
+      "same_other_work": true
+    },
+    {
+      "task_id": "whatsurvey.webhook-signature.change",
+      "candidate": 134,
+      "control": 170,
+      "same_items": true,
+      "same_truncations": true,
+      "same_other_work": true
+    },
+    {
+      "task_id": "whatsurvey.settings-encryption.debug",
+      "candidate": 413,
+      "control": 454,
+      "same_items": true,
+      "same_truncations": true,
+      "same_other_work": true
+    },
+    {
+      "task_id": "whatsurvey.settings-encryption.change",
+      "candidate": 402,
+      "control": 459,
+      "same_items": true,
+      "same_truncations": true,
+      "same_other_work": true
+    },
+    {
+      "task_id": "whatsurvey.contact-policy.debug",
+      "candidate": 386,
+      "control": 418,
+      "same_items": true,
+      "same_truncations": true,
+      "same_other_work": true
+    },
+    {
+      "task_id": "whatsurvey.contact-policy.change",
+      "candidate": 412,
+      "control": 428,
+      "same_items": true,
+      "same_truncations": true,
+      "same_other_work": true
+    },
+    {
+      "task_id": "whatsurvey.captcha-retry.debug",
+      "candidate": 200,
+      "control": 233,
+      "same_items": true,
+      "same_truncations": true,
+      "same_other_work": true
+    },
+    {
+      "task_id": "whatsurvey.captcha-retry.change",
+      "candidate": 122,
+      "control": 153,
+      "same_items": true,
+      "same_truncations": true,
+      "same_other_work": true
+    },
+    {
+      "task_id": "whatsurvey.survey-draft.debug",
+      "candidate": 154,
+      "control": 198,
+      "same_items": true,
+      "same_truncations": true,
+      "same_other_work": true
+    },
+    {
+      "task_id": "whatsurvey.survey-draft.change",
+      "candidate": 399,
+      "control": 456,
+      "same_items": true,
+      "same_truncations": true,
+      "same_other_work": true
+    },
+    {
+      "task_id": "whatsurvey.storage-envelope.debug",
+      "candidate": 362,
+      "control": 391,
+      "same_items": true,
+      "same_truncations": true,
+      "same_other_work": true
+    },
+    {
+      "task_id": "whatsurvey.storage-envelope.change",
+      "candidate": 165,
+      "control": 269,
+      "same_items": true,
+      "same_truncations": true,
+      "same_other_work": true
+    },
+    {
+      "task_id": "whatsurvey.money-rounding.debug",
+      "candidate": 253,
+      "control": 260,
+      "same_items": true,
+      "same_truncations": true,
+      "same_other_work": true
+    },
+    {
+      "task_id": "whatsurvey.money-rounding.change",
+      "candidate": 265,
+      "control": 310,
+      "same_items": true,
+      "same_truncations": true,
+      "same_other_work": true
+    },
+    {
+      "task_id": "whatsurvey.fresh-option-code-collision.debug",
+      "candidate": 329,
+      "control": 411,
+      "same_items": true,
+      "same_truncations": true,
+      "same_other_work": true
+    },
+    {
+      "task_id": "whatsurvey.fresh-media-flow.debug",
+      "candidate": 146,
+      "control": 175,
+      "same_items": true,
+      "same_truncations": true,
+      "same_other_work": true
+    },
+    {
+      "task_id": "whatsurvey.fresh-study-anchor.debug",
+      "candidate": 654,
+      "control": 701,
+      "same_items": true,
+      "same_truncations": true,
+      "same_other_work": true
+    },
+    {
+      "task_id": "whatsurvey.fresh-refusal-observability.debug",
+      "candidate": 500,
+      "control": 511,
+      "same_items": true,
+      "same_truncations": true,
+      "same_other_work": true
+    },
+    {
+      "task_id": "whatsurvey.markdown-local-loop.debug",
+      "candidate": 353,
+      "control": 353,
+      "same_items": true,
+      "same_truncations": true,
+      "same_other_work": true
+    },
+    {
+      "task_id": "whatsurvey.markdown-stacks.debug",
+      "candidate": 60,
+      "control": 83,
+      "same_items": true,
+      "same_truncations": true,
+      "same_other_work": true
+    },
+    {
+      "task_id": "whatsurvey.markdown-trace-correlation.debug",
+      "candidate": 21,
+      "control": 41,
+      "same_items": true,
+      "same_truncations": true,
+      "same_other_work": true
+    },
+    {
+      "task_id": "whatsurvey.markdown-survey-flow.debug",
+      "candidate": 32,
+      "control": 58,
+      "same_items": true,
+      "same_truncations": true,
+      "same_other_work": true
+    }
+  ]
+}

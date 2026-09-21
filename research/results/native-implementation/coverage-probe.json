@@ -1,0 +1,268 @@
+{
+  "atomicity": {
+    "error": "store error: Is a directory (os error 21)",
+    "new_present": false,
+    "old_present": true
+  },
+  "body": {
+    "filter_after_scan_budget": {
+      "early_items": 1,
+      "late_items": 1,
+      "late_scanned": 1,
+      "late_truncations": []
+    },
+    "longest_term": {
+      "cache_only_items": 1,
+      "two_term_items": 0
+    },
+    "metadata_starvation": {
+      "body_file_returned": false,
+      "items": [
+        "metadata.rs",
+        "metadata.rs",
+        "metadata.rs",
+        "metadata.rs",
+        "metadata.rs",
+        "metadata.rs",
+        "metadata.rs",
+        "metadata.rs"
+      ]
+    }
+  },
+  "graph": {
+    "candidates": 2001,
+    "edges_returned": 2000,
+    "nodes_returned": 1,
+    "serialized_bytes": 282400
+  },
+  "lexical": {
+    "scaling": [
+      {
+        "cached_exhaustive_ms": 0.050708,
+        "matching_documents": 1,
+        "postings_ms": 0.00020800000000000001,
+        "query": "topic731 absent",
+        "rebuild_and_score_ms": 2.9728749999999997,
+        "score_maps_equal": true,
+        "symbols": 1000
+      },
+      {
+        "cached_exhaustive_ms": 0.118667,
+        "matching_documents": 1000,
+        "postings_ms": 0.043083,
+        "query": "topic731 outcomeMissing",
+        "rebuild_and_score_ms": 2.641375,
+        "score_maps_equal": true,
+        "symbols": 1000
+      },
+      {
+        "cached_exhaustive_ms": 0.48779100000000003,
+        "matching_documents": 10,
+        "postings_ms": 0.000417,
+        "query": "topic731 absent",
+        "rebuild_and_score_ms": 24.859666999999998,
+        "score_maps_equal": true,
+        "symbols": 10000
+      },
+      {
+        "cached_exhaustive_ms": 1.320583,
+        "matching_documents": 10000,
+        "postings_ms": 0.468958,
+        "query": "topic731 outcomeMissing",
+        "rebuild_and_score_ms": 25.518666999999997,
+        "score_maps_equal": true,
+        "symbols": 10000
+      },
+      {
+        "cached_exhaustive_ms": 2.215542,
+        "matching_documents": 50,
+        "postings_ms": 0.001042,
+        "query": "topic731 absent",
+        "rebuild_and_score_ms": 132.6235,
+        "score_maps_equal": true,
+        "symbols": 50000
+      },
+      {
+        "cached_exhaustive_ms": 7.5044580000000005,
+        "matching_documents": 50000,
+        "postings_ms": 2.574708,
+        "query": "topic731 outcomeMissing",
+        "rebuild_and_score_ms": 139.055583,
+        "score_maps_equal": true,
+        "symbols": 50000
+      }
+    ],
+    "single_stopword_score": 0.0,
+    "whole_lowercase_identifier": {
+      "exact_lane_still_matches": true,
+      "lexical_score": 0.0,
+      "terms": [
+        "gethttpresponse"
+      ]
+    }
+  },
+  "metadata_freshness": {
+    "description": "same-length edit with original mtime restored; default BeforeQuery policy",
+    "old_symbol_returned": true,
+    "status_staleness": {
+      "changed": 0,
+      "changed_paths": []
+    }
+  },
+  "score_bounds": {
+    "purpose": "algebraic bound counterexample, not a Tantivy execution",
+    "rows": [
+      {
+        "average_length": 1.0,
+        "conservative_max_tf_min_length": 1.5714285714285714,
+        "long_tf3": 0.0707395498392283,
+        "short_tf1": 1.0
+      },
+      {
+        "average_length": 1000.0,
+        "conservative_max_tf_min_length": 1.9994546941743163,
+        "long_tf3": 1.9469026548672568,
+        "short_tf1": 1.6911369052194636
+      }
+    ]
+  },
+  "semantics": {
+    "local_value_shadow_calls": [
+      {
+        "from": "sym:a.rs#function:caller",
+        "id": "(sym:a.rs#function:caller) -[calls]-> (sym:a.rs#function:send)",
+        "kind": "calls",
+        "line": 3,
+        "path": "a.rs",
+        "resolved": true,
+        "to": "sym:a.rs#function:send",
+        "to_name": "send"
+      }
+    ],
+    "typescript_first_symbol_span": {
+      "end_byte": 18,
+      "end_line": 1,
+      "start_byte": 0,
+      "start_line": 1
+    },
+    "typescript_source_bytes": 19
+  },
+  "stale": {
+    "result": {
+      "approximation": {
+        "note": "static approximation; dynamic/macro/generated edges may be missing",
+        "resolved": 0,
+        "unresolved": 0
+      },
+      "context": {
+        "coverage": {
+          "admitted_files": 1,
+          "entries_visited": 2,
+          "enumeration_complete": true,
+          "policy": {
+            "excludes": [
+              ".git",
+              ".graph-search",
+              "target",
+              "node_modules",
+              "dist",
+              "build",
+              "out",
+              ".venv",
+              "venv",
+              "vendor"
+            ],
+            "fingerprint": "caa18b25279ea24c2f8d5c95feb2e2cab911f7e876d32704b2f10ef50aec1c2a",
+            "include_hidden": false,
+            "max_file_bytes": 1048576,
+            "respect_ignore": true
+          }
+        },
+        "freshness": "metadata",
+        "generation": "g-18d6d2104bc237c0-8323-0",
+        "reconciliation": "never",
+        "sources": {
+          "a.rs": {
+            "indexed_hash": "dba7499fe3123dd981f0c78c143b6b27b56d89e821261cdcb5c01b39f5d66e05",
+            "observed_hash": "81e8c48d9bfadeb7a8284f05f7b558f3a1c79d46d99e8b8a360c399d1cd4bf2d",
+            "verification": "mismatch"
+          }
+        },
+        "staleness": {
+          "changed": 1,
+          "changed_paths": [
+            "a.rs"
+          ]
+        }
+      },
+      "edges": [],
+      "items": [
+        {
+          "impact": {
+            "direct_callers": 0,
+            "total_callers": 0
+          },
+          "node": {
+            "end_line": 1,
+            "id": "sym:a.rs#function:original",
+            "kind": "function",
+            "name": "original",
+            "path": "a.rs",
+            "qualified_name": "original",
+            "signature": "fn original() {}",
+            "start_line": 1
+          },
+          "snippet": null
+        }
+      ],
+      "stats": {
+        "candidates": 1,
+        "elapsed_ms": 0,
+        "files_scanned": 1,
+        "matches": 0
+      },
+      "truncations": []
+    },
+    "status_staleness": {
+      "changed": 1,
+      "changed_paths": [
+        "a.rs"
+      ]
+    }
+  },
+  "text": {
+    "dense_match_scaling": [
+      {
+        "bytes": 60000,
+        "current_ms": 0.736958,
+        "lines": 4000,
+        "prototype_ms": 0.355875
+      },
+      {
+        "bytes": 120000,
+        "current_ms": 0.748542,
+        "lines": 8000,
+        "prototype_ms": 0.202625
+      },
+      {
+        "bytes": 240000,
+        "current_ms": 1.327709,
+        "lines": 16000,
+        "prototype_ms": 0.276458
+      },
+      {
+        "bytes": 480000,
+        "current_ms": 2.288333,
+        "lines": 32000,
+        "prototype_ms": 0.214791
+      }
+    ],
+    "multiline": {
+      "case_sensitive_error": "invalid pattern \"alpha\\nbeta\": text search accepts a single-line literal",
+      "case_sensitive_hits": null,
+      "ignore_case_error": "invalid pattern \"alpha\\nbeta\": text search accepts a single-line literal",
+      "ignore_case_hits": null
+    }
+  },
+  "timing": "release; one warmup + median of five; synthetic in-process microbenchmarks"
+}

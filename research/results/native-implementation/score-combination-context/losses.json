@@ -1,0 +1,730 @@
+[
+  {
+    "task": "nanus.edit.debug",
+    "baseline": {
+      "evidence": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 1.0
+        },
+        "evidence_ready": true,
+        "relationship_evidence_recall": 1.0,
+        "task_success": null
+      },
+      "followups": [
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-adapter-local/src/fs.rs",
+            "start": 197,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-bundle/src/tools/edit.rs",
+            "start": 62,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "AGENTS.md",
+            "start": 7,
+            "count": 100
+          }
+        }
+      ],
+      "first_items": [
+        {
+          "id": "sym:crates/nanus-adapter-local/src/fs.rs#method:LocalFs::edit_blocking",
+          "name": "edit_blocking",
+          "path": "crates/nanus-adapter-local/src/fs.rs",
+          "span": null
+        },
+        {
+          "id": "sym:crates/nanus-bundle/src/tools/edit.rs#function:edit_outcome",
+          "name": "edit_outcome",
+          "path": "crates/nanus-bundle/src/tools/edit.rs",
+          "span": null
+        },
+        {
+          "id": "sym:crates/nanus-bundle/src/tools/edit.rs#function:tests::an_identical_replacement_is_refused",
+          "name": "an_identical_replacement_is_refused",
+          "path": "crates/nanus-bundle/src/tools/edit.rs",
+          "span": null
+        },
+        {
+          "id": "file:AGENTS.md",
+          "name": "AGENTS.md",
+          "path": "AGENTS.md",
+          "span": null
+        },
+        {
+          "id": "sym:crates/nanus-ports/tests/contracts.rs#method:MemoryFs::edit",
+          "name": "edit",
+          "path": "crates/nanus-ports/tests/contracts.rs",
+          "span": null
+        },
+        {
+          "id": "sym:crates/nanus-adapter-local/src/fs.rs#method:LocalFs::edit",
+          "name": "edit",
+          "path": "crates/nanus-adapter-local/src/fs.rs",
+          "span": null
+        },
+        {
+          "id": "sym:crates/nanus-bundle/src/tools/edit.rs#function:edit_tool",
+          "name": "edit_tool",
+          "path": "crates/nanus-bundle/src/tools/edit.rs",
+          "span": null
+        },
+        {
+          "id": "sym:crates/nanus-ports/src/fs.rs#field:EditOutcome::before",
+          "name": "before",
+          "path": "crates/nanus-ports/src/fs.rs",
+          "span": null
+        }
+      ],
+      "first_response_bytes": 16327,
+      "total_response_bytes": 39405
+    },
+    "normalized": {
+      "evidence": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.5076923076923077
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "followups": [
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-adapter-local/src/fs.rs",
+            "start": 197,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-bundle/src/tools/edit.rs",
+            "start": 198,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "AGENTS.md",
+            "start": 7,
+            "count": 100
+          }
+        }
+      ],
+      "first_items": [
+        {
+          "id": "sym:crates/nanus-adapter-local/src/fs.rs#method:LocalFs::edit_blocking",
+          "name": "edit_blocking",
+          "path": "crates/nanus-adapter-local/src/fs.rs",
+          "span": null
+        },
+        {
+          "id": "sym:crates/nanus-bundle/src/tools/edit.rs#function:tests::an_identical_replacement_is_refused",
+          "name": "an_identical_replacement_is_refused",
+          "path": "crates/nanus-bundle/src/tools/edit.rs",
+          "span": null
+        },
+        {
+          "id": "sym:crates/nanus-bundle/src/tools/edit.rs#function:tests::an_empty_old_string_is_refused_before_touching_the_file",
+          "name": "an_empty_old_string_is_refused_before_touching_the_file",
+          "path": "crates/nanus-bundle/src/tools/edit.rs",
+          "span": null
+        },
+        {
+          "id": "sym:crates/nanus-bundle/src/tools/edit.rs#function:edit_outcome",
+          "name": "edit_outcome",
+          "path": "crates/nanus-bundle/src/tools/edit.rs",
+          "span": null
+        },
+        {
+          "id": "file:AGENTS.md",
+          "name": "AGENTS.md",
+          "path": "AGENTS.md",
+          "span": null
+        },
+        {
+          "id": "sym:crates/nanus-ports/tests/contracts.rs#method:MemoryFs::edit",
+          "name": "edit",
+          "path": "crates/nanus-ports/tests/contracts.rs",
+          "span": null
+        },
+        {
+          "id": "sym:crates/nanus-adapter-local/src/fs.rs#method:LocalFs::edit",
+          "name": "edit",
+          "path": "crates/nanus-adapter-local/src/fs.rs",
+          "span": null
+        },
+        {
+          "id": "sym:crates/nanus-bundle/src/tools/edit.rs#function:edit_tool",
+          "name": "edit_tool",
+          "path": "crates/nanus-bundle/src/tools/edit.rs",
+          "span": null
+        }
+      ],
+      "first_response_bytes": 16325,
+      "total_response_bytes": 33874
+    }
+  },
+  {
+    "task": "nanus.write.change",
+    "baseline": {
+      "evidence": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 1.0
+        },
+        "evidence_ready": true,
+        "relationship_evidence_recall": 1.0,
+        "task_success": null
+      },
+      "followups": [
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-adapter-local/src/fs.rs",
+            "start": 147,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-adapter-local/tests/fs.rs",
+            "start": 156,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-bundle/src/tools/write.rs",
+            "start": 13,
+            "count": 100
+          }
+        }
+      ],
+      "first_items": [
+        {
+          "id": "sym:crates/nanus-adapter-local/src/fs.rs#method:LocalFs::write_blocking",
+          "name": "write_blocking",
+          "path": "crates/nanus-adapter-local/src/fs.rs",
+          "span": null
+        },
+        {
+          "id": "sym:crates/nanus-adapter-local/tests/fs.rs#function:create_refuses_an_existing_file_and_overwrite_replaces_it",
+          "name": "create_refuses_an_existing_file_and_overwrite_replaces_it",
+          "path": "crates/nanus-adapter-local/tests/fs.rs",
+          "span": null
+        },
+        {
+          "id": "sym:crates/nanus-bundle/src/tools/write.rs#function:write_tool",
+          "name": "write_tool",
+          "path": "crates/nanus-bundle/src/tools/write.rs",
+          "span": null
+        },
+        {
+          "id": "sym:crates/nanus-ports/tests/contracts.rs#function:a_write_in_create_mode_refuses_to_replace",
+          "name": "a_write_in_create_mode_refuses_to_replace",
+          "path": "crates/nanus-ports/tests/contracts.rs",
+          "span": null
+        },
+        {
+          "id": "sym:crates/nanus-bundle/src/tools/write.rs#function:write_outcome",
+          "name": "write_outcome",
+          "path": "crates/nanus-bundle/src/tools/write.rs",
+          "span": null
+        },
+        {
+          "id": "sym:crates/nanus-adapter-local/tests/fs.rs#function:parent_creation_is_opt_in",
+          "name": "parent_creation_is_opt_in",
+          "path": "crates/nanus-adapter-local/tests/fs.rs",
+          "span": null
+        },
+        {
+          "id": "sym:crates/nanus-adapter-local/tests/fs.rs#function:edit_distinguishes_zero_from_many_occurrences",
+          "name": "edit_distinguishes_zero_from_many_occurrences",
+          "path": "crates/nanus-adapter-local/tests/fs.rs",
+          "span": null
+        },
+        {
+          "id": "sym:crates/nanus-adapter-store/src/store.rs#function:take_claim@621",
+          "name": "take_claim",
+          "path": "crates/nanus-adapter-store/src/store.rs",
+          "span": null
+        }
+      ],
+      "first_response_bytes": 16277,
+      "total_response_bytes": 39486
+    },
+    "normalized": {
+      "evidence": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.08888888888888889
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "followups": [
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-adapter-local/tests/fs.rs",
+            "start": 156,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-ports/tests/contracts.rs",
+            "start": 505,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-adapter-local/src/fs.rs",
+            "start": 147,
+            "count": 100
+          }
+        }
+      ],
+      "first_items": [
+        {
+          "id": "sym:crates/nanus-adapter-local/tests/fs.rs#function:create_refuses_an_existing_file_and_overwrite_replaces_it",
+          "name": "create_refuses_an_existing_file_and_overwrite_replaces_it",
+          "path": "crates/nanus-adapter-local/tests/fs.rs",
+          "span": null
+        },
+        {
+          "id": "sym:crates/nanus-ports/tests/contracts.rs#function:a_write_in_create_mode_refuses_to_replace",
+          "name": "a_write_in_create_mode_refuses_to_replace",
+          "path": "crates/nanus-ports/tests/contracts.rs",
+          "span": null
+        },
+        {
+          "id": "sym:crates/nanus-adapter-local/src/fs.rs#method:LocalFs::write_blocking",
+          "name": "write_blocking",
+          "path": "crates/nanus-adapter-local/src/fs.rs",
+          "span": null
+        },
+        {
+          "id": "sym:crates/nanus-bundle/src/tools/write.rs#function:write_tool",
+          "name": "write_tool",
+          "path": "crates/nanus-bundle/src/tools/write.rs",
+          "span": null
+        },
+        {
+          "id": "sym:crates/nanus-bundle/src/tools/write.rs#function:write_outcome",
+          "name": "write_outcome",
+          "path": "crates/nanus-bundle/src/tools/write.rs",
+          "span": null
+        },
+        {
+          "id": "sym:crates/nanus-adapter-local/tests/fs.rs#function:parent_creation_is_opt_in",
+          "name": "parent_creation_is_opt_in",
+          "path": "crates/nanus-adapter-local/tests/fs.rs",
+          "span": null
+        },
+        {
+          "id": "sym:crates/nanus-adapter-config/src/config.rs#method:NanusConfig::source_path",
+          "name": "source_path",
+          "path": "crates/nanus-adapter-config/src/config.rs",
+          "span": null
+        },
+        {
+          "id": "sym:crates/nanus-bundle/src/tools/write.rs#function:tests::mode_is_required_rather_than_defaulted",
+          "name": "mode_is_required_rather_than_defaulted",
+          "path": "crates/nanus-bundle/src/tools/write.rs",
+          "span": null
+        }
+      ],
+      "first_response_bytes": 16340,
+      "total_response_bytes": 39646
+    }
+  },
+  {
+    "task": "nanus.read.debug",
+    "baseline": {
+      "evidence": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 1.0,
+          "r2": 1.0
+        },
+        "evidence_ready": true,
+        "relationship_evidence_recall": 1.0,
+        "task_success": null
+      },
+      "followups": [
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-bundle/src/tools/read.rs",
+            "start": 99,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-adapter-store/src/store.rs",
+            "start": 631,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-tui/src/markdown/render.rs",
+            "start": 597,
+            "count": 100
+          }
+        }
+      ],
+      "first_items": [
+        {
+          "id": "sym:crates/nanus-bundle/src/tools/read.rs#function:read_outcome",
+          "name": "read_outcome",
+          "path": "crates/nanus-bundle/src/tools/read.rs",
+          "span": null
+        },
+        {
+          "id": "sym:crates/nanus-bundle/src/tools/read.rs#function:read_tool",
+          "name": "read_tool",
+          "path": "crates/nanus-bundle/src/tools/read.rs",
+          "span": null
+        },
+        {
+          "id": "sym:crates/nanus-bundle/src/tools/read.rs#function:render_window",
+          "name": "render_window",
+          "path": "crates/nanus-bundle/src/tools/read.rs",
+          "span": null
+        },
+        {
+          "id": "sym:crates/nanus-bundle/src/tools/read.rs#const:DEFAULT_READ_LIMIT",
+          "name": "DEFAULT_READ_LIMIT",
+          "path": "crates/nanus-bundle/src/tools/read.rs",
+          "span": null
+        },
+        {
+          "id": "sym:crates/nanus-adapter-store/src/store.rs#function:write_claim",
+          "name": "write_claim",
+          "path": "crates/nanus-adapter-store/src/store.rs",
+          "span": null
+        },
+        {
+          "id": "sym:crates/nanus-tui/src/markdown/render.rs#function:tests::a_highlighted_fence_fits_the_width",
+          "name": "a_highlighted_fence_fits_the_width",
+          "path": "crates/nanus-tui/src/markdown/render.rs",
+          "span": null
+        },
+        {
+          "id": "file:AGENTS.md",
+          "name": "AGENTS.md",
+          "path": "AGENTS.md",
+          "span": null
+        },
+        {
+          "id": "sym:crates/nanus-adapter-config/src/config.rs#function:write_atomic",
+          "name": "write_atomic",
+          "path": "crates/nanus-adapter-config/src/config.rs",
+          "span": null
+        }
+      ],
+      "first_response_bytes": 16284,
+      "total_response_bytes": 38380
+    },
+    "normalized": {
+      "evidence": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.19672131147540983,
+          "r2": 1.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "followups": [
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-bundle/src/tools/read.rs",
+            "start": 172,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-adapter-store/src/store.rs",
+            "start": 631,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-tui/src/markdown/render.rs",
+            "start": 597,
+            "count": 100
+          }
+        }
+      ],
+      "first_items": [
+        {
+          "id": "sym:crates/nanus-bundle/src/tools/read.rs#function:render_window",
+          "name": "render_window",
+          "path": "crates/nanus-bundle/src/tools/read.rs",
+          "span": null
+        },
+        {
+          "id": "sym:crates/nanus-bundle/src/tools/read.rs#function:read_outcome",
+          "name": "read_outcome",
+          "path": "crates/nanus-bundle/src/tools/read.rs",
+          "span": null
+        },
+        {
+          "id": "sym:crates/nanus-bundle/src/tools/read.rs#function:read_tool",
+          "name": "read_tool",
+          "path": "crates/nanus-bundle/src/tools/read.rs",
+          "span": null
+        },
+        {
+          "id": "sym:crates/nanus-bundle/src/tools/read.rs#const:DEFAULT_READ_LIMIT",
+          "name": "DEFAULT_READ_LIMIT",
+          "path": "crates/nanus-bundle/src/tools/read.rs",
+          "span": null
+        },
+        {
+          "id": "sym:crates/nanus-bundle/src/tools/read.rs#function:tests::a_window_is_line_addressed_from_one",
+          "name": "a_window_is_line_addressed_from_one",
+          "path": "crates/nanus-bundle/src/tools/read.rs",
+          "span": null
+        },
+        {
+          "id": "sym:crates/nanus-adapter-store/src/store.rs#function:write_claim",
+          "name": "write_claim",
+          "path": "crates/nanus-adapter-store/src/store.rs",
+          "span": null
+        },
+        {
+          "id": "sym:crates/nanus-tui/src/markdown/render.rs#function:tests::a_highlighted_fence_fits_the_width",
+          "name": "a_highlighted_fence_fits_the_width",
+          "path": "crates/nanus-tui/src/markdown/render.rs",
+          "span": null
+        },
+        {
+          "id": "sym:crates/nanus-adapter-config/src/config.rs#method:NanusConfig::from_toml",
+          "name": "from_toml",
+          "path": "crates/nanus-adapter-config/src/config.rs",
+          "span": null
+        }
+      ],
+      "first_response_bytes": 16232,
+      "total_response_bytes": 38041
+    }
+  },
+  {
+    "task": "nanus.read.change",
+    "baseline": {
+      "evidence": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.18032786885245902,
+          "r2": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "followups": [
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-bundle/src/tools/read.rs",
+            "start": 1,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "docs/roadmap.md",
+            "start": 201,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-adapter-config/src/config.rs",
+            "start": 332,
+            "count": 100
+          }
+        }
+      ],
+      "first_items": [
+        {
+          "id": "file:crates/nanus-bundle/src/tools/read.rs",
+          "name": "crates/nanus-bundle/src/tools/read.rs",
+          "path": "crates/nanus-bundle/src/tools/read.rs",
+          "span": null
+        },
+        {
+          "id": "file:docs/roadmap.md",
+          "name": "docs/roadmap.md",
+          "path": "docs/roadmap.md",
+          "span": null
+        },
+        {
+          "id": "sym:crates/nanus-adapter-config/src/config.rs#method:NanusConfig::load",
+          "name": "load",
+          "path": "crates/nanus-adapter-config/src/config.rs",
+          "span": null
+        },
+        {
+          "id": "sym:crates/nanus-adapter-config/src/config.rs#method:NanusConfig::save",
+          "name": "save",
+          "path": "crates/nanus-adapter-config/src/config.rs",
+          "span": null
+        },
+        {
+          "id": "sym:crates/nanus-bundle/src/tools/grep.rs#function:render_matches",
+          "name": "render_matches",
+          "path": "crates/nanus-bundle/src/tools/grep.rs",
+          "span": null
+        },
+        {
+          "id": "sym:crates/nanus-bundle/src/tools/read.rs#function:read_outcome",
+          "name": "read_outcome",
+          "path": "crates/nanus-bundle/src/tools/read.rs",
+          "span": null
+        },
+        {
+          "id": "file:AGENTS.md",
+          "name": "AGENTS.md",
+          "path": "AGENTS.md",
+          "span": null
+        },
+        {
+          "id": "sym:crates/nanus-tui/src/markdown/parse.rs#function:read_paragraph",
+          "name": "read_paragraph",
+          "path": "crates/nanus-tui/src/markdown/parse.rs",
+          "span": null
+        }
+      ],
+      "first_response_bytes": 16320,
+      "total_response_bytes": 40522
+    },
+    "normalized": {
+      "evidence": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0,
+          "r2": 0.02564102564102564
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "followups": [
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-bundle/src/tools/read.rs",
+            "start": 1,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "docs/roadmap.md",
+            "start": 201,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-adapter-config/src/config.rs",
+            "start": 332,
+            "count": 100
+          }
+        }
+      ],
+      "first_items": [
+        {
+          "id": "file:crates/nanus-bundle/src/tools/read.rs",
+          "name": "crates/nanus-bundle/src/tools/read.rs",
+          "path": "crates/nanus-bundle/src/tools/read.rs",
+          "span": null
+        },
+        {
+          "id": "file:docs/roadmap.md",
+          "name": "docs/roadmap.md",
+          "path": "docs/roadmap.md",
+          "span": null
+        },
+        {
+          "id": "sym:crates/nanus-adapter-config/src/config.rs#method:NanusConfig::load",
+          "name": "load",
+          "path": "crates/nanus-adapter-config/src/config.rs",
+          "span": null
+        },
+        {
+          "id": "sym:crates/nanus-adapter-config/src/config.rs#method:NanusConfig::source_path",
+          "name": "source_path",
+          "path": "crates/nanus-adapter-config/src/config.rs",
+          "span": null
+        },
+        {
+          "id": "sym:crates/nanus-adapter-config/tests/config.rs#function:an_explicit_path_wins_over_the_environment_variable",
+          "name": "an_explicit_path_wins_over_the_environment_variable",
+          "path": "crates/nanus-adapter-config/tests/config.rs",
+          "span": null
+        },
+        {
+          "id": "sym:crates/nanus-bundle/src/tools/read.rs#function:render_window",
+          "name": "render_window",
+          "path": "crates/nanus-bundle/src/tools/read.rs",
+          "span": null
+        },
+        {
+          "id": "sym:crates/nanus-adapter-config/src/config.rs#method:NanusConfig::save",
+          "name": "save",
+          "path": "crates/nanus-adapter-config/src/config.rs",
+          "span": null
+        },
+        {
+          "id": "sym:crates/nanus-bundle/src/tools/grep.rs#function:render_matches",
+          "name": "render_matches",
+          "path": "crates/nanus-bundle/src/tools/grep.rs",
+          "span": null
+        }
+      ],
+      "first_response_bytes": 16206,
+      "total_response_bytes": 40408
+    }
+  }
+]

@@ -33,6 +33,27 @@ class RunnerTests(unittest.TestCase):
         self.assertEqual(result['response_bytes'],20)
         self.assertEqual(result['seen'],[])
 
+    def test_native_json_survives_exact_budget_and_truncation_is_not_evidence(self):
+        from taskbench.backends import render_graph_explore
+        from taskbench.core import digest
+        value={'items':[{'node':{'path':'x.rs','start_line':1,'name':'f'},
+                        'impact':{'direct_callers':2,'total_callers':3},
+                        'snippet':{'start_line':1,'source_hash':digest(b'fn f() {}\n'),
+                                   'lines':['fn f() {}']}}],
+               'edges':[{'from':'caller','to':'f'}],'context':{'generation':'fixture'}}
+        encoded=render_graph_explore(value)
+        self.backend.search=lambda *args,**kwargs: encoded
+        result=trial(self.task,self.backend,response_bytes=len(encoded.encode()))
+        self.assertEqual(result['calls'],2)
+        self.assertEqual(json.loads(result['history'][0]['response']),value)
+        self.assertFalse(result['history'][0]['truncated'])
+        self.assertEqual(result['seen'],[('x.rs',1)])
+        self.assertEqual(result['history'][1]['action']['arguments']['path'],'x.rs')
+        truncated=trial(self.task,self.backend,response_bytes=len(encoded.encode())-1)
+        self.assertEqual(truncated['calls'],1)
+        self.assertTrue(truncated['history'][0]['truncated'])
+        self.assertEqual(truncated['seen'],[])
+
     def test_agent_action_answer_and_usage(self):
         driver=self.root/'driver.py'
         driver.write_text('''import json,sys

@@ -1,0 +1,41 @@
+   Compiling graph-search v0.1.0 (/Volumes/Delorean/code/graph-search/crates/graph-search)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 8.51s
+     Running tests/body.rs (target/debug/deps/body-ad529301072f7be1)
+
+running 15 tests
+test expanded_context_preserves_headers_matches_and_hash_checks ... ok
+test body_excerpts_show_the_match_without_rewriting_declaration_coordinates ... ok
+test a_single_stopword_is_a_valid_body_query ... ok
+test context_cost_work_is_bounded_without_discarding_primary_evidence ... ok
+test body_matches_compete_with_metadata_and_exact_names_keep_priority ... ok
+test distant_body_matches_fit_when_the_whole_region_does_not ... ok
+test adjacent_call_windows_do_not_spend_one_interval_slot_per_site ... ok
+test distant_regions_of_one_owner_survive_without_duplicating_candidates ... ok
+test returned_connections_include_distant_call_site_context ... ok
+test oversized_source_lines_do_not_erase_navigation_metadata ... ok
+test small_implementations_expand_with_exact_lines_and_no_duplicate_extra_context ... ok
+test repeated_relationship_sites_expand_under_an_independent_work_budget ... ok
+test stale_body_facts_are_replaced_by_hash_bound_live_evidence ... ok
+test unselected_owners_do_not_report_context_loss_for_selected_results ... ok
+test indexed_body_queries_cross_the_old_scan_limit_without_reading_every_file ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.81s
+
+     Running tests/planner.rs (target/debug/deps/planner-6665a712a2b59211)
+
+running 12 tests
+test graph_context_admits_only_the_requested_relation_family ... ok
+test exact_fast_path_is_optional_and_filtered_misses_fall_back ... ok
+test incomplete_postings_cannot_claim_unobserved_boolean_coverage ... ok
+test automatic_multiword_discovery_uses_body_then_metadata_only_when_empty ... ok
+test channels_and_minimum_coverage_are_independent_controls ... ok
+test graph_context_is_explicit_without_changing_lexical_seeds ... ok
+test explicit_navigation_does_not_broaden_or_spend_posting_work ... ok
+test identifier_analysis_recovers_whole_names_and_qualified_context ... ok
+test bm25f_policy_preserves_explicit_intent_boolean_coverage_and_work_limits ... ok
+test query_limits_reject_instead_of_weakening_boolean_requirements ... ok
+test task_prompt_policy_is_opt_in_explained_and_preserves_explicit_intent ... ok
+test name_prefix_is_explicit_bounded_and_rebuilt_with_the_generation ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.56s
+

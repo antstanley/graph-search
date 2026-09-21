@@ -1,0 +1,1606 @@
+--- a/crates/core/src/lib.rs
++++ b/crates/core/src/lib.rs
+@@ -30,6 +30,7 @@
+ pub mod metadata;
+ mod neighborhoods;
+ mod node_packages;
++mod node_workspaces;
+ pub mod occurrences;
+ mod packages;
+ pub mod payload;
+--- a/crates/core/src/node_packages.rs
++++ b/crates/core/src/node_packages.rs
+@@ -8,34 +8,40 @@
+ use std::path::Path;
+ 
+ #[derive(Clone, Debug, Default)]
+-pub(crate) struct Packages(BTreeMap<String, Option<PackageManifest>>);
++pub(crate) struct Packages {
++    facts: BTreeMap<String, Option<PackageManifest>>,
++    workspaces: crate::node_workspaces::Workspaces,
++}
+ 
+ impl Packages {
+     pub(crate) fn build(files: &BTreeMap<String, Node>, boundaries: &BTreeSet<String>) -> Self {
+-        Self(
+-            boundaries
+-                .iter()
+-                .filter(|path| {
+-                    Path::new(path)
+-                        .file_name()
+-                        .is_some_and(|name| name == "package.json")
+-                })
+-                .map(|path| {
+-                    let definition = files
+-                        .get(path)
+-                        .and_then(|node| node.attribute("package_definition"))
+-                        .and_then(|text| serde_json::from_str::<PackageManifest>(text).ok())
+-                        .filter(|definition| {
+-                            definition.ecosystem == PackageEcosystem::Node
+-                                && definition.role == PackageRole::Package
+-                                && definition.node.as_ref().is_some_and(|metadata| {
+-                                    metadata.valid() && metadata.unavailable_reason.is_none()
+-                                })
+-                        });
+-                    (path.clone(), definition)
+-                })
+-                .collect(),
+-        )
++        let facts: BTreeMap<_, _> = boundaries
++            .iter()
++            .filter(|path| {
++                Path::new(path)
++                    .file_name()
++                    .is_some_and(|name| name == "package.json" || name == "pnpm-workspace.yaml")
++            })
++            .map(|path| {
++                let definition = files
++                    .get(path)
++                    .and_then(|node| node.attribute("package_definition"))
++                    .and_then(|text| serde_json::from_str::<PackageManifest>(text).ok())
++                    .filter(|definition| {
++                        definition.ecosystem == PackageEcosystem::Node
++                            && matches!(
++                                definition.role,
++                                PackageRole::Package | PackageRole::Workspace
++                            )
++                            && definition.node.as_ref().is_some_and(|metadata| {
++                                metadata.valid() && metadata.unavailable_reason.is_none()
++                            })
++                    });
++                (path.clone(), definition)
++            })
++            .collect();
++        let workspaces = crate::node_workspaces::Workspaces::build(&facts);
++        Self { facts, workspaces }
+     }
+ 
+     pub(crate) fn resolve(
+@@ -48,7 +54,8 @@
+             return resolve_specifier(from, specifier, known, Language::TypeScript)
+                 .ok_or("module_target_missing");
+         }
+-        if specifier.chars().any(char::is_control)
++        if (!specifier.starts_with('#') && specifier.contains([':', '#']))
++            || specifier.chars().any(char::is_control)
+             || specifier.contains(['\\', '%', '?', '*', '\0'])
+             || specifier.split('/').any(|part| {
+                 part.is_empty()
+@@ -57,7 +64,7 @@
+         {
+             return Err("node_specifier_unsupported");
+         }
+-        let (manifest, package) = self.scope(from)?;
++        let (mut manifest, package) = self.scope(from)?;
+         let metadata = package
+             .node
+             .as_ref()
+@@ -68,24 +75,59 @@
+                 specifier.to_owned(),
+             )
+         } else {
+-            let name = package.name.as_deref().ok_or("node_package_name_missing")?;
+-            let key = if specifier == name {
++            let mut parts = specifier.split('/');
++            let first = parts.next().ok_or("node_specifier_unsupported")?;
++            let name = if first.starts_with('@') {
++                if first.len() == 1 {
++                    return Err("node_specifier_unsupported");
++                }
++                format!(
++                    "{first}/{}",
++                    parts.next().ok_or("node_specifier_unsupported")?
++                )
++            } else {
++                first.to_owned()
++            };
++            let tail = parts.collect::<Vec<_>>().join("/");
++            let key = if tail.is_empty() {
+                 ".".into()
+-            } else if let Some(subpath) = specifier
+-                .strip_prefix(name)
+-                .and_then(|tail| tail.strip_prefix('/'))
+-            {
+-                format!("./{subpath}")
+-            } else {
+-                return Err("node_external_package_unmodeled");
++            } else {
++                format!("./{tail}")
+             };
+-            (
+-                metadata
+-                    .exports
+-                    .as_ref()
+-                    .ok_or("node_self_export_map_missing")?,
+-                key,
+-            )
++            if package.name.as_deref() == Some(name.as_str()) {
++                (
++                    metadata
++                        .exports
++                        .as_ref()
++                        .ok_or("node_self_export_map_missing")?,
++                    key,
++                )
++            } else {
++                let dependency = metadata
++                    .dependencies
++                    .get(&name)
++                    .ok_or("node_dependency_not_declared")?;
++                if !matches!(
++                    dependency.as_str(),
++                    "workspace:*" | "workspace:^" | "workspace:~"
++                ) {
++                    return Err("node_dependency_range_unmodeled");
++                }
++                manifest = self.workspaces.target(manifest, &name)?;
++                let target = self
++                    .facts
++                    .get(manifest)
++                    .and_then(Option::as_ref)
++                    .and_then(|package| package.node.as_ref())
++                    .ok_or("node_package_facts_unavailable")?;
++                (
++                    target
++                        .exports
++                        .as_ref()
++                        .ok_or("node_workspace_export_map_missing")?,
++                    key,
++                )
++            }
+         };
+         let target = map
+             .get(&key)
+@@ -94,58 +136,7 @@
+             } else {
+                 "node_mapping_missing"
+             })?;
+-        let path = match target {
+-            NodePackageTarget::Path(path) => path,
+-            NodePackageTarget::Blocked => return Err("node_mapping_blocked"),
+-            NodePackageTarget::Unsupported => return Err("node_mapping_conditions_unmodeled"),
+-        };
+-        let relative = path
+-            .strip_prefix("./")
+-            .ok_or("node_mapping_target_unmodeled")?;
+-        if relative.is_empty()
+-            || relative.contains(['\\', '%', '?', '#', '*', '\0'])
+-            || relative.split('/').any(|part| {
+-                part.is_empty()
+-                    || (matches!(part, "." | "..") || part.eq_ignore_ascii_case("node_modules"))
+-            })
+-        {
+-            return Err("node_mapping_target_unmodeled");
+-        }
+-        // Package maps name exact files. Only the existing source/runtime extension
+-        // substitution is available; directory and implicit-extension guessing is not.
+-        let target = Path::new(manifest)
+-            .parent()
+-            .unwrap_or_else(|| Path::new(""))
+-            .join(relative)
+-            .to_string_lossy()
+-            .replace('\\', "/");
+-        if known.contains(&target) {
+-            return Ok(target);
+-        }
+-        let substitute = match Path::new(&target)
+-            .extension()
+-            .and_then(std::ffi::OsStr::to_str)
+-        {
+-            Some("js") => &["ts", "tsx"][..],
+-            Some("mjs") => &["mts"][..],
+-            Some("cjs") => &["cts"][..],
+-            _ => &[],
+-        };
+-        let choices: Vec<_> = substitute
+-            .iter()
+-            .map(|extension| {
+-                Path::new(&target)
+-                    .with_extension(extension)
+-                    .to_string_lossy()
+-                    .into_owned()
+-            })
+-            .filter(|path| known.contains(path))
+-            .collect();
+-        match choices.as_slice() {
+-            [path] => Ok(path.clone()),
+-            [] => Err("node_mapping_target_missing"),
+-            _ => Err("node_mapping_target_ambiguous"),
+-        }
++        resolve_target(manifest, target, known)
+     }
+ 
+     fn scope(&self, from: &str) -> Result<(&str, &PackageManifest), &'static str> {
+@@ -155,7 +146,7 @@
+                 .join("package.json")
+                 .to_string_lossy()
+                 .replace('\\', "/");
+-            if let Some((key, definition)) = self.0.get_key_value(&candidate) {
++            if let Some((key, definition)) = self.facts.get_key_value(&candidate) {
+                 return definition
+                     .as_ref()
+                     .map(|definition| (key.as_str(), definition))
+@@ -166,3 +157,62 @@
+         Err("node_package_scope_missing")
+     }
+ }
++
++fn resolve_target(
++    manifest: &str,
++    target: &NodePackageTarget,
++    known: &BTreeSet<String>,
++) -> Result<String, &'static str> {
++    let path = match target {
++        NodePackageTarget::Path(path) | NodePackageTarget::InvariantPath(path) => path,
++        NodePackageTarget::Blocked => return Err("node_mapping_blocked"),
++        NodePackageTarget::Unsupported => return Err("node_mapping_conditions_unmodeled"),
++    };
++    let relative = path
++        .strip_prefix("./")
++        .ok_or("node_mapping_target_unmodeled")?;
++    if relative.is_empty()
++        || relative.contains(['\\', '%', '?', '#', '*', '\0'])
++        || relative.split('/').any(|part| {
++            part.is_empty()
++                || (matches!(part, "." | "..") || part.eq_ignore_ascii_case("node_modules"))
++        })
++    {
++        return Err("node_mapping_target_unmodeled");
++    }
++    // Package maps name exact files. Only the existing source/runtime extension
++    // substitution is available; directory and implicit-extension guessing is not.
++    let target = Path::new(manifest)
++        .parent()
++        .unwrap_or_else(|| Path::new(""))
++        .join(relative)
++        .to_string_lossy()
++        .replace('\\', "/");
++    if known.contains(&target) {
++        return Ok(target);
++    }
++    let substitute = match Path::new(&target)
++        .extension()
++        .and_then(std::ffi::OsStr::to_str)
++    {
++        Some("js") => &["ts", "tsx"][..],
++        Some("mjs") => &["mts"][..],
++        Some("cjs") => &["cts"][..],
++        _ => &[],
++    };
++    let choices: Vec<_> = substitute
++        .iter()
++        .map(|extension| {
++            Path::new(&target)
++                .with_extension(extension)
++                .to_string_lossy()
++                .into_owned()
++        })
++        .filter(|path| known.contains(path))
++        .collect();
++    match choices.as_slice() {
++        [path] => Ok(path.clone()),
++        [] => Err("node_mapping_target_missing"),
++        _ => Err("node_mapping_target_ambiguous"),
++    }
++}
+--- a/crates/core/src/node_workspaces.rs
++++ b/crates/core/src/node_workspaces.rs
+@@ -0,0 +1,378 @@
++//! Native workspace membership and unique package identity. No installed tree lookup.
++use graph_search_types::package::PackageManifest;
++use std::collections::BTreeMap;
++use std::path::Path;
++
++type Facts = BTreeMap<String, Option<PackageManifest>>;
++type Decision = Result<String, &'static str>;
++
++#[derive(Clone, Debug, Default)]
++pub(crate) struct Workspaces {
++    owners: BTreeMap<String, Decision>,
++    names: BTreeMap<String, BTreeMap<String, Option<String>>>,
++    incomplete: BTreeMap<String, &'static str>,
++    exhausted: bool,
++    overridden: BTreeMap<String, std::collections::BTreeSet<String>>,
++}
++
++fn declaration<'a>(
++    facts: &'a Facts,
++    manifest: &str,
++    work: &mut usize,
++    skip_unavailable: bool,
++) -> Result<(&'a str, &'a [String]), &'static str> {
++    // pnpm membership comes only from its workspace file, even if a child
++    // package.json also happens to contain a workspaces field.
++    for name in ["pnpm-workspace.yaml", "package.json"] {
++        let mut directory = Path::new(manifest).parent();
++        while let Some(dir) = directory {
++            directory = dir.parent();
++            *work = work.checked_sub(1).ok_or("node_workspace_work_limit")?;
++            let candidate = dir.join(name).to_string_lossy().replace('\\', "/");
++            let Some((path, value)) = facts.get_key_value(&candidate) else {
++                continue;
++            };
++            let Some(metadata) = value.as_ref().and_then(|value| value.node.as_ref()) else {
++                if skip_unavailable {
++                    continue;
++                }
++                return Err("node_workspace_facts_unavailable");
++            };
++            if name == "package.json"
++                && metadata
++                    .package_manager
++                    .as_deref()
++                    .is_some_and(|manager| manager == "pnpm" || manager.starts_with("pnpm@"))
++            {
++                return Err("node_workspace_missing");
++            }
++            if let Some(patterns) = &metadata.workspaces {
++                return Ok((path, patterns));
++            }
++            if name == "pnpm-workspace.yaml" {
++                return Err("node_workspace_facts_unavailable");
++            }
++        }
++    }
++    Err("node_workspace_missing")
++}
++
++fn segments(pattern: &str) -> Option<Vec<&str>> {
++    let pattern = pattern.strip_prefix('!').unwrap_or(pattern);
++    let pattern = pattern.strip_prefix("./").unwrap_or(pattern);
++    if pattern.is_empty() || pattern.starts_with('/') || pattern.ends_with('/') {
++        return None;
++    }
++    let parts: Vec<_> = pattern.split('/').collect();
++    parts
++        .iter()
++        .all(|part| {
++            !part.is_empty()
++                && !matches!(*part, "." | "..")
++                && !part.eq_ignore_ascii_case("node_modules")
++                && (matches!(*part, "*" | "**")
++                    || !part.contains(['*', '?', '[', ']', '{', '}', '\\', '!', '#', '%']))
++                && !part.chars().any(char::is_whitespace)
++        })
++        .then_some(parts)
++}
++
++/// Dynamic programming over whole path segments, charging each transition.
++fn matches(pattern: &[&str], path: &[&str], work: &mut usize) -> Option<bool> {
++    let length = path.len().checked_add(1)?;
++    let mut previous = vec![false; length];
++    previous[0] = true;
++    for part in pattern {
++        let mut current = vec![false; length];
++        current[0] = *part == "**" && previous[0];
++        for (i, component) in path.iter().enumerate() {
++            *work = work.checked_sub(1)?;
++            let next = i.saturating_add(1);
++            current[next] = if *part == "**" {
++                previous[next] || (current[i] && !component.starts_with('.'))
++            } else {
++                previous[i] && ((*part == "*" && !component.starts_with('.')) || part == component)
++            };
++        }
++        previous = current;
++    }
++    previous.last().copied()
++}
++
++fn member(patterns: &[String], relative: &str, work: &mut usize) -> Result<bool, &'static str> {
++    let compiled: Vec<_> = patterns
++        .iter()
++        .map(|pattern| {
++            *work = work
++                .checked_sub(pattern.len())
++                .ok_or("node_workspace_work_limit")?;
++            segments(pattern).ok_or("node_workspace_pattern_unmodeled")
++        })
++        .collect::<Result<_, _>>()?;
++    if relative.is_empty() {
++        return Ok(true);
++    }
++    let path: Vec<_> = relative.split('/').collect();
++    let mut included = false;
++    let mut excluded = false;
++    for (original, pattern) in patterns.iter().zip(compiled) {
++        *work = work.checked_sub(1).ok_or("node_workspace_work_limit")?;
++        if matches(&pattern, &path, work).ok_or("node_workspace_work_limit")? {
++            if original.starts_with('!') {
++                excluded = true;
++            } else {
++                included = true;
++            }
++        }
++    }
++    Ok(included && !excluded)
++}
++
++fn admitted(
++    declaration: &str,
++    manifest: &str,
++    patterns: &[String],
++    work: &mut usize,
++) -> Result<bool, &'static str> {
++    let root = Path::new(declaration)
++        .parent()
++        .unwrap_or_else(|| Path::new(""));
++    let directory = Path::new(manifest)
++        .parent()
++        .unwrap_or_else(|| Path::new(""));
++    let relative = directory
++        .strip_prefix(root)
++        .map_err(|_| "node_workspace_scope_mismatch")?
++        .to_string_lossy()
++        .replace('\\', "/");
++    member(patterns, &relative, work)
++}
++
++impl Workspaces {
++    pub(crate) fn build(facts: &Facts) -> Self {
++        Self::build_with_work(facts, graph_search_types::limits::MAX_NODE_WORKSPACE_WORK)
++    }
++
++    fn build_with_work(facts: &Facts, mut work: usize) -> Self {
++        let mut result = Self::default();
++        for (manifest, definition) in facts {
++            if Path::new(manifest)
++                .file_name()
++                .is_none_or(|name| name != "package.json")
++            {
++                continue;
++            }
++            let owner = declaration(facts, manifest, &mut work, false).and_then(
++                |(declaration, patterns)| {
++                    if admitted(declaration, manifest, patterns, &mut work)? {
++                        Ok(declaration.to_owned())
++                    } else {
++                        Err("node_workspace_member_excluded")
++                    }
++                },
++            );
++            if owner == Err("node_workspace_facts_unavailable") {
++                // A missing projection may conceal a duplicate name or nested
++                // workspace. Never infer uniqueness by omitting that package.
++                match declaration(facts, manifest, &mut work, true) {
++                    Ok((root, patterns)) => match admitted(root, manifest, patterns, &mut work) {
++                        Ok(true) => {
++                            result
++                                .incomplete
++                                .insert(root.into(), "node_workspace_member_unavailable");
++                        }
++                        Err("node_workspace_work_limit") => result.exhausted = true,
++                        _ => {}
++                    },
++                    Err("node_workspace_work_limit") => result.exhausted = true,
++                    Err(_) => {}
++                }
++            }
++            if let Ok(root) = &owner {
++                if let Some(package) = definition {
++                    if let Some(name) = &package.name {
++                        result
++                            .names
++                            .entry(root.clone())
++                            .or_default()
++                            .entry(name.clone())
++                            .and_modify(|value| *value = None)
++                            .or_insert_with(|| Some(manifest.clone()));
++                    }
++                } else {
++                    result
++                        .incomplete
++                        .insert(root.clone(), "node_workspace_member_unavailable");
++                }
++            }
++            if owner == Err("node_workspace_work_limit") {
++                result.exhausted = true;
++            }
++            result.owners.insert(manifest.clone(), owner);
++            if result.exhausted {
++                break;
++            }
++        }
++        if !result.exhausted {
++            result.override_barriers(facts, &mut work);
++        }
++        result
++    }
++
++    fn override_barriers(&mut self, facts: &Facts, work: &mut usize) {
++        for (root, names) in &self.names {
++            let package = Path::new(root)
++                .parent()
++                .unwrap_or_else(|| Path::new(""))
++                .join("package.json")
++                .to_string_lossy()
++                .replace('\\', "/");
++            let selectors: std::collections::BTreeSet<_> = [root.as_str(), package.as_str()]
++                .into_iter()
++                .filter_map(|path| {
++                    facts
++                        .get(path)
++                        .and_then(Option::as_ref)
++                        .and_then(|fact| fact.node.as_ref())
++                })
++                .flat_map(|node| &node.workspace_overrides)
++                .collect();
++            for name in names.keys() {
++                for selector in &selectors {
++                    let Some(remaining) = work.checked_sub(selector.len().saturating_add(1)) else {
++                        self.exhausted = true;
++                        return;
++                    };
++                    *work = remaining;
++                    if selector_affects(selector, name) {
++                        self.overridden
++                            .entry(root.clone())
++                            .or_default()
++                            .insert(name.clone());
++                        break;
++                    }
++                }
++            }
++        }
++    }
++
++    pub(crate) fn target(&self, from: &str, name: &str) -> Result<&str, &'static str> {
++        if self.exhausted {
++            return Err("node_workspace_work_limit");
++        }
++        let root = self
++            .owners
++            .get(from)
++            .ok_or("node_workspace_missing")?
++            .as_ref()
++            .map_err(|reason| *reason)?;
++        if self
++            .overridden
++            .get(root)
++            .is_some_and(|names| names.contains(name))
++        {
++            return Err("node_workspace_override_unmodeled");
++        }
++        if let Some(reason) = self.incomplete.get(root) {
++            return Err(reason);
++        }
++        self.names
++            .get(root)
++            .and_then(|names| names.get(name))
++            .ok_or("node_workspace_target_missing")?
++            .as_deref()
++            .ok_or("node_workspace_target_ambiguous")
++    }
++}
++
++fn selector_affects(selector: &str, name: &str) -> bool {
++    let child = selector.rsplit('>').next().unwrap_or(selector).trim();
++    let package = if let Some(scoped) = child.strip_prefix('@') {
++        scoped
++            .find('@')
++            .map_or(child, |offset| &child[..offset.saturating_add(1)])
++    } else {
++        child.split('@').next().unwrap_or(child)
++    };
++    let component = |part: &str| {
++        !part.is_empty()
++            && part
++                .chars()
++                .all(|ch| ch.is_ascii_alphanumeric() || matches!(ch, '-' | '_' | '.'))
++    };
++    let valid = if let Some(scoped) = package.strip_prefix('@') {
++        scoped
++            .split_once('/')
++            .is_some_and(|(scope, part)| component(scope) && component(part))
++    } else {
++        component(package)
++    };
++    !valid || package == name
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++    #[test]
++    fn override_selectors_cannot_silently_redirect_workspace_identity() {
++        assert!(selector_affects("@scope/api", "@scope/api"));
++        assert!(selector_affects("@scope/api@^1", "@scope/api"));
++        assert!(selector_affects("parent@1>@scope/api", "@scope/api"));
++        assert!(!selector_affects("@scope/other@^1", "@scope/api"));
++        assert!(selector_affects("**/api", "@scope/api"));
++    }
++
++    #[test]
++    fn exhaustion_never_exposes_a_partially_collected_name_map() {
++        use graph_search_types::package::{NodePackageMetadata, PackageEcosystem, PackageRole};
++        let package = |name: &str, patterns| {
++            Some(PackageManifest {
++                ecosystem: PackageEcosystem::Node,
++                role: PackageRole::Package,
++                name: Some(name.into()),
++                unavailable_reason: None,
++                cargo_targets: None,
++                node: Some(NodePackageMetadata {
++                    workspaces: patterns,
++                    ..NodePackageMetadata::default()
++                }),
++            })
++        };
++        let facts = BTreeMap::from([
++            (
++                "package.json".into(),
++                package("root", Some(vec!["**".into()])),
++            ),
++            ("z/api/package.json".into(), package("api", None)),
++        ]);
++        let partial = Workspaces::build_with_work(&facts, 5);
++        assert!(
++            partial
++                .names
++                .get("package.json")
++                .unwrap()
++                .contains_key("root")
++        );
++        assert_eq!(
++            partial.target("package.json", "root"),
++            Err("node_workspace_work_limit")
++        );
++    }
++    #[test]
++    fn segment_globs_and_exclusions_are_complete_and_bounded() {
++        let patterns = vec!["packages/**".into(), "!packages/**/test".into()];
++        assert!(member(&patterns, "packages/core", &mut 1000).unwrap());
++        assert!(!member(&patterns, "packages/core/test", &mut 1000).unwrap());
++        assert!(!member(&patterns, "other/core", &mut 1000).unwrap());
++        assert!(!member(&patterns, "packages/.hidden", &mut 1000).unwrap());
++        assert!(member(&["packages/.hidden".into()], "packages/.hidden", &mut 1000).unwrap());
++        assert_eq!(
++            member(&patterns, "packages/core", &mut 0),
++            Err("node_workspace_work_limit")
++        );
++        assert_eq!(
++            member(&["packages/{a,b}".into()], "packages/a", &mut 1000),
++            Err("node_workspace_pattern_unmodeled")
++        );
++    }
++}
+--- a/crates/core/src/packages.rs
++++ b/crates/core/src/packages.rs
+@@ -10,7 +10,7 @@
+ pub(crate) fn manifest_family(path: &str) -> Option<PackageEcosystem> {
+     match Path::new(path).file_name()?.to_str()? {
+         "Cargo.toml" => Some(PackageEcosystem::Cargo),
+-        "package.json" => Some(PackageEcosystem::Node),
++        "package.json" | "pnpm-workspace.yaml" => Some(PackageEcosystem::Node),
+         _ => None,
+     }
+ }
+@@ -87,7 +87,10 @@
+ fn valid_definition(definition: &PackageManifest) -> bool {
+     if let Some(metadata) = &definition.node
+         && (definition.ecosystem != PackageEcosystem::Node
+-            || definition.role != PackageRole::Package
++            || !matches!(
++                definition.role,
++                PackageRole::Package | PackageRole::Workspace
++            )
+             || !metadata.valid())
+     {
+         return false;
+@@ -110,7 +113,17 @@
+                 && (definition.ecosystem == PackageEcosystem::Node || definition.name.is_some())
+         }
+         PackageRole::Workspace => {
+-            definition.ecosystem == PackageEcosystem::Cargo
++            (definition.ecosystem == PackageEcosystem::Cargo
++                || definition.node.as_ref().is_some_and(|node| {
++                    node.workspaces.is_some()
++                        && node.package_manager.is_none()
++                        && node.module_type.is_none()
++                        && node.main.is_none()
++                        && node.exports.is_none()
++                        && node.imports.is_none()
++                        && node.dependencies.is_empty()
++                        && node.unavailable_reason.is_none()
++                }))
+                 && definition.name.is_none()
+                 && definition.unavailable_reason.is_none()
+         }
+@@ -121,6 +134,24 @@
+                     .as_ref()
+                     .is_some_and(|reason| !reason.is_empty() && reason.len() <= 64)
+         }
++    }
++}
++
++fn valid_definition_path(path: &str, definition: &PackageManifest) -> bool {
++    if manifest_family(path) != Some(definition.ecosystem) || !valid_definition(definition) {
++        return false;
++    }
++    if definition.ecosystem == PackageEcosystem::Node {
++        let pnpm = Path::new(path)
++            .file_name()
++            .is_some_and(|name| name == "pnpm-workspace.yaml");
++        match definition.role {
++            PackageRole::Package => !pnpm,
++            PackageRole::Workspace => pnpm,
++            PackageRole::Unavailable => true,
++        }
++    } else {
++        true
+     }
+ }
+ 
+@@ -254,8 +285,7 @@
+         return false;
+     }
+     if let Some(definition) = &source.package_manifest
+-        && (manifest_family(&file.path) != Some(definition.ecosystem)
+-            || !valid_definition(definition))
++        && !valid_definition_path(&file.path, definition)
+     {
+         return false;
+     }
+@@ -285,7 +315,7 @@
+         && manifest.path == package.manifest_path
+         && manifest.content_hash.as_deref() == Some(package.manifest_hash.as_str())
+         && definition.is_some_and(|definition| {
+-            valid_definition(&definition)
++            valid_definition_path(&manifest.path, &definition)
+                 && definition.role == PackageRole::Package
+                 && definition.ecosystem == package.ecosystem
+                 && definition.name == package.name
+@@ -532,6 +562,27 @@
+     use super::*;
+     use graph_search_types::package::{NodePackageMetadata, NodePackageTarget};
+     #[test]
++    fn workspace_metadata_requires_its_own_manifest_role_and_complete_fields() {
++        let mut definition = PackageManifest {
++            ecosystem: PackageEcosystem::Node,
++            role: PackageRole::Workspace,
++            name: None,
++            unavailable_reason: None,
++            cargo_targets: None,
++            node: Some(NodePackageMetadata {
++                workspaces: Some(vec!["packages/*".into()]),
++                ..NodePackageMetadata::default()
++            }),
++        };
++        assert!(valid_definition_path("pnpm-workspace.yaml", &definition));
++        assert!(!valid_definition_path("package.json", &definition));
++        definition.role = PackageRole::Package;
++        assert!(!valid_definition_path("pnpm-workspace.yaml", &definition));
++        definition.role = PackageRole::Workspace;
++        definition.node.as_mut().unwrap().main = Some(NodePackageTarget::Path("./index.js".into()));
++        assert!(!valid_definition_path("pnpm-workspace.yaml", &definition));
++    }
++    #[test]
+     fn persisted_node_metadata_rejects_partial_unavailable_and_invalid_keys() {
+         let mut definition = PackageManifest {
+             ecosystem: PackageEcosystem::Node,
+--- a/crates/core/src/resolve.rs
++++ b/crates/core/src/resolve.rs
+@@ -127,7 +127,9 @@
+         if node.is_file() {
+             if std::path::Path::new(&node.path)
+                 .file_name()
+-                .is_some_and(|name| name == "Cargo.toml" || name == "package.json")
++                .is_some_and(|name| {
++                    name == "Cargo.toml" || name == "package.json" || name == "pnpm-workspace.yaml"
++                })
+             {
+                 self.files.insert(node.path.clone(), node.clone());
+             }
+--- a/crates/graph-search/src/lib.rs
++++ b/crates/graph-search/src/lib.rs
+@@ -19,6 +19,7 @@
+ pub mod lock;
+ mod node_package;
+ mod package_manifests;
++mod pnpm_workspace;
+ pub mod service;
+ 
+ pub use error::Error;
+--- a/crates/graph-search/src/node_package.rs
++++ b/crates/graph-search/src/node_package.rs
+@@ -4,11 +4,44 @@
+ use std::collections::BTreeMap;
+ 
+ fn target(value: &Value) -> NodePackageTarget {
+-    match value {
+-        Value::String(path) => NodePackageTarget::Path(path.clone()),
+-        Value::Null => NodePackageTarget::Blocked,
+-        _ => NodePackageTarget::Unsupported,
+-    }
++    fn invariant(value: &Value, depth: usize) -> NodePackageTarget {
++        match value {
++            Value::String(path) => NodePackageTarget::Path(path.clone()),
++            Value::Null => NodePackageTarget::Blocked,
++            Value::Object(object)
++                if depth < graph_search_types::limits::MAX_NODE_CONDITION_DEPTH
++                    && object.contains_key("default")
++                    && object.keys().all(|key| {
++                        !key.is_empty()
++                            && key.len() <= 4096
++                            && !key.starts_with('.')
++                            && !key.contains(',')
++                            && !key.chars().all(|c| c.is_ascii_digit())
++                            && !key.chars().any(char::is_control)
++                    }) =>
++            {
++                let mut path = None;
++                for value in object.values() {
++                    let (NodePackageTarget::Path(candidate)
++                    | NodePackageTarget::InvariantPath(candidate)) =
++                        invariant(value, depth.saturating_add(1))
++                    else {
++                        return NodePackageTarget::Unsupported;
++                    };
++                    if path.as_ref().is_some_and(|path| path != &candidate) {
++                        return NodePackageTarget::Unsupported;
++                    }
++                    path = Some(candidate);
++                }
++                path.map_or(
++                    NodePackageTarget::Unsupported,
++                    NodePackageTarget::InvariantPath,
++                )
++            }
++            _ => NodePackageTarget::Unsupported,
++        }
++    }
++    invariant(value, 0)
+ }
+ 
+ fn mapping(
+@@ -20,10 +53,7 @@
+             return Ok(BTreeMap::from([(".".into(), target(value))]));
+         };
+         if !object.is_empty() && object.keys().all(|key| !key.starts_with('.')) {
+-            return Ok(BTreeMap::from([(
+-                ".".into(),
+-                NodePackageTarget::Unsupported,
+-            )]));
++            return Ok(BTreeMap::from([(".".into(), target(value))]));
+         }
+     }
+     let object = value.as_object().ok_or("node_map_shape")?;
+@@ -44,10 +74,34 @@
+ 
+ fn project(value: &Value) -> Result<NodePackageMetadata, &'static str> {
+     let mut metadata = NodePackageMetadata::default();
++    for overrides in [
++        value.get("overrides"),
++        value.get("resolutions"),
++        value.get("pnpm").and_then(|pnpm| pnpm.get("overrides")),
++    ]
++    .into_iter()
++    .flatten()
++    {
++        if let Some(object) = overrides
++            .as_object()
++            .filter(|object| object.values().all(Value::is_string))
++        {
++            metadata.workspace_overrides.extend(object.keys().cloned());
++        } else {
++            metadata.workspace_overrides.push("*".into());
++        }
++    }
++    if let Some(manager) = value.get("packageManager") {
++        metadata.package_manager = Some(manager.as_str().ok_or("node_package_manager")?.into());
++    }
+     if let Some(kind) = value.get("type") {
+         metadata.module_type = Some(kind.as_str().ok_or("node_module_type")?.into());
+     }
+-    metadata.main = value.get("main").map(target);
++    metadata.main = value.get("main").map(|value| match value {
++        Value::String(path) => NodePackageTarget::Path(path.clone()),
++        Value::Null => NodePackageTarget::Blocked,
++        _ => NodePackageTarget::Unsupported,
++    });
+     metadata.exports = value
+         .get("exports")
+         .map(|value| mapping(value, true))
+@@ -139,6 +193,34 @@
+         );
+     }
+     #[test]
++    fn conditions_bind_only_when_every_branch_has_the_same_path_and_a_default() {
++        for exports in [
++            serde_json::json!({"types":"./api.ts","default":"./api.ts"}),
++            serde_json::json!({"node":{"import":"./api.ts","default":"./api.ts"},"default":"./api.ts"}),
++        ] {
++            assert_eq!(
++                extract(&serde_json::json!({"exports":exports}))
++                    .exports
++                    .unwrap()["."],
++                NodePackageTarget::InvariantPath("./api.ts".into())
++            );
++        }
++        for exports in [
++            serde_json::json!({"types":"./api.ts"}),
++            serde_json::json!({"types":"./types.ts","default":"./api.ts"}),
++            serde_json::json!({"node":null,"default":"./api.ts"}),
++            serde_json::json!({"0":"./api.ts","default":"./api.ts"}),
++            serde_json::json!({"node":{"import":"./api.ts"},"default":"./api.ts"}),
++        ] {
++            assert_eq!(
++                extract(&serde_json::json!({"exports":exports}))
++                    .exports
++                    .unwrap()["."],
++                NodePackageTarget::Unsupported
++            );
++        }
++    }
++    #[test]
+     fn invalid_or_over_budget_metadata_never_leaves_partial_decisions() {
+         for value in [
+             serde_json::json!({"main":"./valid.js","exports":{".":"./index.js","import":"./other.js"}}),
+--- a/crates/graph-search/src/package_manifests.rs
++++ b/crates/graph-search/src/package_manifests.rs
+@@ -5,7 +5,7 @@
+ pub(crate) fn extract(file: &SourceFile<'_>) -> Option<PackageManifest> {
+     let ecosystem = match file.path.file_name()?.to_str()? {
+         "Cargo.toml" => PackageEcosystem::Cargo,
+-        "package.json" => PackageEcosystem::Node,
++        "package.json" | "pnpm-workspace.yaml" => PackageEcosystem::Node,
+         _ => return None,
+     };
+     let unavailable = |reason: &str| PackageManifest {
+@@ -18,6 +18,13 @@
+     };
+     if file.text.len() > graph_search_types::limits::MAX_PACKAGE_MANIFEST_BYTES {
+         return Some(unavailable("manifest_byte_limit"));
++    }
++    if file
++        .path
++        .file_name()
++        .is_some_and(|name| name == "pnpm-workspace.yaml")
++    {
++        return Some(crate::pnpm_workspace::extract(file.text));
+     }
+     let value = match ecosystem {
+         PackageEcosystem::Cargo => toml::from_str::<toml::Value>(file.text)
+--- a/crates/graph-search/src/pnpm_workspace.rs
++++ b/crates/graph-search/src/pnpm_workspace.rs
+@@ -0,0 +1,237 @@
++//! Deliberately bounded YAML subset for authored pnpm workspace membership.
++//! No aliases, tags, flow collections, multiline scalars, or document merging.
++use graph_search_types::package::{
++    NodePackageMetadata, PackageEcosystem, PackageManifest, PackageRole,
++};
++use std::collections::BTreeSet;
++
++fn scalar(value: &str) -> Option<String> {
++    if value.starts_with('"') {
++        serde_json::from_str::<String>(value).ok()
++    } else if value.starts_with('\'') {
++        let inner = value.strip_prefix('\'')?.strip_suffix('\'')?;
++        let decoded = inner.replace("''", "");
++        (!decoded.contains('\'')).then(|| inner.replace("''", "'"))
++    } else {
++        (!value.is_empty()
++            && !value.starts_with(['!', '&', '*', '@', '`'])
++            && !value.contains(": ")
++            && !["- ", "? ", ": "]
++                .iter()
++                .any(|prefix| value.starts_with(prefix))
++            && !value.contains(['[', ']', '{', '}', '|', '>', '\'', '"', '\\']))
++        .then(|| value.to_owned())
++    }
++}
++
++/// Strip a comment and locate a mapping colon outside complete quoted strings.
++fn line_parts(line: &str) -> Option<(&str, Option<usize>)> {
++    let mut quote = None;
++    let mut escaped = false;
++    let mut colon = None;
++    let mut previous_space = true;
++    for (offset, ch) in line.char_indices() {
++        if escaped {
++            escaped = false;
++            continue;
++        }
++        if quote == Some('"') && ch == '\\' {
++            escaped = true;
++            continue;
++        }
++        if let Some(open) = quote {
++            if ch == open {
++                quote = None;
++            }
++        } else if matches!(ch, '\'' | '"') {
++            quote = Some(ch);
++        } else if ch == '#' && previous_space {
++            return Some((line[..offset].trim_end(), colon));
++        } else if ch == ':' && colon.is_none() {
++            colon = Some(offset);
++        }
++        previous_space = ch.is_whitespace();
++    }
++    (quote.is_none() && !escaped).then_some((line.trim_end(), colon))
++}
++
++fn implicit_scalar(value: &str) -> bool {
++    matches!(
++        value.to_ascii_lowercase().as_str(),
++        "null"
++            | "~"
++            | "true"
++            | "false"
++            | "yes"
++            | "no"
++            | "on"
++            | "off"
++            | ".nan"
++            | ".inf"
++            | "-.inf"
++            | "+.inf"
++    ) || value
++        .trim_start_matches(['+', '-', '.'])
++        .chars()
++        .next()
++        .is_some_and(|ch| ch.is_ascii_digit())
++        || value.parse::<f64>().is_ok()
++        || ["0x", "0o", "0b"]
++            .iter()
++            .any(|prefix| value.starts_with(prefix))
++}
++
++fn header_key<'a>(key: &'a str, keys: &mut BTreeSet<&'a str>) -> bool {
++    !key.is_empty()
++        && key
++            .chars()
++            .all(|ch| ch.is_ascii_alphanumeric() || matches!(ch, '_' | '-'))
++        && keys.insert(key)
++}
++
++fn projection(text: &str) -> Option<NodePackageMetadata> {
++    let mut overrides = Vec::new();
++    let mut keys = BTreeSet::new();
++    let mut active = "";
++    let mut block = false;
++    let mut indent = None;
++    let mut sequence = None;
++    let mut child_keys = BTreeSet::new();
++    let mut result = None;
++    let mut packages_sequence = false;
++    for raw in text.lines() {
++        if raw.contains('\t') {
++            return None;
++        }
++        let (line, colon) = line_parts(raw)?;
++        if line.trim().is_empty() {
++            continue;
++        }
++        let spaces = line
++            .len()
++            .saturating_sub(line.trim_start_matches(' ').len());
++        if spaces == 0 {
++            let split = colon?;
++            let key = &line[..split];
++            if !header_key(key, &mut keys) {
++                return None;
++            }
++            let value = line[split.saturating_add(1)..].trim();
++            active = key;
++            block = value.is_empty();
++            indent = None;
++            sequence = None;
++            child_keys.clear();
++            if key == "packages" {
++                if !block && value != "[]" {
++                    return None;
++                }
++                result = Some(Vec::new());
++                packages_sequence = value == "[]";
++            } else if key == "overrides" {
++                if !block && value != "{}" {
++                    return None;
++                }
++            } else if !block && value != "[]" && value != "{}" {
++                scalar(value)?;
++            }
++        } else {
++            if !block || indent.is_some_and(|expected| expected != spaces) {
++                return None;
++            }
++            indent = Some(spaces);
++            let content = &line[spaces..];
++            let item = content.strip_prefix("- ");
++            let is_sequence = item.is_some();
++            if sequence.is_some_and(|expected| expected != is_sequence) {
++                return None;
++            }
++            sequence = Some(is_sequence);
++            let value = if let Some(item) = item {
++                scalar(item.trim())?
++            } else {
++                let split = colon?.checked_sub(spaces)?;
++                let key = scalar(content[..split].trim())?;
++                if active == "overrides" {
++                    overrides.push(key.clone());
++                }
++                if !child_keys.insert(key) {
++                    return None;
++                }
++                scalar(content[split.saturating_add(1)..].trim())?
++            };
++            if active == "overrides" && is_sequence {
++                return None;
++            }
++            if active == "packages" {
++                if !is_sequence {
++                    return None;
++                }
++                let raw_value = item?.trim();
++                if !raw_value.starts_with(['\'', '"']) && implicit_scalar(raw_value) {
++                    return None;
++                }
++                result.as_mut()?.push(value);
++                packages_sequence = true;
++            }
++        }
++    }
++    packages_sequence.then_some(NodePackageMetadata {
++        workspaces: Some(result?),
++        workspace_overrides: overrides,
++        ..NodePackageMetadata::default()
++    })
++}
++
++pub(crate) fn extract(text: &str) -> PackageManifest {
++    let metadata = projection(text).filter(NodePackageMetadata::valid);
++    PackageManifest {
++        ecosystem: PackageEcosystem::Node,
++        role: if metadata.is_some() {
++            PackageRole::Workspace
++        } else {
++            PackageRole::Unavailable
++        },
++        unavailable_reason: metadata
++            .is_none()
++            .then(|| "pnpm_workspace_syntax_unmodeled".into()),
++        node: metadata,
++        name: None,
++        cargo_targets: None,
++    }
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++    #[test]
++    fn extracts_only_complete_declared_membership_in_the_supported_yaml_subset() {
++        let text = "packages:\n  - packages/*\n  - 'docs' # comment\n  - \"!packages/excluded\"\noverrides:\n  \"@scope/tool\": \"file:./tools/tool.tgz\"\nallowBuilds:\n  esbuild: false\n";
++        let fact = extract(text);
++        assert_eq!(
++            fact.node.unwrap().workspaces.unwrap(),
++            ["packages/*", "docs", "!packages/excluded"]
++        );
++        for text in [
++            "packages:\n",
++            "packages: *alias",
++            "packages:\n  - packages/*\npackages: []",
++            "notes: |\npackages:\n  - packages/*",
++            "packages:\n - packages/*\n  - other/*",
++            "packages:\n  - packages/*\nnotes: 'unclosed",
++            "packages:\n  - packages/*\n---\npackages: []",
++            "packages:\n  name: value",
++            "packages:\n  - true\n",
++            "packages:\n  - 123\n",
++            "packages:\n  - 1_000\n",
++            "packages:\n  - packages/*\nother: invalid: mapping\n",
++            "packages:\n  - packages/*\nother:\n  key: value\n  key: again\n",
++        ] {
++            assert_eq!(extract(text).role, PackageRole::Unavailable, "{text}");
++        }
++        assert_eq!(
++            extract("packages: []").node.unwrap().workspaces,
++            Some(vec![])
++        );
++    }
++}
+--- a/crates/graph-search/tests/node_workspaces.rs
++++ b/crates/graph-search/tests/node_workspaces.rs
+@@ -0,0 +1,271 @@
++//! Authored workspace dependency identity, with incremental/rebuild parity.
++#![allow(clippy::unwrap_used, clippy::panic)]
++use graph_search::{Index, OpenOptions};
++use graph_search_types::EdgeKind;
++use graph_search_types::occurrence::{OccurrenceBy, OccurrenceQuery, ResolutionClass};
++use std::path::Path;
++
++fn write(root: &Path, path: &str, text: &str) {
++    let path = root.join(path);
++    std::fs::create_dir_all(path.parent().unwrap()).unwrap();
++    std::fs::write(path, text).unwrap();
++}
++fn open(root: &Path, store: Option<std::path::PathBuf>) -> Index {
++    Index::open(OpenOptions {
++        root: root.into(),
++        store,
++        ..OpenOptions::default()
++    })
++    .unwrap()
++}
++fn query() -> OccurrenceQuery {
++    OccurrenceQuery {
++        by: OccurrenceBy::Name,
++        target: "send".into(),
++        ..OccurrenceQuery::default()
++    }
++}
++fn fixture(root: &Path) {
++    write(root, "package.json", r#"{"name":"root"}"#);
++    write(
++        root,
++        "pnpm-workspace.yaml",
++        "packages:\n  - packages/*\n  - '!packages/excluded'\n",
++    );
++    write(
++        root,
++        "packages/api/package.json",
++        r#"{"name":"@native/api","exports":{".":{"types":"./src/index.ts","default":"./src/index.ts"},"./sub":"./src/index.ts","./hidden":null}}"#,
++    );
++    write(
++        root,
++        "packages/api/src/index.ts",
++        "export function send(){} function hidden(){}",
++    );
++    write(
++        root,
++        "packages/client/package.json",
++        r#"{"name":"client","dependencies":{"@native/api":"workspace:*"}}"#,
++    );
++    write(
++        root,
++        "packages/client/main.ts",
++        "import {send} from '@native/api'; export function entry(){send();}",
++    );
++}
++fn assert_call(index: &Index, resolved: bool) {
++    let result = index.search().occurrences(&query()).unwrap();
++    let calls: Vec<_> = result
++        .items
++        .iter()
++        .filter(|item| item.occurrence.kind == EdgeKind::Calls)
++        .collect();
++    assert_eq!(calls.len(), 1, "{result:?}");
++    assert_eq!(
++        calls[0].occurrence.resolution == ResolutionClass::ExplicitImport,
++        resolved,
++        "{calls:?}"
++    );
++    if resolved {
++        assert_eq!(
++            calls[0].occurrence.target.as_ref().unwrap().as_str(),
++            "sym:packages/api/src/index.ts#function:send"
++        );
++    }
++}
++
++#[test]
++fn pnpm_workspace_dependencies_follow_declared_identity_and_uniform_exports() {
++    let root = tempfile::tempdir().unwrap();
++    fixture(root.path());
++    // A globally identical name outside membership must not create ambiguity.
++    write(
++        root.path(),
++        "outside/package.json",
++        r#"{"name":"@native/api","exports":"./index.ts"}"#,
++    );
++    write(root.path(), "outside/index.ts", "export function send(){}");
++    write(
++        root.path(),
++        "packages/excluded/package.json",
++        r#"{"name":"@native/api","exports":"./index.ts"}"#,
++    );
++    write(
++        root.path(),
++        "packages/excluded/index.ts",
++        "export function send(){}",
++    );
++    let index = open(root.path(), None);
++    index.reindex().unwrap();
++    assert_call(&index, true);
++}
++
++#[test]
++fn edits_rebind_workspace_dependencies_after_reopen_like_a_clean_build() {
++    let root = tempfile::tempdir().unwrap();
++    fixture(root.path());
++    let index = open(root.path(), None);
++    index.reindex().unwrap();
++    assert_call(&index, true);
++    drop(index);
++    for (path, text, resolved) in [
++        (
++            "packages/client/package.json",
++            r#"{"name":"client","dependencies":{"@native/api":"^1"}}"#,
++            false,
++        ),
++        (
++            "packages/client/package.json",
++            r#"{"name":"client","dependencies":{"@native/api":"workspace:*"}}"#,
++            true,
++        ),
++        (
++            "pnpm-workspace.yaml",
++            "packages:\n  - packages/client\n",
++            false,
++        ),
++        ("pnpm-workspace.yaml", "packages:\n  - packages/*\n", true),
++        (
++            "packages/duplicate/package.json",
++            r#"{"name":"@native/api","exports":"./index.ts"}"#,
++            false,
++        ),
++        (
++            "packages/duplicate/package.json",
++            r#"{"name":"other"}"#,
++            true,
++        ),
++        ("packages/duplicate/package.json", "{broken", false),
++        (
++            "packages/duplicate/package.json",
++            r#"{"name":"other"}"#,
++            true,
++        ),
++        (
++            "packages/api/package.json",
++            r#"{"name":"@native/api","exports":{".":{"types":"./types.ts","default":"./src/index.ts"}}}"#,
++            false,
++        ),
++        (
++            "packages/api/package.json",
++            r#"{"name":"@native/api","exports":"./src/index.ts"}"#,
++            true,
++        ),
++        (
++            "pnpm-workspace.yaml",
++            "packages:\n  - packages/*\noverrides:\n  '@native/api': workspace:*\n",
++            false,
++        ),
++        (
++            "pnpm-workspace.yaml",
++            "packages:\n  - packages/*\noverrides:\n  '@other/api': workspace:*\n",
++            true,
++        ),
++        (
++            "package.json",
++            r#"{"name":"root","pnpm":{"overrides":{"@native/api":"file:./elsewhere"}}}"#,
++            false,
++        ),
++        ("package.json", r#"{"name":"root"}"#, true),
++        ("packages/client/pnpm-workspace.yaml", "packages: []", false),
++    ] {
++        write(root.path(), path, text);
++        let index = open(root.path(), None);
++        index.sync().unwrap();
++        drop(index);
++        let index = open(root.path(), None);
++        assert_call(&index, resolved);
++        let clean_store = tempfile::tempdir().unwrap();
++        let clean = open(root.path(), Some(clean_store.path().join("index")));
++        clean.reindex().unwrap();
++        assert_eq!(
++            index.search().occurrences(&query()).unwrap().items,
++            clean.search().occurrences(&query()).unwrap().items,
++            "{path}"
++        );
++    }
++}
++
++#[test]
++fn package_json_workspace_declarations_and_missing_dependencies_are_distinct() {
++    let root = tempfile::tempdir().unwrap();
++    fixture(root.path());
++    std::fs::remove_file(root.path().join("pnpm-workspace.yaml")).unwrap();
++    write(
++        root.path(),
++        "package.json",
++        r#"{"name":"root","workspaces":["packages/*"]}"#,
++    );
++    let index = open(root.path(), None);
++    index.reindex().unwrap();
++    assert_call(&index, true);
++    write(
++        root.path(),
++        "packages/client/package.json",
++        r#"{"name":"client"}"#,
++    );
++    index.sync().unwrap();
++    assert_call(&index, false);
++}
++
++#[test]
++fn explicit_pnpm_manager_never_uses_package_json_workspaces_as_a_substitute() {
++    let root = tempfile::tempdir().unwrap();
++    fixture(root.path());
++    std::fs::remove_file(root.path().join("pnpm-workspace.yaml")).unwrap();
++    write(
++        root.path(),
++        "package.json",
++        r#"{"name":"root","packageManager":"pnpm@11.24.0","workspaces":["packages/*"]}"#,
++    );
++    let index = open(root.path(), None);
++    index.reindex().unwrap();
++    assert_call(&index, false);
++    write(
++        root.path(),
++        "pnpm-workspace.yaml",
++        "packages:\n  - packages/*\n",
++    );
++    index.sync().unwrap();
++    assert_call(&index, true);
++}
++
++#[test]
++fn child_json_workspaces_cannot_override_an_enclosing_pnpm_workspace() {
++    let root = tempfile::tempdir().unwrap();
++    fixture(root.path());
++    write(
++        root.path(),
++        "packages/client/package.json",
++        r#"{"name":"client","workspaces":["private/*"],"dependencies":{"@native/api":"workspace:*"}}"#,
++    );
++    write(
++        root.path(),
++        "packages/client/private/api/package.json",
++        r#"{"name":"@native/api","exports":"./index.ts"}"#,
++    );
++    write(
++        root.path(),
++        "packages/client/private/api/index.ts",
++        "export function send(){}",
++    );
++    let index = open(root.path(), None);
++    index.reindex().unwrap();
++    assert_call(&index, true);
++    write(
++        root.path(),
++        "packages/client/pnpm-workspace.yaml",
++        "packages:\n  - private/*\n",
++    );
++    index.sync().unwrap();
++    let result = index.search().occurrences(&query()).unwrap();
++    let call = result
++        .items
++        .iter()
++        .find(|item| item.occurrence.kind == EdgeKind::Calls)
++        .unwrap();
++    assert_eq!(
++        call.occurrence.target.as_ref().unwrap().as_str(),
++        "sym:packages/client/private/api/index.ts#function:send"
++    );
++}
+--- a/crates/types/src/limits.rs
++++ b/crates/types/src/limits.rs
+@@ -101,7 +101,7 @@
+ /// Source-owned reference and binding representation.
+ pub const OCCURRENCE_VERSION: u32 = 1;
+ /// Source retrieval serialization revision, independent of parser and chunker policy.
+-pub const SOURCE_INDEX_VERSION: u32 = 12;
++pub const SOURCE_INDEX_VERSION: u32 = 13;
+ /// Maximum authored links retained per original Markdown block.
+ pub const MAX_MARKDOWN_LINKS: usize = 256;
+ /// Maximum distinct authored links retained across one source file.
+@@ -159,6 +159,12 @@
+ /// Maximum UTF-8 bytes in an authored target path.
+ pub const MAX_CARGO_TARGET_PATH_BYTES: usize = 4096;
+ 
++/// Shared budget for native Node workspace ancestry, membership and override decisions.
++pub const MAX_NODE_WORKSPACE_WORK: usize = 1_000_000;
++
++/// Maximum nested conditional objects for proving one invariant package-map target.
++pub const MAX_NODE_CONDITION_DEPTH: usize = 16;
++
+ #[cfg(test)]
+ mod tests {
+     use super::*;
+--- a/crates/types/src/package.rs
++++ b/crates/types/src/package.rs
+@@ -17,7 +17,7 @@
+ pub enum PackageRole {
+     /// An authored package boundary, possibly unnamed for package.json.
+     Package,
+-    /// A Cargo workspace without its own package.
++    /// A workspace declaration without its own package (Cargo or pnpm).
+     Workspace,
+     /// Invalid, unsupported or over-budget metadata; blocks outer inheritance.
+     Unavailable,
+@@ -128,15 +128,24 @@
+ pub enum NodePackageTarget {
+     /// Raw authored path or package specifier; resolution validates its meaning.
+     Path(String),
++    /// Conditional object with a default and the same path under every branch.
++    /// No runtime condition was selected.
++    InvariantPath(String),
+     /// Explicit null target, which blocks this mapping.
+     Blocked,
+-    /// Conditional, array, or otherwise unsupported target; never a fallback path.
++    /// Condition-dependent, array, or otherwise unsupported target; never a fallback path.
+     Unsupported,
+ }
+ 
+ /// Bounded authored Node package metadata. No dependency installation is implied.
+ #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+ pub struct NodePackageMetadata {
++    /// Override selectors that may redirect workspace dependencies; targets are not executed.
++    #[serde(default, skip_serializing_if = "Vec::is_empty")]
++    pub workspace_overrides: Vec<String>,
++    /// Explicit manager declaration, used to avoid treating pnpm package.json workspaces as membership.
++    #[serde(default, skip_serializing_if = "Option::is_none")]
++    pub package_manager: Option<String>,
+     /// Explicit module type, when authored.
+     pub module_type: Option<String>,
+     /// Legacy main entry, kept separately from the authoritative exports map.
+@@ -159,7 +168,9 @@
+     pub fn valid(&self) -> bool {
+         fn target_text(target: &NodePackageTarget) -> Option<&str> {
+             match target {
+-                NodePackageTarget::Path(path) => Some(path.as_str()),
++                NodePackageTarget::Path(path) | NodePackageTarget::InvariantPath(path) => {
++                    Some(path.as_str())
++                }
+                 _ => None,
+             }
+         }
+@@ -168,6 +179,8 @@
+             return !reason.is_empty()
+                 && reason.len() <= 64
+                 && !reason.chars().any(char::is_control)
++                && self.workspace_overrides.is_empty()
++                && self.package_manager.is_none()
+                 && self.module_type.is_none()
+                 && self.main.is_none()
+                 && self.exports.is_none()
+@@ -193,6 +206,13 @@
+                 && records <= 4096
+                 && bytes <= crate::limits::MAX_PACKAGE_MANIFEST_BYTES
+         };
++        if self
++            .package_manager
++            .as_ref()
++            .is_some_and(|value| !admit(value))
++        {
++            return false;
++        }
+         if let Some(main) = self.main.as_ref().and_then(target_text)
+             && !admit(main)
+         {
+@@ -215,7 +235,12 @@
+                 }
+             }
+         }
+-        for pattern in self.workspaces.iter().flatten() {
++        for pattern in self
++            .workspaces
++            .iter()
++            .flatten()
++            .chain(&self.workspace_overrides)
++        {
+             if !admit(pattern) {
+                 return false;
+             }

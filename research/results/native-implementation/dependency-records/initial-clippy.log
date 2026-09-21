@@ -1,0 +1,17 @@
+    Blocking waiting for file lock on build directory
+    Checking graph-search-core v0.1.0 (/Volumes/Delorean/code/graph-search/crates/core)
+    Checking graph-search-langs v0.1.0 (/Volumes/Delorean/code/graph-search/crates/langs)
+    Checking graph-search-engine v0.1.0 (/Volumes/Delorean/code/graph-search/crates/engine)
+error: this function has too many lines (115/100)
+  --> crates/engine/src/generation.rs:63:1
+   |
+63 | fn select(root: &Path, bytes: &[u8]) -> io::Result<Selected> {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#too_many_lines
+   = note: `-D clippy::too-many-lines` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::too_many_lines)]`
+
+error: could not compile `graph-search-engine` (lib) due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `graph-search-engine` (lib test) due to 1 previous error

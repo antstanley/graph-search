@@ -1,0 +1,180 @@
+{
+  "counts": {
+    "edges": {
+      "calls": 4636,
+      "contains": 1331,
+      "exports": 7,
+      "extends": 1,
+      "implements": 26,
+      "imports": 673,
+      "loads_stylesheet": 1,
+      "selects": 7,
+      "type_uses": 594,
+      "uses_class": 5
+    },
+    "files_by_language": {
+      "css": 2,
+      "html": 2,
+      "java_script": 1,
+      "rust": 63,
+      "type_script": 4,
+      "unknown": 121
+    },
+    "nodes": {
+      "class": 2,
+      "const": 37,
+      "css_at_rule": 1,
+      "css_custom_property": 1,
+      "css_rule": 6,
+      "element": 6,
+      "enum": 13,
+      "field": 352,
+      "file": 193,
+      "function": 286,
+      "impl": 84,
+      "interface": 1,
+      "macro": 1,
+      "method": 279,
+      "module": 61,
+      "static": 3,
+      "struct": 96,
+      "trait": 5,
+      "type_alias": 7,
+      "variant": 90
+    },
+    "total_edges": 7281,
+    "total_nodes": 1524
+  },
+  "explore": [
+    {
+      "core_stats": {
+        "candidates": 109,
+        "elapsed_ms": 14,
+        "files_scanned": 193,
+        "matches": 0
+      },
+      "items": [
+        {
+          "name": "LexicalIndex",
+          "path": "crates/core/src/lexical.rs"
+        },
+        {
+          "name": "impl LexicalIndex",
+          "path": "crates/core/src/lexical.rs"
+        },
+        {
+          "name": "lexical",
+          "path": "crates/core/src/lib.rs"
+        },
+        {
+          "name": "self_receiver_uses_lexical_impl_owner",
+          "path": "crates/graph-search/tests/accuracy.rs"
+        },
+        {
+          "name": "lexical_retrieval_matches_identifiers_signatures_and_exact_names",
+          "path": "crates/graph-search/tests/retrieval_incremental.rs"
+        },
+        {
+          "name": "STOPWORDS",
+          "path": "crates/core/src/lexical.rs"
+        },
+        {
+          "name": "Document",
+          "path": "crates/core/src/lexical.rs"
+        },
+        {
+          "name": "length",
+          "path": "crates/core/src/lexical.rs"
+        }
+      ],
+      "query": "LexicalIndex",
+      "resident_ms": 22.654332999999998
+    },
+    {
+      "core_stats": {
+        "candidates": 124,
+        "elapsed_ms": 14,
+        "files_scanned": 193,
+        "matches": 0
+      },
+      "items": [
+        {
+          "name": "an_unchanged_tree_is_a_no_op_and_a_modified_one_replaces",
+          "path": "crates/core/src/reconcile.rs"
+        },
+        {
+          "name": "classify",
+          "path": "crates/core/src/manifest.rs"
+        },
+        {
+          "name": "modified",
+          "path": "crates/types/src/result.rs"
+        },
+        {
+          "name": "modified",
+          "path": "crates/core/src/manifest.rs"
+        },
+        {
+          "name": "a_removed_file_is_forgotten_and_a_renamed_one_is_detected",
+          "path": "crates/core/src/reconcile.rs"
+        },
+        {
+          "name": "file_node_for",
+          "path": "crates/core/src/reconcile.rs"
+        },
+        {
+          "name": "projection",
+          "path": "crates/core/src/reconcile.rs"
+        },
+        {
+          "name": "extract",
+          "path": "crates/core/src/reconcile.rs"
+        }
+      ],
+      "query": "how does reconcile classify a modified file",
+      "resident_ms": 22.834875
+    },
+    {
+      "core_stats": {
+        "candidates": 6,
+        "elapsed_ms": 15,
+        "files_scanned": 193,
+        "matches": 0
+      },
+      "items": [
+        {
+          "name": "SPEC.md",
+          "path": "SPEC.md"
+        },
+        {
+          "name": "evaluation/VERIFICATION.md",
+          "path": "evaluation/VERIFICATION.md"
+        },
+        {
+          "name": "research/02-findings.md",
+          "path": "research/02-findings.md"
+        },
+        {
+          "name": "research/results/blogwright-expanded-baseline.json",
+          "path": "research/results/blogwright-expanded-baseline.json"
+        },
+        {
+          "name": "research/results/blogwright-expanded-fixed.json",
+          "path": "research/results/blogwright-expanded-fixed.json"
+        },
+        {
+          "name": "research/results/lexical-followup.json",
+          "path": "research/results/lexical-followup.json"
+        }
+      ],
+      "query": "cache invalidation",
+      "resident_ms": 23.039082999999998
+    }
+  ],
+  "manifest_bytes": 2647289,
+  "open_empty_ms": 0.28891700000000003,
+  "reindex_ms": 259.632459,
+  "root": "git-archive:bdcbecef41d9863bca23830ed30615f1c219064d",
+  "symbol_resident_ms": 10.336625,
+  "corpus_commit": "bdcbecef41d9863bca23830ed30615f1c219064d"
+}

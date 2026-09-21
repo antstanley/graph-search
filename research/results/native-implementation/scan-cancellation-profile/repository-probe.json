@@ -1,0 +1,282 @@
+{
+  "counts": {
+    "edges": {
+      "calls": 4636,
+      "contains": 1331,
+      "exports": 7,
+      "extends": 1,
+      "implements": 26,
+      "imports": 673,
+      "loads_stylesheet": 1,
+      "selects": 7,
+      "type_uses": 594,
+      "uses_class": 5
+    },
+    "files_by_language": {
+      "css": 2,
+      "html": 2,
+      "java_script": 1,
+      "rust": 63,
+      "type_script": 4,
+      "unknown": 121
+    },
+    "nodes": {
+      "class": 2,
+      "const": 37,
+      "css_at_rule": 1,
+      "css_custom_property": 1,
+      "css_rule": 6,
+      "element": 6,
+      "enum": 13,
+      "field": 352,
+      "file": 193,
+      "function": 286,
+      "impl": 84,
+      "interface": 1,
+      "macro": 1,
+      "method": 279,
+      "module": 61,
+      "static": 3,
+      "struct": 96,
+      "trait": 5,
+      "type_alias": 7,
+      "variant": 90
+    },
+    "total_edges": 7281,
+    "total_nodes": 1524
+  },
+  "explore": [
+    {
+      "core_stats": {
+        "candidates": 577,
+        "context_windows_examined": 88,
+        "elapsed_ms": 2,
+        "graph_edges_examined": 121,
+        "graph_nodes_visited": 15,
+        "lexical_postings_examined": 599,
+        "occurrences_examined": 1,
+        "retrieval_candidates_admitted": 577
+      },
+      "items": [
+        {
+          "name": "LexicalIndex",
+          "path": "crates/core/src/lexical.rs"
+        },
+        {
+          "name": "impl LexicalIndex",
+          "path": "crates/core/src/lexical.rs"
+        },
+        {
+          "name": "lexical",
+          "path": "crates/core/src/lib.rs"
+        },
+        {
+          "name": "lexical_retrieval_matches_identifiers_signatures_and_exact_names",
+          "path": "crates/graph-search/tests/retrieval_incremental.rs"
+        },
+        {
+          "name": "self_receiver_uses_lexical_impl_owner",
+          "path": "crates/graph-search/tests/accuracy.rs"
+        },
+        {
+          "name": "index",
+          "path": "crates/graph-search/src/service.rs"
+        },
+        {
+          "name": "Index",
+          "path": "crates/cli/src/main.rs"
+        },
+        {
+          "name": "index",
+          "path": "crates/graph-search/tests/retrieval_incremental.rs"
+        }
+      ],
+      "query": "LexicalIndex",
+      "resident_ms": 5.610333000000001
+    },
+    {
+      "core_stats": {
+        "candidates": 739,
+        "context_windows_examined": 160,
+        "elapsed_ms": 2,
+        "graph_edges_examined": 624,
+        "graph_nodes_visited": 24,
+        "lexical_postings_examined": 784,
+        "occurrences_examined": 2,
+        "retrieval_candidates_admitted": 739
+      },
+      "items": [
+        {
+          "name": "README.md",
+          "path": "README.md"
+        },
+        {
+          "name": "apply",
+          "path": "crates/core/src/reconcile.rs"
+        },
+        {
+          "name": "crates/core/src/manifest.rs",
+          "path": "crates/core/src/manifest.rs"
+        },
+        {
+          "name": "classify",
+          "path": "crates/core/src/manifest.rs"
+        },
+        {
+          "name": "sync",
+          "path": "crates/core/src/reconcile.rs"
+        },
+        {
+          "name": "a_stale_index_reconciles_before_answering",
+          "path": "crates/graph-search/tests/end_to_end.rs"
+        },
+        {
+          "name": "SPEC.md",
+          "path": "SPEC.md"
+        },
+        {
+          "name": "diff_against",
+          "path": "crates/core/src/manifest.rs"
+        }
+      ],
+      "query": "how does reconcile classify a modified file",
+      "resident_ms": 5.877125
+    },
+    {
+      "core_stats": {
+        "candidates": 30,
+        "context_windows_examined": 105,
+        "elapsed_ms": 4,
+        "graph_edges_examined": 11,
+        "graph_nodes_visited": 9,
+        "lexical_postings_examined": 31,
+        "retrieval_candidates_admitted": 30
+      },
+      "items": [
+        {
+          "name": "research/02-findings.md",
+          "path": "research/02-findings.md"
+        },
+        {
+          "name": "GrafeoSnapshot",
+          "path": "crates/engine/src/store.rs"
+        },
+        {
+          "name": "research/results/blogwright-expanded-baseline.json",
+          "path": "research/results/blogwright-expanded-baseline.json"
+        },
+        {
+          "name": "research/results/blogwright-expanded-fixed.json",
+          "path": "research/results/blogwright-expanded-fixed.json"
+        },
+        {
+          "name": "the_spec_example_parses_and_merges",
+          "path": "crates/graph-search/src/config.rs"
+        },
+        {
+          "name": "research/07-lexical-and-incremental.md",
+          "path": "research/07-lexical-and-incremental.md"
+        },
+        {
+          "name": "research/results/whatsurvey-expanded-baseline.json",
+          "path": "research/results/whatsurvey-expanded-baseline.json"
+        },
+        {
+          "name": "research/results/whatsurvey-expanded-fixed.json",
+          "path": "research/results/whatsurvey-expanded-fixed.json"
+        }
+      ],
+      "query": "cache invalidation",
+      "resident_ms": 7.441375
+    }
+  ],
+  "graph_bytes": 839807,
+  "manifest_bytes": 6711265,
+  "manifest_header_bytes": 45929,
+  "manifest_header_ms": 0.011250000000000001,
+  "manifest_read_ms": 8.689334,
+  "occurrence_bytes": 3617503,
+  "occurrence_queries": [
+    {
+      "examined": 51,
+      "indexed_matches": 157,
+      "name": "Vec",
+      "resident_ms": 3.315625,
+      "returned": 50,
+      "serialized_bytes": 31087,
+      "truncations": [
+        {
+          "cap": 50,
+          "dropped": true,
+          "kind": "results",
+          "message": "occurrence result cap reached; reference sites are partial"
+        }
+      ]
+    },
+    {
+      "examined": 51,
+      "indexed_matches": 146,
+      "name": "Some",
+      "resident_ms": 3.211834,
+      "returned": 50,
+      "serialized_bytes": 30662,
+      "truncations": [
+        {
+          "cap": 50,
+          "dropped": true,
+          "kind": "results",
+          "message": "occurrence result cap reached; reference sites are partial"
+        }
+      ]
+    },
+    {
+      "examined": 51,
+      "indexed_matches": 124,
+      "name": "Option",
+      "resident_ms": 3.318417,
+      "returned": 50,
+      "serialized_bytes": 32419,
+      "truncations": [
+        {
+          "cap": 50,
+          "dropped": true,
+          "kind": "results",
+          "message": "occurrence result cap reached; reference sites are partial"
+        }
+      ]
+    }
+  ],
+  "occurrence_records": 7078,
+  "open_empty_ms": 0.288209,
+  "reindex_ms": 521.9786250000001,
+  "root": "git-archive:bdcbecef41d9863bca23830ed30615f1c219064d",
+  "source_coverage": {
+    "admitted_files": 193,
+    "entries_visited": 234,
+    "enumeration_complete": true,
+    "policy": {
+      "excludes": [
+        ".git",
+        ".graph-search",
+        "target",
+        "node_modules",
+        "dist",
+        "build",
+        "out",
+        ".venv",
+        "venv",
+        "vendor"
+      ],
+      "fingerprint": "caa18b25279ea24c2f8d5c95feb2e2cab911f7e876d32704b2f10ef50aec1c2a",
+      "include_hidden": false,
+      "max_file_bytes": 1048576,
+      "respect_ignore": true
+    },
+    "source_indexed_files": 193,
+    "source_units": 4232,
+    "unsupported_files": 121
+  },
+  "source_units_bytes": 6981507,
+  "symbol_resident_ms": 2.965958,
+  "corpus_commit": "bdcbecef41d9863bca23830ed30615f1c219064d"
+}

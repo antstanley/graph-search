@@ -1,0 +1,28 @@
+    Blocking waiting for file lock on build directory
+   Compiling graph-search-core v0.1.0 (/Volumes/Delorean/code/graph-search/crates/core)
+   Compiling graph-search-engine v0.1.0 (/Volumes/Delorean/code/graph-search/crates/engine)
+   Compiling graph-search-langs v0.1.0 (/Volumes/Delorean/code/graph-search/crates/langs)
+   Compiling graph-search v0.1.0 (/Volumes/Delorean/code/graph-search/crates/graph-search)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 49.70s
+     Running tests/typescript_roots.rs (target/debug/deps/typescript_roots-56d627fb437ef7c9)
+
+running 1 test
+test inherited_membership_mutations_and_file_changes_match_rebuilds_after_reopen ... FAILED
+
+failures:
+
+---- inherited_membership_mutations_and_file_changes_match_rebuilds_after_reopen stdout ----
+
+thread 'inherited_membership_mutations_and_file_changes_match_rebuilds_after_reopen' (83161919) panicked at crates/graph-search/tests/typescript_roots.rs:32:5:
+assertion `left == right` failed
+  left: {"app/src/b.ts", "src/a.ts"}
+ right: {"app/src/b.ts", "dist/c.ts", "src/a.ts"}
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    inherited_membership_mutations_and_file_changes_match_rebuilds_after_reopen
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.34s
+
+error: test failed, to rerun pass `-p graph-search --test typescript_roots`

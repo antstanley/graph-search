@@ -1,0 +1,2060 @@
+[
+  {
+    "files": 64,
+    "functions_per_file": 8,
+    "arm": "none",
+    "repeat": 0,
+    "reader_checks": 0,
+    "final_generations": 2,
+    "samples": [
+      {
+        "stage": "writer_ready",
+        "step": 0,
+        "writer_rss_bytes": 28737536,
+        "readers": []
+      },
+      {
+        "stage": "after_churn_before_manifest",
+        "step": 8,
+        "writer_rss_bytes": 37273600,
+        "readers": []
+      },
+      {
+        "stage": "after_manifest_checks",
+        "step": 8,
+        "writer_rss_bytes": 37273600,
+        "readers": []
+      },
+      {
+        "stage": "all_readers_released",
+        "step": 12,
+        "writer_rss_bytes": 37273600,
+        "readers": []
+      }
+    ]
+  },
+  {
+    "files": 64,
+    "functions_per_file": 8,
+    "arm": "one",
+    "repeat": 0,
+    "reader_checks": 1,
+    "final_generations": 2,
+    "samples": [
+      {
+        "stage": "writer_ready",
+        "step": 0,
+        "writer_rss_bytes": 28590080,
+        "readers": []
+      },
+      {
+        "stage": "after_open_before_manifest",
+        "step": 0,
+        "writer_rss_bytes": 28590080,
+        "readers": [
+          {
+            "generation": "g-18d72eb5e1814060-30e8-0",
+            "rss_bytes": 15073280
+          }
+        ]
+      },
+      {
+        "stage": "after_churn_before_manifest",
+        "step": 8,
+        "writer_rss_bytes": 35225600,
+        "readers": [
+          {
+            "generation": "g-18d72eb5e1814060-30e8-0",
+            "rss_bytes": 8962048
+          }
+        ]
+      },
+      {
+        "stage": "after_manifest_checks",
+        "step": 8,
+        "writer_rss_bytes": 35225600,
+        "readers": [
+          {
+            "generation": "g-18d72eb5e1814060-30e8-0",
+            "rss_bytes": 18841600
+          }
+        ]
+      },
+      {
+        "stage": "after_release_and_publish",
+        "step": 9,
+        "writer_rss_bytes": 35241984,
+        "readers": []
+      },
+      {
+        "stage": "all_readers_released",
+        "step": 12,
+        "writer_rss_bytes": 35241984,
+        "readers": []
+      }
+    ]
+  },
+  {
+    "files": 64,
+    "functions_per_file": 8,
+    "arm": "distinct",
+    "repeat": 0,
+    "reader_checks": 3,
+    "final_generations": 2,
+    "samples": [
+      {
+        "stage": "writer_ready",
+        "step": 0,
+        "writer_rss_bytes": 28672000,
+        "readers": []
+      },
+      {
+        "stage": "after_open_before_manifest",
+        "step": 0,
+        "writer_rss_bytes": 28672000,
+        "readers": [
+          {
+            "generation": "g-18d72eb62cf72730-3119-0",
+            "rss_bytes": 15335424
+          }
+        ]
+      },
+      {
+        "stage": "after_open_before_manifest",
+        "step": 2,
+        "writer_rss_bytes": 35930112,
+        "readers": [
+          {
+            "generation": "g-18d72eb62cf72730-3119-0",
+            "rss_bytes": 15335424
+          },
+          {
+            "generation": "g-18d72eb63f6070c0-3119-2",
+            "rss_bytes": 15056896
+          }
+        ]
+      },
+      {
+        "stage": "after_open_before_manifest",
+        "step": 4,
+        "writer_rss_bytes": 36454400,
+        "readers": [
+          {
+            "generation": "g-18d72eb62cf72730-3119-0",
+            "rss_bytes": 15335424
+          },
+          {
+            "generation": "g-18d72eb63f6070c0-3119-2",
+            "rss_bytes": 15056896
+          },
+          {
+            "generation": "g-18d72eb64e746d00-3119-4",
+            "rss_bytes": 15220736
+          }
+        ]
+      },
+      {
+        "stage": "after_churn_before_manifest",
+        "step": 8,
+        "writer_rss_bytes": 35209216,
+        "readers": [
+          {
+            "generation": "g-18d72eb62cf72730-3119-0",
+            "rss_bytes": 8699904
+          },
+          {
+            "generation": "g-18d72eb63f6070c0-3119-2",
+            "rss_bytes": 9846784
+          },
+          {
+            "generation": "g-18d72eb64e746d00-3119-4",
+            "rss_bytes": 15220736
+          }
+        ]
+      },
+      {
+        "stage": "after_manifest_checks",
+        "step": 8,
+        "writer_rss_bytes": 35209216,
+        "readers": [
+          {
+            "generation": "g-18d72eb62cf72730-3119-0",
+            "rss_bytes": 19431424
+          },
+          {
+            "generation": "g-18d72eb63f6070c0-3119-2",
+            "rss_bytes": 18382848
+          },
+          {
+            "generation": "g-18d72eb64e746d00-3119-4",
+            "rss_bytes": 23101440
+          }
+        ]
+      },
+      {
+        "stage": "after_release_and_publish",
+        "step": 9,
+        "writer_rss_bytes": 35225600,
+        "readers": [
+          {
+            "generation": "g-18d72eb63f6070c0-3119-2",
+            "rss_bytes": 18382848
+          },
+          {
+            "generation": "g-18d72eb64e746d00-3119-4",
+            "rss_bytes": 23101440
+          }
+        ]
+      },
+      {
+        "stage": "after_release_and_publish",
+        "step": 10,
+        "writer_rss_bytes": 35225600,
+        "readers": [
+          {
+            "generation": "g-18d72eb64e746d00-3119-4",
+            "rss_bytes": 23101440
+          }
+        ]
+      },
+      {
+        "stage": "after_release_and_publish",
+        "step": 11,
+        "writer_rss_bytes": 35225600,
+        "readers": []
+      },
+      {
+        "stage": "all_readers_released",
+        "step": 12,
+        "writer_rss_bytes": 35225600,
+        "readers": []
+      }
+    ]
+  },
+  {
+    "files": 64,
+    "functions_per_file": 8,
+    "arm": "shared",
+    "repeat": 0,
+    "reader_checks": 3,
+    "final_generations": 2,
+    "samples": [
+      {
+        "stage": "writer_ready",
+        "step": 0,
+        "writer_rss_bytes": 28475392,
+        "readers": []
+      },
+      {
+        "stage": "after_open_before_manifest",
+        "step": 0,
+        "writer_rss_bytes": 28475392,
+        "readers": [
+          {
+            "generation": "g-18d72eb68be5f6b8-3148-0",
+            "rss_bytes": 15417344
+          },
+          {
+            "generation": "g-18d72eb68be5f6b8-3148-0",
+            "rss_bytes": 15171584
+          },
+          {
+            "generation": "g-18d72eb68be5f6b8-3148-0",
+            "rss_bytes": 15319040
+          }
+        ]
+      },
+      {
+        "stage": "after_churn_before_manifest",
+        "step": 8,
+        "writer_rss_bytes": 36814848,
+        "readers": [
+          {
+            "generation": "g-18d72eb68be5f6b8-3148-0",
+            "rss_bytes": 15417344
+          },
+          {
+            "generation": "g-18d72eb68be5f6b8-3148-0",
+            "rss_bytes": 15171584
+          },
+          {
+            "generation": "g-18d72eb68be5f6b8-3148-0",
+            "rss_bytes": 15319040
+          }
+        ]
+      },
+      {
+        "stage": "after_manifest_checks",
+        "step": 8,
+        "writer_rss_bytes": 36814848,
+        "readers": [
+          {
+            "generation": "g-18d72eb68be5f6b8-3148-0",
+            "rss_bytes": 23314432
+          },
+          {
+            "generation": "g-18d72eb68be5f6b8-3148-0",
+            "rss_bytes": 22790144
+          },
+          {
+            "generation": "g-18d72eb68be5f6b8-3148-0",
+            "rss_bytes": 23085056
+          }
+        ]
+      },
+      {
+        "stage": "after_release_and_publish",
+        "step": 9,
+        "writer_rss_bytes": 36814848,
+        "readers": [
+          {
+            "generation": "g-18d72eb68be5f6b8-3148-0",
+            "rss_bytes": 22790144
+          },
+          {
+            "generation": "g-18d72eb68be5f6b8-3148-0",
+            "rss_bytes": 23085056
+          }
+        ]
+      },
+      {
+        "stage": "after_release_and_publish",
+        "step": 10,
+        "writer_rss_bytes": 36814848,
+        "readers": [
+          {
+            "generation": "g-18d72eb68be5f6b8-3148-0",
+            "rss_bytes": 23085056
+          }
+        ]
+      },
+      {
+        "stage": "after_release_and_publish",
+        "step": 11,
+        "writer_rss_bytes": 36814848,
+        "readers": []
+      },
+      {
+        "stage": "all_readers_released",
+        "step": 12,
+        "writer_rss_bytes": 36814848,
+        "readers": []
+      }
+    ]
+  },
+  {
+    "files": 64,
+    "functions_per_file": 8,
+    "arm": "one",
+    "repeat": 1,
+    "reader_checks": 1,
+    "final_generations": 2,
+    "samples": [
+      {
+        "stage": "writer_ready",
+        "step": 0,
+        "writer_rss_bytes": 28164096,
+        "readers": []
+      },
+      {
+        "stage": "after_open_before_manifest",
+        "step": 0,
+        "writer_rss_bytes": 28164096,
+        "readers": [
+          {
+            "generation": "g-18d72eb6e3d54d10-316f-0",
+            "rss_bytes": 15220736
+          }
+        ]
+      },
+      {
+        "stage": "after_churn_before_manifest",
+        "step": 8,
+        "writer_rss_bytes": 35667968,
+        "readers": [
+          {
+            "generation": "g-18d72eb6e3d54d10-316f-0",
+            "rss_bytes": 15220736
+          }
+        ]
+      },
+      {
+        "stage": "after_manifest_checks",
+        "step": 8,
+        "writer_rss_bytes": 35667968,
+        "readers": [
+          {
+            "generation": "g-18d72eb6e3d54d10-316f-0",
+            "rss_bytes": 23085056
+          }
+        ]
+      },
+      {
+        "stage": "after_release_and_publish",
+        "step": 9,
+        "writer_rss_bytes": 35684352,
+        "readers": []
+      },
+      {
+        "stage": "all_readers_released",
+        "step": 12,
+        "writer_rss_bytes": 35684352,
+        "readers": []
+      }
+    ]
+  },
+  {
+    "files": 64,
+    "functions_per_file": 8,
+    "arm": "distinct",
+    "repeat": 1,
+    "reader_checks": 3,
+    "final_generations": 2,
+    "samples": [
+      {
+        "stage": "writer_ready",
+        "step": 0,
+        "writer_rss_bytes": 28196864,
+        "readers": []
+      },
+      {
+        "stage": "after_open_before_manifest",
+        "step": 0,
+        "writer_rss_bytes": 28196864,
+        "readers": [
+          {
+            "generation": "g-18d72eb72797e3a0-3186-0",
+            "rss_bytes": 15351808
+          }
+        ]
+      },
+      {
+        "stage": "after_open_before_manifest",
+        "step": 2,
+        "writer_rss_bytes": 34930688,
+        "readers": [
+          {
+            "generation": "g-18d72eb72797e3a0-3186-0",
+            "rss_bytes": 15351808
+          },
+          {
+            "generation": "g-18d72eb735bac150-3186-2",
+            "rss_bytes": 15122432
+          }
+        ]
+      },
+      {
+        "stage": "after_open_before_manifest",
+        "step": 4,
+        "writer_rss_bytes": 35422208,
+        "readers": [
+          {
+            "generation": "g-18d72eb72797e3a0-3186-0",
+            "rss_bytes": 15351808
+          },
+          {
+            "generation": "g-18d72eb735bac150-3186-2",
+            "rss_bytes": 15122432
+          },
+          {
+            "generation": "g-18d72eb7429d1850-3186-4",
+            "rss_bytes": 15122432
+          }
+        ]
+      },
+      {
+        "stage": "after_churn_before_manifest",
+        "step": 8,
+        "writer_rss_bytes": 35897344,
+        "readers": [
+          {
+            "generation": "g-18d72eb72797e3a0-3186-0",
+            "rss_bytes": 15351808
+          },
+          {
+            "generation": "g-18d72eb735bac150-3186-2",
+            "rss_bytes": 15122432
+          },
+          {
+            "generation": "g-18d72eb7429d1850-3186-4",
+            "rss_bytes": 15122432
+          }
+        ]
+      },
+      {
+        "stage": "after_manifest_checks",
+        "step": 8,
+        "writer_rss_bytes": 35897344,
+        "readers": [
+          {
+            "generation": "g-18d72eb72797e3a0-3186-0",
+            "rss_bytes": 23085056
+          },
+          {
+            "generation": "g-18d72eb735bac150-3186-2",
+            "rss_bytes": 22790144
+          },
+          {
+            "generation": "g-18d72eb7429d1850-3186-4",
+            "rss_bytes": 22872064
+          }
+        ]
+      },
+      {
+        "stage": "after_release_and_publish",
+        "step": 9,
+        "writer_rss_bytes": 35897344,
+        "readers": [
+          {
+            "generation": "g-18d72eb735bac150-3186-2",
+            "rss_bytes": 22790144
+          },
+          {
+            "generation": "g-18d72eb7429d1850-3186-4",
+            "rss_bytes": 22872064
+          }
+        ]
+      },
+      {
+        "stage": "after_release_and_publish",
+        "step": 10,
+        "writer_rss_bytes": 35897344,
+        "readers": [
+          {
+            "generation": "g-18d72eb7429d1850-3186-4",
+            "rss_bytes": 22872064
+          }
+        ]
+      },
+      {
+        "stage": "after_release_and_publish",
+        "step": 11,
+        "writer_rss_bytes": 35897344,
+        "readers": []
+      },
+      {
+        "stage": "all_readers_released",
+        "step": 12,
+        "writer_rss_bytes": 35897344,
+        "readers": []
+      }
+    ]
+  },
+  {
+    "files": 64,
+    "functions_per_file": 8,
+    "arm": "shared",
+    "repeat": 1,
+    "reader_checks": 3,
+    "final_generations": 2,
+    "samples": [
+      {
+        "stage": "writer_ready",
+        "step": 0,
+        "writer_rss_bytes": 28950528,
+        "readers": []
+      },
+      {
+        "stage": "after_open_before_manifest",
+        "step": 0,
+        "writer_rss_bytes": 28950528,
+        "readers": [
+          {
+            "generation": "g-18d72eb777a09900-31b3-0",
+            "rss_bytes": 15171584
+          },
+          {
+            "generation": "g-18d72eb777a09900-31b3-0",
+            "rss_bytes": 15122432
+          },
+          {
+            "generation": "g-18d72eb777a09900-31b3-0",
+            "rss_bytes": 15073280
+          }
+        ]
+      },
+      {
+        "stage": "after_churn_before_manifest",
+        "step": 8,
+        "writer_rss_bytes": 37208064,
+        "readers": [
+          {
+            "generation": "g-18d72eb777a09900-31b3-0",
+            "rss_bytes": 15171584
+          },
+          {
+            "generation": "g-18d72eb777a09900-31b3-0",
+            "rss_bytes": 15122432
+          },
+          {
+            "generation": "g-18d72eb777a09900-31b3-0",
+            "rss_bytes": 15073280
+          }
+        ]
+      },
+      {
+        "stage": "after_manifest_checks",
+        "step": 8,
+        "writer_rss_bytes": 37208064,
+        "readers": [
+          {
+            "generation": "g-18d72eb777a09900-31b3-0",
+            "rss_bytes": 22806528
+          },
+          {
+            "generation": "g-18d72eb777a09900-31b3-0",
+            "rss_bytes": 22904832
+          },
+          {
+            "generation": "g-18d72eb777a09900-31b3-0",
+            "rss_bytes": 22806528
+          }
+        ]
+      },
+      {
+        "stage": "after_release_and_publish",
+        "step": 9,
+        "writer_rss_bytes": 37208064,
+        "readers": [
+          {
+            "generation": "g-18d72eb777a09900-31b3-0",
+            "rss_bytes": 22904832
+          },
+          {
+            "generation": "g-18d72eb777a09900-31b3-0",
+            "rss_bytes": 22806528
+          }
+        ]
+      },
+      {
+        "stage": "after_release_and_publish",
+        "step": 10,
+        "writer_rss_bytes": 37208064,
+        "readers": [
+          {
+            "generation": "g-18d72eb777a09900-31b3-0",
+            "rss_bytes": 22806528
+          }
+        ]
+      },
+      {
+        "stage": "after_release_and_publish",
+        "step": 11,
+        "writer_rss_bytes": 37208064,
+        "readers": []
+      },
+      {
+        "stage": "all_readers_released",
+        "step": 12,
+        "writer_rss_bytes": 37208064,
+        "readers": []
+      }
+    ]
+  },
+  {
+    "files": 64,
+    "functions_per_file": 8,
+    "arm": "none",
+    "repeat": 1,
+    "reader_checks": 0,
+    "final_generations": 2,
+    "samples": [
+      {
+        "stage": "writer_ready",
+        "step": 0,
+        "writer_rss_bytes": 28770304,
+        "readers": []
+      },
+      {
+        "stage": "after_churn_before_manifest",
+        "step": 8,
+        "writer_rss_bytes": 36585472,
+        "readers": []
+      },
+      {
+        "stage": "after_manifest_checks",
+        "step": 8,
+        "writer_rss_bytes": 36585472,
+        "readers": []
+      },
+      {
+        "stage": "all_readers_released",
+        "step": 12,
+        "writer_rss_bytes": 36585472,
+        "readers": []
+      }
+    ]
+  },
+  {
+    "files": 64,
+    "functions_per_file": 8,
+    "arm": "distinct",
+    "repeat": 2,
+    "reader_checks": 3,
+    "final_generations": 2,
+    "samples": [
+      {
+        "stage": "writer_ready",
+        "step": 0,
+        "writer_rss_bytes": 28360704,
+        "readers": []
+      },
+      {
+        "stage": "after_open_before_manifest",
+        "step": 0,
+        "writer_rss_bytes": 28360704,
+        "readers": [
+          {
+            "generation": "g-18d72eb7f8685b18-31fc-0",
+            "rss_bytes": 15073280
+          }
+        ]
+      },
+      {
+        "stage": "after_open_before_manifest",
+        "step": 2,
+        "writer_rss_bytes": 35766272,
+        "readers": [
+          {
+            "generation": "g-18d72eb7f8685b18-31fc-0",
+            "rss_bytes": 15073280
+          },
+          {
+            "generation": "g-18d72eb805cc9be8-31fc-2",
+            "rss_bytes": 15073280
+          }
+        ]
+      },
+      {
+        "stage": "after_open_before_manifest",
+        "step": 4,
+        "writer_rss_bytes": 36290560,
+        "readers": [
+          {
+            "generation": "g-18d72eb7f8685b18-31fc-0",
+            "rss_bytes": 15073280
+          },
+          {
+            "generation": "g-18d72eb805cc9be8-31fc-2",
+            "rss_bytes": 15073280
+          },
+          {
+            "generation": "g-18d72eb8123d60b0-31fc-4",
+            "rss_bytes": 15237120
+          }
+        ]
+      },
+      {
+        "stage": "after_churn_before_manifest",
+        "step": 8,
+        "writer_rss_bytes": 36716544,
+        "readers": [
+          {
+            "generation": "g-18d72eb7f8685b18-31fc-0",
+            "rss_bytes": 15073280
+          },
+          {
+            "generation": "g-18d72eb805cc9be8-31fc-2",
+            "rss_bytes": 15073280
+          },
+          {
+            "generation": "g-18d72eb8123d60b0-31fc-4",
+            "rss_bytes": 15237120
+          }
+        ]
+      },
+      {
+        "stage": "after_manifest_checks",
+        "step": 8,
+        "writer_rss_bytes": 36716544,
+        "readers": [
+          {
+            "generation": "g-18d72eb7f8685b18-31fc-0",
+            "rss_bytes": 22822912
+          },
+          {
+            "generation": "g-18d72eb805cc9be8-31fc-2",
+            "rss_bytes": 23003136
+          },
+          {
+            "generation": "g-18d72eb8123d60b0-31fc-4",
+            "rss_bytes": 23101440
+          }
+        ]
+      },
+      {
+        "stage": "after_release_and_publish",
+        "step": 9,
+        "writer_rss_bytes": 36732928,
+        "readers": [
+          {
+            "generation": "g-18d72eb805cc9be8-31fc-2",
+            "rss_bytes": 23003136
+          },
+          {
+            "generation": "g-18d72eb8123d60b0-31fc-4",
+            "rss_bytes": 23101440
+          }
+        ]
+      },
+      {
+        "stage": "after_release_and_publish",
+        "step": 10,
+        "writer_rss_bytes": 36732928,
+        "readers": [
+          {
+            "generation": "g-18d72eb8123d60b0-31fc-4",
+            "rss_bytes": 23101440
+          }
+        ]
+      },
+      {
+        "stage": "after_release_and_publish",
+        "step": 11,
+        "writer_rss_bytes": 36732928,
+        "readers": []
+      },
+      {
+        "stage": "all_readers_released",
+        "step": 12,
+        "writer_rss_bytes": 36732928,
+        "readers": []
+      }
+    ]
+  },
+  {
+    "files": 64,
+    "functions_per_file": 8,
+    "arm": "shared",
+    "repeat": 2,
+    "reader_checks": 3,
+    "final_generations": 2,
+    "samples": [
+      {
+        "stage": "writer_ready",
+        "step": 0,
+        "writer_rss_bytes": 28884992,
+        "readers": []
+      },
+      {
+        "stage": "after_open_before_manifest",
+        "step": 0,
+        "writer_rss_bytes": 28884992,
+        "readers": [
+          {
+            "generation": "g-18d72eb8477be6c0-3228-0",
+            "rss_bytes": 15122432
+          },
+          {
+            "generation": "g-18d72eb8477be6c0-3228-0",
+            "rss_bytes": 15138816
+          },
+          {
+            "generation": "g-18d72eb8477be6c0-3228-0",
+            "rss_bytes": 15089664
+          }
+        ]
+      },
+      {
+        "stage": "after_churn_before_manifest",
+        "step": 8,
+        "writer_rss_bytes": 37257216,
+        "readers": [
+          {
+            "generation": "g-18d72eb8477be6c0-3228-0",
+            "rss_bytes": 15122432
+          },
+          {
+            "generation": "g-18d72eb8477be6c0-3228-0",
+            "rss_bytes": 15138816
+          },
+          {
+            "generation": "g-18d72eb8477be6c0-3228-0",
+            "rss_bytes": 15089664
+          }
+        ]
+      },
+      {
+        "stage": "after_manifest_checks",
+        "step": 8,
+        "writer_rss_bytes": 37257216,
+        "readers": [
+          {
+            "generation": "g-18d72eb8477be6c0-3228-0",
+            "rss_bytes": 23019520
+          },
+          {
+            "generation": "g-18d72eb8477be6c0-3228-0",
+            "rss_bytes": 22921216
+          },
+          {
+            "generation": "g-18d72eb8477be6c0-3228-0",
+            "rss_bytes": 22855680
+          }
+        ]
+      },
+      {
+        "stage": "after_release_and_publish",
+        "step": 9,
+        "writer_rss_bytes": 37257216,
+        "readers": [
+          {
+            "generation": "g-18d72eb8477be6c0-3228-0",
+            "rss_bytes": 22921216
+          },
+          {
+            "generation": "g-18d72eb8477be6c0-3228-0",
+            "rss_bytes": 22855680
+          }
+        ]
+      },
+      {
+        "stage": "after_release_and_publish",
+        "step": 10,
+        "writer_rss_bytes": 37257216,
+        "readers": [
+          {
+            "generation": "g-18d72eb8477be6c0-3228-0",
+            "rss_bytes": 22855680
+          }
+        ]
+      },
+      {
+        "stage": "after_release_and_publish",
+        "step": 11,
+        "writer_rss_bytes": 37257216,
+        "readers": []
+      },
+      {
+        "stage": "all_readers_released",
+        "step": 12,
+        "writer_rss_bytes": 37257216,
+        "readers": []
+      }
+    ]
+  },
+  {
+    "files": 64,
+    "functions_per_file": 8,
+    "arm": "none",
+    "repeat": 2,
+    "reader_checks": 0,
+    "final_generations": 2,
+    "samples": [
+      {
+        "stage": "writer_ready",
+        "step": 0,
+        "writer_rss_bytes": 28409856,
+        "readers": []
+      },
+      {
+        "stage": "after_churn_before_manifest",
+        "step": 8,
+        "writer_rss_bytes": 36831232,
+        "readers": []
+      },
+      {
+        "stage": "after_manifest_checks",
+        "step": 8,
+        "writer_rss_bytes": 36831232,
+        "readers": []
+      },
+      {
+        "stage": "all_readers_released",
+        "step": 12,
+        "writer_rss_bytes": 36831232,
+        "readers": []
+      }
+    ]
+  },
+  {
+    "files": 64,
+    "functions_per_file": 8,
+    "arm": "one",
+    "repeat": 2,
+    "reader_checks": 1,
+    "final_generations": 2,
+    "samples": [
+      {
+        "stage": "writer_ready",
+        "step": 0,
+        "writer_rss_bytes": 28917760,
+        "readers": []
+      },
+      {
+        "stage": "after_open_before_manifest",
+        "step": 0,
+        "writer_rss_bytes": 28917760,
+        "readers": [
+          {
+            "generation": "g-18d72eb8c9a23af0-325d-0",
+            "rss_bytes": 15089664
+          }
+        ]
+      },
+      {
+        "stage": "after_churn_before_manifest",
+        "step": 8,
+        "writer_rss_bytes": 37306368,
+        "readers": [
+          {
+            "generation": "g-18d72eb8c9a23af0-325d-0",
+            "rss_bytes": 15089664
+          }
+        ]
+      },
+      {
+        "stage": "after_manifest_checks",
+        "step": 8,
+        "writer_rss_bytes": 37306368,
+        "readers": [
+          {
+            "generation": "g-18d72eb8c9a23af0-325d-0",
+            "rss_bytes": 22790144
+          }
+        ]
+      },
+      {
+        "stage": "after_release_and_publish",
+        "step": 9,
+        "writer_rss_bytes": 37306368,
+        "readers": []
+      },
+      {
+        "stage": "all_readers_released",
+        "step": 12,
+        "writer_rss_bytes": 37306368,
+        "readers": []
+      }
+    ]
+  },
+  {
+    "files": 256,
+    "functions_per_file": 16,
+    "arm": "none",
+    "repeat": 0,
+    "reader_checks": 0,
+    "final_generations": 2,
+    "samples": [
+      {
+        "stage": "writer_ready",
+        "step": 0,
+        "writer_rss_bytes": 173031424,
+        "readers": []
+      },
+      {
+        "stage": "after_churn_before_manifest",
+        "step": 8,
+        "writer_rss_bytes": 204423168,
+        "readers": []
+      },
+      {
+        "stage": "after_manifest_checks",
+        "step": 8,
+        "writer_rss_bytes": 204423168,
+        "readers": []
+      },
+      {
+        "stage": "all_readers_released",
+        "step": 12,
+        "writer_rss_bytes": 204423168,
+        "readers": []
+      }
+    ]
+  },
+  {
+    "files": 256,
+    "functions_per_file": 16,
+    "arm": "one",
+    "repeat": 0,
+    "reader_checks": 1,
+    "final_generations": 2,
+    "samples": [
+      {
+        "stage": "writer_ready",
+        "step": 0,
+        "writer_rss_bytes": 174342144,
+        "readers": []
+      },
+      {
+        "stage": "after_open_before_manifest",
+        "step": 0,
+        "writer_rss_bytes": 123584512,
+        "readers": [
+          {
+            "generation": "g-18d72eba1d657a70-32c8-0",
+            "rss_bytes": 74612736
+          }
+        ]
+      },
+      {
+        "stage": "after_churn_before_manifest",
+        "step": 8,
+        "writer_rss_bytes": 199770112,
+        "readers": [
+          {
+            "generation": "g-18d72eba1d657a70-32c8-0",
+            "rss_bytes": 54837248
+          }
+        ]
+      },
+      {
+        "stage": "after_manifest_checks",
+        "step": 8,
+        "writer_rss_bytes": 199770112,
+        "readers": [
+          {
+            "generation": "g-18d72eba1d657a70-32c8-0",
+            "rss_bytes": 117833728
+          }
+        ]
+      },
+      {
+        "stage": "after_release_and_publish",
+        "step": 9,
+        "writer_rss_bytes": 200769536,
+        "readers": []
+      },
+      {
+        "stage": "all_readers_released",
+        "step": 12,
+        "writer_rss_bytes": 200769536,
+        "readers": []
+      }
+    ]
+  },
+  {
+    "files": 256,
+    "functions_per_file": 16,
+    "arm": "distinct",
+    "repeat": 0,
+    "reader_checks": 3,
+    "final_generations": 2,
+    "samples": [
+      {
+        "stage": "writer_ready",
+        "step": 0,
+        "writer_rss_bytes": 172507136,
+        "readers": []
+      },
+      {
+        "stage": "after_open_before_manifest",
+        "step": 0,
+        "writer_rss_bytes": 172507136,
+        "readers": [
+          {
+            "generation": "g-18d72ebb5b1e25f0-3315-0",
+            "rss_bytes": 73564160
+          }
+        ]
+      },
+      {
+        "stage": "after_open_before_manifest",
+        "step": 2,
+        "writer_rss_bytes": 215056384,
+        "readers": [
+          {
+            "generation": "g-18d72ebb5b1e25f0-3315-0",
+            "rss_bytes": 73564160
+          },
+          {
+            "generation": "g-18d72ebba33d8308-3315-2",
+            "rss_bytes": 74825728
+          }
+        ]
+      },
+      {
+        "stage": "after_open_before_manifest",
+        "step": 4,
+        "writer_rss_bytes": 201474048,
+        "readers": [
+          {
+            "generation": "g-18d72ebb5b1e25f0-3315-0",
+            "rss_bytes": 45596672
+          },
+          {
+            "generation": "g-18d72ebba33d8308-3315-2",
+            "rss_bytes": 70303744
+          },
+          {
+            "generation": "g-18d72ebbea475558-3315-4",
+            "rss_bytes": 76038144
+          }
+        ]
+      },
+      {
+        "stage": "after_churn_before_manifest",
+        "step": 8,
+        "writer_rss_bytes": 198787072,
+        "readers": [
+          {
+            "generation": "g-18d72ebb5b1e25f0-3315-0",
+            "rss_bytes": 45596672
+          },
+          {
+            "generation": "g-18d72ebba33d8308-3315-2",
+            "rss_bytes": 46694400
+          },
+          {
+            "generation": "g-18d72ebbea475558-3315-4",
+            "rss_bytes": 76038144
+          }
+        ]
+      },
+      {
+        "stage": "after_manifest_checks",
+        "step": 8,
+        "writer_rss_bytes": 198754304,
+        "readers": [
+          {
+            "generation": "g-18d72ebb5b1e25f0-3315-0",
+            "rss_bytes": 72138752
+          },
+          {
+            "generation": "g-18d72ebba33d8308-3315-2",
+            "rss_bytes": 113786880
+          },
+          {
+            "generation": "g-18d72ebbea475558-3315-4",
+            "rss_bytes": 115212288
+          }
+        ]
+      },
+      {
+        "stage": "after_release_and_publish",
+        "step": 9,
+        "writer_rss_bytes": 198803456,
+        "readers": [
+          {
+            "generation": "g-18d72ebba33d8308-3315-2",
+            "rss_bytes": 113786880
+          },
+          {
+            "generation": "g-18d72ebbea475558-3315-4",
+            "rss_bytes": 115212288
+          }
+        ]
+      },
+      {
+        "stage": "after_release_and_publish",
+        "step": 10,
+        "writer_rss_bytes": 198803456,
+        "readers": [
+          {
+            "generation": "g-18d72ebbea475558-3315-4",
+            "rss_bytes": 115212288
+          }
+        ]
+      },
+      {
+        "stage": "after_release_and_publish",
+        "step": 11,
+        "writer_rss_bytes": 198836224,
+        "readers": []
+      },
+      {
+        "stage": "all_readers_released",
+        "step": 12,
+        "writer_rss_bytes": 198836224,
+        "readers": []
+      }
+    ]
+  },
+  {
+    "files": 256,
+    "functions_per_file": 16,
+    "arm": "shared",
+    "repeat": 0,
+    "reader_checks": 3,
+    "final_generations": 2,
+    "samples": [
+      {
+        "stage": "writer_ready",
+        "step": 0,
+        "writer_rss_bytes": 170721280,
+        "readers": []
+      },
+      {
+        "stage": "after_open_before_manifest",
+        "step": 0,
+        "writer_rss_bytes": 170721280,
+        "readers": [
+          {
+            "generation": "g-18d72ebceb7cf5d0-3374-0",
+            "rss_bytes": 74629120
+          },
+          {
+            "generation": "g-18d72ebceb7cf5d0-3374-0",
+            "rss_bytes": 76103680
+          },
+          {
+            "generation": "g-18d72ebceb7cf5d0-3374-0",
+            "rss_bytes": 73482240
+          }
+        ]
+      },
+      {
+        "stage": "after_churn_before_manifest",
+        "step": 8,
+        "writer_rss_bytes": 207306752,
+        "readers": [
+          {
+            "generation": "g-18d72ebceb7cf5d0-3374-0",
+            "rss_bytes": 20021248
+          },
+          {
+            "generation": "g-18d72ebceb7cf5d0-3374-0",
+            "rss_bytes": 47464448
+          },
+          {
+            "generation": "g-18d72ebceb7cf5d0-3374-0",
+            "rss_bytes": 67829760
+          }
+        ]
+      },
+      {
+        "stage": "after_manifest_checks",
+        "step": 8,
+        "writer_rss_bytes": 177766400,
+        "readers": [
+          {
+            "generation": "g-18d72ebceb7cf5d0-3374-0",
+            "rss_bytes": 75579392
+          },
+          {
+            "generation": "g-18d72ebceb7cf5d0-3374-0",
+            "rss_bytes": 116129792
+          },
+          {
+            "generation": "g-18d72ebceb7cf5d0-3374-0",
+            "rss_bytes": 118194176
+          }
+        ]
+      },
+      {
+        "stage": "after_release_and_publish",
+        "step": 9,
+        "writer_rss_bytes": 198967296,
+        "readers": [
+          {
+            "generation": "g-18d72ebceb7cf5d0-3374-0",
+            "rss_bytes": 116129792
+          },
+          {
+            "generation": "g-18d72ebceb7cf5d0-3374-0",
+            "rss_bytes": 118194176
+          }
+        ]
+      },
+      {
+        "stage": "after_release_and_publish",
+        "step": 10,
+        "writer_rss_bytes": 203063296,
+        "readers": [
+          {
+            "generation": "g-18d72ebceb7cf5d0-3374-0",
+            "rss_bytes": 118194176
+          }
+        ]
+      },
+      {
+        "stage": "after_release_and_publish",
+        "step": 11,
+        "writer_rss_bytes": 203227136,
+        "readers": []
+      },
+      {
+        "stage": "all_readers_released",
+        "step": 12,
+        "writer_rss_bytes": 203227136,
+        "readers": []
+      }
+    ]
+  },
+  {
+    "files": 256,
+    "functions_per_file": 16,
+    "arm": "one",
+    "repeat": 1,
+    "reader_checks": 1,
+    "final_generations": 2,
+    "samples": [
+      {
+        "stage": "writer_ready",
+        "step": 0,
+        "writer_rss_bytes": 172130304,
+        "readers": []
+      },
+      {
+        "stage": "after_open_before_manifest",
+        "step": 0,
+        "writer_rss_bytes": 172130304,
+        "readers": [
+          {
+            "generation": "g-18d72ebe6bbb81c0-33b8-0",
+            "rss_bytes": 73580544
+          }
+        ]
+      },
+      {
+        "stage": "after_churn_before_manifest",
+        "step": 8,
+        "writer_rss_bytes": 197246976,
+        "readers": [
+          {
+            "generation": "g-18d72ebe6bbb81c0-33b8-0",
+            "rss_bytes": 30277632
+          }
+        ]
+      },
+      {
+        "stage": "after_manifest_checks",
+        "step": 8,
+        "writer_rss_bytes": 197246976,
+        "readers": [
+          {
+            "generation": "g-18d72ebe6bbb81c0-33b8-0",
+            "rss_bytes": 106643456
+          }
+        ]
+      },
+      {
+        "stage": "after_release_and_publish",
+        "step": 9,
+        "writer_rss_bytes": 196853760,
+        "readers": []
+      },
+      {
+        "stage": "all_readers_released",
+        "step": 12,
+        "writer_rss_bytes": 196853760,
+        "readers": []
+      }
+    ]
+  },
+  {
+    "files": 256,
+    "functions_per_file": 16,
+    "arm": "distinct",
+    "repeat": 1,
+    "reader_checks": 3,
+    "final_generations": 2,
+    "samples": [
+      {
+        "stage": "writer_ready",
+        "step": 0,
+        "writer_rss_bytes": 173932544,
+        "readers": []
+      },
+      {
+        "stage": "after_open_before_manifest",
+        "step": 0,
+        "writer_rss_bytes": 126926848,
+        "readers": [
+          {
+            "generation": "g-18d72ebf96266f50-3408-0",
+            "rss_bytes": 74694656
+          }
+        ]
+      },
+      {
+        "stage": "after_open_before_manifest",
+        "step": 2,
+        "writer_rss_bytes": 195248128,
+        "readers": [
+          {
+            "generation": "g-18d72ebf96266f50-3408-0",
+            "rss_bytes": 48447488
+          },
+          {
+            "generation": "g-18d72ebfdda32f80-3408-2",
+            "rss_bytes": 74776576
+          }
+        ]
+      },
+      {
+        "stage": "after_open_before_manifest",
+        "step": 4,
+        "writer_rss_bytes": 196952064,
+        "readers": [
+          {
+            "generation": "g-18d72ebf96266f50-3408-0",
+            "rss_bytes": 45842432
+          },
+          {
+            "generation": "g-18d72ebfdda32f80-3408-2",
+            "rss_bytes": 67108864
+          },
+          {
+            "generation": "g-18d72ec01e592e08-3408-4",
+            "rss_bytes": 76152832
+          }
+        ]
+      },
+      {
+        "stage": "after_churn_before_manifest",
+        "step": 8,
+        "writer_rss_bytes": 200114176,
+        "readers": [
+          {
+            "generation": "g-18d72ebf96266f50-3408-0",
+            "rss_bytes": 45842432
+          },
+          {
+            "generation": "g-18d72ebfdda32f80-3408-2",
+            "rss_bytes": 57688064
+          },
+          {
+            "generation": "g-18d72ec01e592e08-3408-4",
+            "rss_bytes": 72089600
+          }
+        ]
+      },
+      {
+        "stage": "after_manifest_checks",
+        "step": 8,
+        "writer_rss_bytes": 198131712,
+        "readers": [
+          {
+            "generation": "g-18d72ebf96266f50-3408-0",
+            "rss_bytes": 115195904
+          },
+          {
+            "generation": "g-18d72ebfdda32f80-3408-2",
+            "rss_bytes": 113229824
+          },
+          {
+            "generation": "g-18d72ec01e592e08-3408-4",
+            "rss_bytes": 113917952
+          }
+        ]
+      },
+      {
+        "stage": "after_release_and_publish",
+        "step": 9,
+        "writer_rss_bytes": 202276864,
+        "readers": [
+          {
+            "generation": "g-18d72ebfdda32f80-3408-2",
+            "rss_bytes": 113229824
+          },
+          {
+            "generation": "g-18d72ec01e592e08-3408-4",
+            "rss_bytes": 113917952
+          }
+        ]
+      },
+      {
+        "stage": "after_release_and_publish",
+        "step": 10,
+        "writer_rss_bytes": 202276864,
+        "readers": [
+          {
+            "generation": "g-18d72ec01e592e08-3408-4",
+            "rss_bytes": 113917952
+          }
+        ]
+      },
+      {
+        "stage": "after_release_and_publish",
+        "step": 11,
+        "writer_rss_bytes": 202293248,
+        "readers": []
+      },
+      {
+        "stage": "all_readers_released",
+        "step": 12,
+        "writer_rss_bytes": 202293248,
+        "readers": []
+      }
+    ]
+  },
+  {
+    "files": 256,
+    "functions_per_file": 16,
+    "arm": "shared",
+    "repeat": 1,
+    "reader_checks": 3,
+    "final_generations": 2,
+    "samples": [
+      {
+        "stage": "writer_ready",
+        "step": 0,
+        "writer_rss_bytes": 170770432,
+        "readers": []
+      },
+      {
+        "stage": "after_open_before_manifest",
+        "step": 0,
+        "writer_rss_bytes": 170770432,
+        "readers": [
+          {
+            "generation": "g-18d72ec11afa5240-3460-0",
+            "rss_bytes": 74629120
+          },
+          {
+            "generation": "g-18d72ec11afa5240-3460-0",
+            "rss_bytes": 74678272
+          },
+          {
+            "generation": "g-18d72ec11afa5240-3460-0",
+            "rss_bytes": 73711616
+          }
+        ]
+      },
+      {
+        "stage": "after_churn_before_manifest",
+        "step": 8,
+        "writer_rss_bytes": 214401024,
+        "readers": [
+          {
+            "generation": "g-18d72ec11afa5240-3460-0",
+            "rss_bytes": 26705920
+          },
+          {
+            "generation": "g-18d72ec11afa5240-3460-0",
+            "rss_bytes": 26525696
+          },
+          {
+            "generation": "g-18d72ec11afa5240-3460-0",
+            "rss_bytes": 26640384
+          }
+        ]
+      },
+      {
+        "stage": "after_manifest_checks",
+        "step": 8,
+        "writer_rss_bytes": 198393856,
+        "readers": [
+          {
+            "generation": "g-18d72ec11afa5240-3460-0",
+            "rss_bytes": 61849600
+          },
+          {
+            "generation": "g-18d72ec11afa5240-3460-0",
+            "rss_bytes": 106119168
+          },
+          {
+            "generation": "g-18d72ec11afa5240-3460-0",
+            "rss_bytes": 108249088
+          }
+        ]
+      },
+      {
+        "stage": "after_release_and_publish",
+        "step": 9,
+        "writer_rss_bytes": 199081984,
+        "readers": [
+          {
+            "generation": "g-18d72ec11afa5240-3460-0",
+            "rss_bytes": 106119168
+          },
+          {
+            "generation": "g-18d72ec11afa5240-3460-0",
+            "rss_bytes": 108249088
+          }
+        ]
+      },
+      {
+        "stage": "after_release_and_publish",
+        "step": 10,
+        "writer_rss_bytes": 199081984,
+        "readers": [
+          {
+            "generation": "g-18d72ec11afa5240-3460-0",
+            "rss_bytes": 108249088
+          }
+        ]
+      },
+      {
+        "stage": "after_release_and_publish",
+        "step": 11,
+        "writer_rss_bytes": 199081984,
+        "readers": []
+      },
+      {
+        "stage": "all_readers_released",
+        "step": 12,
+        "writer_rss_bytes": 199081984,
+        "readers": []
+      }
+    ]
+  },
+  {
+    "files": 256,
+    "functions_per_file": 16,
+    "arm": "none",
+    "repeat": 1,
+    "reader_checks": 0,
+    "final_generations": 2,
+    "samples": [
+      {
+        "stage": "writer_ready",
+        "step": 0,
+        "writer_rss_bytes": 170147840,
+        "readers": []
+      },
+      {
+        "stage": "after_churn_before_manifest",
+        "step": 8,
+        "writer_rss_bytes": 214548480,
+        "readers": []
+      },
+      {
+        "stage": "after_manifest_checks",
+        "step": 8,
+        "writer_rss_bytes": 214548480,
+        "readers": []
+      },
+      {
+        "stage": "all_readers_released",
+        "step": 12,
+        "writer_rss_bytes": 214548480,
+        "readers": []
+      }
+    ]
+  },
+  {
+    "files": 256,
+    "functions_per_file": 16,
+    "arm": "distinct",
+    "repeat": 2,
+    "reader_checks": 3,
+    "final_generations": 2,
+    "samples": [
+      {
+        "stage": "writer_ready",
+        "step": 0,
+        "writer_rss_bytes": 167329792,
+        "readers": []
+      },
+      {
+        "stage": "after_open_before_manifest",
+        "step": 0,
+        "writer_rss_bytes": 167329792,
+        "readers": [
+          {
+            "generation": "g-18d72ec38d6d4ee8-34e1-0",
+            "rss_bytes": 74711040
+          }
+        ]
+      },
+      {
+        "stage": "after_open_before_manifest",
+        "step": 2,
+        "writer_rss_bytes": 193380352,
+        "readers": [
+          {
+            "generation": "g-18d72ec38d6d4ee8-34e1-0",
+            "rss_bytes": 40583168
+          },
+          {
+            "generation": "g-18d72ec3d15ff240-34e1-2",
+            "rss_bytes": 74432512
+          }
+        ]
+      },
+      {
+        "stage": "after_open_before_manifest",
+        "step": 4,
+        "writer_rss_bytes": 196165632,
+        "readers": [
+          {
+            "generation": "g-18d72ec38d6d4ee8-34e1-0",
+            "rss_bytes": 36225024
+          },
+          {
+            "generation": "g-18d72ec3d15ff240-34e1-2",
+            "rss_bytes": 48660480
+          },
+          {
+            "generation": "g-18d72ec413154028-34e1-4",
+            "rss_bytes": 73809920
+          }
+        ]
+      },
+      {
+        "stage": "after_churn_before_manifest",
+        "step": 8,
+        "writer_rss_bytes": 197558272,
+        "readers": [
+          {
+            "generation": "g-18d72ec38d6d4ee8-34e1-0",
+            "rss_bytes": 36225024
+          },
+          {
+            "generation": "g-18d72ec3d15ff240-34e1-2",
+            "rss_bytes": 48168960
+          },
+          {
+            "generation": "g-18d72ec413154028-34e1-4",
+            "rss_bytes": 69746688
+          }
+        ]
+      },
+      {
+        "stage": "after_manifest_checks",
+        "step": 8,
+        "writer_rss_bytes": 195641344,
+        "readers": [
+          {
+            "generation": "g-18d72ec38d6d4ee8-34e1-0",
+            "rss_bytes": 78675968
+          },
+          {
+            "generation": "g-18d72ec3d15ff240-34e1-2",
+            "rss_bytes": 113131520
+          },
+          {
+            "generation": "g-18d72ec413154028-34e1-4",
+            "rss_bytes": 113983488
+          }
+        ]
+      },
+      {
+        "stage": "after_release_and_publish",
+        "step": 9,
+        "writer_rss_bytes": 197574656,
+        "readers": [
+          {
+            "generation": "g-18d72ec3d15ff240-34e1-2",
+            "rss_bytes": 113131520
+          },
+          {
+            "generation": "g-18d72ec413154028-34e1-4",
+            "rss_bytes": 113983488
+          }
+        ]
+      },
+      {
+        "stage": "after_release_and_publish",
+        "step": 10,
+        "writer_rss_bytes": 197591040,
+        "readers": [
+          {
+            "generation": "g-18d72ec413154028-34e1-4",
+            "rss_bytes": 113983488
+          }
+        ]
+      },
+      {
+        "stage": "after_release_and_publish",
+        "step": 11,
+        "writer_rss_bytes": 197607424,
+        "readers": []
+      },
+      {
+        "stage": "all_readers_released",
+        "step": 12,
+        "writer_rss_bytes": 197607424,
+        "readers": []
+      }
+    ]
+  },
+  {
+    "files": 256,
+    "functions_per_file": 16,
+    "arm": "shared",
+    "repeat": 2,
+    "reader_checks": 3,
+    "final_generations": 2,
+    "samples": [
+      {
+        "stage": "writer_ready",
+        "step": 0,
+        "writer_rss_bytes": 172326912,
+        "readers": []
+      },
+      {
+        "stage": "after_open_before_manifest",
+        "step": 0,
+        "writer_rss_bytes": 50757632,
+        "readers": [
+          {
+            "generation": "g-18d72ec5157a0de8-3545-0",
+            "rss_bytes": 69107712
+          },
+          {
+            "generation": "g-18d72ec5157a0de8-3545-0",
+            "rss_bytes": 74694656
+          },
+          {
+            "generation": "g-18d72ec5157a0de8-3545-0",
+            "rss_bytes": 73760768
+          }
+        ]
+      },
+      {
+        "stage": "after_churn_before_manifest",
+        "step": 8,
+        "writer_rss_bytes": 199000064,
+        "readers": [
+          {
+            "generation": "g-18d72ec5157a0de8-3545-0",
+            "rss_bytes": 50855936
+          },
+          {
+            "generation": "g-18d72ec5157a0de8-3545-0",
+            "rss_bytes": 48087040
+          },
+          {
+            "generation": "g-18d72ec5157a0de8-3545-0",
+            "rss_bytes": 43286528
+          }
+        ]
+      },
+      {
+        "stage": "after_manifest_checks",
+        "step": 8,
+        "writer_rss_bytes": 192151552,
+        "readers": [
+          {
+            "generation": "g-18d72ec5157a0de8-3545-0",
+            "rss_bytes": 114982912
+          },
+          {
+            "generation": "g-18d72ec5157a0de8-3545-0",
+            "rss_bytes": 115884032
+          },
+          {
+            "generation": "g-18d72ec5157a0de8-3545-0",
+            "rss_bytes": 112132096
+          }
+        ]
+      },
+      {
+        "stage": "after_release_and_publish",
+        "step": 9,
+        "writer_rss_bytes": 198967296,
+        "readers": [
+          {
+            "generation": "g-18d72ec5157a0de8-3545-0",
+            "rss_bytes": 115884032
+          },
+          {
+            "generation": "g-18d72ec5157a0de8-3545-0",
+            "rss_bytes": 112132096
+          }
+        ]
+      },
+      {
+        "stage": "after_release_and_publish",
+        "step": 10,
+        "writer_rss_bytes": 198967296,
+        "readers": [
+          {
+            "generation": "g-18d72ec5157a0de8-3545-0",
+            "rss_bytes": 112132096
+          }
+        ]
+      },
+      {
+        "stage": "after_release_and_publish",
+        "step": 11,
+        "writer_rss_bytes": 199016448,
+        "readers": []
+      },
+      {
+        "stage": "all_readers_released",
+        "step": 12,
+        "writer_rss_bytes": 199016448,
+        "readers": []
+      }
+    ]
+  },
+  {
+    "files": 256,
+    "functions_per_file": 16,
+    "arm": "none",
+    "repeat": 2,
+    "reader_checks": 0,
+    "final_generations": 2,
+    "samples": [
+      {
+        "stage": "writer_ready",
+        "step": 0,
+        "writer_rss_bytes": 168525824,
+        "readers": []
+      },
+      {
+        "stage": "after_churn_before_manifest",
+        "step": 8,
+        "writer_rss_bytes": 214450176,
+        "readers": []
+      },
+      {
+        "stage": "after_manifest_checks",
+        "step": 8,
+        "writer_rss_bytes": 214450176,
+        "readers": []
+      },
+      {
+        "stage": "all_readers_released",
+        "step": 12,
+        "writer_rss_bytes": 214450176,
+        "readers": []
+      }
+    ]
+  },
+  {
+    "files": 256,
+    "functions_per_file": 16,
+    "arm": "one",
+    "repeat": 2,
+    "reader_checks": 1,
+    "final_generations": 2,
+    "samples": [
+      {
+        "stage": "writer_ready",
+        "step": 0,
+        "writer_rss_bytes": 172310528,
+        "readers": []
+      },
+      {
+        "stage": "after_open_before_manifest",
+        "step": 0,
+        "writer_rss_bytes": 172310528,
+        "readers": [
+          {
+            "generation": "g-18d72ec792502508-35bd-0",
+            "rss_bytes": 75546624
+          }
+        ]
+      },
+      {
+        "stage": "after_churn_before_manifest",
+        "step": 8,
+        "writer_rss_bytes": 205111296,
+        "readers": [
+          {
+            "generation": "g-18d72ec792502508-35bd-0",
+            "rss_bytes": 34373632
+          }
+        ]
+      },
+      {
+        "stage": "after_manifest_checks",
+        "step": 8,
+        "writer_rss_bytes": 205111296,
+        "readers": [
+          {
+            "generation": "g-18d72ec792502508-35bd-0",
+            "rss_bytes": 109772800
+          }
+        ]
+      },
+      {
+        "stage": "after_release_and_publish",
+        "step": 9,
+        "writer_rss_bytes": 205127680,
+        "readers": []
+      },
+      {
+        "stage": "all_readers_released",
+        "step": 12,
+        "writer_rss_bytes": 205127680,
+        "readers": []
+      }
+    ]
+  }
+]

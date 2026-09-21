@@ -1,0 +1,848 @@
+{
+  "note": "Standalone ordinal vectors, not resident or complete posting layouts. Ratios pool equally weighted lane/process/batch pairs within each size bucket; not workload-weighted query latency. Buckets: <=1, 2-4, 5-16, 17-128, >128. Build compares encoding with copying an existing plain ordinal vector; not extraction, indexing or update cost.",
+  "repositories": {
+    "blogwright": {
+      "codec_to_plain_paired_ratios": {
+        "0": {
+          "build": {
+            "max": 3.263664534845388,
+            "median": 2.3857778692836384,
+            "min": 1.6302901250998136,
+            "pairs": 72
+          },
+          "scan": {
+            "max": 5.93343653250774,
+            "median": 4.197986057319907,
+            "min": 1.9306666666666668,
+            "pairs": 72
+          },
+          "seek": {
+            "max": 2.662166376465085,
+            "median": 2.43862202499094,
+            "min": 1.8382864516129032,
+            "pairs": 72
+          }
+        },
+        "1": {
+          "build": {
+            "max": 2.54959663098077,
+            "median": 2.2564009324009326,
+            "min": 1.4709015328656794,
+            "pairs": 72
+          },
+          "scan": {
+            "max": 3.0986666666666665,
+            "median": 2.3799864773495605,
+            "min": 1.4443809523809523,
+            "pairs": 72
+          },
+          "seek": {
+            "max": 4.910959867974976,
+            "median": 4.263986569165747,
+            "min": 3.3814773980154356,
+            "pairs": 72
+          }
+        },
+        "2": {
+          "build": {
+            "max": 3.5651563189790103,
+            "median": 2.636952896737907,
+            "min": 1.8251242221042983,
+            "pairs": 72
+          },
+          "scan": {
+            "max": 2.067622534065487,
+            "median": 1.6765121882880358,
+            "min": 1.0353939393939393,
+            "pairs": 72
+          },
+          "seek": {
+            "max": 8.30766446290023,
+            "median": 6.268224286636604,
+            "min": 5.198462335430723,
+            "pairs": 72
+          }
+        },
+        "3": {
+          "build": {
+            "max": 7.020125900369227,
+            "median": 5.081667540141256,
+            "min": 2.802135831078125,
+            "pairs": 72
+          },
+          "scan": {
+            "max": 2.373169748802221,
+            "median": 1.8676896982167848,
+            "min": 1.3482328862249187,
+            "pairs": 72
+          },
+          "seek": {
+            "max": 24.315448355452972,
+            "median": 20.46720160069549,
+            "min": 18.202242912358866,
+            "pairs": 72
+          }
+        },
+        "4": {
+          "build": {
+            "max": 8.519337016574585,
+            "median": 7.689019022084315,
+            "min": 5.663681624560142,
+            "pairs": 72
+          },
+          "scan": {
+            "max": 2.103868797308663,
+            "median": 1.7884428562587433,
+            "min": 1.575850743134814,
+            "pairs": 72
+          },
+          "seek": {
+            "max": 26.08670767865178,
+            "median": 23.49634504960237,
+            "min": 18.696946564885497,
+            "pairs": 72
+          }
+        }
+      },
+      "lanes": {
+        "/body/docid_encoding": {
+          "codec_capacity_including_restarts_bytes": [
+            677088,
+            193392,
+            142584,
+            102464,
+            61376
+          ],
+          "codec_inline_bytes_per_list": 56,
+          "codec_payload_including_restarts_bytes": [
+            169136,
+            53126,
+            49022,
+            50590,
+            41696
+          ],
+          "contract": "doc ordinals only; 128-entry restart blocks; no TF/positions, persistent offsets, checksums, allocator overhead or query integration; timings are kernel microbenchmarks",
+          "entry_counts": [
+            9404,
+            6573,
+            15446,
+            32769,
+            34967
+          ],
+          "list_counts": [
+            9404,
+            2686,
+            1783,
+            735,
+            128
+          ],
+          "ordinal_checksum": "39eb23dda1f727d2",
+          "plain_inline_bytes_per_list": 24,
+          "plain_payload_bytes": [
+            75232,
+            52584,
+            123568,
+            262152,
+            279736
+          ]
+        },
+        "/body/identifier_lane/docid_encoding": {
+          "codec_capacity_including_restarts_bytes": [
+            837576,
+            253296,
+            167752,
+            109504,
+            64000
+          ],
+          "codec_inline_bytes_per_list": 56,
+          "codec_payload_including_restarts_bytes": [
+            209255,
+            69519,
+            57551,
+            53835,
+            43147
+          ],
+          "contract": "doc ordinals only; 128-entry restart blocks; no TF/positions, persistent offsets, checksums, allocator overhead or query integration; timings are kernel microbenchmarks",
+          "entry_counts": [
+            11633,
+            8611,
+            18038,
+            34633,
+            36209
+          ],
+          "list_counts": [
+            11633,
+            3518,
+            2101,
+            800,
+            132
+          ],
+          "ordinal_checksum": "237c71207ee82cbf",
+          "plain_inline_bytes_per_list": 24,
+          "plain_payload_bytes": [
+            93064,
+            68888,
+            144304,
+            277064,
+            289672
+          ]
+        },
+        "/metadata/identifiers/docid_encoding": {
+          "codec_capacity_including_restarts_bytes": [
+            41544,
+            40320,
+            33896,
+            23616,
+            19008
+          ],
+          "codec_inline_bytes_per_list": 56,
+          "codec_payload_including_restarts_bytes": [
+            10340,
+            11219,
+            11489,
+            11309,
+            15175
+          ],
+          "contract": "doc ordinals only; 128-entry restart blocks; no TF/positions, persistent offsets, checksums, allocator overhead or query integration; timings are kernel microbenchmarks",
+          "entry_counts": [
+            577,
+            1497,
+            3713,
+            7668,
+            13141
+          ],
+          "list_counts": [
+            577,
+            560,
+            433,
+            189,
+            25
+          ],
+          "ordinal_checksum": "fc11520356dcf727",
+          "plain_inline_bytes_per_list": 24,
+          "plain_payload_bytes": [
+            4616,
+            11976,
+            29704,
+            61344,
+            105128
+          ]
+        },
+        "/metadata/split/docid_encoding": {
+          "codec_capacity_including_restarts_bytes": [
+            20592,
+            22392,
+            19320,
+            19936,
+            17536
+          ],
+          "codec_inline_bytes_per_list": 56,
+          "codec_payload_including_restarts_bytes": [
+            5124,
+            6272,
+            6625,
+            9503,
+            14152
+          ],
+          "contract": "doc ordinals only; 128-entry restart blocks; no TF/positions, persistent offsets, checksums, allocator overhead or query integration; timings are kernel microbenchmarks",
+          "entry_counts": [
+            286,
+            817,
+            2096,
+            6433,
+            12259
+          ],
+          "list_counts": [
+            286,
+            311,
+            246,
+            158,
+            22
+          ],
+          "ordinal_checksum": "aff71edee2506f2a",
+          "plain_inline_bytes_per_list": 24,
+          "plain_payload_bytes": [
+            2288,
+            6536,
+            16768,
+            51464,
+            98072
+          ]
+        }
+      },
+      "totals": {
+        "codec_capacity_bytes": 2867192,
+        "codec_inline_bytes": 2000712,
+        "codec_payload_bytes": 898085,
+        "entries": 256770,
+        "lists": 35727,
+        "modeled_codec_live_bytes": 2898797,
+        "modeled_plain_live_bytes": 2911608,
+        "plain_inline_bytes": 857448,
+        "plain_payload_bytes": 2054160
+      }
+    },
+    "nanus": {
+      "codec_to_plain_paired_ratios": {
+        "0": {
+          "build": {
+            "max": 3.1032379164711403,
+            "median": 2.3919052175541795,
+            "min": 1.3085700821327588,
+            "pairs": 72
+          },
+          "scan": {
+            "max": 4.576,
+            "median": 4.1561083591331265,
+            "min": 0.8684667614084952,
+            "pairs": 72
+          },
+          "seek": {
+            "max": 2.777773333333333,
+            "median": 2.394098152631586,
+            "min": 2.087664739884393,
+            "pairs": 72
+          }
+        },
+        "1": {
+          "build": {
+            "max": 3.1086411252643487,
+            "median": 2.279001974850387,
+            "min": 1.7932692307692308,
+            "pairs": 72
+          },
+          "scan": {
+            "max": 3.111111111111111,
+            "median": 2.2962962962962963,
+            "min": 1.637425658453696,
+            "pairs": 72
+          },
+          "seek": {
+            "max": 5.770863512484961,
+            "median": 4.565006272067868,
+            "min": 3.418932442923015,
+            "pairs": 72
+          }
+        },
+        "2": {
+          "build": {
+            "max": 6.091387827383726,
+            "median": 3.2373539296341676,
+            "min": 2.1482043374452844,
+            "pairs": 72
+          },
+          "scan": {
+            "max": 2.5753868964878137,
+            "median": 1.8510513175559589,
+            "min": 1.3150973172014728,
+            "pairs": 72
+          },
+          "seek": {
+            "max": 9.352103131369473,
+            "median": 7.3246894210075855,
+            "min": 5.10149853886616,
+            "pairs": 72
+          }
+        },
+        "3": {
+          "build": {
+            "max": 8.303478056518419,
+            "median": 6.116362074792953,
+            "min": 3.561020951615334,
+            "pairs": 72
+          },
+          "scan": {
+            "max": 2.6714210992194416,
+            "median": 2.094319442885566,
+            "min": 1.445995936808272,
+            "pairs": 72
+          },
+          "seek": {
+            "max": 26.061618529079755,
+            "median": 21.332239506863196,
+            "min": 18.118403470715837,
+            "pairs": 72
+          }
+        },
+        "4": {
+          "build": {
+            "max": 8.897149938042132,
+            "median": 7.611805611782735,
+            "min": 5.927931091355029,
+            "pairs": 72
+          },
+          "scan": {
+            "max": 2.224971623155505,
+            "median": 1.8327280838201445,
+            "min": 1.7259499889005867,
+            "pairs": 72
+          },
+          "seek": {
+            "max": 27.4551382405337,
+            "median": 24.12352952247744,
+            "min": 20.437042185102708,
+            "pairs": 72
+          }
+        }
+      },
+      "lanes": {
+        "/body/docid_encoding": {
+          "codec_capacity_including_restarts_bytes": [
+            145656,
+            127152,
+            121664,
+            210784,
+            332480
+          ],
+          "codec_inline_bytes_per_list": 56,
+          "codec_payload_including_restarts_bytes": [
+            36239,
+            36511,
+            43693,
+            107834,
+            227899
+          ],
+          "contract": "doc ordinals only; 128-entry restart blocks; no TF/positions, persistent offsets, checksums, allocator overhead or query integration; timings are kernel microbenchmarks",
+          "entry_counts": [
+            2023,
+            4815,
+            12866,
+            65009,
+            189683
+          ],
+          "list_counts": [
+            2023,
+            1766,
+            1451,
+            1364,
+            416
+          ],
+          "ordinal_checksum": "39fe19cf20617438",
+          "plain_inline_bytes_per_list": 24,
+          "plain_payload_bytes": [
+            16184,
+            38520,
+            102928,
+            520072,
+            1517464
+          ]
+        },
+        "/body/identifier_lane/docid_encoding": {
+          "codec_capacity_including_restarts_bytes": [
+            274320,
+            213480,
+            175320,
+            244096,
+            343296
+          ],
+          "codec_inline_bytes_per_list": 56,
+          "codec_payload_including_restarts_bytes": [
+            68394,
+            60531,
+            62083,
+            123494,
+            235706
+          ],
+          "contract": "doc ordinals only; 128-entry restart blocks; no TF/positions, persistent offsets, checksums, allocator overhead or query integration; timings are kernel microbenchmarks",
+          "entry_counts": [
+            3810,
+            7992,
+            18369,
+            74450,
+            196012
+          ],
+          "list_counts": [
+            3810,
+            2965,
+            2125,
+            1618,
+            437
+          ],
+          "ordinal_checksum": "1d2e4e07a56d88ea",
+          "plain_inline_bytes_per_list": 24,
+          "plain_payload_bytes": [
+            30480,
+            63936,
+            146952,
+            595600,
+            1568096
+          ]
+        },
+        "/metadata/identifiers/docid_encoding": {
+          "codec_capacity_including_restarts_bytes": [
+            202752,
+            57240,
+            49616,
+            49280,
+            83200
+          ],
+          "codec_inline_bytes_per_list": 56,
+          "codec_payload_including_restarts_bytes": [
+            50660,
+            16338,
+            17299,
+            23856,
+            60263
+          ],
+          "contract": "doc ordinals only; 128-entry restart blocks; no TF/positions, persistent offsets, checksums, allocator overhead or query integration; timings are kernel microbenchmarks",
+          "entry_counts": [
+            2816,
+            2127,
+            5371,
+            15317,
+            52203
+          ],
+          "list_counts": [
+            2816,
+            795,
+            612,
+            380,
+            79
+          ],
+          "ordinal_checksum": "67b242eef9a1e5c2",
+          "plain_inline_bytes_per_list": 24,
+          "plain_payload_bytes": [
+            22528,
+            17016,
+            42968,
+            122536,
+            417624
+          ]
+        },
+        "/metadata/split/docid_encoding": {
+          "codec_capacity_including_restarts_bytes": [
+            45864,
+            39888,
+            37976,
+            34560,
+            79232
+          ],
+          "codec_inline_bytes_per_list": 56,
+          "codec_payload_including_restarts_bytes": [
+            11463,
+            11454,
+            13332,
+            17013,
+            56626
+          ],
+          "contract": "doc ordinals only; 128-entry restart blocks; no TF/positions, persistent offsets, checksums, allocator overhead or query integration; timings are kernel microbenchmarks",
+          "entry_counts": [
+            637,
+            1509,
+            3988,
+            10761,
+            49075
+          ],
+          "list_counts": [
+            637,
+            554,
+            464,
+            262,
+            71
+          ],
+          "ordinal_checksum": "6e86aef755b23f1d",
+          "plain_inline_bytes_per_list": 24,
+          "plain_payload_bytes": [
+            5096,
+            12072,
+            31904,
+            86088,
+            392600
+          ]
+        }
+      },
+      "totals": {
+        "codec_capacity_bytes": 2867856,
+        "codec_inline_bytes": 1380120,
+        "codec_payload_bytes": 1280688,
+        "entries": 718833,
+        "lists": 24645,
+        "modeled_codec_live_bytes": 2660808,
+        "modeled_plain_live_bytes": 6342144,
+        "plain_inline_bytes": 591480,
+        "plain_payload_bytes": 5750664
+      }
+    },
+    "whatsurvey": {
+      "codec_to_plain_paired_ratios": {
+        "0": {
+          "build": {
+            "max": 3.1339766190387826,
+            "median": 2.456953737205401,
+            "min": 2.0925777777777776,
+            "pairs": 72
+          },
+          "scan": {
+            "max": 4.9336,
+            "median": 4.323533479432825,
+            "min": 0.04199524766506423,
+            "pairs": 72
+          },
+          "seek": {
+            "max": 2.8278411601133087,
+            "median": 2.4245411497598246,
+            "min": 2.2270786066995862,
+            "pairs": 72
+          }
+        },
+        "1": {
+          "build": {
+            "max": 3.0629479441720107,
+            "median": 2.3175535313435356,
+            "min": 1.808208588094736,
+            "pairs": 72
+          },
+          "scan": {
+            "max": 3.1087333718912666,
+            "median": 2.415833872334223,
+            "min": 1.8960833144668328,
+            "pairs": 72
+          },
+          "seek": {
+            "max": 5.287759450336358,
+            "median": 4.60965907641844,
+            "min": 3.8910505836575875,
+            "pairs": 72
+          }
+        },
+        "2": {
+          "build": {
+            "max": 5.006994764397906,
+            "median": 2.7409181262434066,
+            "min": 1.9885629911406977,
+            "pairs": 72
+          },
+          "scan": {
+            "max": 2.6216629213483147,
+            "median": 1.7628034190161772,
+            "min": 0.6065655236925955,
+            "pairs": 72
+          },
+          "seek": {
+            "max": 7.766713429743939,
+            "median": 6.906234346288523,
+            "min": 5.485939582271407,
+            "pairs": 72
+          }
+        },
+        "3": {
+          "build": {
+            "max": 7.924730464968791,
+            "median": 5.8558747861675595,
+            "min": 3.685472352581106,
+            "pairs": 72
+          },
+          "scan": {
+            "max": 2.9802964056555563,
+            "median": 2.0725188284518827,
+            "min": 1.5765734411760612,
+            "pairs": 72
+          },
+          "seek": {
+            "max": 24.560919344621873,
+            "median": 21.399437149855913,
+            "min": 13.77321466324036,
+            "pairs": 72
+          }
+        },
+        "4": {
+          "build": {
+            "max": 11.053630094824426,
+            "median": 8.335953455956904,
+            "min": 6.073443143224361,
+            "pairs": 72
+          },
+          "scan": {
+            "max": 2.3307364635364634,
+            "median": 1.860434151757763,
+            "min": 1.576981985226265,
+            "pairs": 72
+          },
+          "seek": {
+            "max": 28.6995825,
+            "median": 23.938976559303292,
+            "min": 18.618251789027298,
+            "pairs": 72
+          }
+        }
+      },
+      "lanes": {
+        "/body/docid_encoding": {
+          "codec_capacity_including_restarts_bytes": [
+            1016280,
+            344168,
+            247856,
+            338752,
+            889600
+          ],
+          "codec_inline_bytes_per_list": 56,
+          "codec_payload_including_restarts_bytes": [
+            255742,
+            97101,
+            88377,
+            173387,
+            617898
+          ],
+          "contract": "doc ordinals only; 128-entry restart blocks; no TF/positions, persistent offsets, checksums, allocator overhead or query integration; timings are kernel microbenchmarks",
+          "entry_counts": [
+            14115,
+            11909,
+            27191,
+            101223,
+            499971
+          ],
+          "list_counts": [
+            14115,
+            4771,
+            2987,
+            2173,
+            857
+          ],
+          "ordinal_checksum": "98e3bd1a9a657300",
+          "plain_inline_bytes_per_list": 24,
+          "plain_payload_bytes": [
+            112920,
+            95272,
+            217528,
+            809784,
+            3999768
+          ]
+        },
+        "/body/identifier_lane/docid_encoding": {
+          "codec_capacity_including_restarts_bytes": [
+            1327320,
+            766064,
+            459024,
+            467456,
+            940800
+          ],
+          "codec_inline_bytes_per_list": 56,
+          "codec_payload_including_restarts_bytes": [
+            334101,
+            216073,
+            161387,
+            235179,
+            651354
+          ],
+          "contract": "doc ordinals only; 128-entry restart blocks; no TF/positions, persistent offsets, checksums, allocator overhead or query integration; timings are kernel microbenchmarks",
+          "entry_counts": [
+            18435,
+            26943,
+            49316,
+            138247,
+            526849
+          ],
+          "list_counts": [
+            18435,
+            10629,
+            5625,
+            3160,
+            933
+          ],
+          "ordinal_checksum": "6f8f258b8d7f8776",
+          "plain_inline_bytes_per_list": 24,
+          "plain_payload_bytes": [
+            147480,
+            215544,
+            394528,
+            1105976,
+            4214792
+          ]
+        },
+        "/metadata/identifiers/docid_encoding": {
+          "codec_capacity_including_restarts_bytes": [
+            265032,
+            230976,
+            143872,
+            120096,
+            355968
+          ],
+          "codec_inline_bytes_per_list": 56,
+          "codec_payload_including_restarts_bytes": [
+            66402,
+            64784,
+            49575,
+            59279,
+            238112
+          ],
+          "contract": "doc ordinals only; 128-entry restart blocks; no TF/positions, persistent offsets, checksums, allocator overhead or query integration; timings are kernel microbenchmarks",
+          "entry_counts": [
+            3681,
+            8540,
+            15225,
+            37306,
+            203694
+          ],
+          "list_counts": [
+            3681,
+            3208,
+            1801,
+            865,
+            241
+          ],
+          "ordinal_checksum": "05fc6675fb2e48ad",
+          "plain_inline_bytes_per_list": 24,
+          "plain_payload_bytes": [
+            29448,
+            68320,
+            121800,
+            298448,
+            1629552
+          ]
+        },
+        "/metadata/split/docid_encoding": {
+          "codec_capacity_including_restarts_bytes": [
+            55584,
+            59256,
+            59656,
+            88128,
+            339392
+          ],
+          "codec_inline_bytes_per_list": 56,
+          "codec_payload_including_restarts_bytes": [
+            13930,
+            17010,
+            21116,
+            44544,
+            227540
+          ],
+          "contract": "doc ordinals only; 128-entry restart blocks; no TF/positions, persistent offsets, checksums, allocator overhead or query integration; timings are kernel microbenchmarks",
+          "entry_counts": [
+            772,
+            2244,
+            6426,
+            28185,
+            194940
+          ],
+          "list_counts": [
+            772,
+            823,
+            726,
+            603,
+            221
+          ],
+          "ordinal_checksum": "257260150383ce64",
+          "plain_inline_bytes_per_list": 24,
+          "plain_payload_bytes": [
+            6176,
+            17952,
+            51408,
+            225480,
+            1559520
+          ]
+        }
+      },
+      "totals": {
+        "codec_capacity_bytes": 8515280,
+        "codec_inline_bytes": 4291056,
+        "codec_payload_bytes": 3632891,
+        "entries": 1915212,
+        "lists": 76626,
+        "modeled_codec_live_bytes": 7923947,
+        "modeled_plain_live_bytes": 17160720,
+        "plain_inline_bytes": 1839024,
+        "plain_payload_bytes": 15321696
+      }
+    }
+  }
+}

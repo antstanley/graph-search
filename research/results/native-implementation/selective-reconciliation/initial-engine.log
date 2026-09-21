@@ -1,0 +1,86 @@
+   Compiling graph-search-engine v0.1.0 (/Volumes/Delorean/code/graph-search/crates/engine)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 17.93s
+     Running unittests src/lib.rs (target/debug/deps/graph_search_engine-d7dc19d11ff0312c)
+
+running 39 tests
+test generation::tests::stable_errors_are_not_retried_and_pointer_churn_is_bounded ... ok
+test sidecar::tests::dangling_references_round_trip_and_filter ... ok
+test manifest_records::tests::selection_does_not_decode_unrequested_records_in_the_same_pack ... ok
+test sidecar::tests::the_manifest_round_trips_atomically ... ok
+test manifest_records::tests::selected_facts_validate_fingerprints_and_keep_only_weak_identities ... ok
+test manifest_records::tests::descriptor_is_pinned_and_missing_or_corrupt_packs_and_foreign_facts_fail ... ok
+test manifest_records::tests::legacy_maps_migrate_and_removing_cached_facts_does_not_resurrect_them ... ok
+test source_records::tests::corrupt_missing_and_escaping_packs_are_rejected ... ok
+test source_records::tests::changed_records_are_isolated_and_shared_packs_survive_reclamation ... ok
+test manifest_records::tests::header_is_small_and_same_hash_fact_changes_cannot_reuse_stale_records ... ok
+test source_records::tests::pack_rollover_dedup_and_oversized_records_preserve_exact_bytes ... ok
+test source_records::tests::prepared_descriptor_is_pinned_but_pack_bytes_still_require_verification ... ok
+test source_records::tests::selected_ranges_read_only_required_bytes_and_share_duplicate_slices ... ok
+test source_records::tests::ranges_hashes_overlap_and_version_mismatches_are_rejected ... ok
+test source_records::tests::legacy_maps_and_individual_records_upgrade_to_packs ... ok
+test source_records::tests::selected_reads_skip_other_packs_but_verify_every_selected_record ... ok
+test store::publication_tests::crash_child ... ok
+test source_records::tests::reuse_uses_the_opened_index_not_later_disk_index_edits ... ok
+test source_records::tests::unsupported_links_fall_back_to_a_synced_copy ... ok
+test source_records::tests::touched_records_compare_all_fields_even_when_source_hash_is_unchanged ... ok
+test manifest_records::tests::identity_cache_replacement_metadata_and_unique_owner_mutation_are_safe ... ok
+test store::publication_tests::extraction_packs_are_committed_and_verified_before_open ... ok
+test store::publication_tests::format_five_embedded_manifest_migrates_without_losing_raw_facts ... ok
+test store::publication_tests::generation_header_does_not_reparse_raw_facts_and_changes_only_on_publication ... ok
+test store::publication_tests::legacy_graph_and_sidecars_migrate_without_losing_edges ... ok
+test store::publication_tests::failed_pointer_write_preserves_graph_and_manifest ... ok
+test store::publication_tests::corrupted_committed_sidecar_is_an_error_and_old_generations_are_bounded ... ok
+test store::publication_tests::orphan_and_invalid_generations_are_not_silently_opened ... ok
+test generation::tests::selection_retries_a_retired_pointer_and_pins_before_loading_the_store ... ok
+test store::publication_tests::postpublication_error_refuses_reads_until_reopen ... ok
+test store::publication_tests::occurrence_facts_share_failure_atomicity_and_generation_integrity ... ok
+test store::publication_tests::projection_ownership_does_not_parse_hashes_from_paths ... ok
+test store::publication_tests::retained_cold_records_are_compacted_without_decoding_their_values ... ok
+test store::publication_tests::source_facts_share_failure_atomicity_and_generation_integrity ... ok
+test source_records::tests::churn_bounds_dead_bytes_and_small_pack_count ... ok
+test store::publication_tests::retained_readers_keep_lazy_facts_until_their_generation_is_released ... ok
+test store::publication_tests::process_interruption_exposes_only_complete_generations ... ok
+test store::publication_tests::retained_publication_failures_leave_the_old_generation_and_allow_retry ... ok
+test store::publication_tests::every_prepublication_failure_preserves_old_generation_and_retry ... ok
+
+test result: ok. 39 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.42s
+
+     Running tests/extraction_facts.rs (target/debug/deps/extraction_facts-bd27f476b0024ad1)
+
+running 5 tests
+test legacy_embedded_facts_keep_compatible_selected_results ... ok
+test native_adapters_select_facts_and_omit_absent_or_missing_caches ... ok
+test format_six_uses_fallback_and_next_publication_adds_dependencies ... ok
+test dependency_records_are_pinned_and_authenticated_with_the_generation ... ok
+test selected_reads_remain_pinned_across_publication_and_reopen ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.43s
+
+     Running tests/reader_lifetime.rs (target/debug/deps/reader_lifetime-3cf7f33f9818a50d)
+
+running 2 tests
+test reader_child ... ok
+test multiple_process_readers_survive_churn_and_exit_releases_retention ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.50s
+
+     Running tests/retention.rs (target/debug/deps/retention-028cbae886c08cf2)
+
+running 1 test
+test invalid_retention_is_atomic_and_absence_still_removes_the_cache ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.13s
+
+     Running tests/store.rs (target/debug/deps/store-c071285aac05c577)
+
+running 7 tests
+test dangling_references_survive_and_filter_by_file ... ok
+test cyclic_expansion_matches_distance_oracle_in_both_adapters ... ok
+test native_metadata_rebuilds_on_publication_and_reopen ... ok
+test the_conformance_suite_passes_against_memory ... ok
+test the_store_persists_across_open ... ok
+test replacements_preserve_only_untouched_source_owned_edges ... ok
+test the_conformance_suite_passes_against_grafeo ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.91s
+

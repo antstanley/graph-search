@@ -1,0 +1,22 @@
+
+running 7 tests
+..... 5/7
+replacements_preserve_only_untouched_source_owned_edges --- FAILED
+.
+failures:
+
+---- replacements_preserve_only_untouched_source_owned_edges stdout ----
+
+thread 'replacements_preserve_only_untouched_source_owned_edges' (83397614) panicked at crates/engine/tests/store.rs:376:5:
+assertion `left == right` failed
+  left: [Edge { id: EdgeId("(sym:src/a.rs#function:a) -[references]-> (sym:src/a.rs#function:a)"), from: NodeId("sym:src/a.rs#function:a"), kind: References, to: Some(NodeId("sym:src/a.rs#function:a")), to_name: "a", resolved: true, path: Some("src/b.rs"), line: Some(1) }, Edge { id: EdgeId("(sym:src/b.rs#function:b) -[calls]-> (sym:src/a.rs#function:a)"), from: NodeId("sym:src/b.rs#function:b"), kind: Calls, to: Some(NodeId("sym:src/a.rs#function:a")), to_name: "a", resolved: true, path: None, line: None }]
+ right: [Edge { id: EdgeId("(sym:src/a.rs#function:a) -[references]-> (missing)"), from: NodeId("sym:src/a.rs#function:a"), kind: References, to: None, to_name: "missing", resolved: false, path: None, line: None }, Edge { id: EdgeId("(sym:src/a.rs#function:a) -[references]-> (sym:src/a.rs#function:a)"), from: NodeId("sym:src/a.rs#function:a"), kind: References, to: Some(NodeId("sym:src/a.rs#function:a")), to_name: "a", resolved: true, path: Some("src/b.rs"), line: Some(1) }, Edge { id: EdgeId("(sym:src/b.rs#function:b) -[calls]-> (sym:src/a.rs#function:a)"), from: NodeId("sym:src/b.rs#function:b"), kind: Calls, to: Some(NodeId("sym:src/a.rs#function:a")), to_name: "a", resolved: true, path: None, line: None }]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    replacements_preserve_only_untouched_source_owned_edges
+
+test result: FAILED. 6 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.80s
+
+error: test failed, to rerun pass `-p graph-search-engine --test store`

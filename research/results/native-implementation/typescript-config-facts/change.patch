@@ -1,0 +1,779 @@
+--- before/crates/core/src/ports.rs
++++ after/crates/core/src/ports.rs
+@@ -63,6 +63,15 @@
+ /// Answers "which extractor, if any, handles this path". The library wires a
+ /// registry over the language adapters; `core` never names one.
+ pub trait LanguageRegistry {
++    /// Optional raw JSON/JSONC configuration projection over captured source bytes.
++    /// This does not declare project membership or resolve inheritance/aliases.
++    fn typescript_config(
++        &self,
++        _file: &SourceFile<'_>,
++    ) -> Option<graph_search_types::typescript::TypeScriptConfig> {
++        None
++    }
++
+     /// Optional manifest syntax adapter over the same captured source bytes.
+     /// `None` means this registry does not recognize/support the manifest.
+     fn package_manifest(
+--- before/crates/core/src/reconcile.rs
++++ after/crates/core/src/reconcile.rs
+@@ -775,6 +775,10 @@
+                 Some(QuarantineRecord::new(&entry.rel, "not valid UTF-8"));
+             return Ok(pending);
+         };
++        let typescript_config = self.registry.typescript_config(&crate::ports::SourceFile {
++            path: Path::new(&entry.rel),
++            text,
++        });
+         let package_manifest = self.registry.package_manifest(&crate::ports::SourceFile {
+             path: Path::new(&entry.rel),
+             text,
+@@ -812,6 +816,7 @@
+             ));
+             if let Some(source) = pending.projection.source.as_mut() {
+                 source.package_manifest.clone_from(&package_manifest);
++                source.typescript_config.clone_from(&typescript_config);
+             }
+             pending
+         };
+--- before/crates/core/src/units.rs
++++ after/crates/core/src/units.rs
+@@ -598,6 +598,13 @@
+ ) -> crate::Result<()> {
+     if file.content_hash.as_deref() != Some(source.source_hash.as_str())
+         || !crate::packages::valid(file, source, &lookup)
++        || source.typescript_config.as_ref().is_some_and(|config| {
++            source.version < 14
++                || !config.valid()
++                || !std::path::Path::new(&file.path)
++                    .extension()
++                    .is_some_and(|ext| ext == "json" || ext == "jsonc")
++        })
+         || source.version == 0
+         || source.version > graph_search_types::limits::SOURCE_INDEX_VERSION
+         || source.units.iter().any(|unit| {
+--- before/crates/graph-search/src/index.rs
++++ after/crates/graph-search/src/index.rs
+@@ -78,6 +78,13 @@
+ }
+ 
+ impl graph_search_core::ports::LanguageRegistry for RegistryList {
++    fn typescript_config(
++        &self,
++        file: &graph_search_core::ports::SourceFile<'_>,
++    ) -> Option<graph_search_types::typescript::TypeScriptConfig> {
++        crate::typescript_config::extract(file)
++    }
++
+     fn package_manifest(
+         &self,
+         file: &graph_search_core::ports::SourceFile<'_>,
+--- before/crates/graph-search/src/lib.rs
++++ after/crates/graph-search/src/lib.rs
+@@ -21,6 +21,8 @@
+ mod package_manifests;
+ mod pnpm_workspace;
+ pub mod service;
++mod typescript_config;
++mod typescript_order;
+ 
+ pub use error::Error;
+ pub use graph_search_core as core;
+--- before/crates/graph-search/src/typescript_config.rs
++++ after/crates/graph-search/src/typescript_config.rs
+@@ -0,0 +1,186 @@
++//! Native bounded JSONC projection. No compiler or runtime configuration is executed.
++use graph_search_core::ports::SourceFile;
++use graph_search_types::typescript::TypeScriptConfig;
++use serde_json::Value;
++
++/// Blank comments/BOM and trailing commas while leaving quoted bytes untouched.
++/// The existing JSON decoder remains authoritative for JSON grammar and escapes.
++fn jsonc(text: &str) -> Result<(Value, Vec<String>), &'static str> {
++    let mut bytes = text.as_bytes().to_vec();
++    if bytes.starts_with(&[0xef, 0xbb, 0xbf]) {
++        bytes[..3].fill(b' ');
++    }
++    let mut cursor = 0;
++    let mut string = false;
++    while cursor < bytes.len() {
++        match bytes[cursor] {
++            b'\\' if string => cursor = cursor.saturating_add(2),
++            b'"' => {
++                string = !string;
++                cursor = cursor.saturating_add(1);
++            }
++            b'/' if !string && bytes.get(cursor.saturating_add(1)) == Some(&b'/') => {
++                while cursor < bytes.len() && !matches!(bytes[cursor], b'\n' | b'\r') {
++                    bytes[cursor] = b' ';
++                    cursor = cursor.saturating_add(1);
++                }
++            }
++            b'/' if !string && bytes.get(cursor.saturating_add(1)) == Some(&b'*') => {
++                let start = cursor;
++                cursor = cursor.saturating_add(2);
++                while cursor.saturating_add(1) < bytes.len()
++                    && &bytes[cursor..cursor.saturating_add(2)] != b"*/"
++                {
++                    cursor = cursor.saturating_add(1);
++                }
++                if cursor.saturating_add(1) >= bytes.len() {
++                    return Err("unterminated_config_comment");
++                }
++                cursor = cursor.saturating_add(2);
++                for byte in &mut bytes[start..cursor] {
++                    if !matches!(*byte, b'\n' | b'\r') {
++                        *byte = b' ';
++                    }
++                }
++            }
++            _ => cursor = cursor.saturating_add(1),
++        }
++    }
++    cursor = 0;
++    string = false;
++    let mut previous = None;
++    while cursor < bytes.len() {
++        let byte = bytes[cursor];
++        if string && byte == b'\\' {
++            cursor = cursor.saturating_add(2);
++            continue;
++        }
++        if byte == b'"' {
++            string = !string;
++        }
++        if !string && byte == b',' {
++            let mut next = cursor.saturating_add(1);
++            while bytes.get(next).is_some_and(u8::is_ascii_whitespace) {
++                next = next.saturating_add(1);
++            }
++            // Do not turn array holes or missing object values into valid JSON.
++            if matches!(bytes.get(next), Some(b']' | b'}'))
++                && previous.is_some_and(|byte| !matches!(byte, b'[' | b'{' | b',' | b':'))
++            {
++                bytes[cursor] = b' ';
++            }
++        }
++        if !byte.is_ascii_whitespace() {
++            previous = Some(byte);
++        }
++        cursor = cursor.saturating_add(1);
++    }
++    let value: Value = serde_json::from_slice(&bytes).map_err(|_| "invalid_config_syntax")?;
++    let patterns = if value
++        .get("compilerOptions")
++        .and_then(|options| options.get("paths"))
++        .and_then(Value::as_object)
++        .is_some_and(|paths| paths.keys().any(|key| key.contains('*')))
++    {
++        crate::typescript_order::patterns(&bytes).map_err(|_| "invalid_config_order")?
++    } else {
++        Vec::new()
++    };
++    Ok((value, patterns))
++}
++
++pub(crate) fn extract(file: &SourceFile<'_>) -> Option<TypeScriptConfig> {
++    if !file
++        .path
++        .extension()
++        .is_some_and(|ext| ext == "json" || ext == "jsonc")
++    {
++        return None;
++    }
++    let parsed = (|| {
++        if file.text.len() > graph_search_types::limits::MAX_TYPESCRIPT_CONFIG_BYTES {
++            return Err("config_byte_limit");
++        }
++        let (value, path_patterns) = jsonc(file.text)?;
++        let Value::Object(mut object) = value else {
++            return Err("config_root_not_object");
++        };
++        let config = TypeScriptConfig {
++            fields: TypeScriptConfig::FIELDS
++                .into_iter()
++                .filter_map(|key| object.remove(key).map(|value| (key.into(), value)))
++                .collect(),
++            unavailable_reason: None,
++            path_patterns,
++        };
++        if !config.valid() {
++            return Err("config_fact_limit");
++        }
++        Ok(config)
++    })();
++    Some(parsed.unwrap_or_else(|reason: &str| TypeScriptConfig {
++        unavailable_reason: Some(reason.into()),
++        ..TypeScriptConfig::default()
++    }))
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++    #[test]
++    fn comments_bom_trailing_commas_and_quoted_delimiters_preserve_authored_values() {
++        let text = "\u{feff}{/* café */\"extends\":[\"../one.json\",\"../two.json\",],// note\r\n\"compilerOptions\":{\"paths\":{\"$lib/*\":[\"../src/*\",],},\"baseUrl\":\"https://x/*y*/\",},\"files\":[],}";
++        let (value, patterns) = jsonc(text).unwrap();
++        assert_eq!(patterns, ["$lib/*"]);
++        assert_eq!(
++            value,
++            serde_json::json!({"extends":["../one.json","../two.json"],"compilerOptions":{"paths":{"$lib/*":["../src/*"]},"baseUrl":"https://x/*y*/"},"files":[]})
++        );
++        assert_eq!(
++            jsonc(r#"{"x":"escaped\"//literal", "y":"\\",}"#).unwrap().0,
++            serde_json::json!({"x":"escaped\"//literal","y":"\\"})
++        );
++        for text in [
++            "[,]",
++            "[1,,]",
++            "{,}",
++            r#"{"x":,}"#,
++            "/*",
++            "{} /* unfinished",
++            "{x:1}",
++            "{'x':1}",
++            "{\"x\":undefined}",
++            "[1 2]",
++            "{} false",
++        ] {
++            assert!(jsonc(text).is_err(), "{text}");
++        }
++    }
++    #[test]
++    fn projection_keeps_empty_and_invalid_option_values_without_claiming_semantics() {
++        let extract = |text| {
++            super::extract(&SourceFile {
++                path: std::path::Path::new("base.json"),
++                text,
++            })
++            .unwrap()
++        };
++        let fact = extract(
++            r#"{"compilerOptions":{"paths":null,"moduleResolution":7},"files":[],"references":[{"path":"../other","prepend":true}],"unrelated":"discard"}"#,
++        );
++        assert!(fact.valid());
++        assert_eq!(fact.fields.len(), 3);
++        assert!(fact.fields["compilerOptions"]["paths"].is_null());
++        assert!(fact.fields["references"][0]["prepend"].as_bool().unwrap());
++        assert!(extract("{}").fields.is_empty());
++        for text in [
++            "[]",
++            "/*bad",
++            &" ".repeat(graph_search_types::limits::MAX_TYPESCRIPT_CONFIG_BYTES + 1),
++            &format!(r#"{{"files":["{}"]}}"#, "x".repeat(4097)),
++        ] {
++            let fact = extract(text);
++            assert!(fact.valid() && fact.unavailable_reason.is_some() && fact.fields.is_empty());
++        }
++    }
++}
+--- before/crates/graph-search/src/typescript_order.rs
++++ after/crates/graph-search/src/typescript_order.rs
+@@ -0,0 +1,89 @@
++//! Preserve authored wildcard precedence without an ordered-map dependency.
++use serde::Deserialize;
++use serde::de::{IgnoredAny, MapAccess, SeqAccess, Visitor};
++
++// Only object key order is needed. Arrays and scalar values are discarded on
++// this second pass; the ordinary JSON decoder already validated the document.
++#[derive(Default)]
++struct ObjectOrder(Vec<(String, ObjectOrder)>);
++impl ObjectOrder {
++    fn last(&self, key: &str) -> Option<&Self> {
++        self.0
++            .iter()
++            .rev()
++            .find(|(name, _)| name == key)
++            .map(|(_, value)| value)
++    }
++}
++struct OrderVisitor;
++impl<'de> Visitor<'de> for OrderVisitor {
++    type Value = ObjectOrder;
++    fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
++        formatter.write_str("validated JSON")
++    }
++    fn visit_map<M: MapAccess<'de>>(self, mut map: M) -> Result<Self::Value, M::Error> {
++        let mut result = Vec::new();
++        while let Some(key) = map.next_key()? {
++            result.push((key, map.next_value()?));
++        }
++        Ok(ObjectOrder(result))
++    }
++    fn visit_seq<S: SeqAccess<'de>>(self, mut sequence: S) -> Result<Self::Value, S::Error> {
++        while sequence.next_element::<IgnoredAny>()?.is_some() {}
++        Ok(ObjectOrder::default())
++    }
++    fn visit_bool<E>(self, _: bool) -> Result<Self::Value, E> {
++        Ok(ObjectOrder::default())
++    }
++    fn visit_i64<E>(self, _: i64) -> Result<Self::Value, E> {
++        Ok(ObjectOrder::default())
++    }
++    fn visit_u64<E>(self, _: u64) -> Result<Self::Value, E> {
++        Ok(ObjectOrder::default())
++    }
++    fn visit_f64<E>(self, _: f64) -> Result<Self::Value, E> {
++        Ok(ObjectOrder::default())
++    }
++    fn visit_str<E>(self, _: &str) -> Result<Self::Value, E> {
++        Ok(ObjectOrder::default())
++    }
++    fn visit_unit<E>(self) -> Result<Self::Value, E> {
++        Ok(ObjectOrder::default())
++    }
++}
++impl<'de> Deserialize<'de> for ObjectOrder {
++    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
++        deserializer.deserialize_any(OrderVisitor)
++    }
++}
++
++pub(crate) fn patterns(bytes: &[u8]) -> Result<Vec<String>, serde_json::Error> {
++    let root: ObjectOrder = serde_json::from_slice(bytes)?;
++    let mut seen = std::collections::BTreeSet::new();
++    Ok(root
++        .last("compilerOptions")
++        .and_then(|options| options.last("paths"))
++        .into_iter()
++        .flat_map(|paths| &paths.0)
++        // Updating an existing JS object property does not move its first slot.
++        .filter(|(key, _)| key.contains('*') && seen.insert(key.as_str()))
++        .map(|(key, _)| key.clone())
++        .collect())
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++    #[test]
++    fn paths_keep_first_property_order_but_last_duplicate_container_value() {
++        let text = br#"{"compilerOptions":{"paths":{"unused*":[]}},"compilerOptions":{"paths":{"old*":[]},"paths":{"a*Z":["first"],"a*YZ":["second"],"a*Z":["last"],"exact":[]}}}"#;
++        assert_eq!(patterns(text).unwrap(), ["a*Z", "a*YZ"]);
++        assert_eq!(
++            patterns(
++                br#"{"compilerOptions":{"paths":{"a*YZ":[],"a*Z":[]}},"other":[{"ignore*":[]}]}"#
++            )
++            .unwrap(),
++            ["a*YZ", "a*Z"]
++        );
++    }
++}
+--- before/crates/graph-search/tests/typescript_config.rs
++++ after/crates/graph-search/tests/typescript_config.rs
+@@ -0,0 +1,174 @@
++//! Raw native configuration facts retain source identity across publication.
++#![allow(clippy::unwrap_used, clippy::panic)]
++use graph_search::{Index, OpenOptions};
++use graph_search_core::ports::GraphStore;
++use graph_search_engine::{GrafeoStore, StoreOptions};
++use graph_search_types::source::SourceFileUnits;
++use std::{collections::BTreeMap, path::Path};
++
++fn facts(store: &Path) -> BTreeMap<String, SourceFileUnits> {
++    let store = GrafeoStore::open(store, &StoreOptions::default()).unwrap();
++    store.snapshot().unwrap().source_files().clone()
++}
++fn open(root: &Path, store: &Path) -> Index {
++    Index::open(OpenOptions {
++        root: root.into(),
++        store: Some(store.into()),
++        ..Default::default()
++    })
++    .unwrap()
++}
++#[test]
++fn configuration_facts_survive_reopen_and_incremental_changes_match_clean_rebuild() {
++    let root = tempfile::tempdir().unwrap();
++    let store = tempfile::tempdir().unwrap();
++    let config = "\u{feff}{/* note */\"extends\":[\"./base.json\",\"./last.json\",],\"compilerOptions\":{\"paths\":{\"$lib/*\":[\"./src/*\"]}},\"files\":[],}";
++    std::fs::write(root.path().join("tsconfig.json"), config).unwrap();
++    std::fs::write(
++        root.path().join("base.json"),
++        r#"{"compilerOptions":{"baseUrl":"../original"}}"#,
++    )
++    .unwrap();
++    std::fs::write(
++        root.path().join("main.ts"),
++        "export function present() {}\n",
++    )
++    .unwrap();
++    let index = open(root.path(), store.path());
++    index.reindex().unwrap();
++    let initial = facts(store.path());
++    let source = &initial["tsconfig.json"];
++    assert_eq!(
++        source.source_hash,
++        graph_search_core::hash::content_hash(config.as_bytes())
++    );
++    assert_eq!(
++        source.version,
++        graph_search_types::limits::SOURCE_INDEX_VERSION
++    );
++    let raw = source.typescript_config.as_ref().unwrap();
++    assert_eq!(
++        raw.fields["extends"],
++        serde_json::json!(["./base.json", "./last.json"])
++    );
++    assert_eq!(raw.fields["files"], serde_json::json!([]));
++    assert!(!raw.fields.contains_key("include"));
++    assert!(initial["main.ts"].typescript_config.is_none());
++    assert!(initial["base.json"].typescript_config.is_some());
++    for text in [
++        r#"{"extends":"./base.json","compilerOptions":{"paths":{}}}"#,
++        "/* invalid",
++        r#"{"compilerOptions":{"paths":{"$lib/*":["./other/*"]}}}"#,
++    ] {
++        std::fs::write(root.path().join("tsconfig.json"), text).unwrap();
++        index.sync().unwrap();
++        let updated = facts(store.path());
++        let raw = updated["tsconfig.json"].typescript_config.as_ref().unwrap();
++        assert_eq!(raw.unavailable_reason.is_some(), text == "/* invalid");
++        let clean = tempfile::tempdir().unwrap();
++        open(root.path(), clean.path()).reindex().unwrap();
++        assert_eq!(updated, facts(clean.path()));
++    }
++    std::fs::remove_file(root.path().join("base.json")).unwrap();
++    index.sync().unwrap();
++    assert!(!facts(store.path()).contains_key("base.json"));
++    let generation = GrafeoStore::open(store.path(), &StoreOptions::default())
++        .unwrap()
++        .generation()
++        .unwrap();
++    index.sync().unwrap();
++    assert_eq!(
++        GrafeoStore::open(store.path(), &StoreOptions::default())
++            .unwrap()
++            .generation()
++            .unwrap(),
++        generation
++    );
++    assert_eq!(source.typescript_config.as_ref().unwrap(), raw);
++}
++
++fn valid(file: &graph_search_types::Node, source: &SourceFileUnits) -> bool {
++    graph_search_core::units::validate(file, source, |_| None).is_ok()
++}
++
++#[test]
++fn persisted_configuration_validation_rejects_invalid_bounds_paths_and_old_versions() {
++    let text = "{}";
++    let hash = graph_search_core::hash::content_hash(text.as_bytes());
++    let file = graph_search_types::Node::file(
++        "base.json",
++        graph_search_types::Language::Unknown,
++        2,
++        1,
++        &hash,
++        graph_search_types::PARSER_VERSION,
++    );
++    let mut source = graph_search_core::units::extract(
++        "base.json",
++        text,
++        &hash,
++        graph_search_types::Language::Unknown,
++        &[],
++    );
++    source.typescript_config = Some(graph_search_types::typescript::TypeScriptConfig::default());
++    assert!(valid(&file, &source));
++    source.version = 13;
++    assert!(!valid(&file, &source));
++    source.version = graph_search_types::limits::SOURCE_INDEX_VERSION;
++    let mut wrong_file = file.clone();
++    wrong_file.path = "base.txt".into();
++    assert!(!valid(&wrong_file, &source));
++    source
++        .typescript_config
++        .as_mut()
++        .unwrap()
++        .fields
++        .insert("files".into(), serde_json::json!(["x".repeat(4097)]));
++    assert!(!valid(&file, &source));
++    source.typescript_config = None;
++    source.version = 13;
++    let legacy = serde_json::to_value(&source).unwrap();
++    assert!(legacy.get("typescript_config").is_none());
++    assert!(
++        serde_json::from_value::<SourceFileUnits>(legacy)
++            .unwrap()
++            .typescript_config
++            .is_none()
++    );
++    assert!(valid(&file, &source));
++}
++
++#[test]
++fn declared_configuration_dependencies_do_not_bypass_source_exclusions() {
++    let root = tempfile::tempdir().unwrap();
++    let store = tempfile::tempdir().unwrap();
++    std::fs::create_dir(root.path().join("hidden")).unwrap();
++    std::fs::write(
++        root.path().join("hidden/base.json"),
++        r#"{"compilerOptions":{"paths":{"$lib/*":["../src/*"]}}}"#,
++    )
++    .unwrap();
++    std::fs::write(
++        root.path().join("tsconfig.json"),
++        r#"{"extends":"./hidden/base.json"}"#,
++    )
++    .unwrap();
++    let index = Index::open(OpenOptions {
++        root: root.path().into(),
++        store: Some(store.path().into()),
++        excludes: vec!["hidden".into()],
++        ..Default::default()
++    })
++    .unwrap();
++    index.reindex().unwrap();
++    let sources = facts(store.path());
++    assert!(!sources.contains_key("hidden/base.json"));
++    assert_eq!(
++        sources["tsconfig.json"]
++            .typescript_config
++            .as_ref()
++            .unwrap()
++            .fields["extends"],
++        "./hidden/base.json"
++    );
++}
+--- before/crates/types/src/lib.rs
++++ after/crates/types/src/lib.rs
+@@ -24,6 +24,7 @@
+ pub mod result;
+ pub mod retrieval;
+ pub mod source;
++pub mod typescript;
+ 
+ pub use batch::{ApplyOutcome, FileProjection, QuarantineRecord, WriteBatch};
+ pub use envelope::Envelope;
+--- before/crates/types/src/limits.rs
++++ after/crates/types/src/limits.rs
+@@ -101,7 +101,7 @@
+ /// Source-owned reference and binding representation.
+ pub const OCCURRENCE_VERSION: u32 = 1;
+ /// Source retrieval serialization revision, independent of parser and chunker policy.
+-pub const SOURCE_INDEX_VERSION: u32 = 13;
++pub const SOURCE_INDEX_VERSION: u32 = 14;
+ /// Maximum authored links retained per original Markdown block.
+ pub const MAX_MARKDOWN_LINKS: usize = 256;
+ /// Maximum distinct authored links retained across one source file.
+@@ -165,6 +165,16 @@
+ /// Maximum nested conditional objects for proving one invariant package-map target.
+ pub const MAX_NODE_CONDITION_DEPTH: usize = 16;
+ 
++/// Maximum JSON/JSONC source bytes admitted to configuration decoding.
++pub const MAX_TYPESCRIPT_CONFIG_BYTES: usize = 262_144;
++
++/// Maximum scalar/container values retained in one TypeScript configuration projection.
++pub const MAX_TYPESCRIPT_CONFIG_VALUES: usize = 4096;
++/// Maximum nested compiler-option/container depth retained in configuration facts.
++pub const MAX_TYPESCRIPT_CONFIG_DEPTH: usize = 32;
++/// Maximum total UTF-8 string/key bytes retained in configuration facts.
++pub const MAX_TYPESCRIPT_CONFIG_TEXT_BYTES: usize = 131_072;
++
+ #[cfg(test)]
+ mod tests {
+     use super::*;
+--- before/crates/types/src/source.rs
++++ after/crates/types/src/source.rs
+@@ -166,6 +166,9 @@
+ /// Persisted retrieval facts for one source version, without a duplicate source blob.
+ #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+ pub struct SourceFileUnits {
++    /// Raw candidate JSON/JSONC configuration facts; presence does not select a project.
++    #[serde(default, skip_serializing_if = "Option::is_none")]
++    pub typescript_config: Option<crate::typescript::TypeScriptConfig>,
+     /// Raw manifest facts, only for recognized manifest files.
+     #[serde(default, skip_serializing_if = "Option::is_none")]
+     pub package_manifest: Option<crate::package::PackageManifest>,
+--- before/crates/types/src/typescript.rs
++++ after/crates/types/src/typescript.rs
+@@ -0,0 +1,186 @@
++//! Authored TypeScript configuration facts, before project selection or inheritance.
++use serde::{Deserialize, Serialize};
++use serde_json::Value;
++use std::collections::BTreeMap;
++
++/// A bounded projection of a JSON/JSONC file that could be selected as a config.
++/// Its owning source record supplies the path and exact original-byte hash.
++/// Presence does not declare a project or prove compiler-option semantics.
++#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
++pub struct TypeScriptConfig {
++    /// Authored top-level resolution/membership fields. Absence, null, empty
++    /// containers and array order remain distinct; paths are never normalized.
++    /// Compiler options remain raw, including options not yet modeled by resolution.
++    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
++    pub fields: BTreeMap<String, Value>,
++    /// Wildcard `paths` keys in authored first-property order. Exact names are
++    /// independent of pattern precedence. Duplicate keys retain their first slot.
++    #[serde(default, skip_serializing_if = "Vec::is_empty")]
++    pub path_patterns: Vec<String>,
++    /// Fixed failure code. An unavailable projection never retains partial fields.
++    #[serde(default, skip_serializing_if = "Option::is_none")]
++    pub unavailable_reason: Option<String>,
++}
++
++impl TypeScriptConfig {
++    /// Top-level fields retained for later native configuration interpretation.
++    pub const FIELDS: [&'static str; 6] = [
++        "extends",
++        "compilerOptions",
++        "files",
++        "include",
++        "exclude",
++        "references",
++    ];
++
++    /// Validate bounds independently of the syntax adapter and persisted decoder.
++    /// This checks representation, not TypeScript compiler-option semantics.
++    #[must_use]
++    pub fn valid(&self) -> bool {
++        use crate::limits::{MAX_TYPESCRIPT_CONFIG_DEPTH, MAX_TYPESCRIPT_CONFIG_VALUES};
++        if let Some(reason) = &self.unavailable_reason {
++            return self.fields.is_empty()
++                && self.path_patterns.is_empty()
++                && !reason.is_empty()
++                && reason.len() <= 128
++                && reason
++                    .bytes()
++                    .all(|byte| byte.is_ascii_lowercase() || byte == b'_');
++        }
++        if self
++            .fields
++            .keys()
++            .any(|key| !Self::FIELDS.contains(&key.as_str()))
++        {
++            return false;
++        }
++        let mut bytes = 0usize;
++        let mut admit = |text: &str| {
++            bytes = bytes.saturating_add(text.len());
++            text.len() <= 4096 && bytes <= crate::limits::MAX_TYPESCRIPT_CONFIG_TEXT_BYTES
++        };
++        let mut work: Vec<_> = self.fields.values().map(|value| (value, 0usize)).collect();
++        if self.path_patterns.len() > MAX_TYPESCRIPT_CONFIG_VALUES
++            || self.path_patterns.iter().any(|key| !admit(key))
++        {
++            return false;
++        }
++        let mut visited = self.path_patterns.len();
++        while let Some((value, depth)) = work.pop() {
++            visited = visited.saturating_add(1);
++            if visited > MAX_TYPESCRIPT_CONFIG_VALUES || depth > MAX_TYPESCRIPT_CONFIG_DEPTH {
++                return false;
++            }
++            let children = match value {
++                Value::Array(array) => array.len(),
++                Value::Object(object) => object.len(),
++                _ => 0,
++            };
++            if visited.saturating_add(work.len()).saturating_add(children)
++                > MAX_TYPESCRIPT_CONFIG_VALUES
++            {
++                return false;
++            }
++            match value {
++                Value::String(text) if !admit(text) => return false,
++                Value::Array(array) => {
++                    work.extend(array.iter().map(|value| (value, depth.saturating_add(1))));
++                }
++                Value::Object(object) => {
++                    for (key, value) in object {
++                        if !admit(key) {
++                            return false;
++                        }
++                        work.push((value, depth.saturating_add(1)));
++                    }
++                }
++                _ => {}
++            }
++        }
++        let expected: std::collections::BTreeSet<_> = self
++            .fields
++            .get("compilerOptions")
++            .and_then(|options| options.get("paths"))
++            .and_then(Value::as_object)
++            .into_iter()
++            .flat_map(|paths| paths.keys())
++            .filter(|key| key.contains('*'))
++            .map(String::as_str)
++            .collect();
++        let ordered: std::collections::BTreeSet<_> =
++            self.path_patterns.iter().map(String::as_str).collect();
++        ordered.len() == self.path_patterns.len() && ordered == expected
++    }
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++    #[test]
++    fn configuration_representation_is_bounded_and_preserves_raw_semantics() {
++        let mut config = TypeScriptConfig {
++            fields: BTreeMap::from([
++                (
++                    "extends".into(),
++                    serde_json::json!(["../first.json", "../last.json"]),
++                ),
++                ("files".into(), serde_json::json!([])),
++                (
++                    "compilerOptions".into(),
++                    serde_json::json!({"paths":null,"customConditions":["source"]}),
++                ),
++            ]),
++            unavailable_reason: None,
++            path_patterns: Vec::new(),
++        };
++        assert!(config.valid());
++        assert_eq!(
++            serde_json::from_slice::<TypeScriptConfig>(&serde_json::to_vec(&config).unwrap())
++                .unwrap(),
++            config
++        );
++        config.fields.insert("unknown".into(), Value::Null);
++        assert!(!config.valid());
++        config.fields.remove("unknown");
++        config.unavailable_reason = Some("invalid_config_syntax".into());
++        assert!(!config.valid());
++        config.fields.clear();
++        assert!(config.valid());
++        config.unavailable_reason = None;
++        config.fields.insert(
++            "files".into(),
++            serde_json::json!(vec!["x"; crate::limits::MAX_TYPESCRIPT_CONFIG_VALUES]),
++        );
++        assert!(!config.valid());
++        config
++            .fields
++            .insert("files".into(), serde_json::json!(["x".repeat(4097)]));
++        assert!(!config.valid());
++        config.fields.insert(
++            "files".into(),
++            serde_json::json!(vec!["x".repeat(4096); 33]),
++        );
++        assert!(!config.valid());
++        let mut nested = Value::Null;
++        for _ in 0..=crate::limits::MAX_TYPESCRIPT_CONFIG_DEPTH {
++            nested = serde_json::json!([nested]);
++        }
++        config.fields.insert("files".into(), nested);
++        assert!(!config.valid());
++        config.fields.clear();
++        config.fields.insert(
++            "compilerOptions".into(),
++            serde_json::json!({"paths":{"a*Z":[],"a*YZ":[]}}),
++        );
++        assert!(
++            !config.valid(),
++            "missing wildcard order cannot be reconstructed from sorted keys"
++        );
++        config.path_patterns = vec!["a*YZ".into(), "a*Z".into()];
++        assert!(config.valid());
++        config.path_patterns = vec!["a*Z".into(), "a*Z".into()];
++        assert!(!config.valid());
++        config.path_patterns = vec!["a*Z".into(), "foreign*".into()];
++        assert!(!config.valid());
++    }
++}

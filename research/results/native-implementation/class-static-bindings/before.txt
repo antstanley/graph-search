@@ -1,0 +1,24 @@
+   Compiling graph-search v0.1.0 (/Volumes/Delorean/code/graph-search/crates/graph-search)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 6.72s
+     Running tests/scopes.rs (target/debug/deps/scopes-c62a40e7d4e32ef0)
+
+running 1 test
+test qualified_class_calls_follow_the_visible_static_member ... FAILED
+
+failures:
+
+---- qualified_class_calls_follow_the_visible_static_member stdout ----
+
+thread 'qualified_class_calls_follow_the_visible_static_member' (81763961) panicked at crates/graph-search/tests/scopes.rs:529:17:
+assertion `left == right` failed: js/nested
+  left: "Api.send"
+ right: "nested.Api.send"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    qualified_class_calls_follow_the_visible_static_member
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 9 filtered out; finished in 0.07s
+
+error: test failed, to rerun pass `-p graph-search --test scopes`

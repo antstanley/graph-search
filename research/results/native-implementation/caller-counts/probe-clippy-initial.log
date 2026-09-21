@@ -1,0 +1,34 @@
+    Checking graph-search-core v0.1.0 (/Volumes/Delorean/code/graph-search/crates/core)
+    Checking graph-search-langs v0.1.0 (/Volumes/Delorean/code/graph-search/crates/langs)
+    Checking graph-search-engine v0.1.0 (/Volumes/Delorean/code/graph-search/crates/engine)
+    Checking graph-search v0.1.0 (/Volumes/Delorean/code/graph-search/crates/graph-search)
+    Checking search-research v0.1.0 (/Volumes/Delorean/code/graph-search/research/harness)
+error: the loop variable `to` is only used to index `incoming`
+  --> src/bin/caller_count_probe.rs:12:27
+   |
+12 |                 for to in 0..seeds {
+   |                           ^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#needless_range_loop
+   = note: `-D clippy::needless-range-loop` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::needless_range_loop)]`
+help: consider using an iterator
+   |
+12 -                 for to in 0..seeds {
+12 +                 for <item> in incoming.iter_mut().take(seeds) {
+   |
+
+error: the loop variable `to` is only used to index `incoming`
+  --> src/bin/caller_count_probe.rs:21:31
+   |
+21 |                     for to in 0..seeds {
+   |                               ^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#needless_range_loop
+help: consider using an iterator
+   |
+21 -                     for to in 0..seeds {
+21 +                     for <item> in incoming.iter_mut().take(seeds) {
+   |
+
+error: could not compile `search-research` (bin "caller_count_probe") due to 2 previous errors

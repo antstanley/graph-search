@@ -1,0 +1,22 @@
+   Compiling graph-search-langs v0.1.0 (/Volumes/Delorean/code/graph-search/crates/langs)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 8.30s
+     Running unittests src/lib.rs (target/debug/deps/graph_search_langs-fa256a18e321b460)
+
+running 1 test
+depth=4 source_bytes=88 symbol_key_bytes=898
+depth=8 source_bytes=136 symbol_key_bytes=15266
+depth=12 source_bytes=184 symbol_key_bytes=245634
+
+thread 'rust::tests::nested_scope_keys_do_not_repeat_entire_ancestor_chains' (82042217) panicked at crates/langs/src/rust.rs:721:13:
+depth=12: 245634
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test rust::tests::nested_scope_keys_do_not_repeat_entire_ancestor_chains ... FAILED
+
+failures:
+
+failures:
+    rust::tests::nested_scope_keys_do_not_repeat_entire_ancestor_chains
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 10 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p graph-search-langs --lib`

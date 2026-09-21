@@ -1,0 +1,96 @@
+{
+  "exhaustive_comparisons": 132096,
+  "different_shortest_path_choices": 3324,
+  "first_choice_difference": {
+    "nodes": 4,
+    "edges": [
+      [
+        1,
+        3
+      ],
+      [
+        1,
+        2
+      ],
+      [
+        0,
+        3
+      ],
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        1
+      ]
+    ],
+    "source": 2,
+    "target": 3,
+    "hops": 2,
+    "forward": [
+      3,
+      2
+    ],
+    "bidirectional": [
+      1,
+      0
+    ]
+  },
+  "workloads": [
+    {
+      "shape": "chain_four_hops",
+      "nodes": 2048,
+      "hops": 4,
+      "path_length": 4,
+      "within_current_production_hop_ceiling": true,
+      "forward_adjacency_visits": 7,
+      "bidirectional_adjacency_visits": 7
+    },
+    {
+      "shape": "wide_tree_four_hops",
+      "nodes": 273,
+      "hops": 4,
+      "path_length": 4,
+      "within_current_production_hop_ceiling": true,
+      "forward_adjacency_visits": 304,
+      "bidirectional_adjacency_visits": 36
+    },
+    {
+      "shape": "chain",
+      "nodes": 2048,
+      "hops": 2047,
+      "path_length": 2047,
+      "within_current_production_hop_ceiling": false,
+      "forward_adjacency_visits": 4093,
+      "bidirectional_adjacency_visits": 4093
+    },
+    {
+      "shape": "star_leaf_pair",
+      "nodes": 2048,
+      "hops": 2,
+      "path_length": 2,
+      "within_current_production_hop_ceiling": true,
+      "forward_adjacency_visits": 2048,
+      "bidirectional_adjacency_visits": 2048
+    },
+    {
+      "shape": "star_center_leaf",
+      "nodes": 2048,
+      "hops": 1,
+      "path_length": 1,
+      "within_current_production_hop_ceiling": true,
+      "forward_adjacency_visits": 1,
+      "bidirectional_adjacency_visits": 2047
+    },
+    {
+      "shape": "binary_tree_leaves",
+      "nodes": 2047,
+      "hops": 20,
+      "path_length": 20,
+      "within_current_production_hop_ceiling": false,
+      "forward_adjacency_visits": 3580,
+      "bidirectional_adjacency_visits": 308
+    }
+  ]
+}

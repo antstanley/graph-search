@@ -9,9 +9,9 @@ use clap::ValueEnum;
 use graph_search::Index;
 use graph_search_types::result::{
     EdgeHit, ExploreResult, GraphResult, ImpactResult, IndexStatus, Stats, SymbolHit, SyncReport,
-    TextHit, TextResult, Truncation,
+    TextHit, TextResult, Truncation, TruncationKind,
 };
-use graph_search_types::{Envelope, SCHEMA_VERSION};
+use graph_search_types::{Envelope, RESULT_SCHEMA_VERSION};
 use serde::Serialize;
 use std::fmt::Write as _;
 use std::io::Write as _;
@@ -64,23 +64,99 @@ fn approximation_text(resolved: u64, unresolved: u64) -> String {
 }
 
 /// Fills the shared envelope fields every answer carries.
-#[allow(clippy::too_many_arguments)] // one setter per contract field
 fn finish<R: Serialize>(
     mut envelope: Envelope<R>,
     edges: Vec<EdgeHit>,
     approximation: Option<graph_search_types::result::Approximation>,
     truncations: Vec<Truncation>,
     stats: Stats,
-    stale: bool,
-    stale_paths: Option<Vec<String>>,
 ) -> Envelope<R> {
     envelope.edges = edges;
     envelope.approximation = approximation;
     envelope.truncations = truncations;
     envelope.stats = stats;
-    envelope.stale = stale;
-    envelope.stale_paths = stale_paths;
     envelope
+}
+
+fn attach_context<R: Serialize>(
+    envelope: &mut Envelope<R>,
+    context: &graph_search_types::context::ResultContext,
+) {
+    envelope.stale = context.staleness.changed > 0;
+    envelope.stale_paths = envelope
+        .stale
+        .then(|| context.staleness.changed_paths.clone());
+    envelope.context = Some(context.clone());
+}
+
+fn context_text(context: &graph_search_types::context::ResultContext) -> String {
+    use graph_search_types::context::SourceVerification;
+    let mut text = String::new();
+    if context.coverage.enumeration_complete == Some(false) {
+        writeln!(
+            text,
+            "(source enumeration incomplete: {} unreadable entries, {} exhausted limits)",
+            context.coverage.unreadable_entries,
+            context.coverage.truncations.len()
+        )
+        .ok();
+    }
+    let coverage = &context.coverage;
+    if coverage.source_read_errors > 0
+        || coverage.binary_files > 0
+        || coverage.invalid_utf8_files > 0
+        || coverage.oversized_files > 0
+        || coverage.quarantined_files > 0
+    {
+        writeln!(text, "(coverage: {} oversized, {} binary, {} invalid UTF-8, {} source read failures, {} parser quarantines)", coverage.oversized_files, coverage.binary_files, coverage.invalid_utf8_files, coverage.source_read_errors, coverage.quarantined_files).ok();
+    }
+    if coverage.source_budget_exceeded_files > 0 {
+        writeln!(
+            text,
+            "(source read budgets withheld {} files)",
+            coverage.source_budget_exceeded_files
+        )
+        .ok();
+        for truncation in &coverage.truncations {
+            if matches!(
+                truncation.kind,
+                graph_search_types::TruncationKind::SourceBytes
+                    | graph_search_types::TruncationKind::SourceFileBytes
+            ) {
+                writeln!(text, "{}", truncation.message).ok();
+            }
+        }
+    }
+    if coverage.source_unit_truncated_files > 0 {
+        writeln!(
+            text,
+            "(source-region indexing incomplete for {} files)",
+            coverage.source_unit_truncated_files
+        )
+        .ok();
+    }
+    if context.staleness.changed > 0 {
+        writeln!(
+            text,
+            "(indexed generation differs from {} observed source paths)",
+            context.staleness.changed
+        )
+        .ok();
+    }
+    for (path, source) in &context.sources {
+        let reason = match source.verification {
+            SourceVerification::Mismatch => {
+                "source changed since indexing; indexed snippets withheld"
+            }
+            SourceVerification::Unavailable => "source unavailable",
+            SourceVerification::Binary => "binary source; snippet unavailable",
+            SourceVerification::InvalidEncoding => "invalid UTF-8 source; snippet unavailable",
+            SourceVerification::BudgetExceeded => "source read budget exceeded",
+            _ => continue,
+        };
+        writeln!(text, "({path}: {reason})").ok();
+    }
+    text
 }
 
 // ---------------------------------------------------------------------------
@@ -97,12 +173,11 @@ pub(crate) fn files(
     query: &graph_search_types::FilesQuery,
     result: &graph_search_types::FilesResult,
     format: Format,
-    stale: Option<Vec<String>>,
 ) -> graph_search::Result<()> {
     match format {
         Format::Json => {
             let envelope: Envelope<Vec<graph_search_types::result::FileHit>> = Envelope::new(
-                SCHEMA_VERSION,
+                RESULT_SCHEMA_VERSION,
                 command,
                 index.root().display().to_string(),
                 serde_json::json!({
@@ -112,16 +187,17 @@ pub(crate) fn files(
                 }),
                 result.items.clone(),
             );
-            let envelope = finish(
+            let mut envelope = finish(
                 envelope,
                 Vec::new(),
                 None,
                 result.truncations.clone(),
                 result.stats,
-                stale.is_some(),
-                stale,
             );
-            emit(&serde_json::to_string_pretty(&envelope).unwrap_or_default())?;
+            attach_context(&mut envelope, &result.context);
+            emit(&crate::budget::scan(&mut envelope, |hit| {
+                hit.path.as_str()
+            })?)?;
         }
         Format::Text => {
             let paths: Vec<String> = result.items.iter().map(|hit| hit.path.clone()).collect();
@@ -132,6 +208,7 @@ pub(crate) fn files(
                 text.push('\n');
                 text
             };
+            text.push_str(&context_text(&result.context));
             text.push_str(&truncations_text(&result.truncations));
             emit(&text)?;
         }
@@ -153,12 +230,11 @@ pub(crate) fn text(
     query: &graph_search_types::TextQuery,
     result: &TextResult,
     format: Format,
-    stale: Option<Vec<String>>,
 ) -> graph_search::Result<()> {
     match format {
         Format::Json => {
             let envelope: Envelope<Vec<TextHit>> = Envelope::new(
-                SCHEMA_VERSION,
+                RESULT_SCHEMA_VERSION,
                 command,
                 index.root().display().to_string(),
                 serde_json::json!({
@@ -170,23 +246,23 @@ pub(crate) fn text(
                 }),
                 result.items.clone(),
             );
-            let envelope = finish(
+            let mut envelope = finish(
                 envelope,
                 Vec::new(),
                 None,
                 result.truncations.clone(),
                 result.stats,
-                stale.is_some(),
-                stale,
             );
-            emit(&serde_json::to_string_pretty(&envelope).unwrap_or_default())?;
+            attach_context(&mut envelope, &result.context);
+            emit(&crate::budget::scan(&mut envelope, |hit| {
+                hit.path.as_str()
+            })?)?;
         }
         Format::Text => {
-            emit(&render_text_matches(
-                &result.items,
-                result.truncations.as_slice(),
-                query.limit,
-            ))?;
+            let mut text =
+                render_text_matches(&result.items, result.truncations.as_slice(), query.limit);
+            text.push_str(&context_text(&result.context));
+            emit(&text)?;
         }
     }
     Ok(())
@@ -198,14 +274,14 @@ pub(crate) fn text(
 pub(crate) fn render_text_matches(
     hits: &[TextHit],
     truncations: &[Truncation],
-    limit: u32,
+    _limit: u32,
 ) -> String {
     let truncated = !truncations.is_empty();
     if hits.is_empty() {
         return if truncated {
             format!(
-                "No matches in the files reached: the search stopped at the {limit}-match cap \
-                 before it finished, so matches may exist beyond it.\n"
+                "No matches in the files reached; evidence is incomplete.\n{}",
+                truncations_text(truncations)
             )
         } else {
             String::from("No matches found.\n")
@@ -225,11 +301,7 @@ pub(crate) fn render_text_matches(
         writeln!(rendered, "  {}: {}", hit.line, hit.text).ok();
     }
     if truncated {
-        writeln!(
-            rendered,
-            "(stopped at {limit} matches; narrow the pattern or the include filter)"
-        )
-        .ok();
+        rendered.push_str(&truncations_text(truncations));
     }
     rendered
 }
@@ -242,34 +314,31 @@ pub(crate) fn render_text_matches(
 ///
 /// # Errors
 /// Propagates write failures.
-#[allow(clippy::too_many_arguments)]
 pub(crate) fn graph(
     command: &str,
     index: &Index,
     query: &serde_json::Value,
     result: &GraphResult,
     format: Format,
-    stale: Option<Vec<String>>,
 ) -> graph_search::Result<()> {
     match format {
         Format::Json => {
             let envelope: Envelope<Vec<SymbolHit>> = Envelope::new(
-                SCHEMA_VERSION,
+                RESULT_SCHEMA_VERSION,
                 command,
                 index.root().display().to_string(),
                 query.clone(),
                 result.nodes.clone(),
             );
-            let envelope = finish(
+            let mut envelope = finish(
                 envelope,
                 result.edges.clone(),
                 result.approximation.clone(),
                 result.truncations.clone(),
                 result.stats,
-                stale.is_some(),
-                stale,
             );
-            emit(&serde_json::to_string_pretty(&envelope).unwrap_or_default())?;
+            attach_context(&mut envelope, &result.context);
+            emit(&crate::budget::graph(&mut envelope)?)?;
         }
         Format::Text => {
             let mut text = String::new();
@@ -308,6 +377,7 @@ pub(crate) fn graph(
                     approximation.unresolved,
                 ));
             }
+            text.push_str(&context_text(&result.context));
             text.push_str(&truncations_text(&result.truncations));
             emit(&text)?;
         }
@@ -325,31 +395,29 @@ pub(crate) fn impact(
     query: &serde_json::Value,
     result: &ImpactResult,
     format: Format,
-    stale: Option<Vec<String>>,
 ) -> graph_search::Result<()> {
     match format {
         Format::Json => {
-            let payload = serde_json::json!({
-                "by_depth": result.by_depth,
-                "top": result.top,
-            });
-            let envelope: Envelope<serde_json::Value> = Envelope::new(
-                SCHEMA_VERSION,
+            let payload = crate::budget::ImpactPayload {
+                by_depth: result.by_depth.clone(),
+                top: result.top.clone(),
+            };
+            let envelope = Envelope::new(
+                RESULT_SCHEMA_VERSION,
                 command,
                 index.root().display().to_string(),
                 query.clone(),
                 payload,
             );
-            let envelope = finish(
+            let mut envelope = finish(
                 envelope,
                 result.edges.clone(),
                 result.approximation.clone(),
                 result.truncations.clone(),
                 result.stats,
-                stale.is_some(),
-                stale,
             );
-            emit(&serde_json::to_string_pretty(&envelope).unwrap_or_default())?;
+            attach_context(&mut envelope, &result.context);
+            emit(&crate::budget::impact(&mut envelope)?)?;
         }
         Format::Text => {
             let mut text = String::new();
@@ -373,6 +441,7 @@ pub(crate) fn impact(
                 )
                 .ok();
             }
+            text.push_str(&context_text(&result.context));
             text.push_str(&truncations_text(&result.truncations));
             if let Some(approximation) = &result.approximation {
                 text.push_str(&approximation_text(
@@ -386,6 +455,35 @@ pub(crate) fn impact(
     Ok(())
 }
 
+fn explore_source_text(text: &mut String, item: &graph_search_types::ExploreItem) {
+    if let Some(retrieval) = &item.retrieval {
+        writeln!(
+            text,
+            " retrieval: {}",
+            serde_json::to_string(retrieval).unwrap_or_default()
+        )
+        .ok();
+    }
+    if let Some(snippet) = &item.snippet {
+        for (offset, line) in snippet.lines.iter().enumerate() {
+            let line_no = snippet
+                .start_line
+                .saturating_add(u32::try_from(offset).unwrap_or(0));
+            writeln!(text, " {line_no}: {line}\n").ok();
+        }
+    }
+    for excerpt in &item.excerpts {
+        writeln!(text, " {:?} context:", excerpt.role).ok();
+        for (offset, line) in excerpt.snippet.lines.iter().enumerate() {
+            let line_no = excerpt
+                .snippet
+                .start_line
+                .saturating_add(u32::try_from(offset).unwrap_or(0));
+            writeln!(text, " {line_no}: {line}").ok();
+        }
+    }
+}
+
 /// Renders an `explore` answer.
 ///
 /// # Errors
@@ -396,12 +494,11 @@ pub(crate) fn explore(
     query: &graph_search_types::ExploreQuery,
     result: &ExploreResult,
     format: Format,
-    stale: Option<Vec<String>>,
 ) -> graph_search::Result<()> {
     match format {
         Format::Json => {
             let envelope: Envelope<Vec<graph_search_types::result::ExploreItem>> = Envelope::new(
-                SCHEMA_VERSION,
+                RESULT_SCHEMA_VERSION,
                 command,
                 index.root().display().to_string(),
                 serde_json::json!({
@@ -409,6 +506,7 @@ pub(crate) fn explore(
                     "k": query.k,
                     "hops": query.hops,
                     "context_lines": query.context_lines,
+                    "filters": query.filters,
                     "max_bytes": query.max_bytes,
                 }),
                 result.items.clone(),
@@ -419,13 +517,25 @@ pub(crate) fn explore(
                 result.approximation.clone(),
                 result.truncations.clone(),
                 result.stats,
-                stale.is_some(),
-                stale,
             );
+            envelope.plan.clone_from(&result.plan);
+            if query.retrieval != graph_search_types::RetrievalOptions::default() {
+                envelope.query["retrieval"] =
+                    serde_json::to_value(&query.retrieval).unwrap_or_default();
+            }
+            attach_context(&mut envelope, &result.context);
             emit_explore_envelope(&mut envelope, query.max_bytes)?;
         }
         Format::Text => {
             let mut text = String::new();
+            if let Some(plan) = &result.plan {
+                writeln!(
+                    text,
+                    "plan: {}",
+                    serde_json::to_string(plan).unwrap_or_default()
+                )
+                .ok();
+            }
             if result.items.is_empty() {
                 text.push_str("Nothing found.\n");
             }
@@ -443,14 +553,7 @@ pub(crate) fn explore(
                 if let Some(signature) = &node.signature {
                     writeln!(text, " {signature}").ok();
                 }
-                if let Some(snippet) = &item.snippet {
-                    for (offset, line) in snippet.lines.iter().enumerate() {
-                        let line_no = snippet
-                            .start_line
-                            .saturating_add(u32::try_from(offset).unwrap_or(0));
-                        writeln!(text, " {line_no}: {line}\n").ok();
-                    }
-                }
+                explore_source_text(&mut text, item);
                 if let Some(impact) = &item.impact {
                     writeln!(
                         text,
@@ -469,6 +572,7 @@ pub(crate) fn explore(
                     approximation.unresolved,
                 ));
             }
+            text.push_str(&context_text(&result.context));
             text.push_str(&truncations_text(&result.truncations));
             emit(&text)?;
         }
@@ -487,14 +591,14 @@ pub(crate) fn explore(
 pub(crate) fn status(status: &IndexStatus, format: Format) -> graph_search::Result<()> {
     match format {
         Format::Json => {
-            let envelope: Envelope<IndexStatus> = Envelope::new(
-                SCHEMA_VERSION,
+            let mut envelope: Envelope<IndexStatus> = Envelope::new(
+                RESULT_SCHEMA_VERSION,
                 "status",
                 status.root.clone(),
                 serde_json::json!({}),
                 status.clone(),
             );
-            emit(&serde_json::to_string_pretty(&envelope).unwrap_or_default())?;
+            emit(&crate::budget::status(&mut envelope)?)?;
         }
         Format::Text => {
             let mut text = String::new();
@@ -533,6 +637,7 @@ pub(crate) fn status(status: &IndexStatus, format: Format) -> graph_search::Resu
             } else {
                 text.push_str("no index (run `graph-search index`)\n");
             }
+            text.push_str(&truncations_text(&status.coverage.truncations));
             emit(&text)?;
         }
     }
@@ -551,14 +656,14 @@ pub(crate) fn sync(
     let _ = root;
     match format {
         Format::Json => {
-            let envelope: Envelope<SyncReport> = Envelope::new(
-                SCHEMA_VERSION,
+            let mut envelope: Envelope<SyncReport> = Envelope::new(
+                RESULT_SCHEMA_VERSION,
                 "sync",
                 String::new(),
                 serde_json::json!({}),
                 report.clone(),
             );
-            emit(&serde_json::to_string_pretty(&envelope).unwrap_or_default())?;
+            emit(&crate::budget::sync(&mut envelope)?)?;
         }
         Format::Text => {
             let mut text = String::new();
@@ -580,9 +685,34 @@ pub(crate) fn sync(
             for record in &report.quarantined {
                 writeln!(text, "quarantined {}: {}\n", record.path, record.reason).ok();
             }
-            if text.is_empty() {
+            let totals = report.totals();
+            if text.is_empty()
+                && totals.added == 0
+                && totals.modified == 0
+                && totals.removed == 0
+                && totals.renamed == 0
+                && totals.quarantined == 0
+            {
                 text.push_str("up to date\n");
             }
+            if report
+                .coverage
+                .truncations
+                .iter()
+                .any(|t| t.kind == TruncationKind::Bytes)
+            {
+                writeln!(
+                    text,
+                    "{} added, {} modified, {} removed, {} renamed, {} quarantined",
+                    totals.added,
+                    totals.modified,
+                    totals.removed,
+                    totals.renamed,
+                    totals.quarantined
+                )
+                .ok();
+            }
+            text.push_str(&truncations_text(&report.coverage.truncations));
             writeln!(
                 text,
                 "{} unchanged, {} ms\n",
@@ -599,26 +729,38 @@ pub(crate) fn sync(
 ///
 /// # Errors
 /// Propagates write failures.
-pub(crate) fn stale_notice(paths: &[String], format: Format) -> graph_search::Result<()> {
+pub(crate) fn stale_notice(status: &IndexStatus, format: Format) -> graph_search::Result<()> {
+    let staleness = status.staleness.clone().unwrap_or_default();
+    let paths = &staleness.changed_paths;
     match format {
         Format::Json => {
             let envelope: Envelope<Vec<String>> = Envelope::new(
-                SCHEMA_VERSION,
+                RESULT_SCHEMA_VERSION,
                 "search.stale",
                 String::new(),
                 serde_json::json!({}),
-                paths.to_vec(),
+                paths.clone(),
             );
             let mut envelope = envelope;
             envelope.stale = true;
-            envelope.stale_paths = Some(paths.to_vec());
-            emit(&serde_json::to_string_pretty(&envelope).unwrap_or_default())?;
+            envelope.stale_paths = Some(paths.clone());
+            envelope.context = Some(graph_search_types::context::ResultContext {
+                generation: status.generation.clone(),
+                staleness: staleness.clone(),
+                coverage: status.coverage.clone(),
+                ..Default::default()
+            });
+            envelope
+                .truncations
+                .clone_from(&status.coverage.truncations);
+            emit(&crate::budget::stale(&mut envelope)?)?;
         }
         Format::Text => {
-            let mut text = format!("the index is stale: {} changed paths\n", paths.len());
+            let mut text = format!("the index is stale: {} changed paths\n", staleness.changed);
             for path in paths.iter().take(10) {
                 writeln!(text, " {path}\n").ok();
             }
+            text.push_str(&truncations_text(&status.coverage.truncations));
             emit(&text)?;
         }
     }
@@ -635,6 +777,17 @@ fn emit_explore_envelope(
         (max_bytes as usize).min(graph_search_types::limits::MAX_TOTAL_BYTES)
     };
     loop {
+        if let Some(context) = &mut envelope.context {
+            context
+                .sources
+                .retain(|path, _| envelope.results.iter().any(|item| &item.node.path == path));
+            context.retain_packages(
+                envelope
+                    .results
+                    .iter()
+                    .filter_map(|item| item.evidence.as_ref()?.package_ref.as_deref()),
+            );
+        }
         let resolved = envelope.edges.iter().filter(|e| e.resolved).count() as u64;
         if let Some(approximation) = &mut envelope.approximation {
             approximation.resolved = resolved;
@@ -653,15 +806,90 @@ fn emit_explore_envelope(
                 "JSON envelope exceeded its byte cap",
             ));
         }
+        if let Some(item) = envelope
+            .results
+            .iter_mut()
+            .rev()
+            .find(|item| !item.excerpts.is_empty())
+        {
+            item.excerpts.pop();
+            continue;
+        }
         if envelope.edges.pop().is_some() {
+            continue;
+        }
+        if let Some(item) = envelope
+            .results
+            .iter_mut()
+            .rev()
+            .find(|item| item.snippet.is_some())
+        {
+            item.snippet = None;
             continue;
         }
         if envelope.results.pop().is_none() {
             return Err(graph_search::Error::Core(
-                graph_search::core::Error::InvalidInclude(format!(
-                    "max_bytes={cap} cannot hold the JSON envelope"
-                )),
+                graph_search::core::Error::ResultBudget(cap),
             ));
         }
     }
+}
+
+pub(crate) fn occurrences(
+    index: &Index,
+    query: &serde_json::Value,
+    result: &graph_search_types::occurrence::OccurrenceResult,
+    format: Format,
+) -> graph_search::Result<()> {
+    match format {
+        Format::Json => {
+            let payload = crate::budget::OccurrencePayload {
+                items: result.items.clone(),
+                indexed_files: result.indexed_files,
+                extracted_files: result.extracted_files,
+            };
+            let mut envelope = Envelope::new(
+                RESULT_SCHEMA_VERSION,
+                "search.graph.occurrences",
+                index.root().display().to_string(),
+                query.clone(),
+                payload,
+            );
+            envelope.stats = result.stats;
+            envelope.truncations.clone_from(&result.truncations);
+            attach_context(&mut envelope, &result.context);
+            emit(&crate::budget::occurrences(&mut envelope)?)?;
+        }
+        Format::Text => {
+            let mut text = String::new();
+            for item in &result.items {
+                let reference = &item.occurrence;
+                writeln!(
+                    text,
+                    "{}:{} {} -[{}]-> {} [{:?}] {}",
+                    item.path,
+                    reference.line,
+                    reference.owner,
+                    reference.kind,
+                    reference.target_name,
+                    reference.resolution,
+                    reference.reason.as_deref().unwrap_or_default()
+                )
+                .ok();
+            }
+            if result.items.is_empty() {
+                text.push_str("Nothing found.\n");
+            }
+            writeln!(
+                text,
+                "Reference extraction succeeded for {} of {} files with occurrence metadata.",
+                result.extracted_files, result.indexed_files
+            )
+            .ok();
+            text.push_str(&context_text(&result.context));
+            text.push_str(&truncations_text(&result.truncations));
+            emit(&text)?;
+        }
+    }
+    Ok(())
 }

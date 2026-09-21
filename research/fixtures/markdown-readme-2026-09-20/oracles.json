@@ -1,0 +1,293 @@
+{
+  "nanus.markdown-provider-tools.debug": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "README.md",
+        "start": 57,
+        "end": 64,
+        "file_sha256": "5510fcaee502554dd9af9019055a5dbdc6f25c8c1befbc15afae48f1edc8dd59",
+        "sha256": "9e0dee13aa38535e2165f9c6afce136f55c40e34dec0bdde4658debcb92e6aeb"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "Locate the introductory documentation explaining how to replace the model provider without changing tools, and how removing a tool changes the prompt.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "relationships": []
+  },
+  "nanus.markdown-unload.debug": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "README.md",
+        "start": 66,
+        "end": 70,
+        "file_sha256": "5510fcaee502554dd9af9019055a5dbdc6f25c8c1befbc15afae48f1edc8dd59",
+        "sha256": "acad2f5fe630d8ac7237b368cc02fde5521ed67db24a4b4c18d4565bad6f0bf9"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "Find the documented guarantee for unloading a component: how registrations are reversed and what happens to services, listeners and consumers.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "relationships": []
+  },
+  "nanus.markdown-resume.debug": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "README.md",
+        "start": 128,
+        "end": 130,
+        "file_sha256": "5510fcaee502554dd9af9019055a5dbdc6f25c8c1befbc15afae48f1edc8dd59",
+        "sha256": "19ecc0cff857c8dd22e99e6ab7db77f5c1aa07cd4ba40ed089f92a04bec0c8c1"
+      },
+      {
+        "id": "r2",
+        "path": "README.md",
+        "start": 142,
+        "end": 144,
+        "file_sha256": "5510fcaee502554dd9af9019055a5dbdc6f25c8c1befbc15afae48f1edc8dd59",
+        "sha256": "567a722e8d5a0f78a8af8e7c316670541992aa9137d6020632f0e09c93d221de"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "Find the documented commands for running a named conversation and resuming it in the terminal interface, plus the explanation of multiple clients observing the same turn.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      }
+    ],
+    "relationships": []
+  },
+  "nanus.markdown-stdio.debug": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "README.md",
+        "start": 146,
+        "end": 148,
+        "file_sha256": "5510fcaee502554dd9af9019055a5dbdc6f25c8c1befbc15afae48f1edc8dd59",
+        "sha256": "a52203e33fedb25c163341e3b394207636c8c32de9ec41347af58fff35f65719"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "Find the documented stdout, stderr and exit-code contract for scripts invoking a one-shot agent run.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "relationships": []
+  },
+  "blogwright.markdown-packages.debug": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "README.md",
+        "start": 86,
+        "end": 91,
+        "file_sha256": "4e093dbfb32c9194736d7d8876ca504b2509dfd10442405fad156070459a61e5",
+        "sha256": "526dabcdfbc56836bb94551e26d7859d250b5e9921657f17130414e7f6d8b791"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "Locate the package responsibility table: which package owns SigV4 clients and shared ports, which publishes to AT Protocol, and how the builder server is shipped.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "relationships": []
+  },
+  "blogwright.markdown-testing.debug": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "README.md",
+        "start": 100,
+        "end": 107,
+        "file_sha256": "4e093dbfb32c9194736d7d8876ca504b2509dfd10442405fad156070459a61e5",
+        "sha256": "ffdcd2f69e2d77cf0ccc665c50f636c018aefabd2a95bf008c2201fa3abb13b9"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "Find the contributor instructions for emulator integration tests and the documented reason MicroVM orchestration instead uses transport mocks.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "relationships": []
+  },
+  "blogwright.markdown-doc-links.debug": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "README.md",
+        "start": 70,
+        "end": 73,
+        "file_sha256": "4e093dbfb32c9194736d7d8876ca504b2509dfd10442405fad156070459a61e5",
+        "sha256": "3808f4262e5709ab6fd2202fa6a0447e81632982415226214394bde3a0466715"
+      },
+      {
+        "id": "r2",
+        "path": "README.md",
+        "start": 81,
+        "end": 82,
+        "file_sha256": "4e093dbfb32c9194736d7d8876ca504b2509dfd10442405fad156070459a61e5",
+        "sha256": "73da6bb87dd01214f9469e84075dd5c69ca92a2303cf6a414a33ab6cc7dfe9d1"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "Find the documentation index entries for keyless GitHub CI deploys and per-PR preview URLs, and how to retrieve documentation pages as plain Markdown.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      }
+    ],
+    "relationships": []
+  },
+  "blogwright.markdown-initial-setup.debug": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "README.md",
+        "start": 24,
+        "end": 35,
+        "file_sha256": "4e093dbfb32c9194736d7d8876ca504b2509dfd10442405fad156070459a61e5",
+        "sha256": "4395f436cf673556aee1ec7d10c2675706e80fb94caebd3b4955a10cb8d3d69f"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "Find the getting-started command sequence for initialization, infrastructure bootstrap and deploy, including the minimum hand-written config when there is no terminal.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "relationships": []
+  },
+  "whatsurvey.markdown-local-loop.debug": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "README.md",
+        "start": 120,
+        "end": 126,
+        "file_sha256": "9780583b9bf9e609b578b81d08ced02941b9f8e098d2fcf4328452b1fdd05ce2",
+        "sha256": "dff3a4503da187440988e5d59787419970f06630e274b4e4de5b61dc824003aa"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "Find the documented local-development command, browser address and mock operator behavior, including which WhatsApp components are excluded from the local loop.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "relationships": []
+  },
+  "whatsurvey.markdown-stacks.debug": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "README.md",
+        "start": 138,
+        "end": 138,
+        "file_sha256": "9780583b9bf9e609b578b81d08ced02941b9f8e098d2fcf4328452b1fdd05ce2",
+        "sha256": "b061bced2a4474da32eda69abec8b393d5d3435b78783409609757c5e5f56197"
+      },
+      {
+        "id": "r2",
+        "path": "README.md",
+        "start": 159,
+        "end": 166,
+        "file_sha256": "9780583b9bf9e609b578b81d08ced02941b9f8e098d2fcf4328452b1fdd05ce2",
+        "sha256": "4b0340303a56ccd4299655480d5423073e3a9ce5d97f54c878e02af1b5a387b5"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "Find the documented backend and frontend stack layout and the environment naming constraint used for deployment resources.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      }
+    ],
+    "relationships": []
+  },
+  "whatsurvey.markdown-trace-correlation.debug": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "README.md",
+        "start": 174,
+        "end": 175,
+        "file_sha256": "9780583b9bf9e609b578b81d08ced02941b9f8e098d2fcf4328452b1fdd05ce2",
+        "sha256": "452bdc05a76237c090786f9254c524a98fd69d6a809033e944b8af04de8e4c27"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "Find the operator instructions for correlating a browser request with backend logs and following a WhatsApp webhook into an orchestrator turn.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "relationships": []
+  },
+  "whatsurvey.markdown-survey-flow.debug": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "README.md",
+        "start": 188,
+        "end": 192,
+        "file_sha256": "9780583b9bf9e609b578b81d08ced02941b9f8e098d2fcf4328452b1fdd05ce2",
+        "sha256": "6af318e09b259ad6074c333765a03691509457edfb0f87780649a020f4e9bad1"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "Locate the documented survey lifecycle, explaining who controls branching versus language generation and how web forms share the submission destination.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "relationships": []
+  }
+}

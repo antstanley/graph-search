@@ -1,0 +1,732 @@
+--- a/crates/core/src/typescript_files.rs
++++ b/crates/core/src/typescript_files.rs
+@@ -96,13 +96,40 @@
+     }
+ }
+ 
++/// Availability of a candidate. Lack of an admitted source record alone never
++/// establishes absence: the presence provider must distinguish these states.
++#[derive(Clone, Copy, Debug, PartialEq, Eq)]
++pub enum Availability {
++    /// Source is admitted in the selected generation.
++    Admitted,
++    /// Candidate is proven not to be a regular file in the captured namespace.
++    Absent,
++    /// Candidate exists or is opaque, but is not an admitted source.
++    Unavailable,
++    /// No reliable presence decision is available.
++    Unknown,
++}
++
++impl Availability {
++    /// Stable observation name for diagnostics and evidence.
++    #[must_use]
++    pub const fn as_str(self) -> &'static str {
++        match self {
++            Self::Admitted => "admitted",
++            Self::Absent => "absent",
++            Self::Unavailable => "unavailable",
++            Self::Unknown => "unknown",
++        }
++    }
++}
++
+ /// A distinct path observed during resolution, including negative dependencies.
+ #[derive(Clone, Debug, PartialEq, Eq)]
+ pub struct Probe {
+     /// Workspace-relative path.
+     pub path: String,
+-    /// Admitted file was present in this generation.
+-    pub present: bool,
++    /// Admission or qualified absence, including unavailable/unknown candidates.
++    pub availability: Availability,
+     /// A package boundary was present, even if its source was unavailable.
+     pub package_boundary: bool,
+ }
+@@ -114,22 +141,28 @@
+     options: &'a Options,
+     files: &'a BTreeSet<String>,
+     packages: &'a BTreeSet<String>,
+-    cache: BTreeMap<String, bool>,
++    presence: &'a mut dyn FnMut(&str) -> Result<Availability, &'static str>,
++    cache: BTreeMap<String, Result<Availability, &'static str>>,
+     probes: Vec<Probe>,
+ }
+ 
+ impl<'a> Lookup<'a> {
+-    /// Start a single resolution without reading the filesystem.
++    /// Start a single resolution. `presence` qualifies candidates not admitted in
++    /// the supplied source set; it must not return `Admitted`. Unknown/unavailable
++    /// candidates stop fallback. The caller owns capture/validation of namespace
++    /// facts; core performs no direct filesystem access.
+     #[must_use]
+     pub fn new(
+         options: &'a Options,
+         files: &'a BTreeSet<String>,
+         packages: &'a BTreeSet<String>,
++        presence: &'a mut dyn FnMut(&str) -> Result<Availability, &'static str>,
+     ) -> Self {
+         Self {
+             options,
+             files,
+             packages,
++            presence,
+             cache: BTreeMap::new(),
+             probes: Vec::new(),
+         }
+@@ -171,8 +204,12 @@
+         }
+         let directory = candidate.trim_end_matches('/');
+         let package = in_directory(directory, "package.json");
+-        if self.observe(&package)? || self.packages.contains(&package) {
+-            return Err("ts_module_package_directory_unmodeled");
++        match self.observe(&package)? {
++            Availability::Admitted | Availability::Unavailable => {
++                return Err("ts_module_package_directory_unmodeled");
++            }
++            Availability::Unknown => return Err("ts_module_presence_unknown"),
++            Availability::Absent => {}
+         }
+         self.file(&in_directory(directory, "index"))
+     }
+@@ -222,32 +259,44 @@
+             .ok_or("ts_module_path_unsupported")?;
+         for suffix in &self.options.suffixes {
+             let path = format!("{stem}{suffix}{extension}");
+-            if self.observe(&path)? {
+-                return Ok(Some(path));
+-            }
+-            if self.packages.contains(&path) {
+-                return Err("ts_module_target_unavailable");
++            match self.observe(&path)? {
++                Availability::Admitted => return Ok(Some(path)),
++                Availability::Absent => {}
++                Availability::Unavailable => return Err("ts_module_target_unavailable"),
++                Availability::Unknown => return Err("ts_module_presence_unknown"),
+             }
+         }
+         Ok(None)
+     }
+ 
+-    fn observe(&mut self, path: &str) -> Result<bool, &'static str> {
++    fn observe(&mut self, path: &str) -> Result<Availability, &'static str> {
+         valid_path(path)?;
+         if let Some(present) = self.cache.get(path) {
+-            return Ok(*present);
++            return *present;
+         }
+         if self.probes.len() >= MAX_PROBES {
+             return Err("ts_module_probe_limit");
+         }
+-        let present = self.files.contains(path);
+-        self.cache.insert(path.into(), present);
++        let availability = if self.files.contains(path) {
++            Ok(Availability::Admitted)
++        } else if self.packages.contains(path) {
++            Ok(Availability::Unavailable)
++        } else {
++            (self.presence)(path).and_then(|state| {
++                if state == Availability::Admitted {
++                    Err("ts_module_presence_inconsistent")
++                } else {
++                    Ok(state)
++                }
++            })
++        };
++        self.cache.insert(path.into(), availability);
+         self.probes.push(Probe {
+             path: path.into(),
+-            present,
++            availability: availability.unwrap_or(Availability::Unknown),
+             package_boundary: self.packages.contains(path),
+         });
+-        Ok(present)
++        availability
+     }
+ }
+ 
+@@ -290,6 +339,48 @@
+ mod tests {
+     use super::*;
+     use serde_json::json;
++
++    #[test]
++    fn unavailable_and_unknown_preferred_candidates_never_select_a_lower_priority_file() {
++        let options = compile_options(Mode::Bundler, json!({})).unwrap();
++        let known = files(&["src/x.js"]);
++        let packages = BTreeSet::new();
++        for (state, reason) in [
++            (Availability::Unavailable, "ts_module_target_unavailable"),
++            (Availability::Unknown, "ts_module_presence_unknown"),
++        ] {
++            let mut presence = |_: &str| Ok(state);
++            let mut lookup = Lookup::new(&options, &known, &packages, &mut presence);
++            assert_eq!(lookup.load("src/x.js", None), Err(reason));
++            assert_eq!(lookup.probes().len(), 1);
++            assert_eq!(lookup.probes()[0].path, "src/x.ts");
++            assert_eq!(lookup.probes()[0].availability, state);
++        }
++    }
++
++    #[test]
++    fn presence_errors_are_recorded_cached_and_cannot_invent_admission() {
++        let options = compile_options(Mode::Bundler, json!({})).unwrap();
++        let known = files(&["x.js"]);
++        let packages = BTreeSet::new();
++        let mut calls = 0;
++        let mut presence = |_: &str| {
++            calls += 1;
++            Err("ts_module_presence_limit")
++        };
++        let mut lookup = Lookup::new(&options, &known, &packages, &mut presence);
++        assert_eq!(lookup.load("x.js", None), Err("ts_module_presence_limit"));
++        assert_eq!(lookup.load("x.js", None), Err("ts_module_presence_limit"));
++        assert_eq!(lookup.probes()[0].availability, Availability::Unknown);
++        assert_eq!(calls, 1);
++        let mut inconsistent = |_: &str| Ok(Availability::Admitted);
++        let mut lookup = Lookup::new(&options, &known, &packages, &mut inconsistent);
++        assert_eq!(
++            lookup.load("x.js", None),
++            Err("ts_module_presence_inconsistent")
++        );
++        assert_eq!(lookup.probes()[0].availability, Availability::Unknown);
++    }
+ 
+     fn compile_options(mode: Mode, extra: Value) -> Result<Options, &'static str> {
+         let Value::Object(mut values) = extra else {
+@@ -321,7 +412,8 @@
+         let options = compile_options(Mode::Bundler, json!({})).unwrap();
+         let known = files(&["src/x.js", "src/x.ts", "src/x.tsx"]);
+         let packages = BTreeSet::new();
+-        let mut lookup = Lookup::new(&options, &known, &packages);
++        let mut absent = |_: &str| Ok(Availability::Absent);
++        let mut lookup = Lookup::new(&options, &known, &packages, &mut absent);
+         assert_eq!(
+             lookup.load("src/x.js", Some("./src/x.js")).unwrap(),
+             Some("src/x.js".into())
+@@ -341,9 +433,10 @@
+     fn modes_separate_extensionless_and_index_loading_from_esm() {
+         let known = files(&["src/file.ts", "src/dir/index.ts", "src/dir.ts"]);
+         let packages = BTreeSet::new();
++        let mut absent = |_: &str| Ok(Availability::Absent);
+         for mode in [Mode::Bundler, Mode::NodeCommonJs, Mode::NodeEsm] {
+             let options = compile_options(mode, json!({})).unwrap();
+-            let mut lookup = Lookup::new(&options, &known, &packages);
++            let mut lookup = Lookup::new(&options, &known, &packages, &mut absent);
+             assert_eq!(
+                 lookup.load("src/file.js", None).unwrap(),
+                 Some("src/file.ts".into())
+@@ -363,9 +456,10 @@
+     fn suffix_order_is_inside_extension_order_and_omitted_empty_suffix_does_not_fall_back() {
+         let known = files(&["x.ts", "x.tsx", "x.native.tsx", "x.native.d.ts"]);
+         let packages = BTreeSet::new();
++        let mut absent = |_: &str| Ok(Availability::Absent);
+         let options =
+             compile_options(Mode::Bundler, json!({"moduleSuffixes":[".native", ""]})).unwrap();
+-        let mut lookup = Lookup::new(&options, &known, &packages);
++        let mut lookup = Lookup::new(&options, &known, &packages, &mut absent);
+         assert_eq!(lookup.load("x", None).unwrap(), Some("x.ts".into()));
+         assert_eq!(
+             lookup
+@@ -377,13 +471,13 @@
+         );
+         let only = compile_options(Mode::Bundler, json!({"moduleSuffixes":[".native"]})).unwrap();
+         assert_eq!(
+-            Lookup::new(&only, &known, &packages)
++            Lookup::new(&only, &known, &packages, &mut absent)
+                 .load("x", None)
+                 .unwrap(),
+             Some("x.native.tsx".into())
+         );
+         assert_eq!(
+-            Lookup::new(&only, &known, &packages)
++            Lookup::new(&only, &known, &packages, &mut absent)
+                 .load("x.d.ts", Some("x.d.ts"))
+                 .unwrap(),
+             Some("x.native.d.ts".into())
+@@ -400,8 +494,9 @@
+             "double.js.ts",
+         ]);
+         let packages = BTreeSet::new();
++        let mut absent = |_: &str| Ok(Availability::Absent);
+         let options = compile_options(Mode::Bundler, json!({"resolveJsonModule":false})).unwrap();
+-        let mut lookup = Lookup::new(&options, &known, &packages);
++        let mut lookup = Lookup::new(&options, &known, &packages, &mut absent);
+         for (candidate, expected) in [
+             ("x.mjs", "x.d.mts"),
+             ("y.cjs", "y.cts"),
+@@ -422,7 +517,8 @@
+         let options = compile_options(Mode::Bundler, json!({})).unwrap();
+         let known = files(&["pkg/index.ts"]);
+         let packages = files(&["pkg/package.json"]);
+-        let mut lookup = Lookup::new(&options, &known, &packages);
++        let mut absent = |_: &str| Ok(Availability::Absent);
++        let mut lookup = Lookup::new(&options, &known, &packages, &mut absent);
+         assert_eq!(
+             lookup.load("pkg", None),
+             Err("ts_module_package_directory_unmodeled")
+@@ -432,7 +528,7 @@
+             .iter()
+             .find(|probe| probe.path == "pkg/package.json")
+             .unwrap();
+-        assert!(!boundary.present && boundary.package_boundary);
++        assert!(boundary.availability == Availability::Unavailable && boundary.package_boundary);
+         assert_eq!(
+             lookup.load("pkg/package.json", Some("pkg/package.json")),
+             Err("ts_module_target_unavailable")
+@@ -444,7 +540,8 @@
+         let options = compile_options(Mode::Bundler, json!({})).unwrap();
+         let known = BTreeSet::new();
+         let packages = BTreeSet::new();
+-        let mut lookup = Lookup::new(&options, &known, &packages);
++        let mut absent = |_: &str| Ok(Availability::Absent);
++        let mut lookup = Lookup::new(&options, &known, &packages, &mut absent);
+         assert_eq!(lookup.load("missing", None).unwrap(), None);
+         let count = lookup.probes().len();
+         assert_eq!(lookup.load("missing", None).unwrap(), None);
+@@ -462,7 +559,7 @@
+             lookup
+                 .probes()
+                 .iter()
+-                .all(|probe| !probe.present && !probe.package_boundary)
++                .all(|probe| probe.availability == Availability::Absent && !probe.package_boundary)
+         );
+     }
+ 
+@@ -482,8 +579,9 @@
+         let options = compile_options(Mode::Bundler, json!({})).unwrap();
+         let known = BTreeSet::new();
+         let packages = BTreeSet::new();
++        let mut absent = |_: &str| Ok(Availability::Absent);
+         for candidate in ["../x", "/absolute", "a/../x", "a//x", "a\\x"] {
+-            let mut lookup = Lookup::new(&options, &known, &packages);
++            let mut lookup = Lookup::new(&options, &known, &packages, &mut absent);
+             assert_eq!(
+                 lookup.load(candidate, None),
+                 Err("ts_module_path_unsupported")
+--- a/crates/graph-search/src/lib.rs
++++ b/crates/graph-search/src/lib.rs
+@@ -17,6 +17,7 @@
+ pub mod error;
+ pub mod index;
+ pub mod lock;
++pub mod module_presence;
+ mod node_package;
+ mod package_manifests;
+ mod pnpm_workspace;
+--- a/crates/graph-search/src/module_presence.rs
++++ b/crates/graph-search/src/module_presence.rs
+@@ -0,0 +1,255 @@
++//! Metadata-only capture of module-candidate presence. This adapter qualifies
++//! absent source records; it never reads excluded source contents or admits them.
++use graph_search_core::typescript_files::Availability;
++use std::{
++    collections::BTreeMap,
++    path::{Path, PathBuf},
++};
++
++/// Maximum distinct namespace metadata observations in one capture.
++pub const MAX_OBSERVATIONS: usize = 4096;
++
++/// Observed namespace entry kind, independent of source admission.
++#[derive(Clone, Copy, Debug, PartialEq, Eq)]
++pub enum Kind {
++    /// The path was absent or obstructed by a non-directory prefix.
++    Absent,
++    /// A regular file exists; admission remains the index's decision.
++    File,
++    /// A directory exists.
++    Directory,
++    /// A symlink or other opaque entry exists.
++    Opaque,
++    /// Metadata could not be inspected reliably.
++    Unknown,
++}
++
++impl Kind {
++    /// Stable name for observation reports.
++    #[must_use]
++    pub const fn as_str(self) -> &'static str {
++        match self {
++            Self::Absent => "absent",
++            Self::File => "file",
++            Self::Directory => "directory",
++            Self::Opaque => "opaque",
++            Self::Unknown => "unknown",
++        }
++    }
++}
++
++/// A bounded namespace capture for use while constructing a resolution context.
++/// Observed opaque prefixes stop traversal. Call `validate` before accepting its
++/// decisions; this is not an atomic filesystem snapshot or persisted freshness
++/// integration. The caller still owns the admitted generation's source identity.
++pub struct Capture {
++    root: PathBuf,
++    observations: BTreeMap<String, Kind>,
++    limit: usize,
++}
++
++impl Capture {
++    /// Capture the workspace root without reading source content.
++    ///
++    /// # Errors
++    /// The root cannot be canonicalized or is not a directory.
++    pub fn new(root: &Path) -> std::io::Result<Self> {
++        Self::with_limit(root, MAX_OBSERVATIONS)
++    }
++
++    /// Create a capture with a lower observation limit (clamped to the hard cap).
++    ///
++    /// # Errors
++    /// The root cannot be canonicalized or is not a directory.
++    pub fn with_limit(root: &Path, limit: usize) -> std::io::Result<Self> {
++        let root = root.canonicalize()?;
++        if kind(&root) != Kind::Directory {
++            return Err(std::io::Error::other(
++                "module presence root is not a directory",
++            ));
++        }
++        Ok(Self {
++            root,
++            observations: BTreeMap::from([(String::new(), Kind::Directory)]),
++            limit: limit.clamp(1, MAX_OBSERVATIONS),
++        })
++    }
++
++    /// Qualify a normalized workspace-relative candidate that is not admitted.
++    /// Existing files/opaque paths are unavailable, not absent. An observed file
++    /// in an intermediate component proves that a descendant cannot be a file.
++    ///
++    /// # Errors
++    /// Invalid path, observation budget exhausted, or metadata unavailable.
++    pub fn classify(&mut self, path: &str) -> Result<Availability, &'static str> {
++        if path.len() > 4096 || path.starts_with('/') || path.contains(['\\', ':', '\0']) {
++            return Err("ts_module_presence_path_invalid");
++        }
++        let path = path.trim_end_matches('/');
++        if path.is_empty() {
++            return Ok(Availability::Absent);
++        }
++        let parts: Vec<_> = path.split('/').collect();
++        if parts.iter().any(|part| matches!(*part, "" | "." | "..")) {
++            return Err("ts_module_presence_path_invalid");
++        }
++        let mut prefix = String::new();
++        let mut parts = parts.into_iter().peekable();
++        while let Some(part) = parts.next() {
++            if !prefix.is_empty() {
++                prefix.push('/');
++            }
++            prefix.push_str(part);
++            match self.observe(&prefix)? {
++                Kind::Absent => return Ok(Availability::Absent),
++                Kind::File if parts.peek().is_some() => return Ok(Availability::Absent),
++                Kind::File | Kind::Opaque => return Ok(Availability::Unavailable),
++                Kind::Directory => {}
++                Kind::Unknown => return Err("ts_module_presence_io"),
++            }
++        }
++        Ok(Availability::Absent)
++    }
++
++    /// Captured namespace footprint, including missing parent paths.
++    #[must_use]
++    pub fn observations(&self) -> &BTreeMap<String, Kind> {
++        &self.observations
++    }
++
++    /// Recheck the observed footprint in prefix order. Changed prefixes stop the
++    /// check before descendants, including a directory replaced by an opaque path.
++    /// Contents/mtime of regular files are deliberately not presence identities.
++    ///
++    /// # Errors
++    /// A captured observation changed or metadata is unavailable. Callers must
++    /// discard a positive resolution instead of publishing a mixed observation.
++    pub fn validate(&self) -> Result<(), &'static str> {
++        for (path, expected) in &self.observations {
++            let actual = kind(&self.root.join(path));
++            if actual == Kind::Unknown || *expected == Kind::Unknown {
++                return Err("ts_module_presence_io");
++            }
++            if actual != *expected {
++                return Err("ts_module_presence_changed");
++            }
++        }
++        Ok(())
++    }
++
++    fn observe(&mut self, path: &str) -> Result<Kind, &'static str> {
++        if let Some(kind) = self.observations.get(path) {
++            return Ok(*kind);
++        }
++        if self.observations.len() >= self.limit {
++            return Err("ts_module_presence_limit");
++        }
++        let kind = kind(&self.root.join(path));
++        self.observations.insert(path.into(), kind);
++        Ok(kind)
++    }
++}
++
++fn kind(path: &Path) -> Kind {
++    match std::fs::symlink_metadata(path) {
++        Ok(metadata) if metadata.is_file() => Kind::File,
++        Ok(metadata) if metadata.is_dir() => Kind::Directory,
++        Ok(_) => Kind::Opaque,
++        Err(error)
++            if matches!(
++                error.kind(),
++                std::io::ErrorKind::NotFound | std::io::ErrorKind::NotADirectory
++            ) =>
++        {
++            Kind::Absent
++        }
++        Err(_) => Kind::Unknown,
++    }
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++
++    #[test]
++    fn files_directories_missing_paths_and_obstructions_have_distinct_presence() {
++        let root = tempfile::tempdir().unwrap();
++        std::fs::create_dir(root.path().join("src")).unwrap();
++        std::fs::write(root.path().join("src/opaque.ts"), [0xff, 0xfe, 0]).unwrap();
++        std::fs::write(root.path().join("plain"), b"not a directory").unwrap();
++        let mut capture = Capture::new(root.path()).unwrap();
++        assert_eq!(
++            capture.classify("src/opaque.ts"),
++            Ok(Availability::Unavailable)
++        );
++        assert_eq!(capture.classify("src"), Ok(Availability::Absent));
++        assert_eq!(capture.classify("src/missing.ts"), Ok(Availability::Absent));
++        assert_eq!(capture.classify("plain/child.ts"), Ok(Availability::Absent));
++        assert!(!capture.observations().contains_key("plain/child.ts"));
++        assert_eq!(capture.validate(), Ok(()));
++    }
++
++    #[test]
++    fn changed_namespace_observations_invalidate_but_file_contents_are_not_presence() {
++        let root = tempfile::tempdir().unwrap();
++        let mut missing = Capture::new(root.path()).unwrap();
++        assert_eq!(missing.classify("new.ts"), Ok(Availability::Absent));
++        std::fs::write(root.path().join("new.ts"), b"first").unwrap();
++        assert_eq!(missing.validate(), Err("ts_module_presence_changed"));
++        let mut existing = Capture::new(root.path()).unwrap();
++        assert_eq!(existing.classify("new.ts"), Ok(Availability::Unavailable));
++        std::fs::write(root.path().join("new.ts"), b"different content").unwrap();
++        assert_eq!(existing.validate(), Ok(()));
++        std::fs::remove_file(root.path().join("new.ts")).unwrap();
++        assert_eq!(existing.validate(), Err("ts_module_presence_changed"));
++    }
++
++    #[test]
++    fn missing_parent_creation_limits_and_invalid_paths_never_become_false_absence() {
++        let root = tempfile::tempdir().unwrap();
++        let mut capture = Capture::new(root.path()).unwrap();
++        assert_eq!(
++            capture.classify("missing/child.ts"),
++            Ok(Availability::Absent)
++        );
++        assert_eq!(capture.observations().len(), 2);
++        std::fs::create_dir(root.path().join("missing")).unwrap();
++        assert_eq!(capture.validate(), Err("ts_module_presence_changed"));
++        let mut limited = Capture::with_limit(root.path(), 1).unwrap();
++        assert_eq!(limited.classify("new.ts"), Err("ts_module_presence_limit"));
++        assert_eq!(limited.observations().len(), 1);
++        for path in ["../escape.ts", "/absolute", "a//b", "a/../b", "a\\b"] {
++            assert_eq!(
++                limited.classify(path),
++                Err("ts_module_presence_path_invalid")
++            );
++        }
++        assert_eq!(limited.observations().len(), 1);
++    }
++
++    #[cfg(unix)]
++    #[test]
++    fn observed_symlink_prefixes_stop_traversal_and_replacements_invalidate() {
++        let root = tempfile::tempdir().unwrap();
++        let outside = tempfile::tempdir().unwrap();
++        std::fs::write(outside.path().join("outside.ts"), b"not admitted").unwrap();
++        std::os::unix::fs::symlink(outside.path(), root.path().join("link")).unwrap();
++        let mut capture = Capture::new(root.path()).unwrap();
++        assert_eq!(
++            capture.classify("link/outside.ts"),
++            Ok(Availability::Unavailable)
++        );
++        assert_eq!(capture.observations()["link"], Kind::Opaque);
++        assert!(!capture.observations().contains_key("link/outside.ts"));
++        assert_eq!(capture.validate(), Ok(()));
++        std::fs::create_dir(root.path().join("dir")).unwrap();
++        let mut replaced = Capture::new(root.path()).unwrap();
++        assert_eq!(
++            replaced.classify("dir/outside.ts"),
++            Ok(Availability::Absent)
++        );
++        std::fs::remove_dir(root.path().join("dir")).unwrap();
++        std::os::unix::fs::symlink(outside.path(), root.path().join("dir")).unwrap();
++        assert_eq!(replaced.validate(), Err("ts_module_presence_changed"));
++    }
++}
+--- a/crates/graph-search/tests/typescript_files.rs
++++ b/crates/graph-search/tests/typescript_files.rs
+@@ -1,11 +1,12 @@
+ //! Composed native module lookup uses published facts, including negative paths.
+ #![allow(clippy::unwrap_used, clippy::panic)]
++use graph_search::module_presence::Capture;
+ use graph_search::{Index, OpenOptions};
+ use graph_search_core::{
+     ports::GraphStore,
+     typescript::inherit,
+     typescript_aliases::{Aliases, Dispatch},
+-    typescript_files::{Lookup, Mode, Options, Probe},
++    typescript_files::{Availability, Lookup, Mode, Options, Probe},
+ };
+ use graph_search_engine::{GrafeoStore, StoreOptions};
+ use std::{collections::BTreeSet, path::Path};
+@@ -24,7 +25,7 @@
+     Vec<Probe>,
+ );
+ 
+-fn resolve(store: &Path, specifier: &str) -> Result {
++fn resolve(root: &Path, store: &Path, specifier: &str) -> Result {
+     let store = GrafeoStore::open(store, &StoreOptions::default()).unwrap();
+     let packages = store.manifest().unwrap().unwrap().package_boundaries;
+     let snapshot = store.snapshot().unwrap();
+@@ -32,11 +33,15 @@
+     let aliases = Aliases::compile(&config).unwrap();
+     let options = Options::compile(&config, Mode::Bundler).unwrap();
+     let known: BTreeSet<_> = snapshot.source_files().keys().cloned().collect();
+-    let mut lookup = Lookup::new(&options, &known, &packages);
++    let mut capture = Capture::new(root).unwrap();
++    let mut presence = |path: &str| capture.classify(path);
++    let mut lookup = Lookup::new(&options, &known, &packages, &mut presence);
+     let result = aliases.resolve(specifier, |path, substitution| {
+         lookup.load(path, substitution)
+     });
+-    (result, lookup.probes().to_vec())
++    let probes = lookup.probes().to_vec();
++    capture.validate().unwrap();
++    (result, probes)
+ }
+ 
+ fn assert_target(result: &Result, target: &str) {
+@@ -44,10 +49,10 @@
+ }
+ 
+ fn parity(root: &Path, store: &Path, specifier: &str) -> Result {
+-    let actual = resolve(store, specifier);
++    let actual = resolve(root, store, specifier);
+     let clean = tempfile::tempdir().unwrap();
+     open(root, clean.path()).reindex().unwrap();
+-    assert_eq!(actual, resolve(clean.path(), specifier));
++    assert_eq!(actual, resolve(root, clean.path(), specifier));
+     actual
+ }
+ 
+@@ -69,13 +74,14 @@
+     .unwrap();
+     let index = open(root.path(), store.path());
+     index.reindex().unwrap();
+-    let original = resolve(store.path(), "@/target.js");
++    let original = resolve(root.path(), store.path(), "@/target.js");
+     assert_target(&original, "src/target.js");
+     assert!(
+         original
+             .1
+             .iter()
+-            .any(|probe| probe.path == "src/target.ts" && !probe.present)
++            .any(|probe| probe.path == "src/target.ts"
++                && probe.availability != Availability::Admitted)
+     );
+ 
+     std::fs::write(
+@@ -130,7 +136,8 @@
+         original
+             .1
+             .iter()
+-            .any(|probe| probe.path == "src/target.ts" && !probe.present)
++            .any(|probe| probe.path == "src/target.ts"
++                && probe.availability != Availability::Admitted)
+     );
+ }
+ 
+@@ -166,11 +173,11 @@
+             .1
+             .iter()
+             .any(|probe| probe.path == "pkg/package.json"
+-                && !probe.present
++                && probe.availability != Availability::Admitted
+                 && probe.package_boundary)
+     );
+     assert_eq!(
+-        resolve(store.path(), "@manifest").0,
++        resolve(root.path(), store.path(), "@manifest").0,
+         Err("ts_module_target_unavailable")
+     );
+ 
+@@ -185,3 +192,60 @@
+         "pkg/package.json",
+     );
+ }
++
++#[test]
++fn oversized_and_ignored_preferred_files_block_fallback_until_removed_or_admitted() {
++    let root = tempfile::tempdir().unwrap();
++    let store = tempfile::tempdir().unwrap();
++    std::fs::create_dir(root.path().join(".graph-search")).unwrap();
++    std::fs::write(
++        root.path().join(".graph-search/config.toml"),
++        "max_file_bytes = 256\n",
++    )
++    .unwrap();
++    std::fs::create_dir(root.path().join("src")).unwrap();
++    std::fs::write(
++        root.path().join("tsconfig.json"),
++        r#"{"compilerOptions":{"moduleResolution":"bundler","paths":{"@/*":["./src/*"]}}}"#,
++    )
++    .unwrap();
++    let preferred = root.path().join("src/entry.ts");
++    std::fs::write(
++        &preferred,
++        format!("// {}\nexport const entry = 1;", "x".repeat(1024)),
++    )
++    .unwrap();
++    std::fs::write(root.path().join("src/entry.js"), "export const entry = 2;").unwrap();
++    let index = open(root.path(), store.path());
++    index.reindex().unwrap();
++    let blocked = parity(root.path(), store.path(), "@/entry.js");
++    assert_eq!(blocked.0, Err("ts_module_target_unavailable"));
++    assert_eq!(blocked.1.len(), 1);
++    assert_eq!(blocked.1[0].path, "src/entry.ts");
++    assert_eq!(blocked.1[0].availability, Availability::Unavailable);
++
++    std::fs::remove_file(&preferred).unwrap();
++    index.sync().unwrap();
++    assert_target(
++        &parity(root.path(), store.path(), "@/entry.js"),
++        "src/entry.js",
++    );
++    std::fs::write(&preferred, "export const entry = 1;").unwrap();
++    index.sync().unwrap();
++    assert_target(
++        &parity(root.path(), store.path(), "@/entry.js"),
++        "src/entry.ts",
++    );
++
++    std::fs::write(root.path().join(".ignore"), "src/entry.ts\n").unwrap();
++    index.sync().unwrap();
++    let ignored = parity(root.path(), store.path(), "@/entry.js");
++    assert_eq!(ignored.0, Err("ts_module_target_unavailable"));
++    assert_eq!(ignored.1, blocked.1);
++    std::fs::remove_file(root.path().join(".ignore")).unwrap();
++    index.sync().unwrap();
++    assert_target(
++        &parity(root.path(), store.path(), "@/entry.js"),
++        "src/entry.ts",
++    );
++}

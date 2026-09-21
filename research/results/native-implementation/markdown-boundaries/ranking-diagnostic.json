@@ -1,0 +1,90 @@
+[
+  {
+    "variant": "before",
+    "calls": [
+      {
+        "query": {
+          "query": "Plan to apply include filtering before the text-search cap, preserving truthful truncation reporting. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository."
+        },
+        "candidates": [
+          "candidate AGENTS.md:433 AGENTS.md",
+          "candidate crates/nanus-adapter-local/src/fs.rs:207 edit_blocking",
+          "candidate crates/nanus-adapter-local/tests/fs.rs:318 crates/nanus-adapter-local/tests/fs.rs",
+          "candidate crates/nanus-bundle/src/tools/grep.rs:86 grep_outcome",
+          "candidate crates/nanus-bundle/src/tools/grep.rs:161 filter_by_include",
+          "candidate crates/nanus-adapter-local/tests/fs.rs:281 glob_search_reports_truncation_at_the_cap",
+          "candidate crates/nanus-adapter-local/src/fs.rs:423 crates/nanus-adapter-local/src/fs.rs",
+          "candidate crates/nanus-bundle/src/tools/grep.rs:212 render_matches"
+        ]
+      },
+      {
+        "query": {
+          "path": "AGENTS.md",
+          "start": 423,
+          "count": 100
+        },
+        "candidates": []
+      },
+      {
+        "query": {
+          "path": "crates/nanus-adapter-local/src/fs.rs",
+          "start": 197,
+          "count": 100
+        },
+        "candidates": []
+      },
+      {
+        "query": {
+          "path": "crates/nanus-adapter-local/tests/fs.rs",
+          "start": 308,
+          "count": 100
+        },
+        "candidates": []
+      }
+    ]
+  },
+  {
+    "variant": "after",
+    "calls": [
+      {
+        "query": {
+          "query": "Plan to apply include filtering before the text-search cap, preserving truthful truncation reporting. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository."
+        },
+        "candidates": [
+          "candidate AGENTS.md:433 AGENTS.md",
+          "candidate crates/nanus-adapter-local/src/fs.rs:207 edit_blocking",
+          "candidate crates/nanus-adapter-local/tests/fs.rs:318 crates/nanus-adapter-local/tests/fs.rs",
+          "candidate crates/nanus-adapter-local/tests/fs.rs:281 glob_search_reports_truncation_at_the_cap",
+          "candidate crates/nanus-bundle/src/tools/grep.rs:161 filter_by_include",
+          "candidate crates/nanus-bundle/src/tools/grep.rs:86 grep_outcome",
+          "candidate crates/nanus-adapter-local/src/fs.rs:423 crates/nanus-adapter-local/src/fs.rs",
+          "candidate crates/nanus-bundle/src/tools/grep.rs:212 render_matches"
+        ]
+      },
+      {
+        "query": {
+          "path": "AGENTS.md",
+          "start": 423,
+          "count": 100
+        },
+        "candidates": []
+      },
+      {
+        "query": {
+          "path": "crates/nanus-adapter-local/src/fs.rs",
+          "start": 197,
+          "count": 100
+        },
+        "candidates": []
+      },
+      {
+        "query": {
+          "path": "crates/nanus-adapter-local/tests/fs.rs",
+          "start": 308,
+          "count": 100
+        },
+        "candidates": []
+      }
+    ]
+  }
+]

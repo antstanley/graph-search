@@ -1,0 +1,25 @@
+   Compiling graph-search-langs v0.1.0 (/Volumes/Delorean/code/graph-search/crates/langs)
+   Compiling graph-search v0.1.0 (/Volumes/Delorean/code/graph-search/crates/graph-search)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 27.17s
+     Running tests/scopes.rs (target/debug/deps/scopes-c62a40e7d4e32ef0)
+
+running 1 test
+test rust_unqualified_calls_cannot_inherit_parent_module_items ... FAILED
+
+failures:
+
+---- rust_unqualified_calls_cannot_inherit_parent_module_items stdout ----
+
+thread 'rust_unqualified_calls_cannot_inherit_parent_module_items' (82065320) panicked at crates/graph-search/tests/scopes.rs:72:9:
+assertion `left == right` failed: invalid: [EdgeHit { from: "sym:lib.rs#function:child::invalid", kind: Calls, to: Some("sym:lib.rs#function:send"), to_name: "send", path: Some("lib.rs"), line: Some(2), resolved: true, occurrence_count: Some(1) }]
+  left: true
+ right: false
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    rust_unqualified_calls_cannot_inherit_parent_module_items
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 12 filtered out; finished in 0.05s
+
+error: test failed, to rerun pass `-p graph-search --test scopes`

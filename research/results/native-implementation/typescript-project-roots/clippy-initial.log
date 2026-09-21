@@ -1,0 +1,140 @@
+    Blocking waiting for file lock on build directory
+    Checking graph-search-core v0.1.0 (/Volumes/Delorean/code/graph-search/crates/core)
+error: arithmetic operation that can potentially result in unexpected side-effects
+  --> crates/core/src/typescript_patterns.rs:97:39
+   |
+97 |         let mut current = vec![false; names.len() + 1];
+   |                                       ^^^^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#arithmetic_side_effects
+   = note: requested on the command line with `-D clippy::arithmetic-side-effects`
+
+error: arithmetic operation that can potentially result in unexpected side-effects
+   --> crates/core/src/typescript_patterns.rs:100:40
+    |
+100 |             let mut next = vec![false; names.len() + 1];
+    |                                        ^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#arithmetic_side_effects
+
+error: arithmetic operation that can potentially result in unexpected side-effects
+   --> crates/core/src/typescript_patterns.rs:110:30
+    |
+110 |                         next[index + 1] = true;
+    |                              ^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#arithmetic_side_effects
+
+error: arithmetic operation that can potentially result in unexpected side-effects
+   --> crates/core/src/typescript_patterns.rs:117:25
+    |
+117 |                         index + 1 == names.len(),
+    |                         ^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#arithmetic_side_effects
+
+error: arithmetic operation that can potentially result in unexpected side-effects
+   --> crates/core/src/typescript_patterns.rs:113:26
+    |
+113 |                     next[index + 1] = component(
+    |                          ^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#arithmetic_side_effects
+
+error: arithmetic operation that can potentially result in unexpected side-effects
+   --> crates/core/src/typescript_patterns.rs:150:35
+    |
+150 |     let mut current = vec![false; name.len() + 1];
+    |                                   ^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#arithmetic_side_effects
+
+error: arithmetic operation that can potentially result in unexpected side-effects
+   --> crates/core/src/typescript_patterns.rs:153:36
+    |
+153 |         let mut next = vec![false; name.len() + 1];
+    |                                    ^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#arithmetic_side_effects
+
+error: arithmetic operation that can potentially result in unexpected side-effects
+   --> crates/core/src/typescript_patterns.rs:163:26
+    |
+163 |                     next[ni + 1] = true;
+    |                          ^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#arithmetic_side_effects
+
+error: arithmetic operation that can potentially result in unexpected side-effects
+   --> crates/core/src/typescript_patterns.rs:166:22
+    |
+166 |                 next[ni + 1] = if *token == u16::from(b'?') {
+    |                      ^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#arithmetic_side_effects
+
+error: case-sensitive file extension comparison
+   --> crates/core/src/typescript_roots.rs:115:13
+    |
+115 |             spec.ends_with(".json"),
+    |             ^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: consider using a case-insensitive comparison instead
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#case_sensitive_file_extension_comparisons
+    = note: `-D clippy::case-sensitive-file-extension-comparisons` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::case_sensitive_file_extension_comparisons)]`
+help: use std::path::Path
+    |
+115 ~             std::path::Path::new(spec)
+116 +                 .extension()
+117 ~                 .is_some_and(|ext| ext.eq_ignore_ascii_case("json")),
+    |
+
+error: case-sensitive file extension comparison
+   --> crates/core/src/typescript_roots.rs:137:23
+    |
+137 |         let is_json = path.ends_with(".json");
+    |                       ^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: consider using a case-insensitive comparison instead
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#case_sensitive_file_extension_comparisons
+help: use std::path::Path
+    |
+137 ~         let is_json = std::path::Path::new(path)
+138 +             .extension()
+139 ~             .is_some_and(|ext| ext.eq_ignore_ascii_case("json"));
+    |
+
+error: case-sensitive file extension comparison
+   --> crates/core/src/typescript_roots.rs:176:46
+    |
+176 |                     && !(*ext == ".d.ts" && (path.ends_with(".js") || path.ends_with(".jsx")))
+    |                                              ^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: consider using a case-insensitive comparison instead
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#case_sensitive_file_extension_comparisons
+help: use std::path::Path
+    |
+176 ~                     && !(*ext == ".d.ts" && (std::path::Path::new(path)
+177 +                         .extension()
+178 ~                         .is_some_and(|ext| ext.eq_ignore_ascii_case("js")) || path.ends_with(".jsx")))
+    |
+
+error: case-sensitive file extension comparison
+   --> crates/core/src/typescript_roots.rs:176:71
+    |
+176 |                     && !(*ext == ".d.ts" && (path.ends_with(".js") || path.ends_with(".jsx")))
+    |                                                                       ^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: consider using a case-insensitive comparison instead
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#case_sensitive_file_extension_comparisons
+help: use std::path::Path
+    |
+176 ~                     && !(*ext == ".d.ts" && (path.ends_with(".js") || std::path::Path::new(path)
+177 +                         .extension()
+178 ~                         .is_some_and(|ext| ext.eq_ignore_ascii_case("jsx"))))
+    |
+
+error: could not compile `graph-search-core` (lib) due to 13 previous errors
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `graph-search-core` (lib test) due to 13 previous errors

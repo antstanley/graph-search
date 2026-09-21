@@ -1,0 +1,45 @@
+{
+  "source_inputs": 157,
+  "source_inputs_unchanged": true,
+  "checks": [
+    {
+      "name": "initial fixture compilation failure; FileEntry has no Default",
+      "session": 96070,
+      "exit_code": 101
+    },
+    {
+      "name": "initial selective pack implementation; full engine",
+      "session": 60014,
+      "exit_code": 0,
+      "passed": 48
+    },
+    {
+      "name": "final selected byte ranges; full engine",
+      "session": 41832,
+      "exit_code": 0,
+      "passed": 49
+    },
+    {
+      "name": "incremental integration and binding matrix",
+      "session": 26897,
+      "exit_code": 0,
+      "passed": 6,
+      "adapter_scenario_combinations": 24
+    },
+    {
+      "name": "strict workspace Clippy all targets",
+      "session": 79495,
+      "exit_code": 0
+    }
+  ],
+  "range_reader_fixture": {
+    "pack_bytes": 4108,
+    "selected_data_bytes_read": 10,
+    "selected_paths": 2,
+    "unique_selected_slices": 1,
+    "test": "source_records::tests::selected_ranges_read_only_required_bytes_and_share_duplicate_slices"
+  },
+  "normal_sync_uses_selective_api": false,
+  "layout_or_dependency_changed": false,
+  "remaining": "Persist reverse dependencies and module surfaces; select raw-fact reads in reconciliation; explicitly retain untouched packed facts during publication."
+}

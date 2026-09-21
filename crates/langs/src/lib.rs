@@ -9,11 +9,17 @@
 #![forbid(unsafe_code)]
 #![warn(missing_docs)]
 
+mod class_bindings;
 pub mod css;
+mod doc_comments;
+pub mod embedded;
 pub mod html;
 pub mod javascript;
 pub mod js_common;
+mod js_modules;
 pub mod rust;
+mod rust_use;
+mod scopes;
 pub mod typescript;
 pub mod walk;
 

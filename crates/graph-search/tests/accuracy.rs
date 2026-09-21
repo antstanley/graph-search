@@ -283,9 +283,11 @@ fn explore_serialized_budget_and_snippet_cap_are_real() {
         "fn leaf() {\nlet a=1;\nlet b=2;\nlet c=3;\nlet d=4;\nlet e=5;\nlet f=6;\nlet g=7;\nlet h=8;\nlet i=9;\nlet j=10;\n}\nfn entry() { leaf(); }",
     )]);
     let mut q = ExploreQuery::new("leaf").with_context_lines(10);
-    q.max_bytes = 1000;
+    // Required source/runtime provenance can exceed a 1,000-byte envelope.
+    q.max_bytes = 2048;
     let r = i.search().explore(&q).unwrap();
-    assert!(serde_json::to_vec(&r).unwrap().len() <= 1000);
+    assert!(serde_json::to_vec(&r).unwrap().len() <= 2048);
+    assert!(!r.items.is_empty());
     assert!(
         r.items
             .iter()
@@ -293,6 +295,12 @@ fn explore_serialized_budget_and_snippet_cap_are_real() {
     );
     q.max_bytes = 1;
     assert!(i.search().explore(&q).is_err());
+    q.max_bytes = 1000;
+    match i.search().explore(&q) {
+        Ok(result) => assert!(serde_json::to_vec(&result).unwrap().len() <= 1000),
+        Err(graph_search::Error::Core(graph_search_core::Error::ResultBudget(1000))) => {}
+        Err(error) => panic!("unexpected budget failure: {error}"),
+    }
 }
 #[test]
 fn impact_keeps_all_converging_edges_and_orders_by_depth() {

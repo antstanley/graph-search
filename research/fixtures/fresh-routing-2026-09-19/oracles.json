@@ -1,0 +1,275 @@
+{
+  "nanus.fresh-turn-closure.debug": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "crates/nanus-bundle/src/agent_loop.rs",
+        "start": 504,
+        "end": 529,
+        "file_sha256": "d90d2ca2ce6e712c9ea259c721322c9c077da5a5902265cdf0033728cbf5c321",
+        "sha256": "afc4b327ad46bb7897fdea7b5b259b2a2fcc8c7f138e0bd9c117cbcf4707671d"
+      },
+      {
+        "id": "r2",
+        "path": "crates/nanus-bundle/src/agent_loop.rs",
+        "start": 581,
+        "end": 589,
+        "file_sha256": "d90d2ca2ce6e712c9ea259c721322c9c077da5a5902265cdf0033728cbf5c321",
+        "sha256": "8e8e7015b80d38b4b93a6a4f659159b855bcd438dd642e0baeb49b78d4487097"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "The failed stream closes its step; the outer error handler obtains a turn-end reason and appends it before returning the failure.",
+        "regions": [
+          "r1",
+          "r2"
+        ]
+      }
+    ],
+    "relationships": []
+  },
+  "nanus.fresh-runtime-tools.debug": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "crates/nanus-bundle/src/agent_loop.rs",
+        "start": 644,
+        "end": 667,
+        "file_sha256": "d90d2ca2ce6e712c9ea259c721322c9c077da5a5902265cdf0033728cbf5c321",
+        "sha256": "ec346afa5ba999886fa584e925f0a6f246eb609d05660212c682f1354eb81063"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "Each request borrows the current tool registry and copies its schemas into the request.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "relationships": []
+  },
+  "nanus.fresh-legacy-approval.debug": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "crates/nanus-domain/src/approval.rs",
+        "start": 45,
+        "end": 54,
+        "file_sha256": "f3854f6be5132a39326116034b38dc36ccaa06ceaf7b4e2a3f2c8d53042a8821",
+        "sha256": "d8f9ebf0f1a8ffe85a448b3ab99ff94974766e24db6ba9225ea350702abf922a"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "The legacy alias maps to PerCall, whereas AllCalls runs every outside-sandbox call without asking.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "relationships": []
+  },
+  "nanus.fresh-delete-symlink.debug": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "crates/nanus-adapter-store/src/store.rs",
+        "start": 356,
+        "end": 373,
+        "file_sha256": "4217a5e6a305371836971a504e666b8624239f47c97c1bfa82f78c0e17b21510",
+        "sha256": "43b799b3bf865e79ccccfb38dad2843e1dd4a2e070e52e27618f6d3d22f3a8b0"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "Deletion inspects symlink metadata, treats absence as success, unlinks a symlink, and recursively removes only a normal directory.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "relationships": []
+  },
+  "blogwright.fresh-refresh-metadata.debug": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "packages/build-agent/src/build.ts",
+        "start": 222,
+        "end": 229,
+        "file_sha256": "83659ba394598c471e616d84615299cdc80f234b582090aa805a9aaa66ba45ea",
+        "sha256": "52e232c44d5ebfd724ceaed36a7bd84c84bd040d50b2718cf130c6e20d4a6f58"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "Refresh forces upload; otherwise an existing ETag equal to the MD5 skips it.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "relationships": []
+  },
+  "blogwright.fresh-tagging-fallback.debug": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "packages/build-agent/src/build.ts",
+        "start": 247,
+        "end": 274,
+        "file_sha256": "83659ba394598c471e616d84615299cdc80f234b582090aa805a9aaa66ba45ea",
+        "sha256": "e3e935553fd85d55e26804b8e2d3e409cf023799b15c7d9ee306a942085677cc"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "AccessDenied disables tagging for later uploads and retries without tags; other errors propagate.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "relationships": []
+  },
+  "blogwright.fresh-invalid-date-rkey.debug": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "packages/pds/src/rkey.ts",
+        "start": 15,
+        "end": 41,
+        "file_sha256": "5fe76244ec0ace253bb189cc9e38ac4c5e40aceeedb2a3c40bafdd0d95c479c5",
+        "sha256": "dcc096a71b272b310077ba40030c5d33c29ea26cb03b11c3c088a181139f1f9f"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "Invalid date-like input falls back to a whole-path hash before TID encoding.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "relationships": []
+  },
+  "blogwright.fresh-sitemap-pages.debug": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "packages/build-agent/src/build.ts",
+        "start": 356,
+        "end": 371,
+        "file_sha256": "83659ba394598c471e616d84615299cdc80f234b582090aa805a9aaa66ba45ea",
+        "sha256": "8e44ee32684c9f3a39374cacde70e18f4567a573dfdea6db02a4774c2dfbcd4d"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "Only HTML pages enter the sitemap, 404 pages are excluded, and locations are sorted before XML output.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "relationships": []
+  },
+  "whatsurvey.fresh-option-code-collision.debug": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "workspaces/backend/src/functions/admin-api/routes/survey-validation.ts",
+        "start": 85,
+        "end": 103,
+        "file_sha256": "246776ef4834b11bd9facbaa157c9a40bf37734ad3e6f50befb79fe2a9cbe1f3",
+        "sha256": "f2f7277dea306f0e482373cfc6623e7f781f31ffe7932aa3f5f26fe3fe83f9b6"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "Option codes are trimmed, checked against known labels, and rejected when a trimmed code is already assigned.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "relationships": []
+  },
+  "whatsurvey.fresh-media-flow.debug": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "workspaces/backend/src/functions/admin-api/routes/survey-validation.ts",
+        "start": 129,
+        "end": 141,
+        "file_sha256": "246776ef4834b11bd9facbaa157c9a40bf37734ad3e6f50befb79fe2a9cbe1f3",
+        "sha256": "51f6a08ef825857dc18a89e8979372711318a5bf5903b704110282639feb2545"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "Media configuration rejects Flow binding and validates accepted kinds for nonemptiness, membership and uniqueness.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "relationships": []
+  },
+  "whatsurvey.fresh-study-anchor.debug": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "workspaces/backend/src/functions/admin-api/routes/survey-validation.ts",
+        "start": 434,
+        "end": 443,
+        "file_sha256": "246776ef4834b11bd9facbaa157c9a40bf37734ad3e6f50befb79fe2a9cbe1f3",
+        "sha256": "c5453064334bafb785379b7441fe968c39267983d13982d8aad45df836a3155b"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "Omitted and unchanged anchors pass, while clearing, self-reference, and changing the study anchor are refused.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "relationships": []
+  },
+  "whatsurvey.fresh-refusal-observability.debug": {
+    "regions": [
+      {
+        "id": "r1",
+        "path": "workspaces/backend/src/functions/form-api/middleware/validate.ts",
+        "start": 42,
+        "end": 52,
+        "file_sha256": "17b5e230b16e138966c422493beac89d3bdc1772d2c600da39f48143e335af4c",
+        "sha256": "c457c113bc3055ec54601dbda6419beb270160b3e2ae672016d62789bd43320a"
+      }
+    ],
+    "criteria": [
+      {
+        "id": "c1",
+        "description": "The refusal helper logs only fixed classification fields and increments SubmitRefused before returning the response.",
+        "regions": [
+          "r1"
+        ]
+      }
+    ],
+    "relationships": []
+  }
+}

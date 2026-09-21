@@ -151,8 +151,8 @@ fn selective_sync_reuses_persisted_facts_and_tracks_unresolved_and_ambiguous_nam
     write(root.path(), "b.rs", "fn leaf() { /* changed body */ }");
     let report = projector.sync(root.path(), &mut store).unwrap();
     assert_eq!(*parsed.lock().unwrap(), ["b.rs"]);
-    assert_eq!(report.modified, ["a.rs", "b.rs", "c.rs"]);
-    assert_eq!(report.unchanged, 1);
+    assert_eq!(report.modified, ["b.rs"]);
+    assert_eq!(report.unchanged, 3);
     assert_fresh(root.path(), &store);
     // Addition resolves an old dangling call and makes the old unique name ambiguous.
     parsed.lock().unwrap().clear();
@@ -241,7 +241,14 @@ fn old_manifests_rebuild_and_missing_fact_caches_fall_back_safely() {
     let mut old = store.manifest().unwrap().unwrap();
     old.entries.get_mut("a.rs").unwrap().extraction = None;
     store.commit_manifest(old).unwrap();
-    write(root.path(), "b.rs", "fn replacement() {}");
-    projector.sync(root.path(), &mut store).unwrap();
+    parsed.lock().unwrap().clear();
+    // No binding change seeds repair here. The missing raw cache must still
+    // force conservative reconstruction, including parsing its unknown owner.
+    write(root.path(), "b.rs", "fn leaf() { /* body only */ }");
+    let report = projector.sync(root.path(), &mut store).unwrap();
+    let mut reparsed = parsed.lock().unwrap().clone();
+    reparsed.sort();
+    assert_eq!(reparsed, ["a.rs", "b.rs"]);
+    assert_eq!(report.modified, ["a.rs", "b.rs"]);
     assert_fresh(root.path(), &store);
 }

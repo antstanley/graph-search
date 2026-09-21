@@ -1,0 +1,1475 @@
+--- a/crates/core/src/lib.rs
++++ b/crates/core/src/lib.rs
+@@ -22,6 +22,7 @@
+ pub mod files_search;
+ pub mod hash;
+ mod intersection;
++mod js_modules;
+ pub mod lexical;
+ pub mod manifest;
+ mod markdown;
+--- /dev/null
++++ b/crates/core/src/js_modules.rs
+@@ -0,0 +1,155 @@
++//! Native bounded ESM export lookup. No runtime module loader is invoked.
++use crate::resolve::{SymbolTable, compatible, resolve_specifier};
++use graph_search_types::{EdgeKind, Language, NodeId, extraction::SharedExtraction};
++use std::collections::{BTreeMap, BTreeSet};
++
++#[derive(Clone, Debug, Default)]
++pub(crate) struct Modules(pub(crate) BTreeMap<String, SharedExtraction>);
++
++impl Modules {
++    pub(crate) fn resolve(
++        &self,
++        path: &str,
++        name: &str,
++        kind: EdgeKind,
++        table: &SymbolTable,
++        known: &BTreeSet<String>,
++    ) -> Result<NodeId, &'static str> {
++        let mut lookup = Lookup {
++            modules: self,
++            table,
++            known,
++            active: BTreeSet::new(),
++            remaining: 4096,
++        };
++        let targets = lookup.visit(path, name, kind)?;
++        match targets.len() {
++            0 => Err("js_export_missing"),
++            1 => targets.into_iter().next().ok_or("js_export_missing"),
++            _ => Err("js_export_ambiguous"),
++        }
++    }
++}
++
++struct Lookup<'a> {
++    modules: &'a Modules,
++    table: &'a SymbolTable,
++    known: &'a BTreeSet<String>,
++    active: BTreeSet<(String, String)>,
++    remaining: usize,
++}
++impl Lookup<'_> {
++    fn visit(
++        &mut self,
++        path: &str,
++        name: &str,
++        kind: EdgeKind,
++    ) -> Result<BTreeSet<NodeId>, &'static str> {
++        if self.active.len() >= 64 || self.remaining == 0 {
++            return Err("js_export_resolution_limit");
++        }
++        self.remaining = self.remaining.saturating_sub(1);
++        let key = (path.to_owned(), name.to_owned());
++        if !self.active.insert(key.clone()) {
++            return Ok(BTreeSet::new());
++        }
++        let result = self.exports(path, name, kind);
++        self.active.remove(&key);
++        result
++    }
++
++    fn exports(
++        &mut self,
++        path: &str,
++        name: &str,
++        kind: EdgeKind,
++    ) -> Result<BTreeSet<NodeId>, &'static str> {
++        let module = self
++            .modules
++            .0
++            .get(path)
++            .and_then(|facts| facts.js_module.as_ref())
++            .ok_or("js_module_facts_unavailable")?;
++        if !module.complete {
++            return Err("js_module_surface_incomplete");
++        }
++        let explicit: Vec<_> = module
++            .exports
++            .iter()
++            .filter(|export| export.exported == name)
++            .collect();
++        if explicit.len() > 1 {
++            return Err("js_export_ambiguous");
++        }
++        if let Some(export) = explicit.first() {
++            if export.type_only && kind == EdgeKind::Calls {
++                return Err("js_type_only_export");
++            }
++            let local = export.local.as_deref().ok_or("js_export_value_unmodeled")?;
++            if local == "*" {
++                return Err("js_namespace_value_unmodeled");
++            }
++            if let Some(source) = &export.source {
++                let target = resolve_specifier(path, source, self.known, Language::TypeScript)
++                    .ok_or("js_export_module_missing")?;
++                return self.visit(&target, local, kind);
++            }
++            let symbols: Vec<_> = self
++                .table
++                .by_name
++                .get(local)
++                .into_iter()
++                .flatten()
++                .filter_map(|id| self.table.symbols.get(id))
++                .filter(|node| {
++                    node.path == path
++                        && node.attribute("lexical_local") != Some("true")
++                        && node
++                            .parent
++                            .as_ref()
++                            .is_none_or(|parent| parent == &NodeId::file(path))
++                })
++                .collect();
++            let imported: Vec<_> = module
++                .imports
++                .iter()
++                .filter(|import| import.local == local)
++                .collect();
++            if symbols.len().saturating_add(imported.len()) > 1 {
++                return Err("js_export_local_ambiguous");
++            }
++            if let Some(node) = symbols.first() {
++                if kind != EdgeKind::Imports && !compatible(kind, node.kind) {
++                    return Err("js_export_kind_incompatible");
++                }
++                return Ok(BTreeSet::from([node.id.clone()]));
++            }
++            if let Some(import) = imported.first() {
++                if import.type_only && kind == EdgeKind::Calls {
++                    return Err("js_type_only_import");
++                }
++                if import.imported == "*" {
++                    return Err("js_namespace_value_unmodeled");
++                }
++                let target =
++                    resolve_specifier(path, &import.source, self.known, Language::TypeScript)
++                        .ok_or("js_export_module_missing")?;
++                return self.visit(&target, &import.imported, kind);
++            }
++            return Err("js_export_local_missing");
++        }
++        let mut targets = BTreeSet::new();
++        if name != "default" {
++            for export in &module.exports {
++                if export.exported != "*" || (export.type_only && kind == EdgeKind::Calls) {
++                    continue;
++                }
++                let source = export.source.as_ref().ok_or("js_export_module_missing")?;
++                let target = resolve_specifier(path, source, self.known, Language::TypeScript)
++                    .ok_or("js_export_module_missing")?;
++                targets.extend(self.visit(&target, name, kind)?);
++            }
++        }
++        Ok(targets)
++    }
++}
+--- a/crates/core/src/reconcile.rs
++++ b/crates/core/src/reconcile.rs
+@@ -325,6 +325,23 @@
+         }
+ 
+         table.prepare_rust_modules(&known_files, package_boundaries);
++        table.prepare_js_modules(
++            previous
++                .entries
++                .iter()
++                .filter(|(path, _)| known_files.contains(*path) && !changed_paths.contains(*path))
++                .filter_map(|(path, entry)| {
++                    entry
++                        .extraction
++                        .as_ref()
++                        .map(|facts| (path.as_str(), facts))
++                })
++                .chain(pending.iter().filter_map(|item| {
++                    item.extraction
++                        .as_ref()
++                        .map(|facts| (item.entry.rel.as_str(), facts))
++                })),
++        );
+         self.check_work()?;
+ 
+         // Phase C: resolve references into edges, then the HTML/CSS matches.
+--- a/crates/core/src/resolve.rs
++++ b/crates/core/src/resolve.rs
+@@ -56,6 +56,7 @@
+     files: BTreeMap<String, Node>,
+     pub(crate) rust_roots: crate::rust_modules::Catalog,
+     rust_paths: crate::rust_paths::Paths,
++    js_modules: crate::js_modules::Modules,
+     /// Bare name to symbol ids, workspace-wide.
+     pub by_name: BTreeMap<String, Vec<NodeId>>,
+     /// Qualified name to symbol id, workspace-wide.
+@@ -73,6 +74,22 @@
+ }
+ 
+ impl SymbolTable {
++    /// Prepare file-owned ESM surfaces from current raw extraction identities.
++    pub fn prepare_js_modules<'a>(
++        &mut self,
++        files: impl IntoIterator<
++            Item = (
++                &'a str,
++                &'a graph_search_types::extraction::SharedExtraction,
++            ),
++        >,
++    ) {
++        self.js_modules.0 = files
++            .into_iter()
++            .filter(|(_, facts)| facts.js_module.is_some())
++            .map(|(path, facts)| (path.to_owned(), facts.clone()))
++            .collect();
++    }
+     /// An empty table.
+     #[must_use]
+     pub fn new() -> Self {
+@@ -469,6 +486,41 @@
+     // Explicit import provenance is authoritative. Failure to resolve the
+     // module must not fall through to an unrelated workspace name.
+     if let Some(specifier) = &fact.via_import {
++        if matches!(language, Language::JavaScript | Language::TypeScript) {
++            let Some(target) = resolve_specifier(from_path, specifier, known_files, language)
++            else {
++                return dangling(fact.name.clone(), "module_target_missing");
++            };
++            if fact.kind == EdgeKind::Imports && fact.name == "*" {
++                return Resolution {
++                    class: ResolutionClass::ExplicitImport,
++                    reason: None,
++                    fact: fact.clone(),
++                    to: Some(NodeId::file(&target)),
++                    to_name: target,
++                };
++            }
++            return match table.js_modules.resolve(
++                &target,
++                &fact.name,
++                fact.kind,
++                table,
++                known_files,
++            ) {
++                Ok(id) => Resolution {
++                    class: ResolutionClass::ExplicitImport,
++                    reason: None,
++                    fact: fact.clone(),
++                    to_name: table
++                        .symbols
++                        .get(&id)
++                        .and_then(|node| node.qualified_name.clone())
++                        .unwrap_or_else(|| fact.name.clone()),
++                    to: Some(id),
++                },
++                Err(reason) => dangling(fact.name.clone(), reason),
++            };
++        }
+         if let Some(target) = resolve_specifier(from_path, specifier, known_files, language) {
+             let matches: Vec<&Node> = table
+                 .named(&fact.name)
+@@ -525,6 +577,11 @@
+     }
+     if !local.is_empty() {
+         return dangling(fact.name.clone(), "ambiguous_same_file");
++    }
++    if fact.kind == EdgeKind::Exports
++        && matches!(language, Language::JavaScript | Language::TypeScript)
++    {
++        return dangling(fact.name.clone(), "js_export_local_missing");
+     }
+ 
+     // Qualified references require the whole lexical path. Stripping an
+@@ -1132,16 +1189,31 @@
+ 
+     #[test]
+     fn imported_bindings_find_the_export() {
+-        let exported = symbol("src/lib.ts", NodeKind::Export, "SearchQuery", "SearchQuery");
++        let exported = symbol(
++            "src/lib.ts",
++            NodeKind::TypeAlias,
++            "SearchQuery",
++            "SearchQuery",
++        );
+         let mut table = table_with(&[exported]);
+-        table
+-            .exports_by_file
+-            .entry(String::from("src/lib.ts"))
+-            .or_default()
+-            .insert(
+-                String::from("SearchQuery"),
+-                NodeId::symbol("src/lib.ts", NodeKind::Export, "SearchQuery", None),
+-            );
++        let extraction = graph_search_types::extraction::SharedExtraction::from(
++            graph_search_types::extraction::Extraction {
++                js_module: Some(graph_search_types::js_module::JsModule {
++                    complete: true,
++                    is_module: true,
++                    imports: Vec::new(),
++                    exports: vec![graph_search_types::js_module::JsExport {
++                        exported: "SearchQuery".into(),
++                        local: Some("SearchQuery".into()),
++                        source: None,
++                        type_only: false,
++                        span: graph_search_types::node::Span::default(),
++                    }],
++                }),
++                ..Default::default()
++            },
++        );
++        table.prepare_js_modules([("src/lib.ts", &extraction)]);
+         let mut known = BTreeSet::new();
+         known.insert(String::from("src/lib.ts"));
+         let mut fact = ReferenceFact::from_symbol("x", EdgeKind::TypeUses, "SearchQuery", 12);
+@@ -1149,7 +1221,7 @@
+         let resolved = resolve_reference(&fact, "src/app.ts", &table, &known, Language::TypeScript);
+         assert_eq!(
+             resolved.to.as_ref().map(NodeId::as_str),
+-            Some("sym:src/lib.ts#export:SearchQuery")
+-        );
+-    }
+-}
++            Some("sym:src/lib.ts#type_alias:SearchQuery")
++        );
++    }
++}
+--- a/crates/langs/src/lib.rs
++++ b/crates/langs/src/lib.rs
+@@ -15,6 +15,7 @@
+ pub mod html;
+ pub mod javascript;
+ pub mod js_common;
++mod js_modules;
+ pub mod rust;
+ mod rust_use;
+ mod scopes;
+--- a/crates/langs/src/javascript.rs
++++ b/crates/langs/src/javascript.rs
+@@ -38,10 +38,10 @@
+             dialect,
+             extraction: Extraction::default(),
+             scope: Vec::new(),
+-            imports: std::collections::BTreeMap::new(),
+         };
+         extractor.walk_node(tree.root_node());
+         crate::scopes::enrich(tree.root_node(), file.text, &mut extractor.extraction);
++        crate::js_modules::enrich(tree.root_node(), file.text, &mut extractor.extraction);
+         extractor.bind_imports();
+         crate::doc_comments::enrich(
+             tree.root_node(),
+--- a/crates/langs/src/typescript.rs
++++ b/crates/langs/src/typescript.rs
+@@ -42,10 +42,10 @@
+             dialect,
+             extraction: Extraction::default(),
+             scope: Vec::new(),
+-            imports: std::collections::BTreeMap::new(),
+         };
+         extractor.walk_node(tree.root_node());
+         crate::scopes::enrich(tree.root_node(), file.text, &mut extractor.extraction);
++        crate::js_modules::enrich(tree.root_node(), file.text, &mut extractor.extraction);
+         extractor.bind_imports();
+         crate::doc_comments::enrich(
+             tree.root_node(),
+--- a/crates/langs/src/js_common.rs
++++ b/crates/langs/src/js_common.rs
+@@ -32,8 +32,6 @@
+     pub extraction: Extraction,
+     /// The lexical scope stack: `(prefix, fact_key)`.
+     pub scope: Vec<(String, String)>,
+-    /// Local import name to (module specifier, exported name).
+-    pub imports: std::collections::BTreeMap<String, (String, String)>,
+ }
+ 
+ impl<'a> JsExtractor<'a> {
+@@ -376,47 +374,84 @@
+         let specifier = self.string_text(source);
+         let Some(specifier) = specifier else { return };
+         // The module edge itself: file -> file.
+-        self.reference(EdgeKind::Imports, specifier.clone(), node);
+-        // Capture binding identity, including aliases. Apply after walking
+-        // the file so imports also work below the referencing declaration.
+-        let mut stack = vec![node];
+-        while let Some(child) = stack.pop() {
+-            if child.kind() == "import_specifier" {
+-                if let Some(name) = child.child_by_field_name("name") {
+-                    let alias = child.child_by_field_name("alias").unwrap_or(name);
+-                    self.imports.insert(
+-                        self.text(alias).to_owned(),
+-                        (specifier.clone(), self.text(name).to_owned()),
+-                    );
+-                    self.extraction.references.push(
+-                        ReferenceFact::file_level(
+-                            EdgeKind::Imports,
+-                            self.text(name),
+-                            Self::line(node),
+-                        )
+-                        .via_import(specifier.clone()),
+-                    );
+-                }
+-                continue;
+-            }
+-            for i in 0..child.named_child_count() {
+-                if let Some(n) = child.named_child(u32::try_from(i).unwrap_or(u32::MAX)) {
+-                    stack.push(n);
+-                }
+-            }
+-        }
++        self.reference(EdgeKind::Imports, specifier, node);
++        // Binding leaves are collected once by the native module-fact pass.
+     }
+ 
+     /// Attach explicit import provenance before workspace resolution.
+     pub fn bind_imports(&mut self) {
++        let Some(module) = &self.extraction.js_module else {
++            return;
++        };
++        let mut bindings = std::collections::BTreeMap::new();
++        for import in &module.imports {
++            bindings
++                .entry(import.local.as_str())
++                .and_modify(|binding| *binding = None)
++                .or_insert(Some(import));
++        }
++        let mut added_bytes = 0usize;
+         for fact in &mut self.extraction.references {
+-            if fact.kind != EdgeKind::Imports
+-                && !fact.dynamic
+-                && fact.lexical_target.is_none()
+-                && let Some((specifier, exported)) = self.imports.get(&fact.name)
++            if fact.kind == EdgeKind::Imports
++                || fact.dynamic
++                || fact.lexical_target.is_some()
++                || fact.via_import.is_some()
+             {
+-                fact.via_import = Some(specifier.clone());
+-                fact.name.clone_from(exported);
++                continue;
++            }
++            if !module.complete {
++                fact.dynamic = true;
++                fact.unresolved_reason = Some("js_module_surface_incomplete".into());
++                continue;
++            }
++            let base = fact
++                .name
++                .split(['.', '[', '?'])
++                .next()
++                .unwrap_or(&fact.name);
++            let Some(binding) = bindings.get(base) else {
++                continue;
++            };
++            let reason = if let Some(import) = binding {
++                if import.type_only && fact.kind == EdgeKind::Calls {
++                    fact.dynamic = true;
++                    fact.unresolved_reason = Some("js_type_only_import".into());
++                    continue;
++                }
++                let target = if import.imported == "*" {
++                    fact.name
++                        .strip_prefix(import.local.as_str())
++                        .and_then(|name| name.strip_prefix('.'))
++                        .filter(|name| {
++                            !name.is_empty()
++                                && name
++                                    .chars()
++                                    .all(|c| c.is_alphanumeric() || c == '_' || c == '$')
++                        })
++                } else if fact.name == import.local {
++                    Some(import.imported.as_str())
++                } else {
++                    None
++                };
++                if let Some(target) = target {
++                    let cost = import.source.len().saturating_add(target.len());
++                    if target.len() > 4096 || added_bytes.saturating_add(cost) > 8 * 1024 * 1024 {
++                        Some("js_import_binding_limit")
++                    } else {
++                        added_bytes = added_bytes.saturating_add(cost);
++                        fact.via_import = Some(import.source.clone());
++                        fact.name = target.to_owned();
++                        None
++                    }
++                } else {
++                    Some("js_import_member_unmodeled")
++                }
++            } else {
++                Some("js_import_binding_ambiguous")
++            };
++            if let Some(reason) = reason {
++                fact.dynamic = true;
++                fact.unresolved_reason = Some(reason.into());
+             }
+         }
+     }
+@@ -424,44 +459,10 @@
+     fn export(&mut self, node: Node<'_>) {
+         // `export { a, b }`, `export { a } from "./x"`, `export default X`,
+         // `export <declaration>`.
+-        if let Some(clause) = node.child_by_field_name("export_clause") {
+-            let names = export_names(clause, self.source);
+-            for name in names {
+-                self.reference(EdgeKind::Exports, name, node);
+-            }
+-        }
+         if let Some(declaration) = node.child_by_field_name("declaration") {
+-            let exported = match declaration.kind() {
+-                "function_declaration"
+-                | "generator_function_declaration"
+-                | "class_declaration"
+-                | "abstract_class_declaration"
+-                | "interface_declaration"
+-                | "type_alias_declaration"
+-                | "enum_declaration" => declaration_name(declaration, self.source),
+-                "lexical_declaration" | "variable_declaration" => {
+-                    let mut names: Vec<String> = Vec::new();
+-                    let mut cursor = declaration.walk();
+-                    if cursor.goto_first_child() {
+-                        loop {
+-                            if cursor.node().kind() == "variable_declarator"
+-                                && let Some(name) = cursor.node().child_by_field_name("name")
+-                            {
+-                                names.push(self.text(name).to_owned());
+-                            }
+-                            if !cursor.goto_next_sibling() {
+-                                break;
+-                            }
+-                        }
+-                    }
+-                    names.into_iter().next()
+-                }
+-                _ => None,
+-            };
+-            if let Some(name) = exported {
+-                self.reference(EdgeKind::Exports, name, node);
+-            }
+             self.walk_node(declaration);
++        } else if let Some(value) = node.child_by_field_name("value") {
++            self.walk_node(value);
+         }
+         if let Some(source) = node.child_by_field_name("source")
+             && let Some(specifier) = self.string_text(source)
+@@ -541,33 +542,8 @@
+     }
+ 
+     fn string_text(&self, node: Node<'_>) -> Option<String> {
+-        let mut stack = vec![node];
+-        while let Some(current) = stack.pop() {
+-            if current.kind() == "string_fragment" {
+-                return Some(self.text(current).to_owned());
+-            }
+-            let mut cursor = current.walk();
+-            if cursor.goto_first_child() {
+-                loop {
+-                    stack.push(cursor.node());
+-                    if !cursor.goto_next_sibling() {
+-                        break;
+-                    }
+-                }
+-            }
+-        }
+-        None
+-    }
+-}
+-
+-/// The declared name of an exportable declaration (the identifier after the
+-/// keyword; the grammar names no field on several of them).
+-fn declaration_name<'a>(declaration: Node<'a>, source: &'a str) -> Option<String> {
+-    (0..declaration.child_count())
+-        .map(|i| declaration.child(i))
+-        .find(|child| child.is_some_and(|c| matches!(c.kind(), "identifier" | "type_identifier")))
+-        .flatten()
+-        .map(|name| text_of(name, source).to_owned())
++        crate::js_modules::name(node, self.source)
++    }
+ }
+ 
+ /// The bound names inside a destructuring pattern.
+@@ -593,31 +569,6 @@
+     }
+ }
+ 
+-/// The exported names of an export clause, using the *source* name
+-/// (`{ a as b }` exports `a`).
+-fn export_names(clause: Node<'_>, source: &str) -> Vec<String> {
+-    let mut names = Vec::new();
+-    let mut stack = vec![clause];
+-    while let Some(current) = stack.pop() {
+-        if current.kind() == "export_specifier" {
+-            if let Some(name) = current.child_by_field_name("name") {
+-                names.push(text_of(name, source).to_owned());
+-            }
+-        } else {
+-            let mut cursor = current.walk();
+-            if cursor.goto_first_child() {
+-                loop {
+-                    stack.push(cursor.node());
+-                    if !cursor.goto_next_sibling() {
+-                        break;
+-                    }
+-                }
+-            }
+-        }
+-    }
+-    names
+-}
+-
+ fn text_of<'a>(node: Node<'_>, source: &'a str) -> &'a str {
+     source
+         .get(node.start_byte()..node.end_byte())
+@@ -625,22 +576,13 @@
+ }
+ 
+ fn first_string(node: Node<'_>, source: &str) -> Option<String> {
+-    let mut stack = vec![node];
+-    while let Some(current) = stack.pop() {
+-        if current.kind() == "string_fragment" {
+-            return Some(text_of(current, source).to_owned());
+-        }
+-        let mut cursor = current.walk();
+-        if cursor.goto_first_child() {
+-            loop {
+-                stack.push(cursor.node());
+-                if !cursor.goto_next_sibling() {
+-                    break;
+-                }
+-            }
+-        }
+-    }
+-    None
++    let mut cursor = node.walk();
++    let first = node
++        .named_children(&mut cursor)
++        .find(|child| child.kind() != "comment")?;
++    (first.kind() == "string")
++        .then(|| crate::js_modules::name(first, source))
++        .flatten()
+ }
+ 
+ /// Exposes the visibility helper to the dialect wrappers; TS/JS has none, so
+--- /dev/null
++++ b/crates/langs/src/js_modules.rs
+@@ -0,0 +1,282 @@
++//! Bounded file-local ESM facts from the existing JS/TS grammars.
++use graph_search_types::{
++    extraction::Extraction,
++    js_module::{JsExport, JsImport, JsModule},
++};
++use tree_sitter::Node;
++
++const MAX_RECORDS: usize = 4096;
++const MAX_TEXT: usize = 8 * 1024 * 1024;
++
++fn text<'a>(node: Node<'_>, source: &'a str) -> &'a str {
++    source
++        .get(node.start_byte()..node.end_byte())
++        .unwrap_or_default()
++}
++
++fn token(node: Node<'_>, kind: &str) -> bool {
++    let mut cursor = node.walk();
++    node.children(&mut cursor).any(|child| child.kind() == kind)
++}
++
++fn child<'a>(node: Node<'a>, kind: &str) -> Option<Node<'a>> {
++    let mut cursor = node.walk();
++    node.named_children(&mut cursor)
++        .find(|child| child.kind() == kind)
++}
++
++pub(crate) fn name(node: Node<'_>, source: &str) -> Option<String> {
++    let raw = text(node, source);
++    if raw.len() > 4096 || node.has_error() {
++        return None;
++    }
++    match node.kind() {
++        "identifier" | "type_identifier" | "default" => Some(raw.into()),
++        "string" if !raw.contains('\\') => raw.get(1..raw.len().checked_sub(1)?).map(str::to_owned),
++        _ => None,
++    }
++}
++
++/// Collect after declarations/scopes so exported declarations retain their keys.
++#[allow(clippy::too_many_lines)] // one bounded branch per ESM grammar construct
++pub(crate) fn enrich(root: Node<'_>, source: &str, extraction: &mut Extraction) {
++    let mut module = JsModule {
++        complete: true,
++        ..JsModule::default()
++    };
++    let mut bytes = 0usize;
++    let mut declarations: Vec<_> = extraction
++        .symbols
++        .iter()
++        .filter(|symbol| symbol.parent_key.is_none())
++        .collect();
++    declarations.sort_by_key(|symbol| symbol.span.start_byte);
++    let mut cursor = root.walk();
++    'statements: for statement in root.named_children(&mut cursor) {
++        if !matches!(statement.kind(), "import_statement" | "export_statement") {
++            continue;
++        }
++        module.is_module = true;
++        if statement.has_error() {
++            module.complete = false;
++            continue;
++        }
++        let source_node = statement.child_by_field_name("source");
++        let specifier = source_node.and_then(|node| name(node, source));
++        if source_node.is_some() && specifier.is_none() {
++            module.complete = false;
++            continue;
++        }
++        let type_only = token(statement, "type");
++        if statement.kind() == "import_statement" {
++            let Some(specifier) = specifier else {
++                module.complete = false;
++                continue;
++            };
++            let Some(clause) = child(statement, "import_clause") else {
++                continue;
++            };
++            let mut stack = vec![clause];
++            while let Some(node) = stack.pop() {
++                let binding = match node.kind() {
++                    "import_specifier" => node.child_by_field_name("name").and_then(|original| {
++                        Some((
++                            name(
++                                node.child_by_field_name("alias").unwrap_or(original),
++                                source,
++                            )?,
++                            name(original, source)?,
++                        ))
++                    }),
++                    "namespace_import" => child(node, "identifier")
++                        .and_then(|local| Some((name(local, source)?, "*".into()))),
++                    "identifier" => name(node, source).map(|local| (local, "default".into())),
++                    _ => {
++                        let mut cursor = node.walk();
++                        stack.extend(node.named_children(&mut cursor));
++                        continue;
++                    }
++                };
++                if let Some((local, imported)) = binding {
++                    let cost = local
++                        .len()
++                        .saturating_add(imported.len())
++                        .saturating_add(specifier.len());
++                    if module.imports.len().saturating_add(module.exports.len()) >= MAX_RECORDS
++                        || bytes.saturating_add(cost) > MAX_TEXT
++                    {
++                        module.complete = false;
++                        break;
++                    }
++                    bytes = bytes.saturating_add(cost);
++                    module.imports.push(JsImport {
++                        local,
++                        imported,
++                        source: specifier.clone(),
++                        type_only: type_only || token(node, "type"),
++                        span: crate::walk::span_of(node),
++                    });
++                } else {
++                    module.complete = false;
++                }
++            }
++        } else if let Some(clause) = child(statement, "export_clause") {
++            let mut cursor = clause.walk();
++            for node in clause.named_children(&mut cursor) {
++                if node.kind() == "comment" {
++                    continue;
++                }
++                let Some(original) = node.child_by_field_name("name") else {
++                    module.complete = false;
++                    continue;
++                };
++                let Some(exported) = name(
++                    node.child_by_field_name("alias").unwrap_or(original),
++                    source,
++                ) else {
++                    module.complete = false;
++                    continue;
++                };
++                let local = name(original, source);
++                if local.is_none() {
++                    module.complete = false;
++                }
++                if !push_export(
++                    &mut module,
++                    &mut bytes,
++                    JsExport {
++                        exported,
++                        local,
++                        source: specifier.clone(),
++                        type_only: type_only || token(node, "type"),
++                        span: crate::walk::span_of(node),
++                    },
++                ) {
++                    break 'statements;
++                }
++            }
++        } else if let Some(namespace) = child(statement, "namespace_export") {
++            let exported = namespace.named_child(0).and_then(|node| name(node, source));
++            if let Some(exported) = exported {
++                if !push_export(
++                    &mut module,
++                    &mut bytes,
++                    JsExport {
++                        exported,
++                        local: Some("*".into()),
++                        source: specifier.clone(),
++                        type_only,
++                        span: crate::walk::span_of(namespace),
++                    },
++                ) {
++                    break 'statements;
++                }
++            } else {
++                module.complete = false;
++            }
++        } else if token(statement, "*") {
++            if !push_export(
++                &mut module,
++                &mut bytes,
++                JsExport {
++                    exported: "*".into(),
++                    local: Some("*".into()),
++                    source: specifier.clone(),
++                    type_only,
++                    span: crate::walk::span_of(statement),
++                },
++            ) {
++                break 'statements;
++            }
++        } else if token(statement, "default") {
++            let local = statement
++                .child_by_field_name("declaration")
++                .and_then(|node| node.child_by_field_name("name"))
++                .or_else(|| statement.child_by_field_name("value"))
++                .and_then(|node| name(node, source));
++            if !push_export(
++                &mut module,
++                &mut bytes,
++                JsExport {
++                    exported: "default".into(),
++                    local,
++                    source: None,
++                    type_only,
++                    span: crate::walk::span_of(statement),
++                },
++            ) {
++                break 'statements;
++            }
++        } else if let Some(declaration) = statement.child_by_field_name("declaration") {
++            let span = crate::walk::span_of(declaration);
++            let start =
++                declarations.partition_point(|symbol| symbol.span.start_byte < span.start_byte);
++            for symbol in declarations[start..]
++                .iter()
++                .take_while(|symbol| symbol.span.start_byte <= span.end_byte)
++            {
++                if symbol.span.end_byte <= span.end_byte
++                    && !push_export(
++                        &mut module,
++                        &mut bytes,
++                        JsExport {
++                            exported: symbol.name.clone(),
++                            local: Some(symbol.name.clone()),
++                            source: None,
++                            type_only,
++                            span: symbol.span,
++                        },
++                    )
++                {
++                    break 'statements;
++                }
++            }
++        } else {
++            module.complete = false;
++        }
++    }
++    for import in &module.imports {
++        let mut reference = graph_search_types::extraction::ReferenceFact::file_level(
++            graph_search_types::EdgeKind::Imports,
++            &import.imported,
++            import.span.start_line,
++        )
++        .at(import.span)
++        .via_import(import.source.clone());
++        reference.raw_name = Some(import.local.clone());
++        extraction.references.push(reference);
++    }
++    for export in &module.exports {
++        let Some(local) = export.local.as_deref().filter(|local| *local != "*") else {
++            continue;
++        };
++        let mut reference = graph_search_types::extraction::ReferenceFact::file_level(
++            graph_search_types::EdgeKind::Exports,
++            local,
++            export.span.start_line,
++        )
++        .at(export.span);
++        reference.via_import.clone_from(&export.source);
++        extraction.references.push(reference);
++    }
++    extraction.js_module = Some(module);
++}
++
++// Admit each record immediately: a large export clause never builds an unbounded
++// temporary vector or clones its module specifier for all rejected leaves.
++fn push_export(module: &mut JsModule, bytes: &mut usize, export: JsExport) -> bool {
++    let cost = export
++        .exported
++        .len()
++        .saturating_add(export.local.as_ref().map_or(0, String::len))
++        .saturating_add(export.source.as_ref().map_or(0, String::len));
++    if module.imports.len().saturating_add(module.exports.len()) >= MAX_RECORDS
++        || bytes.saturating_add(cost) > MAX_TEXT
++    {
++        module.complete = false;
++        return false;
++    }
++    *bytes = bytes.saturating_add(cost);
++    module.exports.push(export);
++    true
++}
+--- /dev/null
++++ b/crates/langs/tests/js_modules.rs
+@@ -0,0 +1,181 @@
++//! Authored module facts must remain bounded and faithful before resolution.
++#![allow(clippy::unwrap_used)]
++use graph_search_core::ports::{LanguageExtractor, SourceFile};
++use graph_search_langs::{JavaScriptExtractor, TypeScriptExtractor};
++use graph_search_types::{EdgeKind, extraction::Extraction};
++use std::path::Path;
++
++fn extract(source: &str, typed: bool) -> Extraction {
++    let extractor: &dyn LanguageExtractor = if typed {
++        &TypeScriptExtractor
++    } else {
++        &JavaScriptExtractor
++    };
++    extractor
++        .extract(&SourceFile {
++            path: Path::new(if typed { "fixture.ts" } else { "fixture.js" }),
++            text: source,
++        })
++        .unwrap()
++}
++
++#[test]
++fn export_aliases_comments_multiple_bindings_and_anonymous_defaults_are_faithful() {
++    let source = "import main, {send as local} from './api'; import * as api from './api'; export { /* comment */ local as publicName }; export const first=()=>{}, second=()=>{}; export default ()=>local();";
++    for typed in [false, true] {
++        let extraction = extract(source, typed);
++        let module = extraction.js_module.as_ref().unwrap();
++        assert!(module.complete && module.is_module);
++        assert_eq!(module.imports.len(), 3);
++        assert!(
++            module
++                .imports
++                .iter()
++                .any(|item| item.local == "main" && item.imported == "default")
++        );
++        assert!(
++            module
++                .imports
++                .iter()
++                .any(|item| item.local == "api" && item.imported == "*")
++        );
++        let alias = module
++            .exports
++            .iter()
++            .find(|item| item.exported == "publicName")
++            .unwrap();
++        assert_eq!(alias.local.as_deref(), Some("local"));
++        assert_eq!(
++            &source[alias.span.start_byte as usize..alias.span.end_byte as usize],
++            "local as publicName"
++        );
++        for name in ["first", "second"] {
++            assert!(module.exports.iter().any(|item| item.exported == name));
++            assert!(
++                extraction
++                    .references
++                    .iter()
++                    .any(|item| item.kind == EdgeKind::Exports && item.name == name)
++            );
++        }
++        assert!(
++            module
++                .exports
++                .iter()
++                .any(|item| item.exported == "default" && item.local.is_none())
++        );
++        assert!(
++            extraction
++                .references
++                .iter()
++                .any(|item| item.kind == EdgeKind::Calls
++                    && item.name == "send"
++                    && item.via_import.as_deref() == Some("./api"))
++        );
++    }
++}
++
++#[test]
++fn strings_are_never_resolved_using_only_one_fragment() {
++    for source in [
++        r"import {send} from './api\u002ejs'; function run(){send();}",
++        r"export {send} from './api\u002ejs';",
++    ] {
++        let extraction = extract(source, false);
++        assert!(!extraction.js_module.as_ref().unwrap().complete);
++        assert!(
++            !extraction
++                .references
++                .iter()
++                .any(|item| item.kind == EdgeKind::Imports)
++        );
++        assert!(
++            extraction
++                .references
++                .iter()
++                .filter(|item| item.kind == EdgeKind::Calls)
++                .all(|item| item.dynamic)
++        );
++    }
++    let extraction = extract(
++        r"require('./api\u002ejs'); require(dynamic('./fake')); require('./real', './wrong');",
++        false,
++    );
++    let imports: Vec<_> = extraction
++        .references
++        .iter()
++        .filter(|item| item.kind == EdgeKind::Imports)
++        .map(|item| item.name.as_str())
++        .collect();
++    assert_eq!(imports, ["./real"]);
++}
++
++#[test]
++fn explicit_empty_modules_and_scripts_remain_distinct() {
++    for (source, expected) in [
++        ("const x=1;", false),
++        ("export {};", true),
++        ("import './api';", true),
++    ] {
++        let extraction = extract(source, false);
++        let module = extraction.js_module.unwrap();
++        assert!(module.complete);
++        assert_eq!(module.is_module, expected);
++        assert!(module.imports.is_empty() && module.exports.is_empty());
++    }
++}
++
++#[test]
++fn record_and_added_text_budgets_mark_incomplete_surfaces() {
++    let names = (0..4100)
++        .map(|i| format!("name{i}"))
++        .collect::<Vec<_>>()
++        .join(",");
++    let extraction = extract(&format!("export {{{names}}};"), false);
++    let module = extraction.js_module.unwrap();
++    assert!(!module.complete);
++    assert_eq!(module.exports.len(), 4096);
++    let source = format!("import {{{names}}} from './{}';", "a".repeat(4000));
++    let extraction = extract(&source, false);
++    let module = extraction.js_module.unwrap();
++    assert!(!module.complete);
++    assert!(module.imports.len() < 4096);
++    let bytes: usize = module
++        .imports
++        .iter()
++        .map(|item| item.local.len() + item.imported.len() + item.source.len())
++        .sum();
++    assert!(bytes <= 8 * 1024 * 1024);
++}
++
++#[test]
++fn repeated_imported_calls_cannot_multiply_unbounded_specifier_text() {
++    let source = format!(
++        "import {{send}} from './{}'; function run(){{ {} }}",
++        "a".repeat(4000),
++        "send();".repeat(2500)
++    );
++    let extraction = extract(&source, false);
++    assert!(extraction.js_module.as_ref().unwrap().complete);
++    let calls: Vec<_> = extraction
++        .references
++        .iter()
++        .filter(|item| item.kind == EdgeKind::Calls)
++        .collect();
++    assert_eq!(calls.len(), 2500);
++    assert!(
++        calls
++            .iter()
++            .any(|item| item.unresolved_reason.as_deref() == Some("js_import_binding_limit"))
++    );
++    assert!(calls.iter().any(|item| item.via_import.is_some()));
++    let added_bytes: usize = calls
++        .iter()
++        .filter_map(|item| {
++            item.via_import
++                .as_ref()
++                .map(|source| source.len() + item.name.len())
++        })
++        .sum();
++    assert!(added_bytes <= 8 * 1024 * 1024);
++}
+--- a/crates/types/src/lib.rs
++++ b/crates/types/src/lib.rs
+@@ -13,6 +13,7 @@
+ pub mod envelope;
+ pub mod extraction;
+ pub mod id;
++pub mod js_module;
+ pub mod kind;
+ pub mod limits;
+ pub mod manifest;
+--- a/crates/types/src/extraction.rs
++++ b/crates/types/src/extraction.rs
+@@ -229,6 +229,9 @@
+ /// Everything one file yielded.
+ #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+ pub struct Extraction {
++    /// Authored ESM imports/exports; absent for other adapters or legacy facts.
++    #[serde(default, skip_serializing_if = "Option::is_none")]
++    pub js_module: Option<crate::js_module::JsModule>,
+     /// Parser-owned documentation comment occurrences, in source order.
+     #[serde(default, skip_serializing_if = "Vec::is_empty")]
+     pub doc_comments: Vec<DocCommentFact>,
+@@ -250,6 +253,15 @@
+ impl Extraction {
+     /// Joins another extraction into this one (used by multi-pass extractors).
+     pub fn merge(&mut self, mut other: Extraction) {
++        if let Some(module) = other.js_module.take() {
++            if let Some(existing) = &mut self.js_module {
++                // Separate script/module passes do not establish one shared scope.
++                existing.complete = false;
++                existing.is_module |= module.is_module;
++            } else {
++                self.js_module = Some(module);
++            }
++        }
+         let scopes = self.scopes.len();
+         let bindings = self.bindings.len();
+         for scope in &mut other.scopes {
+@@ -370,6 +382,38 @@
+ #[cfg(test)]
+ mod shared_tests {
+     use super::*;
++
++    #[test]
++    fn js_module_facts_roundtrip_and_merge_without_inventing_shared_scope() {
++        let mut legacy: Extraction =
++            serde_json::from_str(r#"{"symbols":[],"references":[]}"#).unwrap();
++        assert!(legacy.js_module.is_none());
++        let facts = Extraction {
++            js_module: Some(crate::js_module::JsModule {
++                complete: true,
++                is_module: true,
++                imports: Vec::new(),
++                exports: vec![crate::js_module::JsExport {
++                    exported: "publicName".into(),
++                    local: Some("local".into()),
++                    source: None,
++                    type_only: false,
++                    span: Span::new(1, 1, 0, 10),
++                }],
++            }),
++            ..Default::default()
++        };
++        legacy.merge(facts.clone());
++        assert_eq!(legacy, facts);
++        assert_eq!(
++            serde_json::from_slice::<Extraction>(&serde_json::to_vec(&facts).unwrap()).unwrap(),
++            facts
++        );
++        legacy.merge(facts);
++        let module = legacy.js_module.unwrap();
++        assert!(!module.complete && module.is_module);
++        assert_eq!(module.exports.len(), 1);
++    }
+ 
+     #[test]
+     fn rust_use_facts_roundtrip_without_changing_legacy_references() {
+--- /dev/null
++++ b/crates/types/src/js_module.rs
+@@ -0,0 +1,46 @@
++//! Authored JavaScript/TypeScript module bindings, independent of resolution.
++use crate::Span;
++use serde::{Deserialize, Serialize};
++
++/// A file's syntactically collected ESM surface. Absence means unavailable facts.
++#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
++pub struct JsModule {
++    /// False if syntax or record limits prevented a complete module surface.
++    pub complete: bool,
++    /// Whether an import/export statement establishes an explicit module.
++    pub is_module: bool,
++    /// Local imports; duplicate bindings are retained as ambiguity.
++    pub imports: Vec<JsImport>,
++    /// Exports, including forwarding and star exports.
++    pub exports: Vec<JsExport>,
++}
++
++/// One imported local binding.
++#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
++pub struct JsImport {
++    /// Authored local identifier.
++    pub local: String,
++    /// Exported identifier, `default`, or `*` for a namespace.
++    pub imported: String,
++    /// Authored module specifier, without string delimiters.
++    pub source: String,
++    /// Type-only imports cannot provide a runtime callable.
++    pub type_only: bool,
++    /// Original binding syntax.
++    pub span: Span,
++}
++
++/// One explicit export or star-forwarding record.
++#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
++pub struct JsExport {
++    /// Public name, `default`, or `*` for star forwarding.
++    pub exported: String,
++    /// Local/imported name; absent when the value is not statically named.
++    pub local: Option<String>,
++    /// Forwarding module, or None for a local binding.
++    pub source: Option<String>,
++    /// Authored TypeScript type-only export.
++    pub type_only: bool,
++    /// Original export syntax.
++    pub span: Span,
++}
+--- a/crates/types/src/limits.rs
++++ b/crates/types/src/limits.rs
+@@ -127,7 +127,7 @@
+ 
+ /// Bumps when extractor behaviour changes in a way that alters output for an
+ /// unchanged file.
+-pub const PARSER_VERSION: u32 = 17;
++pub const PARSER_VERSION: u32 = 18;
+ 
+ /// Default independent ceiling on edges delivered by one graph/explore query.
+ pub const RETURNED_EDGES_DEFAULT: usize = 1000;
+--- /dev/null
++++ b/crates/graph-search/tests/js_modules.rs
+@@ -0,0 +1,218 @@
++//! Native ESM export identity, forwarding and module-boundary precision.
++#![allow(clippy::unwrap_used, clippy::panic)]
++use graph_search::{Index, OpenOptions};
++use graph_search_types::{EdgeKind, TraversalQuery, occurrence::ResolutionClass};
++
++fn open(root: &std::path::Path, store: Option<std::path::PathBuf>) -> Index {
++    Index::open(OpenOptions {
++        root: root.into(),
++        store,
++        ..OpenOptions::default()
++    })
++    .unwrap()
++}
++
++fn call(index: &Index, owner: &str, expected: Option<(&str, &str)>) {
++    let result = index
++        .search()
++        .callees(&TraversalQuery::new(owner, 1))
++        .unwrap();
++    let calls: Vec<_> = result
++        .edges
++        .iter()
++        .filter(|edge| edge.kind == EdgeKind::Calls)
++        .collect();
++    assert_eq!(calls.len(), 1, "{owner}: {result:?}");
++    if let Some((path, name)) = expected {
++        let target = calls[0]
++            .to
++            .as_ref()
++            .unwrap_or_else(|| panic!("{owner}: {calls:?}"));
++        let node = result.nodes.iter().find(|node| &node.id == target).unwrap();
++        assert_eq!(node.path, path, "{owner}");
++        assert_eq!(node.name, name, "{owner}");
++    } else {
++        assert!(!calls[0].resolved, "{owner}: {calls:?}");
++    }
++}
++
++#[test]
++fn imports_require_exports_and_preserve_named_default_and_namespace_identity() {
++    for extension in ["js", "ts"] {
++        let root = tempfile::tempdir().unwrap();
++        std::fs::write(root.path().join(format!("api.{extension}")),"function privateSend(){} export function send(){} function relay(){} export {relay as publicRelay}; export default function primary(){} export const first=()=>{}, second=()=>{};\n").unwrap();
++        std::fs::write(root.path().join(format!("client.{extension}")),"import primary, {privateSend,send as deliver,publicRelay,first,second} from './api'; import * as api from './api'; function hidden(){privateSend();} function named(){deliver();} function aliased(){publicRelay();} function defaulted(){primary();} function namespaced(){api.send();} function namespaceHidden(){api.privateSend();} function secondValue(){second();} function shadow(api){api.send();}\n").unwrap();
++        let index = open(root.path(), None);
++        index.reindex().unwrap();
++        let target = format!("api.{extension}");
++        for (owner, name) in [
++            ("named", "send"),
++            ("aliased", "relay"),
++            ("defaulted", "primary"),
++            ("namespaced", "send"),
++            ("secondValue", "second"),
++        ] {
++            call(&index, owner, Some((&target, name)));
++        }
++        for owner in ["hidden", "namespaceHidden", "shadow"] {
++            call(&index, owner, None);
++        }
++    }
++}
++
++#[test]
++fn reexports_follow_bindings_and_handle_stars_cycles_duplicates_and_type_only_calls() {
++    let root = tempfile::tempdir().unwrap();
++    for (path, source) in [
++        (
++            "api.ts",
++            "export function send(){} export default function primary(){}",
++        ),
++        ("other.ts", "export function send(){}"),
++        (
++            "named.ts",
++            "export {send as deliver, default} from './api';",
++        ),
++        (
++            "local.ts",
++            "import {send as local} from './api'; export {local as deliver};",
++        ),
++        ("cycle.ts", "export * from './star';"),
++        ("star.ts", "export * from './api'; export * from './cycle';"),
++        (
++            "ambiguous.ts",
++            "export * from './api'; export * from './other';",
++        ),
++        (
++            "diamond.ts",
++            "export * from './api'; export * from './star';",
++        ),
++        ("typed.ts", "export type {send} from './api';"),
++        (
++            "client.ts",
++            "import {deliver as a} from './named'; import main from './named'; import {deliver as b} from './local'; import {send as c} from './star'; import {send as d} from './ambiguous'; import {send as e} from './diamond'; import {send as f} from './typed'; import type {send as g} from './api'; import missingDefault from './star'; function named(){a();} function defaulted(){main();} function local(){b();} function star(){c();} function ambiguous(){d();} function diamond(){e();} function typed(){f();} function importedType(){g();} function starDefault(){missingDefault();}",
++        ),
++    ] {
++        std::fs::write(root.path().join(path), source).unwrap();
++    }
++    let index = open(root.path(), None);
++    index.reindex().unwrap();
++    for owner in ["named", "local", "star", "diamond"] {
++        call(&index, owner, Some(("api.ts", "send")));
++    }
++    call(&index, "defaulted", Some(("api.ts", "primary")));
++    for owner in ["ambiguous", "typed", "importedType", "starDefault"] {
++        call(&index, owner, None);
++    }
++}
++
++#[test]
++fn export_edits_rebind_consumers_after_reopen_like_clean_rebuilds() {
++    use graph_search_types::occurrence::{OccurrenceBy, OccurrenceQuery};
++    let root = tempfile::tempdir().unwrap();
++    std::fs::write(root.path().join("api.ts"), "export function send(){}").unwrap();
++    std::fs::write(
++        root.path().join("barrel.ts"),
++        "export {send as relay} from './api';",
++    )
++    .unwrap();
++    std::fs::write(
++        root.path().join("client.ts"),
++        "import {relay} from './barrel'; export function entry(){relay();}",
++    )
++    .unwrap();
++    let query = OccurrenceQuery {
++        by: OccurrenceBy::Name,
++        target: "relay".into(),
++        ..OccurrenceQuery::default()
++    };
++    let index = open(root.path(), None);
++    index.reindex().unwrap();
++    drop(index);
++    for (path, source, resolved) in [
++        ("api.ts", Some("function send(){}"), false),
++        ("api.ts", Some("export function send(){}"), true),
++        ("api.ts", Some("export function changed(){}"), false),
++        ("api.ts", Some("function send(){} export {send};"), true),
++        (
++            "barrel.ts",
++            Some("export {send as relay, send as relay} from './api';"),
++            false,
++        ),
++        ("barrel.ts", None, false),
++        (
++            "barrel.ts",
++            Some("export {send as relay} from './api';"),
++            true,
++        ),
++    ] {
++        if let Some(source) = source {
++            std::fs::write(root.path().join(path), source).unwrap();
++        } else {
++            std::fs::remove_file(root.path().join(path)).unwrap();
++        }
++        let index = open(root.path(), None);
++        index.sync().unwrap();
++        drop(index);
++        let index = open(root.path(), None);
++        let actual = index.search().occurrences(&query).unwrap();
++        let calls: Vec<_> = actual
++            .items
++            .iter()
++            .filter(|record| record.occurrence.kind == EdgeKind::Calls)
++            .collect();
++        assert_eq!(calls.len(), 1);
++        assert_eq!(
++            calls[0].occurrence.resolution == ResolutionClass::ExplicitImport,
++            resolved,
++            "{path} {source:?}: {calls:?}"
++        );
++        let store = tempfile::tempdir().unwrap();
++        let rebuilt = open(root.path(), Some(store.path().join("index")));
++        rebuilt.reindex().unwrap();
++        assert_eq!(
++            actual.items,
++            rebuilt.search().occurrences(&query).unwrap().items,
++            "{path} {source:?}"
++        );
++    }
++}
++
++#[test]
++fn explicit_exports_override_stars_and_long_forwarding_chains_stop() {
++    let root = tempfile::tempdir().unwrap();
++    for (path, source) in [
++        ("api.js", "export function send(){}"),
++        ("other.js", "export function send(){}"),
++        (
++            "ambiguous.js",
++            "export * from './api'; export * from './other';",
++        ),
++        (
++            "override.js",
++            "export * from './ambiguous'; export {send} from './api';",
++        ),
++        (
++            "client.js",
++            "import {send as good} from './override'; import {send as deep} from './chain0'; function direct(){good();} function bounded(){deep();}",
++        ),
++    ] {
++        std::fs::write(root.path().join(path), source).unwrap();
++    }
++    for index in 0..70 {
++        let target = if index == 69 {
++            "api".into()
++        } else {
++            format!("chain{}", index + 1)
++        };
++        std::fs::write(
++            root.path().join(format!("chain{index}.js")),
++            format!("export {{send}} from './{target}';"),
++        )
++        .unwrap();
++    }
++    let index = open(root.path(), None);
++    index.reindex().unwrap();
++    call(&index, "direct", Some(("api.js", "send")));
++    call(&index, "bounded", None);
++}

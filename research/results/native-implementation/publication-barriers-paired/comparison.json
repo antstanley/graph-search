@@ -1,0 +1,92 @@
+{
+  "results": [
+    {
+      "corpus": "git-archive:bdcbecef41d9863bca23830ed30615f1c219064d",
+      "pairs": 7,
+      "medians": {
+        "batched": {
+          "initial_ms": 556,
+          "sync_ms": 381,
+          "clean_reindex_ms": 511,
+          "noop_ms": 1,
+          "reopen_ms": 271,
+          "generation_bytes": 16789811,
+          "shared_inode_bytes": 10736996,
+          "source_files_on_disk": 2,
+          "extraction_files_on_disk": 2,
+          "manifest_artifact_bytes": 58922
+        },
+        "repeated": {
+          "initial_ms": 564,
+          "sync_ms": 386,
+          "clean_reindex_ms": 514,
+          "noop_ms": 1,
+          "reopen_ms": 271,
+          "generation_bytes": 16789811,
+          "shared_inode_bytes": 10736996,
+          "source_files_on_disk": 2,
+          "extraction_files_on_disk": 2,
+          "manifest_artifact_bytes": 58922
+        }
+      },
+      "paired_sync_delta_ms": [
+        -4,
+        -8,
+        -5,
+        -5,
+        -8,
+        -4,
+        -14
+      ],
+      "median_paired_sync_delta_ms": -5,
+      "median_paired_initial_delta_ms": -10,
+      "faster_sync_pairs": 7
+    },
+    {
+      "corpus": "synthetic-rust:files=128,functions=64",
+      "pairs": 7,
+      "medians": {
+        "batched": {
+          "initial_ms": 609,
+          "sync_ms": 666,
+          "clean_reindex_ms": 577,
+          "noop_ms": 0,
+          "reopen_ms": 393,
+          "generation_bytes": 23116912,
+          "shared_inode_bytes": 14569481,
+          "source_files_on_disk": 2,
+          "extraction_files_on_disk": 3,
+          "manifest_artifact_bytes": 37086
+        },
+        "repeated": {
+          "initial_ms": 616,
+          "sync_ms": 665,
+          "clean_reindex_ms": 581,
+          "noop_ms": 0,
+          "reopen_ms": 395,
+          "generation_bytes": 23116912,
+          "shared_inode_bytes": 14569481,
+          "source_files_on_disk": 2,
+          "extraction_files_on_disk": 3,
+          "manifest_artifact_bytes": 37086
+        }
+      },
+      "paired_sync_delta_ms": [
+        -4,
+        20,
+        -3,
+        4,
+        -22,
+        -2,
+        4
+      ],
+      "median_paired_sync_delta_ms": -2,
+      "median_paired_initial_delta_ms": -6,
+      "faster_sync_pairs": 4
+    }
+  ],
+  "verified_trials": 28,
+  "production_sources_unchanged": true,
+  "production_binary_restored": true,
+  "note": "Isolates intermediate directory syncs; both variants retain final file/pack-directory/generation-directory/CURRENT durability protocol. Warm local timings, not power-loss tests."
+}

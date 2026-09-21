@@ -1,0 +1,98 @@
+[
+  {
+    "id": "nanus.fresh-turn-closure.debug",
+    "repo": "nanus",
+    "family": "fresh-turn-closure",
+    "split": "heldout",
+    "kind": "debug",
+    "prompt": "A provider failure must not leave an unfinished step or turn in a conversation that can later resume. Locate the error paths that close both records."
+  },
+  {
+    "id": "nanus.fresh-runtime-tools.debug",
+    "repo": "nanus",
+    "family": "fresh-runtime-tools",
+    "split": "heldout",
+    "kind": "debug",
+    "prompt": "After registering another tool at runtime, what makes its schema appear on the very next model request without rebuilding the runner?"
+  },
+  {
+    "id": "nanus.fresh-legacy-approval.debug",
+    "repo": "nanus",
+    "family": "fresh-legacy-approval",
+    "split": "heldout",
+    "kind": "debug",
+    "prompt": "Which approval behavior does the old configuration spelling \"never\" select, and how does it differ from allowing every outside-sandbox call?"
+  },
+  {
+    "id": "nanus.fresh-delete-symlink.debug",
+    "repo": "nanus",
+    "family": "fresh-delete-symlink",
+    "split": "heldout",
+    "kind": "debug",
+    "prompt": "Deleting a saved conversation must not recursively remove the target of a planted directory symlink. Locate the handling of that case and of a missing session."
+  },
+  {
+    "id": "blogwright.fresh-refresh-metadata.debug",
+    "repo": "blogwright",
+    "family": "fresh-refresh-metadata",
+    "split": "heldout",
+    "kind": "debug",
+    "prompt": "A deployment has unchanged file bytes but needs new object metadata. Where can it force an upload despite a matching content checksum?"
+  },
+  {
+    "id": "blogwright.fresh-tagging-fallback.debug",
+    "repo": "blogwright",
+    "family": "fresh-tagging-fallback",
+    "split": "heldout",
+    "kind": "debug",
+    "prompt": "A deployment role can write objects but cannot attach tags. Find the retry logic that still publishes files and avoids repeating the tagging failure for every upload."
+  },
+  {
+    "id": "blogwright.fresh-invalid-date-rkey.debug",
+    "repo": "blogwright",
+    "family": "fresh-invalid-date-rkey",
+    "split": "heldout",
+    "kind": "debug",
+    "prompt": "A post URL contains digits that look like a date but are not a real calendar date. How does record-key derivation avoid an invalid timestamp?"
+  },
+  {
+    "id": "blogwright.fresh-sitemap-pages.debug",
+    "repo": "blogwright",
+    "family": "fresh-sitemap-pages",
+    "split": "heldout",
+    "kind": "debug",
+    "prompt": "Where are generated HTML pages converted to sitemap URLs, with error pages excluded and stable ordering applied?"
+  },
+  {
+    "id": "whatsurvey.fresh-option-code-collision.debug",
+    "repo": "whatsurvey",
+    "family": "fresh-option-code-collision",
+    "split": "heldout",
+    "kind": "debug",
+    "prompt": "Two survey answer labels must not share the same stored code, even if one code has surrounding whitespace. Locate the validation that rejects this ambiguity."
+  },
+  {
+    "id": "whatsurvey.fresh-media-flow.debug",
+    "repo": "whatsurvey",
+    "family": "fresh-media-flow",
+    "split": "heldout",
+    "kind": "debug",
+    "prompt": "Why can a media question not bind to a Flow, and where are empty, unknown, or repeated accepted media kinds refused?"
+  },
+  {
+    "id": "whatsurvey.fresh-study-anchor.debug",
+    "repo": "whatsurvey",
+    "family": "fresh-study-anchor",
+    "split": "heldout",
+    "kind": "debug",
+    "prompt": "After a form is created, what prevents an update from moving it to a different study or clearing its study association?"
+  },
+  {
+    "id": "whatsurvey.fresh-refusal-observability.debug",
+    "repo": "whatsurvey",
+    "family": "fresh-refusal-observability",
+    "split": "heldout",
+    "kind": "debug",
+    "prompt": "When a form submission is refused, where are a warning and refusal metric recorded without logging the submitted API key or client input?"
+  }
+]

@@ -1,0 +1,18 @@
+--- before/crates/engine/src/store.rs
++++ after/crates/engine/src/store.rs
+@@ -861,6 +861,7 @@
+         let mut nodes: BTreeMap<String, Node> = BTreeMap::new();
+         let mut edges: BTreeMap<String, Edge> = BTreeMap::new();
+         let mut frontier: BTreeSet<NodeId> = seeds.iter().cloned().collect();
++        let mut visited = frontier.clone();
+         for seed in seeds {
+             if let Some(node) = self.node_by_id(seed)? {
+                 nodes.insert(seed.as_str().to_owned(), node);
+@@ -892,6 +893,7 @@
+                         (None, _) => None,
+                     };
+                     if let Some(onward) = onward
++                        && visited.insert(onward.clone())
+                         && let Some(node) = self.node_by_id(&onward)?
+                     {
+                         nodes.insert(onward.as_str().to_owned(), node);

@@ -1,0 +1,27 @@
+   Compiling graph-search-engine v0.1.0 (/Volumes/Delorean/code/graph-search/crates/engine)
+   Compiling graph-search-langs v0.1.0 (/Volumes/Delorean/code/graph-search/crates/langs)
+   Compiling graph-search v0.1.0 (/Volumes/Delorean/code/graph-search/crates/graph-search)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 21.64s
+     Running tests/binding_invalidation.rs (target/debug/deps/binding_invalidation-83ae3c340e553c09)
+
+running 2 tests
+test binding_changes_still_repair_consumers ... FAILED
+test body_and_signature_edits_refresh_only_their_owner ... ok
+
+failures:
+
+---- binding_changes_still_repair_consumers stdout ----
+
+thread 'binding_changes_still_repair_consumers' (83532642) panicked at crates/graph-search/tests/binding_invalidation.rs:111:9:
+assertion `left == right` failed: upserts: js reexport retarget persistent=false
+  left: ["a.js", "b.js", "barrel.js", "caller.js"]
+ right: ["barrel.js", "caller.js"]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    binding_changes_still_repair_consumers
+
+test result: FAILED. 1 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.03s
+
+error: test failed, to rerun pass `-p graph-search --test binding_invalidation`

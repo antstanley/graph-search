@@ -1,0 +1,153 @@
+{
+  "schema": 1,
+  "created_unix": 1789843347.9345548,
+  "seed": 1729,
+  "split": "all",
+  "repeats": 3,
+  "tasks_sha256": "264d591480f63096ea9a4819a6c866bb30c9418d1a74d001dd22bfc43c27348f",
+  "oracles_sha256": "95b7c4b50b2dc5b518b97c1a2559167c456763d0bbe5f1b8832998c56d07c354",
+  "implementation": {
+    "python": "3.14.7",
+    "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+    "rg": "ripgrep 15.2.0 (rev e89fff89ac)\n\nfeatures:+pcre2\nsimd(compile):+NEON\nsimd(runtime):+NEON\n\nPCRE2 10.45 is available (JIT is available)",
+    "codegraph": "1.6.0",
+    "rustc": "rustc 1.98.0 (88d9e12ae 2026-08-18)",
+    "source_sha256": {
+      "taskbench/__init__.py": "554ed173c1e6ff623956079d4548da85b97a61dcf1ab63383f2886c89e12cbbc",
+      "taskbench/__main__.py": "eac128055743becd24dbf11377600232ffbf94a83cafbba6de1104dc386fa54e",
+      "taskbench/backends.py": "df87f7a230a7e7f1fbb42255470f85d44bc7f1cfe1518037c497e3f672429c7b",
+      "taskbench/core.py": "4ce1dca8b169197b910ea9dd6eafbd7ffc0db60e2e79c45816e03fa12584536e",
+      "taskbench/provenance.py": "a4b37d525a874171bf4fc068ab73eeb4eae76cd4118f3c859eb87ca15db69d7d",
+      "taskbench/runner.py": "e839ba1d2053daf8d6b40bcba471472ee6d6f2626793c9b5cc1ead34fcafb682",
+      "harness/src/main.rs": "0036aaa56b46c6138de15c84a1d6a1f11324ac9d4871be6d3cca4084e832fe85"
+    },
+    "host_sha256": "47a1e3a227eb1b893cd2e2f85e19eb3794b975668349d9a859d2720f8dd10a37",
+    "git_head": "bdcbecef41d9863bca23830ed30615f1c219064d"
+  },
+  "driver": null,
+  "model": null,
+  "effort": null,
+  "roots": {
+    "nanus": {
+      "path": "/Volumes/Delorean/code/nanus",
+      "head": "c56f8f25cf962f1486d3f2008717162ae9b6fd35",
+      "dirty": true,
+      "source_snapshot_before": {
+        "scope": "git tracked + untracked nonignored files; symlinks recorded without following",
+        "files": 167,
+        "sha256": "b25ba94008ffc672aa9e2b9c57a91194408c7a564e5dbca2f1c38e053ae76a6e"
+      },
+      "codegraph_index_present": true,
+      "codegraph_freshness_before": {
+        "status": "fresh",
+        "counts": {
+          "matching": 125
+        },
+        "mismatches": []
+      },
+      "codegraph_freshness_after": {
+        "status": "fresh",
+        "counts": {
+          "matching": 125
+        },
+        "mismatches": []
+      },
+      "source_snapshot_after": {
+        "scope": "git tracked + untracked nonignored files; symlinks recorded without following",
+        "files": 167,
+        "sha256": "b25ba94008ffc672aa9e2b9c57a91194408c7a564e5dbca2f1c38e053ae76a6e"
+      }
+    },
+    "blogwright": {
+      "path": "/Volumes/Delorean/code/blogwright",
+      "head": "b4ff10695357e92de505d308bd32df8e3cbbfbd6",
+      "dirty": true,
+      "source_snapshot_before": {
+        "scope": "git tracked + untracked nonignored files; symlinks recorded without following",
+        "files": 325,
+        "sha256": "844fdde22a642eed4190716a8ba494b700ba66036292f8f62adf9d7ef47fb33d"
+      },
+      "codegraph_index_present": true,
+      "codegraph_freshness_before": {
+        "status": "fresh",
+        "counts": {
+          "matching": 126
+        },
+        "mismatches": []
+      },
+      "codegraph_freshness_after": {
+        "status": "fresh",
+        "counts": {
+          "matching": 126
+        },
+        "mismatches": []
+      },
+      "source_snapshot_after": {
+        "scope": "git tracked + untracked nonignored files; symlinks recorded without following",
+        "files": 325,
+        "sha256": "844fdde22a642eed4190716a8ba494b700ba66036292f8f62adf9d7ef47fb33d"
+      }
+    },
+    "whatsurvey": {
+      "path": "/Volumes/Delorean/code/whatsurvey",
+      "head": "7e2beddd04ab569457f798e395fdceb03cab8501",
+      "dirty": true,
+      "source_snapshot_before": {
+        "scope": "git tracked + untracked nonignored files; symlinks recorded without following",
+        "files": 2850,
+        "sha256": "90a56d0037c9cbc2a7f33fc91afc1afc71995fc46b3eb7f5bf1a7d89c9f08209"
+      },
+      "codegraph_index_present": true,
+      "codegraph_freshness_before": {
+        "status": "fresh",
+        "counts": {
+          "matching": 2134
+        },
+        "mismatches": []
+      },
+      "codegraph_freshness_after": {
+        "status": "fresh",
+        "counts": {
+          "matching": 2134
+        },
+        "mismatches": []
+      },
+      "source_snapshot_after": {
+        "scope": "git tracked + untracked nonignored files; symlinks recorded without following",
+        "files": 2850,
+        "sha256": "90a56d0037c9cbc2a7f33fc91afc1afc71995fc46b3eb7f5bf1a7d89c9f08209"
+      }
+    }
+  },
+  "setups": {
+    "whatsurvey/codegraph": {
+      "setup_ms": 0
+    },
+    "nanus/graph-search": {
+      "setup_ms": 1547.4781669909135
+    },
+    "nanus/text": {
+      "setup_ms": 0
+    },
+    "whatsurvey/text": {
+      "setup_ms": 0
+    },
+    "whatsurvey/graph-search": {
+      "setup_ms": 3243.861708091572
+    },
+    "blogwright/text": {
+      "setup_ms": 0
+    },
+    "blogwright/graph-search": {
+      "setup_ms": 320.4619580646977
+    },
+    "nanus/codegraph": {
+      "setup_ms": 0
+    },
+    "blogwright/codegraph": {
+      "setup_ms": 0
+    }
+  },
+  "source_validation": "before and after passed",
+  "cleanup_errors": []
+}

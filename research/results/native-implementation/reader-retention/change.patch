@@ -1,0 +1,494 @@
+--- a/crates/engine/src/generation.rs
++++ b/crates/engine/src/generation.rs
+@@ -23,15 +23,43 @@
+     pub(crate) source: Option<crate::source_records::Prepared>,
+     pub(crate) manifest: Option<graph_search_types::manifest::Manifest>,
+     pub(crate) extractions: Option<crate::manifest_records::Verified>,
++    pub(crate) lease: std::fs::File,
+ }
+ 
+ pub(crate) fn current(root: &Path) -> io::Result<Option<Selected>> {
+-    let bytes = match std::fs::read(root.join(CURRENT)) {
+-        Ok(bytes) => bytes,
+-        Err(error) if error.kind() == io::ErrorKind::NotFound => return Ok(None),
+-        Err(error) => return Err(error),
+-    };
+-    let pointer: Pointer = serde_json::from_slice(&bytes).map_err(io::Error::other)?;
++    read_current(root, |bytes| select(root, bytes))
++}
++
++fn read_current(
++    root: &Path,
++    mut select: impl FnMut(&[u8]) -> io::Result<Selected>,
++) -> io::Result<Option<Selected>> {
++    for _ in 0..8 {
++        let bytes = match std::fs::read(root.join(CURRENT)) {
++            Ok(bytes) => bytes,
++            Err(error) if error.kind() == io::ErrorKind::NotFound => return Ok(None),
++            Err(error) => return Err(error),
++        };
++        match select(&bytes) {
++            Ok(selected) => return Ok(Some(selected)),
++            Err(error) => {
++                // A reader may observe CURRENT immediately before two publications
++                // retire that directory. Retry only a demonstrably changed pointer;
++                // stable corruption or unsupported file locking remains an error.
++                if std::fs::read(root.join(CURRENT))? == bytes {
++                    return Err(error);
++                }
++            }
++        }
++    }
++    Err(io::Error::new(
++        io::ErrorKind::WouldBlock,
++        "generation changed repeatedly while opening; retry",
++    ))
++}
++
++fn select(root: &Path, bytes: &[u8]) -> io::Result<Selected> {
++    let pointer: Pointer = serde_json::from_slice(bytes).map_err(io::Error::other)?;
+     if !(1..=FORMAT).contains(&pointer.format) || !valid_id(&pointer.id) {
+         return Err(io::Error::new(
+             io::ErrorKind::InvalidData,
+@@ -39,6 +67,7 @@
+         ));
+     }
+     let dir = root.join("generations").join(pointer.id);
++    let lease = pin(&dir)?;
+     if !pointer.files.contains_key(GRAPH)
+         || !pointer.files.contains_key(crate::sidecar::DANGLING_FILE)
+         || (pointer.format >= 2 && !pointer.files.contains_key(crate::sidecar::SOURCE_FILE))
+@@ -115,12 +144,22 @@
+         .map(graph_search_types::manifest::Manifest::header);
+     // The store must consume the authenticated source descriptor and verify its
+     // packs before exposing any read handle. Avoid verifying/parsing them twice.
+-    Ok(Some(Selected {
++    Ok(Selected {
+         dir,
+         source,
+         manifest,
+         extractions,
+-    }))
++        lease,
++    })
++}
++
++/// Pin an immutable generation using an existing mandatory sidecar. No new file
++/// or write permission is needed by readers. Keep the distinct handle alive for
++/// as long as lazy records can be opened from this generation's paths.
++pub(crate) fn pin(dir: &Path) -> io::Result<std::fs::File> {
++    let file = std::fs::File::open(dir.join(crate::sidecar::DANGLING_FILE))?;
++    file.try_lock_shared().map_err(io::Error::from)?;
++    Ok(file)
+ }
+ 
+ fn valid_id(id: &str) -> bool {
+@@ -204,8 +243,8 @@
+     std::fs::File::open(dir)?.sync_all()
+ }
+ 
+-/// Called only after publishing. Retain the previous generation for recovery;
+-/// old readers may still hold its files on platforms that allow shared reads.
++/// Called only after publishing under the writer lock. Retain current, previous
++/// and every live reader's generation. A later publication retries skipped cleanup.
+ pub(crate) fn reclaim(root: &Path, current: &Path, previous: &Path) {
+     let Ok(entries) = std::fs::read_dir(root.join("generations")) else {
+         return;
+@@ -217,7 +256,102 @@
+             && entry.file_type().is_ok_and(|kind| kind.is_dir())
+             && entry.file_name().to_str().is_some_and(valid_id)
+         {
+-            let _ = std::fs::remove_dir_all(path);
+-        }
+-    }
+-}
++            match std::fs::File::open(path.join(crate::sidecar::DANGLING_FILE)) {
++                Ok(file) => {
++                    if file.try_lock().is_ok() {
++                        // Hold the exclusive lease until all paths are removed.
++                        let _ = std::fs::remove_dir_all(&path);
++                    }
++                }
++                // An unfinished generation without the mandatory sidecar cannot
++                // have an admitted reader. Never delete on other open/lock errors.
++                Err(error) if error.kind() == io::ErrorKind::NotFound => {
++                    let _ = std::fs::remove_dir_all(&path);
++                }
++                Err(_) => {}
++            }
++        }
++    }
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++    use graph_search_core::ports::GraphStore;
++
++    #[test]
++    fn selection_retries_a_retired_pointer_and_pins_before_loading_the_store() {
++        let root = tempfile::tempdir().unwrap();
++        let mut writer =
++            crate::GrafeoStore::open(root.path(), &crate::StoreOptions::default()).unwrap();
++        writer
++            .publish(graph_search_core::conformance::fixture_batch())
++            .unwrap();
++        let retired = root
++            .path()
++            .join("generations")
++            .join(writer.generation().unwrap().unwrap());
++        let mut selections = 0;
++        let selected = read_current(root.path(), |bytes| {
++            selections += 1;
++            if selections == 1 {
++                for _ in 0..2 {
++                    writer
++                        .publish(graph_search_core::conformance::fixture_batch())
++                        .unwrap();
++                }
++                assert!(!retired.exists());
++            }
++            select(root.path(), bytes)
++        })
++        .unwrap()
++        .unwrap();
++        assert_eq!(selections, 2);
++        assert_eq!(
++            selected.dir.file_name().unwrap().to_str(),
++            writer.generation().unwrap().as_deref()
++        );
++        for _ in 0..3 {
++            writer
++                .publish(graph_search_core::conformance::fixture_batch())
++                .unwrap();
++        }
++        assert!(
++            selected.dir.exists(),
++            "selection already owns a reader lease"
++        );
++        let retained = selected.dir.clone();
++        drop(selected);
++        writer
++            .publish(graph_search_core::conformance::fixture_batch())
++            .unwrap();
++        assert!(!retained.exists());
++    }
++
++    #[test]
++    fn stable_errors_are_not_retried_and_pointer_churn_is_bounded() {
++        let root = tempfile::tempdir().unwrap();
++        std::fs::write(root.path().join(CURRENT), b"first").unwrap();
++        let mut selections = 0u32;
++        let error = read_current(root.path(), |_| {
++            selections += 1;
++            Err(io::Error::new(
++                io::ErrorKind::InvalidData,
++                "stable corruption",
++            ))
++        })
++        .err()
++        .unwrap();
++        assert_eq!(selections, 1);
++        assert_eq!(error.kind(), io::ErrorKind::InvalidData);
++        let error = read_current(root.path(), |_| {
++            selections += 1;
++            std::fs::write(root.path().join(CURRENT), selections.to_string()).unwrap();
++            Err(io::Error::new(io::ErrorKind::NotFound, "retired"))
++        })
++        .err()
++        .unwrap();
++        assert_eq!(selections, 9);
++        assert_eq!(error.kind(), io::ErrorKind::WouldBlock);
++    }
++}
+--- a/crates/engine/src/store.rs
++++ b/crates/engine/src/store.rs
+@@ -65,6 +65,8 @@
+     extraction_records: Option<crate::manifest_records::Verified>,
+     occurrence_files: BTreeMap<String, graph_search_types::occurrence::OccurrenceFile>,
+     occurrences: graph_search_core::occurrences::OccurrenceIndex,
++    /// Dropped after the graph/fact fields; prevents reclaiming lazy record paths.
++    generation_lease: Option<std::fs::File>,
+     #[cfg(test)]
+     failure: Option<&'static str>,
+     #[cfg(test)]
+@@ -83,12 +85,14 @@
+             generation::current(store_dir).map_err(|error| Error::Store(error.to_string()))?
+         };
+         let published = selected.is_some();
+-        let (data_dir, prepared_source, manifest_header, extraction_records) = match selected {
++        let (data_dir, prepared_source, manifest_header, extraction_records, lease) = match selected
++        {
+             Some(selected) => (
+                 selected.dir,
+                 selected.source,
+                 selected.manifest,
+                 selected.extractions,
++                Some(selected.lease),
+             ),
+             None => (
+                 store_dir.to_path_buf(),
+@@ -101,6 +105,7 @@
+                         .as_ref()
+                         .map(Manifest::header)
+                 },
++                None,
+                 None,
+             ),
+         };
+@@ -118,6 +123,7 @@
+         let mut store = Self {
+             manifest_header,
+             extraction_records,
++            generation_lease: lease,
+             db,
+             read,
+             maps: RwLock::new(IdMaps {
+@@ -475,6 +481,9 @@
+             sidecar::prepare_manifest(dir, &manifest.header()).map_err(store_io)?;
+         }
+         self.inject("after_manifest_persist")?;
++        // Acquire before CURRENT changes so failure still leaves the old store
++        // authoritative. Prepared stores keep their lazy records pinned too.
++        self.generation_lease = Some(generation::pin(dir).map_err(store_io)?);
+         generation::sync_dir(dir).map_err(store_io)?;
+         generation::sync_dir(
+             dir.parent()
+@@ -1329,6 +1338,45 @@
+                 assert_eq!(state(&reopened), old, "{point}");
+             }
+         }
++    }
++
++    #[test]
++    fn retained_readers_keep_lazy_facts_until_their_generation_is_released() {
++        let root = tempfile::tempdir().unwrap();
++        let mut writer = GrafeoStore::open(root.path(), &StoreOptions::default()).unwrap();
++        writer.publish(fixture_batch()).unwrap();
++        let reader = GrafeoStore::open(root.path(), &StoreOptions::default()).unwrap();
++        let original = state(&reader);
++        let retained = reader.data_dir.clone();
++        let prepared_reader = writer;
++        let mut writer = GrafeoStore::open(root.path(), &StoreOptions::default()).unwrap();
++        for stamp in 1..=5 {
++            let mut batch = replacement();
++            batch.manifest.indexed_at_ms = stamp;
++            writer.publish(batch).unwrap();
++            assert_eq!(state(&reader), original, "reader after publication {stamp}");
++            assert_eq!(
++                state(&prepared_reader),
++                original,
++                "prepared store also owns a lease"
++            );
++            assert!(retained.exists());
++            let latest = GrafeoStore::open(root.path(), &StoreOptions::default()).unwrap();
++            assert_eq!(latest.manifest().unwrap().unwrap().indexed_at_ms, stamp);
++        }
++        drop(reader);
++        drop(prepared_reader);
++        writer.publish(replacement()).unwrap();
++        assert!(
++            !retained.exists(),
++            "unleased old generations must be reclaimed"
++        );
++        assert_eq!(
++            std::fs::read_dir(root.path().join("generations"))
++                .unwrap()
++                .count(),
++            2
++        );
+     }
+ 
+     #[test]
+--- a/crates/engine/tests/reader_lifetime.rs
++++ b/crates/engine/tests/reader_lifetime.rs
+@@ -0,0 +1,176 @@
++//! Cross-process generation retention and crash-release contracts.
++#![forbid(unsafe_code)]
++#![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
++
++use graph_search_core::{conformance, ports::GraphStore};
++use graph_search_engine::{GrafeoStore, StoreOptions};
++use graph_search_types::{
++    EdgeKind, WriteBatch,
++    extraction::{Extraction, ReferenceFact},
++    manifest::FileEntry,
++};
++use std::{
++    io::{BufRead, Write},
++    path::Path,
++    process::{Child, Command, Stdio},
++    sync::mpsc,
++    time::Duration,
++};
++
++fn batch(stamp: u64) -> WriteBatch {
++    let mut batch = conformance::fixture_batch();
++    batch.upserts[0].symbols[0].name = Some(format!("generation{stamp}"));
++    batch.manifest.indexed_at_ms = stamp;
++    batch.manifest.entries.insert(
++        "src/a.rs".into(),
++        FileEntry {
++            size: 10,
++            mtime_ns: 1,
++            content_hash: "ha".into(),
++            parser_version: 1,
++            schema_version: 1,
++            quarantine: None,
++            extraction: Some(
++                Extraction {
++                    references: vec![ReferenceFact::file_level(
++                        EdgeKind::Calls,
++                        format!("generation{stamp}"),
++                        1,
++                    )],
++                    ..Default::default()
++                }
++                .into(),
++            ),
++        },
++    );
++    batch
++}
++
++#[test]
++#[allow(clippy::exit, clippy::print_stdout)] // Child protocol and deliberate exit without Drop.
++fn reader_child() {
++    let Ok(root) = std::env::var("GRAPH_SEARCH_READER_ROOT") else {
++        return;
++    };
++    let reader = GrafeoStore::open(Path::new(&root), &StoreOptions::default()).unwrap();
++    let original = reader.manifest().unwrap();
++    let nodes = reader.snapshot().unwrap().all_nodes().unwrap();
++    println!("READER_READY");
++    std::io::stdout().flush().unwrap();
++    for line in std::io::stdin().lock().lines() {
++        match line.unwrap().as_str() {
++            "check" => {
++                assert_eq!(reader.manifest().unwrap(), original);
++                assert_eq!(reader.snapshot().unwrap().all_nodes().unwrap(), nodes);
++                println!("READER_CHECKED");
++                std::io::stdout().flush().unwrap();
++            }
++            "exit" => return,
++            "crash" => std::process::exit(87),
++            other => panic!("unexpected reader command: {other}"),
++        }
++    }
++}
++
++struct Reader {
++    child: Child,
++    lines: mpsc::Receiver<String>,
++    output: Option<std::thread::JoinHandle<()>>,
++}
++impl Reader {
++    fn open(root: &Path) -> Self {
++        let mut child = Command::new(std::env::current_exe().unwrap())
++            .args(["--exact", "reader_child", "--nocapture"])
++            .env("GRAPH_SEARCH_READER_ROOT", root)
++            .stdin(Stdio::piped())
++            .stdout(Stdio::piped())
++            .stderr(Stdio::inherit())
++            .spawn()
++            .unwrap();
++        let stdout = child.stdout.take().unwrap();
++        let (sender, lines) = mpsc::channel();
++        let output = std::thread::spawn(move || {
++            for line in std::io::BufReader::new(stdout).lines() {
++                let Ok(line) = line else {
++                    break;
++                };
++                if line.starts_with("READER_") && sender.send(line).is_err() {
++                    break;
++                }
++            }
++        });
++        let reader = Self {
++            child,
++            lines,
++            output: Some(output),
++        };
++        reader.expect("READER_READY");
++        reader
++    }
++    fn expect(&self, expected: &str) {
++        assert_eq!(
++            self.lines.recv_timeout(Duration::from_secs(60)).unwrap(),
++            expected
++        );
++    }
++    fn send(&mut self, command: &str) {
++        let stdin = self.child.stdin.as_mut().unwrap();
++        writeln!(stdin, "{command}").unwrap();
++        stdin.flush().unwrap();
++    }
++}
++impl Drop for Reader {
++    fn drop(&mut self) {
++        let _ = self.child.kill();
++        let _ = self.child.wait();
++        if let Some(output) = self.output.take() {
++            let _ = output.join();
++        }
++    }
++}
++
++#[test]
++fn multiple_process_readers_survive_churn_and_exit_releases_retention() {
++    let root = tempfile::tempdir().unwrap();
++    let mut writer = GrafeoStore::open(root.path(), &StoreOptions::default()).unwrap();
++    writer.publish(batch(0)).unwrap();
++    let retained = root
++        .path()
++        .join("generations")
++        .join(writer.generation().unwrap().unwrap());
++    let mut first = Reader::open(root.path());
++    let mut second = Reader::open(root.path());
++    for stamp in 1..=8 {
++        writer.publish(batch(stamp)).unwrap();
++        for reader in [&mut first, &mut second] {
++            reader.send("check");
++            reader.expect("READER_CHECKED");
++        }
++        assert!(retained.exists());
++        assert!(
++            std::fs::read_dir(root.path().join("generations"))
++                .unwrap()
++                .count()
++                <= 3
++        );
++    }
++    first.send("exit");
++    assert!(first.child.wait().unwrap().success());
++    writer.publish(batch(9)).unwrap();
++    assert!(retained.exists(), "second reader still holds the lease");
++    second.send("check");
++    second.expect("READER_CHECKED");
++    second.send("crash");
++    assert_eq!(second.child.wait().unwrap().code(), Some(87));
++    writer.publish(batch(10)).unwrap();
++    assert!(
++        !retained.exists(),
++        "OS releases the lease even without Rust Drop"
++    );
++    assert_eq!(
++        std::fs::read_dir(root.path().join("generations"))
++            .unwrap()
++            .count(),
++        2
++    );
++}
+--- a/crates/graph-search/src/lock.rs
++++ b/crates/graph-search/src/lock.rs
+@@ -1,7 +1,8 @@
+ //! The advisory writer lock at `<store>/index.lock` (`SPEC.md` §6.6).
+ //!
+-//! One writer at a time; readers never lock. A refused writer is told who
+-//! holds the lock, the same posture as `nanus`'s session claim.
++//! One writer at a time; readers do not take this writer lock. The engine
++//! separately leases immutable generations. A refused writer is told who holds
++//! the lock, the same posture as `nanus`'s session claim.
+ 
+ use graph_search_core::Result;
+ use graph_search_core::error::Error;

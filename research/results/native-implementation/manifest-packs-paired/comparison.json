@@ -1,0 +1,94 @@
+{
+  "results": [
+    {
+      "corpus": "git-archive:bdcbecef41d9863bca23830ed30615f1c219064d",
+      "pairs": 7,
+      "medians": {
+        "split": {
+          "initial_ms": 584,
+          "sync_ms": 402,
+          "clean_reindex_ms": 530,
+          "noop_ms": 1,
+          "reopen_ms": 272,
+          "generation_bytes": 16789811,
+          "shared_inode_bytes": 10736996,
+          "source_files_on_disk": 2,
+          "extraction_files_on_disk": 2,
+          "manifest_artifact_bytes": 58922
+        },
+        "embedded": {
+          "initial_ms": 574,
+          "sync_ms": 374,
+          "clean_reindex_ms": 518,
+          "noop_ms": 1,
+          "reopen_ms": 278,
+          "generation_bytes": 19481378,
+          "shared_inode_bytes": 7145489,
+          "source_files_on_disk": 2,
+          "extraction_files_on_disk": 0,
+          "manifest_artifact_bytes": 6711265
+        }
+      },
+      "paired_sync_delta_ms": [
+        19,
+        26,
+        -1,
+        28,
+        28,
+        35,
+        34
+      ],
+      "median_paired_sync_delta_ms": 28,
+      "median_paired_reopen_delta_ms": -7,
+      "median_paired_initial_delta_ms": 4,
+      "faster_sync_pairs": 1
+    },
+    {
+      "corpus": "synthetic-rust:files=128,functions=64",
+      "pairs": 7,
+      "medians": {
+        "split": {
+          "initial_ms": 623,
+          "sync_ms": 694,
+          "clean_reindex_ms": 586,
+          "noop_ms": 0,
+          "reopen_ms": 395,
+          "generation_bytes": 23116912,
+          "shared_inode_bytes": 14569481,
+          "source_files_on_disk": 2,
+          "extraction_files_on_disk": 3,
+          "manifest_artifact_bytes": 37086
+        },
+        "embedded": {
+          "initial_ms": 623,
+          "sync_ms": 648,
+          "clean_reindex_ms": 596,
+          "noop_ms": 0,
+          "reopen_ms": 416,
+          "generation_bytes": 32786737,
+          "shared_inode_bytes": 4155785,
+          "source_files_on_disk": 2,
+          "extraction_files_on_disk": 0,
+          "manifest_artifact_bytes": 20227294
+        }
+      },
+      "paired_sync_delta_ms": [
+        28,
+        44,
+        60,
+        42,
+        32,
+        38,
+        54
+      ],
+      "median_paired_sync_delta_ms": 42,
+      "median_paired_reopen_delta_ms": -23,
+      "median_paired_initial_delta_ms": 2,
+      "faster_sync_pairs": 0
+    }
+  ],
+  "verified_trials": 28,
+  "production_sources_unchanged": true,
+  "production_binary_restored": true,
+  "note": "Both variants use header-only no-op synchronization. Facts include hydrated manifest entries, source records and occurrence records. Warm local timings and logical bytes, not physical I/O, peak memory or search quality."
+}

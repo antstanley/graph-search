@@ -1,0 +1,2081 @@
+{
+  "adjacency": {
+    "edge_inline_capacity_bytes": 17158304,
+    "edges": 57271,
+    "edges_json_bytes_not_heap": 23976562,
+    "incident": {
+      "entries": 84524,
+      "entry_count_by_length_1_4_16_128_more": [
+        9407,
+        6367,
+        21900,
+        27259,
+        19591
+      ],
+      "front_coded_suffix_bytes_lower_bound": 196454,
+      "item_size": 8,
+      "key_string_headers_bytes": 363480,
+      "list_count_by_length_1_4_16_128_more": [
+        9407,
+        2251,
+        2671,
+        729,
+        87
+      ],
+      "list_vec_headers_bytes": 363480,
+      "term_utf8_bytes": 1217992,
+      "terms": 15145,
+      "vector_capacity_bytes": 1152320,
+      "vector_length_bytes": 676192
+    }
+  },
+  "body": {
+    "docid_encoding": {
+      "codec_capacity_including_restarts_bytes": [
+        1016280,
+        344168,
+        247856,
+        338752,
+        889600
+      ],
+      "codec_inline_bytes_per_list": 56,
+      "codec_payload_including_restarts_bytes": [
+        255742,
+        97101,
+        88377,
+        173387,
+        617898
+      ],
+      "contract": "doc ordinals only; 128-entry restart blocks; no TF/positions, persistent offsets, checksums, allocator overhead or query integration; timings are kernel microbenchmarks",
+      "entry_counts": [
+        14115,
+        11909,
+        27191,
+        101223,
+        499971
+      ],
+      "list_counts": [
+        14115,
+        4771,
+        2987,
+        2173,
+        857
+      ],
+      "ordinal_checksum": "98e3bd1a9a657300",
+      "plain_inline_bytes_per_list": 24,
+      "plain_payload_bytes": [
+        112920,
+        95272,
+        217528,
+        809784,
+        3999768
+      ],
+      "timings": [
+        {
+          "bucket": 0,
+          "rows": [
+            {
+              "0_scan_checksum": 2004516122578937344,
+              "0_seek_checksum": 16368021540306704384,
+              "1_scan_checksum": 2004516122578937344,
+              "1_seek_checksum": 16368021540306704384,
+              "codec_build_ns": 41792,
+              "codec_scan_ns": 6500,
+              "codec_seek_ns": 200250,
+              "plain_build_ns": 15375,
+              "plain_scan_ns": 2208,
+              "plain_seek_ns": 89916
+            },
+            {
+              "0_scan_checksum": 2004516122578937344,
+              "0_seek_checksum": 16368021540306704384,
+              "1_scan_checksum": 2004516122578937344,
+              "1_seek_checksum": 16368021540306704384,
+              "codec_build_ns": 39208,
+              "codec_scan_ns": 5750,
+              "codec_seek_ns": 200750,
+              "plain_build_ns": 15292,
+              "plain_scan_ns": 1292,
+              "plain_seek_ns": 75541
+            },
+            {
+              "0_scan_checksum": 2004516122578937344,
+              "0_seek_checksum": 16368021540306704384,
+              "1_scan_checksum": 2004516122578937344,
+              "1_seek_checksum": 16368021540306704384,
+              "codec_build_ns": 39500,
+              "codec_scan_ns": 5750,
+              "codec_seek_ns": 199708,
+              "plain_build_ns": 15292,
+              "plain_scan_ns": 1333,
+              "plain_seek_ns": 75667
+            },
+            {
+              "0_scan_checksum": 2004516122578937344,
+              "0_seek_checksum": 16368021540306704384,
+              "1_scan_checksum": 2004516122578937344,
+              "1_seek_checksum": 16368021540306704384,
+              "codec_build_ns": 40334,
+              "codec_scan_ns": 5625,
+              "codec_seek_ns": 201875,
+              "plain_build_ns": 15708,
+              "plain_scan_ns": 1292,
+              "plain_seek_ns": 77750
+            },
+            {
+              "0_scan_checksum": 2004516122578937344,
+              "0_seek_checksum": 16368021540306704384,
+              "1_scan_checksum": 2004516122578937344,
+              "1_seek_checksum": 16368021540306704384,
+              "codec_build_ns": 40416,
+              "codec_scan_ns": 5875,
+              "codec_seek_ns": 205958,
+              "plain_build_ns": 15791,
+              "plain_scan_ns": 1375,
+              "plain_seek_ns": 77709
+            },
+            {
+              "0_scan_checksum": 2004516122578937344,
+              "0_seek_checksum": 16368021540306704384,
+              "1_scan_checksum": 2004516122578937344,
+              "1_seek_checksum": 16368021540306704384,
+              "codec_build_ns": 41125,
+              "codec_scan_ns": 5834,
+              "codec_seek_ns": 206458,
+              "plain_build_ns": 15291,
+              "plain_scan_ns": 1500,
+              "plain_seek_ns": 78084
+            }
+          ],
+          "sample_entries": 64,
+          "sample_lists": 64,
+          "scan_repeats": 16,
+          "seek_repeats": 16,
+          "targets_per_list": 64
+        },
+        {
+          "bucket": 1,
+          "rows": [
+            {
+              "0_scan_checksum": 17677497530263900320,
+              "0_seek_checksum": 12722090617031156224,
+              "1_scan_checksum": 17677497530263900320,
+              "1_seek_checksum": 12722090617031156224,
+              "codec_build_ns": 50583,
+              "codec_scan_ns": 9750,
+              "codec_seek_ns": 428000,
+              "plain_build_ns": 21958,
+              "plain_scan_ns": 3708,
+              "plain_seek_ns": 86000
+            },
+            {
+              "0_scan_checksum": 17677497530263900320,
+              "0_seek_checksum": 12722090617031156224,
+              "1_scan_checksum": 17677497530263900320,
+              "1_seek_checksum": 12722090617031156224,
+              "codec_build_ns": 49459,
+              "codec_scan_ns": 8208,
+              "codec_seek_ns": 434458,
+              "plain_build_ns": 21333,
+              "plain_scan_ns": 3375,
+              "plain_seek_ns": 83334
+            },
+            {
+              "0_scan_checksum": 17677497530263900320,
+              "0_seek_checksum": 12722090617031156224,
+              "1_scan_checksum": 17677497530263900320,
+              "1_seek_checksum": 12722090617031156224,
+              "codec_build_ns": 50334,
+              "codec_scan_ns": 8333,
+              "codec_seek_ns": 404209,
+              "plain_build_ns": 21375,
+              "plain_scan_ns": 3416,
+              "plain_seek_ns": 82917
+            },
+            {
+              "0_scan_checksum": 17677497530263900320,
+              "0_seek_checksum": 12722090617031156224,
+              "1_scan_checksum": 17677497530263900320,
+              "1_seek_checksum": 12722090617031156224,
+              "codec_build_ns": 52625,
+              "codec_scan_ns": 8416,
+              "codec_seek_ns": 420791,
+              "plain_build_ns": 22042,
+              "plain_scan_ns": 3500,
+              "plain_seek_ns": 86791
+            },
+            {
+              "0_scan_checksum": 17677497530263900320,
+              "0_seek_checksum": 12722090617031156224,
+              "1_scan_checksum": 17677497530263900320,
+              "1_seek_checksum": 12722090617031156224,
+              "codec_build_ns": 48292,
+              "codec_scan_ns": 8542,
+              "codec_seek_ns": 397583,
+              "plain_build_ns": 22084,
+              "plain_scan_ns": 3541,
+              "plain_seek_ns": 86250
+            },
+            {
+              "0_scan_checksum": 17677497530263900320,
+              "0_seek_checksum": 12722090617031156224,
+              "1_scan_checksum": 17677497530263900320,
+              "1_seek_checksum": 12722090617031156224,
+              "codec_build_ns": 50958,
+              "codec_scan_ns": 8208,
+              "codec_seek_ns": 402583,
+              "plain_build_ns": 21834,
+              "plain_scan_ns": 3458,
+              "plain_seek_ns": 86208
+            }
+          ],
+          "sample_entries": 170,
+          "sample_lists": 64,
+          "scan_repeats": 16,
+          "seek_repeats": 16,
+          "targets_per_list": 64
+        },
+        {
+          "bucket": 2,
+          "rows": [
+            {
+              "0_scan_checksum": 9919497508576130992,
+              "0_seek_checksum": 1142202466377689760,
+              "1_scan_checksum": 9919497508576130992,
+              "1_seek_checksum": 1142202466377689760,
+              "codec_build_ns": 96709,
+              "codec_scan_ns": 22583,
+              "codec_seek_ns": 1184750,
+              "plain_build_ns": 22708,
+              "plain_scan_ns": 11916,
+              "plain_seek_ns": 152542
+            },
+            {
+              "0_scan_checksum": 9919497508576130992,
+              "0_seek_checksum": 1142202466377689760,
+              "1_scan_checksum": 9919497508576130992,
+              "1_seek_checksum": 1142202466377689760,
+              "codec_build_ns": 94041,
+              "codec_scan_ns": 21208,
+              "codec_seek_ns": 1087708,
+              "plain_build_ns": 23084,
+              "plain_scan_ns": 11959,
+              "plain_seek_ns": 157791
+            },
+            {
+              "0_scan_checksum": 9919497508576130992,
+              "0_seek_checksum": 1142202466377689760,
+              "1_scan_checksum": 9919497508576130992,
+              "1_seek_checksum": 1142202466377689760,
+              "codec_build_ns": 87625,
+              "codec_scan_ns": 19875,
+              "codec_seek_ns": 1034250,
+              "plain_build_ns": 21125,
+              "plain_scan_ns": 11625,
+              "plain_seek_ns": 149625
+            },
+            {
+              "0_scan_checksum": 9919497508576130992,
+              "0_seek_checksum": 1142202466377689760,
+              "1_scan_checksum": 9919497508576130992,
+              "1_seek_checksum": 1142202466377689760,
+              "codec_build_ns": 86791,
+              "codec_scan_ns": 19625,
+              "codec_seek_ns": 1021042,
+              "plain_build_ns": 21792,
+              "plain_scan_ns": 11125,
+              "plain_seek_ns": 148333
+            },
+            {
+              "0_scan_checksum": 9919497508576130992,
+              "0_seek_checksum": 1142202466377689760,
+              "1_scan_checksum": 9919497508576130992,
+              "1_seek_checksum": 1142202466377689760,
+              "codec_build_ns": 86125,
+              "codec_scan_ns": 19083,
+              "codec_seek_ns": 1020791,
+              "plain_build_ns": 21042,
+              "plain_scan_ns": 10917,
+              "plain_seek_ns": 145083
+            },
+            {
+              "0_scan_checksum": 9919497508576130992,
+              "0_seek_checksum": 1142202466377689760,
+              "1_scan_checksum": 9919497508576130992,
+              "1_seek_checksum": 1142202466377689760,
+              "codec_build_ns": 88042,
+              "codec_scan_ns": 19458,
+              "codec_seek_ns": 1014250,
+              "plain_build_ns": 21458,
+              "plain_scan_ns": 11083,
+              "plain_seek_ns": 145250
+            }
+          ],
+          "sample_entries": 579,
+          "sample_lists": 64,
+          "scan_repeats": 16,
+          "seek_repeats": 16,
+          "targets_per_list": 64
+        },
+        {
+          "bucket": 3,
+          "rows": [
+            {
+              "0_scan_checksum": 1478506399844287152,
+              "0_seek_checksum": 12205480331588660960,
+              "1_scan_checksum": 1478506399844287152,
+              "1_seek_checksum": 12205480331588660960,
+              "codec_build_ns": 231542,
+              "codec_scan_ns": 119417,
+              "codec_seek_ns": 4742625,
+              "plain_build_ns": 37209,
+              "plain_scan_ns": 62167,
+              "plain_seek_ns": 220625
+            },
+            {
+              "0_scan_checksum": 1478506399844287152,
+              "0_seek_checksum": 12205480331588660960,
+              "1_scan_checksum": 1478506399844287152,
+              "1_seek_checksum": 12205480331588660960,
+              "codec_build_ns": 231583,
+              "codec_scan_ns": 164333,
+              "codec_seek_ns": 4844083,
+              "plain_build_ns": 35791,
+              "plain_scan_ns": 65667,
+              "plain_seek_ns": 248000
+            },
+            {
+              "0_scan_checksum": 1478506399844287152,
+              "0_seek_checksum": 12205480331588660960,
+              "1_scan_checksum": 1478506399844287152,
+              "1_seek_checksum": 12205480331588660960,
+              "codec_build_ns": 225791,
+              "codec_scan_ns": 126667,
+              "codec_seek_ns": 4780750,
+              "plain_build_ns": 33667,
+              "plain_scan_ns": 71959,
+              "plain_seek_ns": 241333
+            },
+            {
+              "0_scan_checksum": 1478506399844287152,
+              "0_seek_checksum": 12205480331588660960,
+              "1_scan_checksum": 1478506399844287152,
+              "1_seek_checksum": 12205480331588660960,
+              "codec_build_ns": 226750,
+              "codec_scan_ns": 127500,
+              "codec_seek_ns": 4945041,
+              "plain_build_ns": 33667,
+              "plain_scan_ns": 58625,
+              "plain_seek_ns": 210500
+            },
+            {
+              "0_scan_checksum": 1478506399844287152,
+              "0_seek_checksum": 12205480331588660960,
+              "1_scan_checksum": 1478506399844287152,
+              "1_seek_checksum": 12205480331588660960,
+              "codec_build_ns": 238792,
+              "codec_scan_ns": 135125,
+              "codec_seek_ns": 5113084,
+              "plain_build_ns": 32750,
+              "plain_scan_ns": 58625,
+              "plain_seek_ns": 209834
+            },
+            {
+              "0_scan_checksum": 1478506399844287152,
+              "0_seek_checksum": 12205480331588660960,
+              "1_scan_checksum": 1478506399844287152,
+              "1_seek_checksum": 12205480331588660960,
+              "codec_build_ns": 230500,
+              "codec_scan_ns": 132166,
+              "codec_seek_ns": 5195666,
+              "plain_build_ns": 35709,
+              "plain_scan_ns": 59833,
+              "plain_seek_ns": 211542
+            }
+          ],
+          "sample_entries": 3047,
+          "sample_lists": 64,
+          "scan_repeats": 16,
+          "seek_repeats": 16,
+          "targets_per_list": 64
+        },
+        {
+          "bucket": 4,
+          "rows": [
+            {
+              "0_scan_checksum": 2212809751837638432,
+              "0_seek_checksum": 3589969071144709696,
+              "1_scan_checksum": 2212809751837638432,
+              "1_seek_checksum": 3589969071144709696,
+              "codec_build_ns": 1202125,
+              "codec_scan_ns": 1557833,
+              "codec_seek_ns": 10753959,
+              "plain_build_ns": 130959,
+              "plain_scan_ns": 734875,
+              "plain_seek_ns": 389917
+            },
+            {
+              "0_scan_checksum": 2212809751837638432,
+              "0_seek_checksum": 3589969071144709696,
+              "1_scan_checksum": 2212809751837638432,
+              "1_seek_checksum": 3589969071144709696,
+              "codec_build_ns": 1153334,
+              "codec_scan_ns": 1440208,
+              "codec_seek_ns": 10118458,
+              "plain_build_ns": 119667,
+              "plain_scan_ns": 675500,
+              "plain_seek_ns": 388084
+            },
+            {
+              "0_scan_checksum": 2212809751837638432,
+              "0_seek_checksum": 3589969071144709696,
+              "1_scan_checksum": 2212809751837638432,
+              "1_seek_checksum": 3589969071144709696,
+              "codec_build_ns": 1184917,
+              "codec_scan_ns": 1453459,
+              "codec_seek_ns": 10193875,
+              "plain_build_ns": 118042,
+              "plain_scan_ns": 678625,
+              "plain_seek_ns": 379708
+            },
+            {
+              "0_scan_checksum": 2212809751837638432,
+              "0_seek_checksum": 3589969071144709696,
+              "1_scan_checksum": 2212809751837638432,
+              "1_seek_checksum": 3589969071144709696,
+              "codec_build_ns": 1155333,
+              "codec_scan_ns": 1440084,
+              "codec_seek_ns": 10092917,
+              "plain_build_ns": 118583,
+              "plain_scan_ns": 682583,
+              "plain_seek_ns": 380958
+            },
+            {
+              "0_scan_checksum": 2212809751837638432,
+              "0_seek_checksum": 3589969071144709696,
+              "1_scan_checksum": 2212809751837638432,
+              "1_seek_checksum": 3589969071144709696,
+              "codec_build_ns": 1173709,
+              "codec_scan_ns": 1448375,
+              "codec_seek_ns": 10174959,
+              "plain_build_ns": 118125,
+              "plain_scan_ns": 685625,
+              "plain_seek_ns": 376041
+            },
+            {
+              "0_scan_checksum": 2212809751837638432,
+              "0_seek_checksum": 3589969071144709696,
+              "1_scan_checksum": 2212809751837638432,
+              "1_seek_checksum": 3589969071144709696,
+              "codec_build_ns": 1179000,
+              "codec_scan_ns": 1418334,
+              "codec_seek_ns": 10146875,
+              "plain_build_ns": 122042,
+              "plain_scan_ns": 675542,
+              "plain_seek_ns": 396208
+            }
+          ],
+          "sample_entries": 35893,
+          "sample_lists": 64,
+          "scan_repeats": 16,
+          "seek_repeats": 16,
+          "targets_per_list": 64
+        }
+      ]
+    },
+    "document_capacity_bytes": 2621440,
+    "document_length_bytes": 1524840,
+    "document_size": 40,
+    "documents": 38121,
+    "file_path_utf8_bytes": 68479,
+    "files": 1224,
+    "identifier_lane": {
+      "docid_encoding": {
+        "codec_capacity_including_restarts_bytes": [
+          1327320,
+          766064,
+          459024,
+          467456,
+          940800
+        ],
+        "codec_inline_bytes_per_list": 56,
+        "codec_payload_including_restarts_bytes": [
+          334101,
+          216073,
+          161387,
+          235179,
+          651354
+        ],
+        "contract": "doc ordinals only; 128-entry restart blocks; no TF/positions, persistent offsets, checksums, allocator overhead or query integration; timings are kernel microbenchmarks",
+        "entry_counts": [
+          18435,
+          26943,
+          49316,
+          138247,
+          526849
+        ],
+        "list_counts": [
+          18435,
+          10629,
+          5625,
+          3160,
+          933
+        ],
+        "ordinal_checksum": "6f8f258b8d7f8776",
+        "plain_inline_bytes_per_list": 24,
+        "plain_payload_bytes": [
+          147480,
+          215544,
+          394528,
+          1105976,
+          4214792
+        ],
+        "timings": [
+          {
+            "bucket": 0,
+            "rows": [
+              {
+                "0_scan_checksum": 17451946339770605344,
+                "0_seek_checksum": 8386198240533991424,
+                "1_scan_checksum": 17451946339770605344,
+                "1_seek_checksum": 8386198240533991424,
+                "codec_build_ns": 37500,
+                "codec_scan_ns": 6291,
+                "codec_seek_ns": 196250,
+                "plain_build_ns": 15667,
+                "plain_scan_ns": 1708,
+                "plain_seek_ns": 77000
+              },
+              {
+                "0_scan_checksum": 17451946339770605344,
+                "0_seek_checksum": 8386198240533991424,
+                "1_scan_checksum": 17451946339770605344,
+                "1_seek_checksum": 8386198240533991424,
+                "codec_build_ns": 37667,
+                "codec_scan_ns": 6166,
+                "codec_seek_ns": 217625,
+                "plain_build_ns": 15208,
+                "plain_scan_ns": 1334,
+                "plain_seek_ns": 76958
+              },
+              {
+                "0_scan_checksum": 17451946339770605344,
+                "0_seek_checksum": 8386198240533991424,
+                "1_scan_checksum": 17451946339770605344,
+                "1_seek_checksum": 8386198240533991424,
+                "codec_build_ns": 37917,
+                "codec_scan_ns": 6083,
+                "codec_seek_ns": 195916,
+                "plain_build_ns": 15208,
+                "plain_scan_ns": 1292,
+                "plain_seek_ns": 77083
+              },
+              {
+                "0_scan_checksum": 17451946339770605344,
+                "0_seek_checksum": 8386198240533991424,
+                "1_scan_checksum": 17451946339770605344,
+                "1_seek_checksum": 8386198240533991424,
+                "codec_build_ns": 38125,
+                "codec_scan_ns": 6041,
+                "codec_seek_ns": 195833,
+                "plain_build_ns": 15250,
+                "plain_scan_ns": 1292,
+                "plain_seek_ns": 76958
+              },
+              {
+                "0_scan_checksum": 17451946339770605344,
+                "0_seek_checksum": 8386198240533991424,
+                "1_scan_checksum": 17451946339770605344,
+                "1_seek_checksum": 8386198240533991424,
+                "codec_build_ns": 37625,
+                "codec_scan_ns": 6084,
+                "codec_seek_ns": 199041,
+                "plain_build_ns": 15209,
+                "plain_scan_ns": 1333,
+                "plain_seek_ns": 77000
+              },
+              {
+                "0_scan_checksum": 17451946339770605344,
+                "0_seek_checksum": 8386198240533991424,
+                "1_scan_checksum": 17451946339770605344,
+                "1_seek_checksum": 8386198240533991424,
+                "codec_build_ns": 37542,
+                "codec_scan_ns": 6083,
+                "codec_seek_ns": 195875,
+                "plain_build_ns": 15250,
+                "plain_scan_ns": 1291,
+                "plain_seek_ns": 76959
+              }
+            ],
+            "sample_entries": 64,
+            "sample_lists": 64,
+            "scan_repeats": 16,
+            "seek_repeats": 16,
+            "targets_per_list": 64
+          },
+          {
+            "bucket": 1,
+            "rows": [
+              {
+                "0_scan_checksum": 12834898451416723456,
+                "0_seek_checksum": 14493671106004569408,
+                "1_scan_checksum": 12834898451416723456,
+                "1_seek_checksum": 14493671106004569408,
+                "codec_build_ns": 47500,
+                "codec_scan_ns": 9125,
+                "codec_seek_ns": 394625,
+                "plain_build_ns": 20834,
+                "plain_scan_ns": 3708,
+                "plain_seek_ns": 82417
+              },
+              {
+                "0_scan_checksum": 12834898451416723456,
+                "0_seek_checksum": 14493671106004569408,
+                "1_scan_checksum": 12834898451416723456,
+                "1_seek_checksum": 14493671106004569408,
+                "codec_build_ns": 56333,
+                "codec_scan_ns": 8208,
+                "codec_seek_ns": 405792,
+                "plain_build_ns": 21125,
+                "plain_scan_ns": 3458,
+                "plain_seek_ns": 84458
+              },
+              {
+                "0_scan_checksum": 12834898451416723456,
+                "0_seek_checksum": 14493671106004569408,
+                "1_scan_checksum": 12834898451416723456,
+                "1_seek_checksum": 14493671106004569408,
+                "codec_build_ns": 47834,
+                "codec_scan_ns": 8542,
+                "codec_seek_ns": 394542,
+                "plain_build_ns": 21083,
+                "plain_scan_ns": 3500,
+                "plain_seek_ns": 91542
+              },
+              {
+                "0_scan_checksum": 12834898451416723456,
+                "0_seek_checksum": 14493671106004569408,
+                "1_scan_checksum": 12834898451416723456,
+                "1_seek_checksum": 14493671106004569408,
+                "codec_build_ns": 48333,
+                "codec_scan_ns": 8458,
+                "codec_seek_ns": 401666,
+                "plain_build_ns": 21084,
+                "plain_scan_ns": 3416,
+                "plain_seek_ns": 84250
+              },
+              {
+                "0_scan_checksum": 12834898451416723456,
+                "0_seek_checksum": 14493671106004569408,
+                "1_scan_checksum": 12834898451416723456,
+                "1_seek_checksum": 14493671106004569408,
+                "codec_build_ns": 48250,
+                "codec_scan_ns": 8417,
+                "codec_seek_ns": 394083,
+                "plain_build_ns": 21042,
+                "plain_scan_ns": 3375,
+                "plain_seek_ns": 84292
+              },
+              {
+                "0_scan_checksum": 12834898451416723456,
+                "0_seek_checksum": 14493671106004569408,
+                "1_scan_checksum": 12834898451416723456,
+                "1_seek_checksum": 14493671106004569408,
+                "codec_build_ns": 47166,
+                "codec_scan_ns": 8459,
+                "codec_seek_ns": 399792,
+                "plain_build_ns": 20500,
+                "plain_scan_ns": 3333,
+                "plain_seek_ns": 86500
+              }
+            ],
+            "sample_entries": 174,
+            "sample_lists": 64,
+            "scan_repeats": 16,
+            "seek_repeats": 16,
+            "targets_per_list": 64
+          },
+          {
+            "bucket": 2,
+            "rows": [
+              {
+                "0_scan_checksum": 4307946553586985664,
+                "0_seek_checksum": 4652714926563272736,
+                "1_scan_checksum": 4307946553586985664,
+                "1_seek_checksum": 4652714926563272736,
+                "codec_build_ns": 83000,
+                "codec_scan_ns": 29166,
+                "codec_seek_ns": 1047375,
+                "plain_build_ns": 31292,
+                "plain_scan_ns": 11125,
+                "plain_seek_ns": 161209
+              },
+              {
+                "0_scan_checksum": 4307946553586985664,
+                "0_seek_checksum": 4652714926563272736,
+                "1_scan_checksum": 4307946553586985664,
+                "1_seek_checksum": 4652714926563272736,
+                "codec_build_ns": 81250,
+                "codec_scan_ns": 19750,
+                "codec_seek_ns": 943292,
+                "plain_build_ns": 22334,
+                "plain_scan_ns": 11125,
+                "plain_seek_ns": 146125
+              },
+              {
+                "0_scan_checksum": 4307946553586985664,
+                "0_seek_checksum": 4652714926563272736,
+                "1_scan_checksum": 4307946553586985664,
+                "1_seek_checksum": 4652714926563272736,
+                "codec_build_ns": 80834,
+                "codec_scan_ns": 19042,
+                "codec_seek_ns": 949333,
+                "plain_build_ns": 21834,
+                "plain_scan_ns": 10958,
+                "plain_seek_ns": 145875
+              },
+              {
+                "0_scan_checksum": 4307946553586985664,
+                "0_seek_checksum": 4652714926563272736,
+                "1_scan_checksum": 4307946553586985664,
+                "1_seek_checksum": 4652714926563272736,
+                "codec_build_ns": 80792,
+                "codec_scan_ns": 18875,
+                "codec_seek_ns": 922042,
+                "plain_build_ns": 22167,
+                "plain_scan_ns": 11084,
+                "plain_seek_ns": 145750
+              },
+              {
+                "0_scan_checksum": 4307946553586985664,
+                "0_seek_checksum": 4652714926563272736,
+                "1_scan_checksum": 4307946553586985664,
+                "1_seek_checksum": 4652714926563272736,
+                "codec_build_ns": 80666,
+                "codec_scan_ns": 18542,
+                "codec_seek_ns": 936125,
+                "plain_build_ns": 21875,
+                "plain_scan_ns": 10958,
+                "plain_seek_ns": 145375
+              },
+              {
+                "0_scan_checksum": 4307946553586985664,
+                "0_seek_checksum": 4652714926563272736,
+                "1_scan_checksum": 4307946553586985664,
+                "1_seek_checksum": 4652714926563272736,
+                "codec_build_ns": 81000,
+                "codec_scan_ns": 18958,
+                "codec_seek_ns": 912417,
+                "plain_build_ns": 22375,
+                "plain_scan_ns": 11041,
+                "plain_seek_ns": 145709
+              }
+            ],
+            "sample_entries": 580,
+            "sample_lists": 64,
+            "scan_repeats": 16,
+            "seek_repeats": 16,
+            "targets_per_list": 64
+          },
+          {
+            "bucket": 3,
+            "rows": [
+              {
+                "0_scan_checksum": 2231786916054427552,
+                "0_seek_checksum": 918500006186849152,
+                "1_scan_checksum": 2231786916054427552,
+                "1_seek_checksum": 918500006186849152,
+                "codec_build_ns": 217250,
+                "codec_scan_ns": 120958,
+                "codec_seek_ns": 4269125,
+                "plain_build_ns": 31583,
+                "plain_scan_ns": 52916,
+                "plain_seek_ns": 204500
+              },
+              {
+                "0_scan_checksum": 2231786916054427552,
+                "0_seek_checksum": 918500006186849152,
+                "1_scan_checksum": 2231786916054427552,
+                "1_seek_checksum": 918500006186849152,
+                "codec_build_ns": 216333,
+                "codec_scan_ns": 112625,
+                "codec_seek_ns": 4187042,
+                "plain_build_ns": 31333,
+                "plain_scan_ns": 53042,
+                "plain_seek_ns": 200625
+              },
+              {
+                "0_scan_checksum": 2231786916054427552,
+                "0_seek_checksum": 918500006186849152,
+                "1_scan_checksum": 2231786916054427552,
+                "1_seek_checksum": 918500006186849152,
+                "codec_build_ns": 237417,
+                "codec_scan_ns": 111625,
+                "codec_seek_ns": 4202208,
+                "plain_build_ns": 29959,
+                "plain_scan_ns": 52750,
+                "plain_seek_ns": 200458
+              },
+              {
+                "0_scan_checksum": 2231786916054427552,
+                "0_seek_checksum": 918500006186849152,
+                "1_scan_checksum": 2231786916054427552,
+                "1_seek_checksum": 918500006186849152,
+                "codec_build_ns": 208583,
+                "codec_scan_ns": 141750,
+                "codec_seek_ns": 4238750,
+                "plain_build_ns": 31000,
+                "plain_scan_ns": 52959,
+                "plain_seek_ns": 200541
+              },
+              {
+                "0_scan_checksum": 2231786916054427552,
+                "0_seek_checksum": 918500006186849152,
+                "1_scan_checksum": 2231786916054427552,
+                "1_seek_checksum": 918500006186849152,
+                "codec_build_ns": 223417,
+                "codec_scan_ns": 157458,
+                "codec_seek_ns": 4356208,
+                "plain_build_ns": 33833,
+                "plain_scan_ns": 52833,
+                "plain_seek_ns": 215375
+              },
+              {
+                "0_scan_checksum": 2231786916054427552,
+                "0_seek_checksum": 918500006186849152,
+                "1_scan_checksum": 2231786916054427552,
+                "1_seek_checksum": 918500006186849152,
+                "codec_build_ns": 223583,
+                "codec_scan_ns": 109125,
+                "codec_seek_ns": 4232292,
+                "plain_build_ns": 32250,
+                "plain_scan_ns": 51583,
+                "plain_seek_ns": 195959
+              }
+            ],
+            "sample_entries": 2770,
+            "sample_lists": 64,
+            "scan_repeats": 16,
+            "seek_repeats": 16,
+            "targets_per_list": 64
+          },
+          {
+            "bucket": 4,
+            "rows": [
+              {
+                "0_scan_checksum": 1857183009208681936,
+                "0_seek_checksum": 13078523502873439168,
+                "1_scan_checksum": 1857183009208681936,
+                "1_seek_checksum": 13078523502873439168,
+                "codec_build_ns": 1082000,
+                "codec_scan_ns": 1301500,
+                "codec_seek_ns": 9672708,
+                "plain_build_ns": 114708,
+                "plain_scan_ns": 605584,
+                "plain_seek_ns": 368000
+              },
+              {
+                "0_scan_checksum": 1857183009208681936,
+                "0_seek_checksum": 13078523502873439168,
+                "1_scan_checksum": 1857183009208681936,
+                "1_seek_checksum": 13078523502873439168,
+                "codec_build_ns": 1325792,
+                "codec_scan_ns": 1290208,
+                "codec_seek_ns": 10208667,
+                "plain_build_ns": 126000,
+                "plain_scan_ns": 750958,
+                "plain_seek_ns": 414084
+              },
+              {
+                "0_scan_checksum": 1857183009208681936,
+                "0_seek_checksum": 13078523502873439168,
+                "1_scan_checksum": 1857183009208681936,
+                "1_seek_checksum": 13078523502873439168,
+                "codec_build_ns": 1128959,
+                "codec_scan_ns": 1424042,
+                "codec_seek_ns": 10903042,
+                "plain_build_ns": 123500,
+                "plain_scan_ns": 670792,
+                "plain_seek_ns": 404542
+              },
+              {
+                "0_scan_checksum": 1857183009208681936,
+                "0_seek_checksum": 13078523502873439168,
+                "1_scan_checksum": 1857183009208681936,
+                "1_seek_checksum": 13078523502873439168,
+                "codec_build_ns": 1082917,
+                "codec_scan_ns": 1311125,
+                "codec_seek_ns": 9975959,
+                "plain_build_ns": 112875,
+                "plain_scan_ns": 641209,
+                "plain_seek_ns": 370166
+              },
+              {
+                "0_scan_checksum": 1857183009208681936,
+                "0_seek_checksum": 13078523502873439168,
+                "1_scan_checksum": 1857183009208681936,
+                "1_seek_checksum": 13078523502873439168,
+                "codec_build_ns": 1127416,
+                "codec_scan_ns": 1437208,
+                "codec_seek_ns": 9986875,
+                "plain_build_ns": 115333,
+                "plain_scan_ns": 630375,
+                "plain_seek_ns": 373625
+              },
+              {
+                "0_scan_checksum": 1857183009208681936,
+                "0_seek_checksum": 13078523502873439168,
+                "1_scan_checksum": 1857183009208681936,
+                "1_seek_checksum": 13078523502873439168,
+                "codec_build_ns": 1055834,
+                "codec_scan_ns": 1342084,
+                "codec_seek_ns": 9720250,
+                "plain_build_ns": 111958,
+                "plain_scan_ns": 605542,
+                "plain_seek_ns": 395500
+              }
+            ],
+            "sample_entries": 33079,
+            "sample_lists": 64,
+            "scan_repeats": 16,
+            "seek_repeats": 16,
+            "targets_per_list": 64
+          }
+        ]
+      },
+      "document_capacity_bytes": 2621440,
+      "document_length_bytes": 1524840,
+      "document_size": 40,
+      "documents": 38121,
+      "file_path_utf8_bytes": 68479,
+      "files": 1224,
+      "identifier_lane": null,
+      "posting_field_bytes": 20,
+      "postings": {
+        "entries": 759790,
+        "entry_count_by_length_1_4_16_128_more": [
+          18435,
+          26943,
+          49316,
+          138247,
+          526849
+        ],
+        "front_coded_suffix_bytes_lower_bound": 214048,
+        "item_size": 24,
+        "key_string_headers_bytes": 930768,
+        "list_count_by_length_1_4_16_128_more": [
+          18435,
+          10629,
+          5625,
+          3160,
+          933
+        ],
+        "list_vec_headers_bytes": 930768,
+        "term_utf8_bytes": 384911,
+        "terms": 38782,
+        "vector_capacity_bytes": 27374400,
+        "vector_length_bytes": 18234960
+      }
+    },
+    "posting_field_bytes": 20,
+    "postings": {
+      "entries": 654409,
+      "entry_count_by_length_1_4_16_128_more": [
+        14115,
+        11909,
+        27191,
+        101223,
+        499971
+      ],
+      "front_coded_suffix_bytes_lower_bound": 63040,
+      "item_size": 24,
+      "key_string_headers_bytes": 597672,
+      "list_count_by_length_1_4_16_128_more": [
+        14115,
+        4771,
+        2987,
+        2173,
+        857
+      ],
+      "list_vec_headers_bytes": 597672,
+      "term_utf8_bytes": 140634,
+      "terms": 24903,
+      "vector_capacity_bytes": 23397696,
+      "vector_length_bytes": 15705816
+    }
+  },
+  "metadata": {
+    "bare": {
+      "entries": 17282,
+      "entry_count_by_length_1_4_16_128_more": [
+        5652,
+        3393,
+        2871,
+        3996,
+        1370
+      ],
+      "front_coded_suffix_bytes_lower_bound": 56404,
+      "item_size": 8,
+      "key_string_headers_bytes": 179256,
+      "list_count_by_length_1_4_16_128_more": [
+        5652,
+        1344,
+        359,
+        110,
+        4
+      ],
+      "list_vec_headers_bytes": 179256,
+      "term_utf8_bytes": 99808,
+      "terms": 7469,
+      "vector_capacity_bytes": 311808,
+      "vector_length_bytes": 138256
+    },
+    "file_ordinal_capacity_bytes": 16384,
+    "folded": {
+      "entries": 20968,
+      "entry_count_by_length_1_4_16_128_more": [
+        8762,
+        3675,
+        3017,
+        4140,
+        1374
+      ],
+      "front_coded_suffix_bytes_lower_bound": 76944,
+      "item_size": 8,
+      "key_string_headers_bytes": 257280,
+      "list_count_by_length_1_4_16_128_more": [
+        8762,
+        1465,
+        377,
+        112,
+        4
+      ],
+      "list_vec_headers_bytes": 257280,
+      "term_utf8_bytes": 184152,
+      "terms": 10720,
+      "vector_capacity_bytes": 418208,
+      "vector_length_bytes": 167744
+    },
+    "identifiers": {
+      "arc_map_pointer_bytes": 78368,
+      "arc_payload_header_bytes": 391840,
+      "docid_encoding": {
+        "codec_capacity_including_restarts_bytes": [
+          265032,
+          230976,
+          143872,
+          120096,
+          355968
+        ],
+        "codec_inline_bytes_per_list": 56,
+        "codec_payload_including_restarts_bytes": [
+          66402,
+          64784,
+          49575,
+          59279,
+          238112
+        ],
+        "contract": "doc ordinals only; 128-entry restart blocks; no TF/positions, persistent offsets, checksums, allocator overhead or query integration; timings are kernel microbenchmarks",
+        "entry_counts": [
+          3681,
+          8540,
+          15225,
+          37306,
+          203694
+        ],
+        "list_counts": [
+          3681,
+          3208,
+          1801,
+          865,
+          241
+        ],
+        "ordinal_checksum": "05fc6675fb2e48ad",
+        "plain_inline_bytes_per_list": 24,
+        "plain_payload_bytes": [
+          29448,
+          68320,
+          121800,
+          298448,
+          1629552
+        ],
+        "timings": [
+          {
+            "bucket": 0,
+            "rows": [
+              {
+                "0_scan_checksum": 5702788161478122752,
+                "0_seek_checksum": 7699884320499986432,
+                "1_scan_checksum": 5702788161478122752,
+                "1_seek_checksum": 7699884320499986432,
+                "codec_build_ns": 36042,
+                "codec_scan_ns": 6000,
+                "codec_seek_ns": 178334,
+                "plain_build_ns": 14875,
+                "plain_scan_ns": 1792,
+                "plain_seek_ns": 75000
+              },
+              {
+                "0_scan_checksum": 5702788161478122752,
+                "0_seek_checksum": 7699884320499986432,
+                "1_scan_checksum": 5702788161478122752,
+                "1_seek_checksum": 7699884320499986432,
+                "codec_build_ns": 35833,
+                "codec_scan_ns": 5542,
+                "codec_seek_ns": 178209,
+                "plain_build_ns": 14792,
+                "plain_scan_ns": 1333,
+                "plain_seek_ns": 74875
+              },
+              {
+                "0_scan_checksum": 5702788161478122752,
+                "0_seek_checksum": 7699884320499986432,
+                "1_scan_checksum": 5702788161478122752,
+                "1_seek_checksum": 7699884320499986432,
+                "codec_build_ns": 35833,
+                "codec_scan_ns": 5583,
+                "codec_seek_ns": 199083,
+                "plain_build_ns": 14875,
+                "plain_scan_ns": 1291,
+                "plain_seek_ns": 74834
+              },
+              {
+                "0_scan_checksum": 5702788161478122752,
+                "0_seek_checksum": 7699884320499986432,
+                "1_scan_checksum": 5702788161478122752,
+                "1_seek_checksum": 7699884320499986432,
+                "codec_build_ns": 35750,
+                "codec_scan_ns": 5541,
+                "codec_seek_ns": 178042,
+                "plain_build_ns": 14791,
+                "plain_scan_ns": 1250,
+                "plain_seek_ns": 74959
+              },
+              {
+                "0_scan_checksum": 5702788161478122752,
+                "0_seek_checksum": 7699884320499986432,
+                "1_scan_checksum": 5702788161478122752,
+                "1_seek_checksum": 7699884320499986432,
+                "codec_build_ns": 35708,
+                "codec_scan_ns": 5542,
+                "codec_seek_ns": 178125,
+                "plain_build_ns": 14791,
+                "plain_scan_ns": 1291,
+                "plain_seek_ns": 74875
+              },
+              {
+                "0_scan_checksum": 5702788161478122752,
+                "0_seek_checksum": 7699884320499986432,
+                "1_scan_checksum": 5702788161478122752,
+                "1_seek_checksum": 7699884320499986432,
+                "codec_build_ns": 35792,
+                "codec_scan_ns": 5542,
+                "codec_seek_ns": 178250,
+                "plain_build_ns": 14792,
+                "plain_scan_ns": 1291,
+                "plain_seek_ns": 74875
+              }
+            ],
+            "sample_entries": 64,
+            "sample_lists": 64,
+            "scan_repeats": 16,
+            "seek_repeats": 16,
+            "targets_per_list": 64
+          },
+          {
+            "bucket": 1,
+            "rows": [
+              {
+                "0_scan_checksum": 16406326447528086752,
+                "0_seek_checksum": 4781263814900794784,
+                "1_scan_checksum": 16406326447528086752,
+                "1_seek_checksum": 4781263814900794784,
+                "codec_build_ns": 45542,
+                "codec_scan_ns": 8541,
+                "codec_seek_ns": 354500,
+                "plain_build_ns": 20167,
+                "plain_scan_ns": 4167,
+                "plain_seek_ns": 88416
+              },
+              {
+                "0_scan_checksum": 16406326447528086752,
+                "0_seek_checksum": 4781263814900794784,
+                "1_scan_checksum": 16406326447528086752,
+                "1_seek_checksum": 4781263814900794784,
+                "codec_build_ns": 46542,
+                "codec_scan_ns": 7458,
+                "codec_seek_ns": 343167,
+                "plain_build_ns": 20000,
+                "plain_scan_ns": 3250,
+                "plain_seek_ns": 78666
+              },
+              {
+                "0_scan_checksum": 16406326447528086752,
+                "0_seek_checksum": 4781263814900794784,
+                "1_scan_checksum": 16406326447528086752,
+                "1_seek_checksum": 4781263814900794784,
+                "codec_build_ns": 44250,
+                "codec_scan_ns": 7833,
+                "codec_seek_ns": 357417,
+                "plain_build_ns": 23625,
+                "plain_scan_ns": 3250,
+                "plain_seek_ns": 81458
+              },
+              {
+                "0_scan_checksum": 16406326447528086752,
+                "0_seek_checksum": 4781263814900794784,
+                "1_scan_checksum": 16406326447528086752,
+                "1_seek_checksum": 4781263814900794784,
+                "codec_build_ns": 45916,
+                "codec_scan_ns": 7458,
+                "codec_seek_ns": 343291,
+                "plain_build_ns": 20000,
+                "plain_scan_ns": 3208,
+                "plain_seek_ns": 78750
+              },
+              {
+                "0_scan_checksum": 16406326447528086752,
+                "0_seek_checksum": 4781263814900794784,
+                "1_scan_checksum": 16406326447528086752,
+                "1_seek_checksum": 4781263814900794784,
+                "codec_build_ns": 45916,
+                "codec_scan_ns": 7417,
+                "codec_seek_ns": 364208,
+                "plain_build_ns": 19959,
+                "plain_scan_ns": 3167,
+                "plain_seek_ns": 78708
+              },
+              {
+                "0_scan_checksum": 16406326447528086752,
+                "0_seek_checksum": 4781263814900794784,
+                "1_scan_checksum": 16406326447528086752,
+                "1_seek_checksum": 4781263814900794784,
+                "codec_build_ns": 45000,
+                "codec_scan_ns": 7458,
+                "codec_seek_ns": 343083,
+                "plain_build_ns": 20000,
+                "plain_scan_ns": 3208,
+                "plain_seek_ns": 78792
+              }
+            ],
+            "sample_entries": 172,
+            "sample_lists": 64,
+            "scan_repeats": 16,
+            "seek_repeats": 16,
+            "targets_per_list": 64
+          },
+          {
+            "bucket": 2,
+            "rows": [
+              {
+                "0_scan_checksum": 2728594511597762176,
+                "0_seek_checksum": 16861586018130861696,
+                "1_scan_checksum": 2728594511597762176,
+                "1_seek_checksum": 16861586018130861696,
+                "codec_build_ns": 76709,
+                "codec_scan_ns": 18542,
+                "codec_seek_ns": 1023875,
+                "plain_build_ns": 30875,
+                "plain_scan_ns": 10500,
+                "plain_seek_ns": 139959
+              },
+              {
+                "0_scan_checksum": 2728594511597762176,
+                "0_seek_checksum": 16861586018130861696,
+                "1_scan_checksum": 2728594511597762176,
+                "1_seek_checksum": 16861586018130861696,
+                "codec_build_ns": 75625,
+                "codec_scan_ns": 17916,
+                "codec_seek_ns": 973500,
+                "plain_build_ns": 29791,
+                "plain_scan_ns": 10417,
+                "plain_seek_ns": 139084
+              },
+              {
+                "0_scan_checksum": 2728594511597762176,
+                "0_seek_checksum": 16861586018130861696,
+                "1_scan_checksum": 2728594511597762176,
+                "1_seek_checksum": 16861586018130861696,
+                "codec_build_ns": 79917,
+                "codec_scan_ns": 17667,
+                "codec_seek_ns": 1011041,
+                "plain_build_ns": 29375,
+                "plain_scan_ns": 10333,
+                "plain_seek_ns": 139000
+              },
+              {
+                "0_scan_checksum": 2728594511597762176,
+                "0_seek_checksum": 16861586018130861696,
+                "1_scan_checksum": 2728594511597762176,
+                "1_seek_checksum": 16861586018130861696,
+                "codec_build_ns": 81959,
+                "codec_scan_ns": 19167,
+                "codec_seek_ns": 1014666,
+                "plain_build_ns": 32584,
+                "plain_scan_ns": 11292,
+                "plain_seek_ns": 161666
+              },
+              {
+                "0_scan_checksum": 2728594511597762176,
+                "0_seek_checksum": 16861586018130861696,
+                "1_scan_checksum": 2728594511597762176,
+                "1_seek_checksum": 16861586018130861696,
+                "codec_build_ns": 78041,
+                "codec_scan_ns": 19250,
+                "codec_seek_ns": 979167,
+                "plain_build_ns": 32250,
+                "plain_scan_ns": 11291,
+                "plain_seek_ns": 152333
+              },
+              {
+                "0_scan_checksum": 2728594511597762176,
+                "0_seek_checksum": 16861586018130861696,
+                "1_scan_checksum": 2728594511597762176,
+                "1_seek_checksum": 16861586018130861696,
+                "codec_build_ns": 79167,
+                "codec_scan_ns": 18834,
+                "codec_seek_ns": 979583,
+                "plain_build_ns": 31542,
+                "plain_scan_ns": 10875,
+                "plain_seek_ns": 146750
+              }
+            ],
+            "sample_entries": 561,
+            "sample_lists": 64,
+            "scan_repeats": 16,
+            "seek_repeats": 16,
+            "targets_per_list": 64
+          },
+          {
+            "bucket": 3,
+            "rows": [
+              {
+                "0_scan_checksum": 11942725839128230032,
+                "0_seek_checksum": 13901644564210685568,
+                "1_scan_checksum": 11942725839128230032,
+                "1_seek_checksum": 13901644564210685568,
+                "codec_build_ns": 214084,
+                "codec_scan_ns": 135500,
+                "codec_seek_ns": 4357875,
+                "plain_build_ns": 51625,
+                "plain_scan_ns": 53792,
+                "plain_seek_ns": 248791
+              },
+              {
+                "0_scan_checksum": 11942725839128230032,
+                "0_seek_checksum": 13901644564210685568,
+                "1_scan_checksum": 11942725839128230032,
+                "1_seek_checksum": 13901644564210685568,
+                "codec_build_ns": 208583,
+                "codec_scan_ns": 111625,
+                "codec_seek_ns": 4399833,
+                "plain_build_ns": 40542,
+                "plain_scan_ns": 56084,
+                "plain_seek_ns": 216958
+              },
+              {
+                "0_scan_checksum": 11942725839128230032,
+                "0_seek_checksum": 13901644564210685568,
+                "1_scan_checksum": 11942725839128230032,
+                "1_seek_checksum": 13901644564210685568,
+                "codec_build_ns": 205708,
+                "codec_scan_ns": 111458,
+                "codec_seek_ns": 4311917,
+                "plain_build_ns": 36084,
+                "plain_scan_ns": 54584,
+                "plain_seek_ns": 217625
+              },
+              {
+                "0_scan_checksum": 11942725839128230032,
+                "0_seek_checksum": 13901644564210685568,
+                "1_scan_checksum": 11942725839128230032,
+                "1_seek_checksum": 13901644564210685568,
+                "codec_build_ns": 203625,
+                "codec_scan_ns": 110625,
+                "codec_seek_ns": 4310625,
+                "plain_build_ns": 36875,
+                "plain_scan_ns": 55708,
+                "plain_seek_ns": 214666
+              },
+              {
+                "0_scan_checksum": 11942725839128230032,
+                "0_seek_checksum": 13901644564210685568,
+                "1_scan_checksum": 11942725839128230032,
+                "1_seek_checksum": 13901644564210685568,
+                "codec_build_ns": 206666,
+                "codec_scan_ns": 109500,
+                "codec_seek_ns": 4397708,
+                "plain_build_ns": 35375,
+                "plain_scan_ns": 55709,
+                "plain_seek_ns": 214292
+              },
+              {
+                "0_scan_checksum": 11942725839128230032,
+                "0_seek_checksum": 13901644564210685568,
+                "1_scan_checksum": 11942725839128230032,
+                "1_seek_checksum": 13901644564210685568,
+                "codec_build_ns": 208500,
+                "codec_scan_ns": 109417,
+                "codec_seek_ns": 4474125,
+                "plain_build_ns": 40083,
+                "plain_scan_ns": 55875,
+                "plain_seek_ns": 235959
+              }
+            ],
+            "sample_entries": 2747,
+            "sample_lists": 64,
+            "scan_repeats": 16,
+            "seek_repeats": 16,
+            "targets_per_list": 64
+          },
+          {
+            "bucket": 4,
+            "rows": [
+              {
+                "0_scan_checksum": 587099291477021888,
+                "0_seek_checksum": 11761187031808703232,
+                "1_scan_checksum": 587099291477021888,
+                "1_seek_checksum": 11761187031808703232,
+                "codec_build_ns": 1399334,
+                "codec_scan_ns": 2174000,
+                "codec_seek_ns": 9779084,
+                "plain_build_ns": 219125,
+                "plain_scan_ns": 1213541,
+                "plain_seek_ns": 423792
+              },
+              {
+                "0_scan_checksum": 587099291477021888,
+                "0_seek_checksum": 11761187031808703232,
+                "1_scan_checksum": 587099291477021888,
+                "1_seek_checksum": 11761187031808703232,
+                "codec_build_ns": 1354042,
+                "codec_scan_ns": 2053417,
+                "codec_seek_ns": 9024917,
+                "plain_build_ns": 197583,
+                "plain_scan_ns": 1161000,
+                "plain_seek_ns": 402959
+              },
+              {
+                "0_scan_checksum": 587099291477021888,
+                "0_seek_checksum": 11761187031808703232,
+                "1_scan_checksum": 587099291477021888,
+                "1_seek_checksum": 11761187031808703232,
+                "codec_build_ns": 1381875,
+                "codec_scan_ns": 2087916,
+                "codec_seek_ns": 9402375,
+                "plain_build_ns": 183541,
+                "plain_scan_ns": 1163917,
+                "plain_seek_ns": 432125
+              },
+              {
+                "0_scan_checksum": 587099291477021888,
+                "0_seek_checksum": 11761187031808703232,
+                "1_scan_checksum": 587099291477021888,
+                "1_seek_checksum": 11761187031808703232,
+                "codec_build_ns": 1379458,
+                "codec_scan_ns": 2116208,
+                "codec_seek_ns": 9160542,
+                "plain_build_ns": 172292,
+                "plain_scan_ns": 1139250,
+                "plain_seek_ns": 393125
+              },
+              {
+                "0_scan_checksum": 587099291477021888,
+                "0_seek_checksum": 11761187031808703232,
+                "1_scan_checksum": 587099291477021888,
+                "1_seek_checksum": 11761187031808703232,
+                "codec_build_ns": 1348166,
+                "codec_scan_ns": 2050583,
+                "codec_seek_ns": 9032625,
+                "plain_build_ns": 171583,
+                "plain_scan_ns": 1125292,
+                "plain_seek_ns": 395125
+              },
+              {
+                "0_scan_checksum": 587099291477021888,
+                "0_seek_checksum": 11761187031808703232,
+                "1_scan_checksum": 587099291477021888,
+                "1_seek_checksum": 11761187031808703232,
+                "codec_build_ns": 1453833,
+                "codec_scan_ns": 2109750,
+                "codec_seek_ns": 9173750,
+                "plain_build_ns": 177667,
+                "plain_scan_ns": 1170833,
+                "plain_seek_ns": 387250
+              }
+            ],
+            "sample_entries": 59670,
+            "sample_lists": 64,
+            "scan_repeats": 16,
+            "seek_repeats": 16,
+            "targets_per_list": 64
+          }
+        ]
+      },
+      "documents": 17282,
+      "norm_capacity_bytes": 1244304,
+      "norm_length_bytes": 1244304,
+      "note": "List Vec headers are inside Arc payload, not map values; do not add both header figures. BTree nodes, allocator overhead and String spare capacity excluded.",
+      "posting_field_bytes": 44,
+      "postings": {
+        "entries": 268446,
+        "entry_count_by_length_1_4_16_128_more": [
+          3681,
+          8540,
+          15225,
+          37306,
+          203694
+        ],
+        "front_coded_suffix_bytes_lower_bound": 58568,
+        "item_size": 48,
+        "key_string_headers_bytes": 235104,
+        "list_count_by_length_1_4_16_128_more": [
+          3681,
+          3208,
+          1801,
+          865,
+          241
+        ],
+        "list_vec_headers_bytes": 235104,
+        "term_utf8_bytes": 117214,
+        "terms": 9796,
+        "vector_capacity_bytes": 19677120,
+        "vector_length_bytes": 12885408
+      },
+      "zero_whole_frequency_postings": 47697
+    },
+    "node_inline_capacity_bytes": 8126464,
+    "nodes": 18520,
+    "nodes_json_bytes_not_heap": 11356718,
+    "qualified": {
+      "entries": 4924,
+      "entry_count_by_length_1_4_16_128_more": [
+        4549,
+        290,
+        85,
+        0,
+        0
+      ],
+      "front_coded_suffix_bytes_lower_bound": 57041,
+      "item_size": 8,
+      "key_string_headers_bytes": 112464,
+      "list_count_by_length_1_4_16_128_more": [
+        4549,
+        124,
+        13,
+        0,
+        0
+      ],
+      "list_vec_headers_bytes": 112464,
+      "term_utf8_bytes": 155275,
+      "terms": 4686,
+      "vector_capacity_bytes": 150496,
+      "vector_length_bytes": 39392
+    },
+    "split": {
+      "arc_map_pointer_bytes": 25160,
+      "arc_payload_header_bytes": 125800,
+      "docid_encoding": {
+        "codec_capacity_including_restarts_bytes": [
+          55584,
+          59256,
+          59656,
+          88128,
+          339392
+        ],
+        "codec_inline_bytes_per_list": 56,
+        "codec_payload_including_restarts_bytes": [
+          13930,
+          17010,
+          21116,
+          44544,
+          227540
+        ],
+        "contract": "doc ordinals only; 128-entry restart blocks; no TF/positions, persistent offsets, checksums, allocator overhead or query integration; timings are kernel microbenchmarks",
+        "entry_counts": [
+          772,
+          2244,
+          6426,
+          28185,
+          194940
+        ],
+        "list_counts": [
+          772,
+          823,
+          726,
+          603,
+          221
+        ],
+        "ordinal_checksum": "257260150383ce64",
+        "plain_inline_bytes_per_list": 24,
+        "plain_payload_bytes": [
+          6176,
+          17952,
+          51408,
+          225480,
+          1559520
+        ],
+        "timings": [
+          {
+            "bucket": 0,
+            "rows": [
+              {
+                "0_scan_checksum": 17372462827425974528,
+                "0_seek_checksum": 14309404670968760320,
+                "1_scan_checksum": 17372462827425974528,
+                "1_seek_checksum": 14309404670968760320,
+                "codec_build_ns": 36625,
+                "codec_scan_ns": 5792,
+                "codec_seek_ns": 179250,
+                "plain_build_ns": 15041,
+                "plain_scan_ns": 3333,
+                "plain_seek_ns": 75041
+              },
+              {
+                "0_scan_checksum": 17372462827425974528,
+                "0_seek_checksum": 14309404670968760320,
+                "1_scan_checksum": 17372462827425974528,
+                "1_seek_checksum": 14309404670968760320,
+                "codec_build_ns": 36209,
+                "codec_scan_ns": 5417,
+                "codec_seek_ns": 178750,
+                "plain_build_ns": 14834,
+                "plain_scan_ns": 1292,
+                "plain_seek_ns": 74916
+              },
+              {
+                "0_scan_checksum": 17372462827425974528,
+                "0_seek_checksum": 14309404670968760320,
+                "1_scan_checksum": 17372462827425974528,
+                "1_seek_checksum": 14309404670968760320,
+                "codec_build_ns": 36041,
+                "codec_scan_ns": 5541,
+                "codec_seek_ns": 178833,
+                "plain_build_ns": 14875,
+                "plain_scan_ns": 1291,
+                "plain_seek_ns": 74834
+              },
+              {
+                "0_scan_checksum": 17372462827425974528,
+                "0_seek_checksum": 14309404670968760320,
+                "1_scan_checksum": 17372462827425974528,
+                "1_seek_checksum": 14309404670968760320,
+                "codec_build_ns": 36042,
+                "codec_scan_ns": 5500,
+                "codec_seek_ns": 179250,
+                "plain_build_ns": 14792,
+                "plain_scan_ns": 1250,
+                "plain_seek_ns": 74875
+              },
+              {
+                "0_scan_checksum": 17372462827425974528,
+                "0_seek_checksum": 14309404670968760320,
+                "1_scan_checksum": 17372462827425974528,
+                "1_seek_checksum": 14309404670968760320,
+                "codec_build_ns": 36250,
+                "codec_scan_ns": 5458,
+                "codec_seek_ns": 178834,
+                "plain_build_ns": 14833,
+                "plain_scan_ns": 1292,
+                "plain_seek_ns": 74917
+              },
+              {
+                "0_scan_checksum": 17372462827425974528,
+                "0_seek_checksum": 14309404670968760320,
+                "1_scan_checksum": 17372462827425974528,
+                "1_seek_checksum": 14309404670968760320,
+                "codec_build_ns": 35916,
+                "codec_scan_ns": 5458,
+                "codec_seek_ns": 179125,
+                "plain_build_ns": 14833,
+                "plain_scan_ns": 1292,
+                "plain_seek_ns": 74875
+              }
+            ],
+            "sample_entries": 64,
+            "sample_lists": 64,
+            "scan_repeats": 16,
+            "seek_repeats": 16,
+            "targets_per_list": 64
+          },
+          {
+            "bucket": 1,
+            "rows": [
+              {
+                "0_scan_checksum": 16917198232009242288,
+                "0_seek_checksum": 12533135502912851840,
+                "1_scan_checksum": 16917198232009242288,
+                "1_seek_checksum": 12533135502912851840,
+                "codec_build_ns": 48583,
+                "codec_scan_ns": 8833,
+                "codec_seek_ns": 366667,
+                "plain_build_ns": 20583,
+                "plain_scan_ns": 3625,
+                "plain_seek_ns": 82833
+              },
+              {
+                "0_scan_checksum": 16917198232009242288,
+                "0_seek_checksum": 12533135502912851840,
+                "1_scan_checksum": 16917198232009242288,
+                "1_seek_checksum": 12533135502912851840,
+                "codec_build_ns": 48000,
+                "codec_scan_ns": 7667,
+                "codec_seek_ns": 382084,
+                "plain_build_ns": 20125,
+                "plain_scan_ns": 3250,
+                "plain_seek_ns": 81250
+              },
+              {
+                "0_scan_checksum": 16917198232009242288,
+                "0_seek_checksum": 12533135502912851840,
+                "1_scan_checksum": 16917198232009242288,
+                "1_seek_checksum": 12533135502912851840,
+                "codec_build_ns": 47916,
+                "codec_scan_ns": 7625,
+                "codec_seek_ns": 357500,
+                "plain_build_ns": 20167,
+                "plain_scan_ns": 3209,
+                "plain_seek_ns": 81375
+              },
+              {
+                "0_scan_checksum": 16917198232009242288,
+                "0_seek_checksum": 12533135502912851840,
+                "1_scan_checksum": 16917198232009242288,
+                "1_seek_checksum": 12533135502912851840,
+                "codec_build_ns": 47375,
+                "codec_scan_ns": 7667,
+                "codec_seek_ns": 357375,
+                "plain_build_ns": 20250,
+                "plain_scan_ns": 3208,
+                "plain_seek_ns": 81250
+              },
+              {
+                "0_scan_checksum": 16917198232009242288,
+                "0_seek_checksum": 12533135502912851840,
+                "1_scan_checksum": 16917198232009242288,
+                "1_seek_checksum": 12533135502912851840,
+                "codec_build_ns": 47167,
+                "codec_scan_ns": 7625,
+                "codec_seek_ns": 357208,
+                "plain_build_ns": 20125,
+                "plain_scan_ns": 3208,
+                "plain_seek_ns": 81291
+              },
+              {
+                "0_scan_checksum": 16917198232009242288,
+                "0_seek_checksum": 12533135502912851840,
+                "1_scan_checksum": 16917198232009242288,
+                "1_seek_checksum": 12533135502912851840,
+                "codec_build_ns": 47375,
+                "codec_scan_ns": 7625,
+                "codec_seek_ns": 357416,
+                "plain_build_ns": 20125,
+                "plain_scan_ns": 3208,
+                "plain_seek_ns": 83000
+              }
+            ],
+            "sample_entries": 169,
+            "sample_lists": 64,
+            "scan_repeats": 16,
+            "seek_repeats": 16,
+            "targets_per_list": 64
+          },
+          {
+            "bucket": 2,
+            "rows": [
+              {
+                "0_scan_checksum": 18434859797208740128,
+                "0_seek_checksum": 17760069821838424064,
+                "1_scan_checksum": 18434859797208740128,
+                "1_seek_checksum": 17760069821838424064,
+                "codec_build_ns": 81208,
+                "codec_scan_ns": 19500,
+                "codec_seek_ns": 1073792,
+                "plain_build_ns": 31709,
+                "plain_scan_ns": 10542,
+                "plain_seek_ns": 144541
+              },
+              {
+                "0_scan_checksum": 18434859797208740128,
+                "0_seek_checksum": 17760069821838424064,
+                "1_scan_checksum": 18434859797208740128,
+                "1_seek_checksum": 17760069821838424064,
+                "codec_build_ns": 78458,
+                "codec_scan_ns": 19083,
+                "codec_seek_ns": 1010084,
+                "plain_build_ns": 30000,
+                "plain_scan_ns": 10416,
+                "plain_seek_ns": 144042
+              },
+              {
+                "0_scan_checksum": 18434859797208740128,
+                "0_seek_checksum": 17760069821838424064,
+                "1_scan_checksum": 18434859797208740128,
+                "1_seek_checksum": 17760069821838424064,
+                "codec_build_ns": 77500,
+                "codec_scan_ns": 18583,
+                "codec_seek_ns": 1006667,
+                "plain_build_ns": 29833,
+                "plain_scan_ns": 10250,
+                "plain_seek_ns": 143833
+              },
+              {
+                "0_scan_checksum": 18434859797208740128,
+                "0_seek_checksum": 17760069821838424064,
+                "1_scan_checksum": 18434859797208740128,
+                "1_seek_checksum": 17760069821838424064,
+                "codec_build_ns": 78041,
+                "codec_scan_ns": 18375,
+                "codec_seek_ns": 999917,
+                "plain_build_ns": 29792,
+                "plain_scan_ns": 10292,
+                "plain_seek_ns": 143792
+              },
+              {
+                "0_scan_checksum": 18434859797208740128,
+                "0_seek_checksum": 17760069821838424064,
+                "1_scan_checksum": 18434859797208740128,
+                "1_seek_checksum": 17760069821838424064,
+                "codec_build_ns": 78375,
+                "codec_scan_ns": 18500,
+                "codec_seek_ns": 997417,
+                "plain_build_ns": 29750,
+                "plain_scan_ns": 10333,
+                "plain_seek_ns": 143667
+              },
+              {
+                "0_scan_checksum": 18434859797208740128,
+                "0_seek_checksum": 17760069821838424064,
+                "1_scan_checksum": 18434859797208740128,
+                "1_seek_checksum": 17760069821838424064,
+                "codec_build_ns": 78667,
+                "codec_scan_ns": 18334,
+                "codec_seek_ns": 1016583,
+                "plain_build_ns": 29958,
+                "plain_scan_ns": 10291,
+                "plain_seek_ns": 143959
+              }
+            ],
+            "sample_entries": 545,
+            "sample_lists": 64,
+            "scan_repeats": 16,
+            "seek_repeats": 16,
+            "targets_per_list": 64
+          },
+          {
+            "bucket": 3,
+            "rows": [
+              {
+                "0_scan_checksum": 17133910569036321568,
+                "0_seek_checksum": 15998012221249325376,
+                "1_scan_checksum": 17133910569036321568,
+                "1_seek_checksum": 15998012221249325376,
+                "codec_build_ns": 216334,
+                "codec_scan_ns": 121166,
+                "codec_seek_ns": 4895292,
+                "plain_build_ns": 43916,
+                "plain_scan_ns": 61500,
+                "plain_seek_ns": 209083
+              },
+              {
+                "0_scan_checksum": 17133910569036321568,
+                "0_seek_checksum": 15998012221249325376,
+                "1_scan_checksum": 17133910569036321568,
+                "1_seek_checksum": 15998012221249325376,
+                "codec_build_ns": 214583,
+                "codec_scan_ns": 131041,
+                "codec_seek_ns": 4842709,
+                "plain_build_ns": 37833,
+                "plain_scan_ns": 61416,
+                "plain_seek_ns": 208459
+              },
+              {
+                "0_scan_checksum": 17133910569036321568,
+                "0_seek_checksum": 15998012221249325376,
+                "1_scan_checksum": 17133910569036321568,
+                "1_seek_checksum": 15998012221249325376,
+                "codec_build_ns": 211916,
+                "codec_scan_ns": 120416,
+                "codec_seek_ns": 4954625,
+                "plain_build_ns": 36750,
+                "plain_scan_ns": 61375,
+                "plain_seek_ns": 208000
+              },
+              {
+                "0_scan_checksum": 17133910569036321568,
+                "0_seek_checksum": 15998012221249325376,
+                "1_scan_checksum": 17133910569036321568,
+                "1_seek_checksum": 15998012221249325376,
+                "codec_build_ns": 227209,
+                "codec_scan_ns": 124791,
+                "codec_seek_ns": 4918459,
+                "plain_build_ns": 38625,
+                "plain_scan_ns": 63208,
+                "plain_seek_ns": 208417
+              },
+              {
+                "0_scan_checksum": 17133910569036321568,
+                "0_seek_checksum": 15998012221249325376,
+                "1_scan_checksum": 17133910569036321568,
+                "1_seek_checksum": 15998012221249325376,
+                "codec_build_ns": 207833,
+                "codec_scan_ns": 119458,
+                "codec_seek_ns": 4775916,
+                "plain_build_ns": 36167,
+                "plain_scan_ns": 59709,
+                "plain_seek_ns": 202333
+              },
+              {
+                "0_scan_checksum": 17133910569036321568,
+                "0_seek_checksum": 15998012221249325376,
+                "1_scan_checksum": 17133910569036321568,
+                "1_seek_checksum": 15998012221249325376,
+                "codec_build_ns": 207417,
+                "codec_scan_ns": 123791,
+                "codec_seek_ns": 4742500,
+                "plain_build_ns": 37125,
+                "plain_scan_ns": 59750,
+                "plain_seek_ns": 202834
+              }
+            ],
+            "sample_entries": 3220,
+            "sample_lists": 64,
+            "scan_repeats": 16,
+            "seek_repeats": 16,
+            "targets_per_list": 64
+          },
+          {
+            "bucket": 4,
+            "rows": [
+              {
+                "0_scan_checksum": 8841966410837522688,
+                "0_seek_checksum": 2560404689940844992,
+                "1_scan_checksum": 8841966410837522688,
+                "1_seek_checksum": 2560404689940844992,
+                "codec_build_ns": 1691709,
+                "codec_scan_ns": 2662208,
+                "codec_seek_ns": 8713666,
+                "plain_build_ns": 278542,
+                "plain_scan_ns": 1491625,
+                "plain_seek_ns": 412083
+              },
+              {
+                "0_scan_checksum": 8841966410837522688,
+                "0_seek_checksum": 2560404689940844992,
+                "1_scan_checksum": 8841966410837522688,
+                "1_seek_checksum": 2560404689940844992,
+                "codec_build_ns": 1701375,
+                "codec_scan_ns": 2716125,
+                "codec_seek_ns": 8882583,
+                "plain_build_ns": 245500,
+                "plain_scan_ns": 1521708,
+                "plain_seek_ns": 436334
+              },
+              {
+                "0_scan_checksum": 8841966410837522688,
+                "0_seek_checksum": 2560404689940844992,
+                "1_scan_checksum": 8841966410837522688,
+                "1_seek_checksum": 2560404689940844992,
+                "codec_build_ns": 1880459,
+                "codec_scan_ns": 2785291,
+                "codec_seek_ns": 9108792,
+                "plain_build_ns": 231375,
+                "plain_scan_ns": 1568333,
+                "plain_seek_ns": 432208
+              },
+              {
+                "0_scan_checksum": 8841966410837522688,
+                "0_seek_checksum": 2560404689940844992,
+                "1_scan_checksum": 8841966410837522688,
+                "1_seek_checksum": 2560404689940844992,
+                "codec_build_ns": 1656333,
+                "codec_scan_ns": 2694333,
+                "codec_seek_ns": 8644167,
+                "plain_build_ns": 225041,
+                "plain_scan_ns": 1520750,
+                "plain_seek_ns": 417125
+              },
+              {
+                "0_scan_checksum": 8841966410837522688,
+                "0_seek_checksum": 2560404689940844992,
+                "1_scan_checksum": 8841966410837522688,
+                "1_seek_checksum": 2560404689940844992,
+                "codec_build_ns": 1697584,
+                "codec_scan_ns": 2729125,
+                "codec_seek_ns": 8921625,
+                "plain_build_ns": 219292,
+                "plain_scan_ns": 1521000,
+                "plain_seek_ns": 417250
+              },
+              {
+                "0_scan_checksum": 8841966410837522688,
+                "0_seek_checksum": 2560404689940844992,
+                "1_scan_checksum": 8841966410837522688,
+                "1_seek_checksum": 2560404689940844992,
+                "codec_build_ns": 1718833,
+                "codec_scan_ns": 2729083,
+                "codec_seek_ns": 8723416,
+                "plain_build_ns": 221042,
+                "plain_scan_ns": 1501666,
+                "plain_seek_ns": 412458
+              }
+            ],
+            "sample_entries": 80895,
+            "sample_lists": 64,
+            "scan_repeats": 16,
+            "seek_repeats": 16,
+            "targets_per_list": 64
+          }
+        ]
+      },
+      "documents": 17282,
+      "norm_capacity_bytes": 1244304,
+      "norm_length_bytes": 1244304,
+      "note": "List Vec headers are inside Arc payload, not map values; do not add both header figures. BTree nodes, allocator overhead and String spare capacity excluded.",
+      "posting_field_bytes": 44,
+      "postings": {
+        "entries": 232567,
+        "entry_count_by_length_1_4_16_128_more": [
+          772,
+          2244,
+          6426,
+          28185,
+          194940
+        ],
+        "front_coded_suffix_bytes_lower_bound": 8838,
+        "item_size": 48,
+        "key_string_headers_bytes": 75480,
+        "list_count_by_length_1_4_16_128_more": [
+          772,
+          823,
+          726,
+          603,
+          221
+        ],
+        "list_vec_headers_bytes": 75480,
+        "term_utf8_bytes": 20173,
+        "terms": 3145,
+        "vector_capacity_bytes": 16843968,
+        "vector_length_bytes": 11163216
+      },
+      "zero_whole_frequency_postings": 232567
+    },
+    "symbol_ordinal_capacity_bytes": 262144
+  },
+  "note": "Partial composition: neither JSON bytes nor inline sizes are complete heap estimates. No token-position stream or source-text blob retained in these native postings. Grafeo internals, map nodes, record strings and allocator overhead excluded.",
+  "occurrence_facts": {
+    "files": 1238,
+    "json_bytes_not_heap": 45846775,
+    "records": 88750
+  },
+  "source_facts": {
+    "files": 1224,
+    "identifier_utf8_bytes": 3845769,
+    "json_bytes_not_heap": 30757585,
+    "line_capacity_bytes": 21675248,
+    "line_length_bytes": 8101720,
+    "line_occurrences": 2025430,
+    "term_utf8_bytes": 3276421,
+    "units": 44434
+  }
+}

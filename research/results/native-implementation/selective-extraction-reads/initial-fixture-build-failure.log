@@ -1,0 +1,8 @@
+error[E0599]: no associated function or constant named `default` found for struct `FileEntry` in the current scope
+  --> crates/engine/tests/extraction_facts.rs:26:30
+   |
+26 |                 ..FileEntry::default()
+   |                              ^^^^^^^ associated function or constant not found in `FileEntry`
+
+For more information about this error, try `rustc --explain E0599`.
+error: could not compile `graph-search-engine` (test "extraction_facts") due to 1 previous error

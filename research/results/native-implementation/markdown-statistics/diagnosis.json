@@ -1,0 +1,134 @@
+{
+  "scope": "one exposed regression diagnostic, not a scoring-policy acceptance benchmark",
+  "native_exhaustive_checks": "both full rankings and every returned score verified by the probe",
+  "documents_delta": 249,
+  "average_length_change_percent": -3.702555474154512,
+  "rows": [
+    {
+      "variant": "legacy",
+      "implementation": {
+        "rank": 4,
+        "score": 21.395456314086914,
+        "unit": 17,
+        "span": {
+          "end_byte": 6354,
+          "end_line": 153,
+          "start_byte": 3348,
+          "start_line": 86
+        }
+      },
+      "competing_test": {
+        "rank": 6,
+        "score": 21.28165054321289,
+        "unit": 33,
+        "span": {
+          "end_byte": 10116,
+          "end_line": 290,
+          "start_byte": 9676,
+          "start_line": 281
+        }
+      }
+    },
+    {
+      "variant": "structured",
+      "implementation": {
+        "rank": 6,
+        "score": 20.97936248779297,
+        "unit": 17,
+        "span": {
+          "end_byte": 6354,
+          "end_line": 153,
+          "start_byte": 3348,
+          "start_line": 86
+        }
+      },
+      "competing_test": {
+        "rank": 4,
+        "score": 21.15396499633789,
+        "unit": 33,
+        "span": {
+          "end_byte": 10116,
+          "end_line": 290,
+          "start_byte": 9676,
+          "start_line": 281
+        }
+      }
+    },
+    {
+      "variant": "structured_old_idf",
+      "implementation": {
+        "rank": 6,
+        "score": 20.927616119384766,
+        "unit": 17,
+        "span": {
+          "end_byte": 6354,
+          "end_line": 153,
+          "start_byte": 3348,
+          "start_line": 86
+        }
+      },
+      "competing_test": {
+        "rank": 5,
+        "score": 20.98698616027832,
+        "unit": 33,
+        "span": {
+          "end_byte": 10116,
+          "end_line": 290,
+          "start_byte": 9676,
+          "start_line": 281
+        }
+      }
+    },
+    {
+      "variant": "structured_old_average",
+      "implementation": {
+        "rank": 5,
+        "score": 21.448522567749023,
+        "unit": 17,
+        "span": {
+          "end_byte": 6354,
+          "end_line": 153,
+          "start_byte": 3348,
+          "start_line": 86
+        }
+      },
+      "competing_test": {
+        "rank": 4,
+        "score": 21.45077133178711,
+        "unit": 33,
+        "span": {
+          "end_byte": 10116,
+          "end_line": 290,
+          "start_byte": 9676,
+          "start_line": 281
+        }
+      }
+    },
+    {
+      "variant": "structured_old_statistics",
+      "implementation": {
+        "rank": 4,
+        "score": 21.395456314086914,
+        "unit": 17,
+        "span": {
+          "end_byte": 6354,
+          "end_line": 153,
+          "start_byte": 3348,
+          "start_line": 86
+        }
+      },
+      "competing_test": {
+        "rank": 6,
+        "score": 21.28165054321289,
+        "unit": 33,
+        "span": {
+          "end_byte": 10116,
+          "end_line": 290,
+          "start_byte": 9676,
+          "start_line": 281
+        }
+      }
+    }
+  ],
+  "conclusion": "Both IDF and average-length changes contribute. Holding both statistics fixed restores the implementation rank and score; holding either alone does not. Rank-based context weights amplify the small score reorder. No production scoring change made."
+}

@@ -1,0 +1,35 @@
+{
+  "scope": "Compiler-only extension-priority observations, not native module-loader coverage",
+  "compiler_version": "6.0.3",
+  "compiler_sha256": "569177652966bd528c319171c7dd22860dbf72bde116cbc4f644f1d02bb12e39",
+  "cases": [
+    {
+      "paths": {
+        "x": [
+          "/src/x.js"
+        ]
+      },
+      "name": "x",
+      "expected": "/src/x.js",
+      "files": [
+        "/src/x.js",
+        "/src/x.ts"
+      ],
+      "actual": "/src/x.js"
+    },
+    {
+      "paths": {
+        "*": [
+          "/src/*"
+        ]
+      },
+      "name": "x.js",
+      "expected": "/src/x.ts",
+      "files": [
+        "/src/x.js",
+        "/src/x.ts"
+      ],
+      "actual": "/src/x.ts"
+    }
+  ]
+}

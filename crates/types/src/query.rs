@@ -334,13 +334,16 @@ impl PathQuery {
 /// `search explore`: the one-call retrieval (`SPEC.md` §8.4).
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ExploreQuery {
+    /// Structured retrieval intent and ranking policy.
+    #[serde(default)]
+    pub retrieval: crate::retrieval::RetrievalOptions,
     /// Free-text terms; split on whitespace for seeding.
     pub query: String,
     /// How many seeds to assemble; already clamped.
     pub k: u32,
     /// How many hops to connect seeds over; clamped.
     pub hops: u8,
-    /// Snippet context lines around each definition; already clamped.
+    /// Primary excerpt context radius; zero disables all source excerpts.
     pub context_lines: u32,
     /// The whole-payload byte budget.
     pub max_bytes: u32,
@@ -355,6 +358,7 @@ impl ExploreQuery {
     #[must_use]
     pub fn new(query: impl Into<String>) -> Self {
         Self {
+            retrieval: crate::retrieval::RetrievalOptions::default(),
             query: query.into(),
             k: EXPLORE_DEFAULT_K,
             hops: clamp_hops(1),

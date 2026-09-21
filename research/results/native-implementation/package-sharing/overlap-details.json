@@ -1,0 +1,62 @@
+[
+  {
+    "task_id": "blogwright.fresh-invalid-date-rkey.debug",
+    "path": "packages/pds/src/content.test.ts",
+    "line": 102,
+    "uses": [
+      {
+        "node_id": "sym:packages/pds/src/content.test.ts#const:badDate",
+        "role": "primary"
+      },
+      {
+        "node_id": "file:packages/pds/src/content.test.ts",
+        "role": "primary"
+      }
+    ]
+  },
+  {
+    "task_id": "blogwright.fresh-invalid-date-rkey.debug",
+    "path": "packages/pds/src/content.test.ts",
+    "line": 103,
+    "uses": [
+      {
+        "node_id": "sym:packages/pds/src/content.test.ts#const:badDate",
+        "role": "primary"
+      },
+      {
+        "node_id": "file:packages/pds/src/content.test.ts",
+        "role": "primary"
+      }
+    ]
+  },
+  {
+    "task_id": "whatsurvey.storage-envelope.change",
+    "path": "workspaces/backend/src/core/db/envelope.ts",
+    "line": 15,
+    "uses": [
+      {
+        "node_id": "sym:workspaces/backend/src/core/db/envelope.ts#const:ENVELOPE_KEYS",
+        "role": "primary"
+      },
+      {
+        "node_id": "sym:workspaces/backend/src/core/db/envelope.ts#function:stripEnvelope",
+        "role": "primary"
+      }
+    ]
+  },
+  {
+    "task_id": "whatsurvey.markdown-stacks.debug",
+    "path": "scripts/deployment-outputs.mjs",
+    "line": 88,
+    "uses": [
+      {
+        "node_id": "sym:scripts/deployment-outputs.mjs#const:outputs",
+        "role": "primary"
+      },
+      {
+        "node_id": "file:scripts/deployment-outputs.mjs",
+        "role": "primary"
+      }
+    ]
+  }
+]

@@ -1,0 +1,2548 @@
+[
+  {
+    "task_id": "nanus.read.change",
+    "structured": {
+      "initial_evidence": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.18032786885245902,
+          "r2": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "followup_actions": [
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-bundle/src/tools/read.rs",
+            "start": 1,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "docs/roadmap.md",
+            "start": 201,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-adapter-config/src/config.rs",
+            "start": 332,
+            "count": 100
+          }
+        }
+      ],
+      "candidates": [
+        "candidate crates/nanus-bundle/src/tools/read.rs:1 crates/nanus-bundle/src/tools/read.rs",
+        "candidate docs/roadmap.md:211 docs/roadmap.md",
+        "candidate crates/nanus-adapter-config/src/config.rs:342 load",
+        "candidate crates/nanus-adapter-config/src/config.rs:473 save",
+        "candidate crates/nanus-bundle/src/tools/grep.rs:212 render_matches",
+        "candidate crates/nanus-bundle/src/tools/read.rs:109 read_outcome",
+        "candidate AGENTS.md:435 AGENTS.md",
+        "candidate crates/nanus-tui/src/markdown/parse.rs:151 read_paragraph"
+      ]
+    },
+    "fixed": {
+      "initial_evidence": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0,
+          "r2": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "followup_actions": [
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-bundle/src/tools/read.rs",
+            "start": 1,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-bundle/src/tools/grep.rs",
+            "start": 207,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "docs/features.md",
+            "start": 58,
+            "count": 100
+          }
+        }
+      ],
+      "candidates": [
+        "candidate crates/nanus-bundle/src/tools/read.rs:1 crates/nanus-bundle/src/tools/read.rs",
+        "candidate crates/nanus-bundle/src/tools/grep.rs:217 crates/nanus-bundle/src/tools/grep.rs",
+        "candidate docs/features.md:68 docs/features.md",
+        "candidate crates/nanus-bundle/src/tools/mod.rs:1 crates/nanus-bundle/src/tools/mod.rs",
+        "candidate docs/roadmap.md:211 docs/roadmap.md",
+        "candidate crates/nanus-tui/src/runtime.rs:1513 crates/nanus-tui/src/runtime.rs",
+        "candidate crates/nanus-ports/src/fs.rs:1 crates/nanus-ports/src/fs.rs",
+        "candidate crates/nanus-tui/src/compact.rs:217 crates/nanus-tui/src/compact.rs"
+      ]
+    }
+  },
+  {
+    "task_id": "nanus.fresh-runtime-tools.debug",
+    "structured": {
+      "initial_evidence": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.16666666666666666
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": null,
+        "task_success": null
+      },
+      "followup_actions": [
+        {
+          "name": "read",
+          "arguments": {
+            "path": "README.md",
+            "start": 52,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "start": 406,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-bundle/src/compose.rs",
+            "start": 684,
+            "count": 100
+          }
+        }
+      ],
+      "candidates": [
+        "candidate README.md:62 README.md",
+        "candidate crates/nanus-bundle/src/agent_loop.rs:416 set_effort",
+        "candidate crates/nanus-bundle/src/compose.rs:694 build_runner",
+        "candidate crates/nanus-bundle/src/agent_loop.rs:1823 switching_the_model_changes_the_next_request_and_what_is_recorded",
+        "candidate crates/nanus-kernel/src/plugin.rs:1 crates/nanus-kernel/src/plugin.rs",
+        "candidate crates/nanus-bundle/tests/end_to_end.rs:468 told_to_the_model",
+        "candidate docs/features.md:120 docs/features.md",
+        "candidate crates/nanus-bundle/src/agent_loop.rs:644 build_request"
+      ]
+    },
+    "fixed": {
+      "initial_evidence": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.16666666666666666
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": null,
+        "task_success": null
+      },
+      "followup_actions": [
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-bundle/tests/composition.rs",
+            "start": 135,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-bundle/src/compose.rs",
+            "start": 639,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "start": 639,
+            "count": 100
+          }
+        }
+      ],
+      "candidates": [
+        "candidate crates/nanus-bundle/tests/composition.rs:145 crates/nanus-bundle/tests/composition.rs",
+        "candidate crates/nanus-bundle/src/compose.rs:649 crates/nanus-bundle/src/compose.rs",
+        "candidate crates/nanus-bundle/src/agent_loop.rs:649 crates/nanus-bundle/src/agent_loop.rs",
+        "candidate crates/nanus-bundle/tests/live_wire.rs:217 crates/nanus-bundle/tests/live_wire.rs",
+        "candidate crates/nanus-link/tests/link.rs:361 crates/nanus-link/tests/link.rs",
+        "candidate crates/nanus-link/src/server.rs:217 crates/nanus-link/src/server.rs",
+        "candidate crates/nanus-bundle/src/tools/edit.rs:1 crates/nanus-bundle/src/tools/edit.rs",
+        "candidate crates/nanus-link/src/protocol.rs:217 crates/nanus-link/src/protocol.rs"
+      ]
+    }
+  },
+  {
+    "task_id": "nanus.temporary-paths.change",
+    "structured": {
+      "initial_evidence": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "followup_actions": [
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-bundle/src/guard.rs",
+            "start": 212,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "start": 2387,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-adapter-config/src/config.rs",
+            "start": 488,
+            "count": 100
+          }
+        }
+      ],
+      "candidates": [
+        "candidate crates/nanus-bundle/src/guard.rs:222 only_a_command_whose_targets_are_all_temporary_is_exempt",
+        "candidate crates/nanus-bundle/src/agent_loop.rs:2397 permitted_grants_a_destructive_call_in_a_temporary_directory",
+        "candidate crates/nanus-bundle/src/guard.rs:86 targets_are_temporary",
+        "candidate crates/nanus-bundle/src/guard.rs:238 a_path_that_climbs_out_of_a_temporary_root_is_not_exempt",
+        "candidate crates/nanus-adapter-config/src/config.rs:498 write_atomic",
+        "candidate SAFETY.md:36 SAFETY.md",
+        "candidate crates/nanus-adapter-store/src/store.rs:1014 write_atomic",
+        "candidate crates/nanus-bundle/src/agent_loop.rs:890 exempt"
+      ]
+    },
+    "fixed": {
+      "initial_evidence": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.1917808219178082
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "followup_actions": [
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-bundle/src/guard.rs",
+            "start": 135,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "docs/design.md",
+            "start": 60,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-tui/src/mentions.rs",
+            "start": 207,
+            "count": 100
+          }
+        }
+      ],
+      "candidates": [
+        "candidate crates/nanus-bundle/src/guard.rs:145 crates/nanus-bundle/src/guard.rs",
+        "candidate docs/design.md:70 docs/design.md",
+        "candidate crates/nanus-tui/src/mentions.rs:217 crates/nanus-tui/src/mentions.rs",
+        "candidate SAFETY.md:36 SAFETY.md",
+        "candidate crates/nanus-adapter-local/tests/fs.rs:1 crates/nanus-adapter-local/tests/fs.rs",
+        "candidate crates/nanus-bundle/src/agent_loop.rs:2377 crates/nanus-bundle/src/agent_loop.rs",
+        "candidate crates/nanus-ports/src/fs.rs:505 crates/nanus-ports/src/fs.rs",
+        "candidate docs/roadmap.md:3 docs/roadmap.md"
+      ]
+    }
+  },
+  {
+    "task_id": "nanus.glob.change",
+    "structured": {
+      "initial_evidence": {
+        "required_file_recall": 0.0,
+        "region_coverage": {
+          "r1": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "followup_actions": [
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-adapter-local/src/fs.rs",
+            "start": 272,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-adapter-local/tests/fs.rs",
+            "start": 289,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-ports/src/fs.rs",
+            "start": 273,
+            "count": 100
+          }
+        }
+      ],
+      "candidates": [
+        "candidate crates/nanus-adapter-local/src/fs.rs:282 search_blocking",
+        "candidate crates/nanus-adapter-local/tests/fs.rs:299 a_search_that_exactly_fills_its_cap_is_not_truncated",
+        "candidate crates/nanus-ports/src/fs.rs:283 glob",
+        "candidate crates/nanus-adapter-local/tests/fs.rs:281 glob_search_reports_truncation_at_the_cap",
+        "candidate crates/nanus-bundle/src/tools/grep.rs:86 grep_outcome",
+        "candidate crates/nanus-adapter-local/src/fs.rs:431 collect_literal",
+        "candidate AGENTS.md:435 AGENTS.md",
+        "candidate crates/nanus-bundle/src/tools/grep.rs:212 render_matches"
+      ]
+    },
+    "fixed": {
+      "initial_evidence": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.12
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "followup_actions": [
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-bundle/src/tools/grep.rs",
+            "start": 63,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-adapter-local/src/fs.rs",
+            "start": 279,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-bundle/src/tools/glob.rs",
+            "start": 63,
+            "count": 100
+          }
+        }
+      ],
+      "candidates": [
+        "candidate crates/nanus-bundle/src/tools/grep.rs:73 crates/nanus-bundle/src/tools/grep.rs",
+        "candidate crates/nanus-adapter-local/src/fs.rs:289 crates/nanus-adapter-local/src/fs.rs",
+        "candidate crates/nanus-bundle/src/tools/glob.rs:73 crates/nanus-bundle/src/tools/glob.rs",
+        "candidate crates/nanus-ports/src/fs.rs:289 crates/nanus-ports/src/fs.rs",
+        "candidate crates/nanus-adapter-local/tests/fs.rs:289 crates/nanus-adapter-local/tests/fs.rs",
+        "candidate docs/features.md:68 docs/features.md",
+        "candidate AGENTS.md:435 AGENTS.md",
+        "candidate crates/nanus-bundle/tests/end_to_end.rs:433 crates/nanus-bundle/tests/end_to_end.rs"
+      ]
+    }
+  },
+  {
+    "task_id": "nanus.fresh-legacy-approval.debug",
+    "structured": {
+      "initial_evidence": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.9
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": null,
+        "task_success": null
+      },
+      "followup_actions": [
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-domain/src/approval.rs",
+            "start": 43,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "start": 2230,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-domain/src/agent.rs",
+            "start": 80,
+            "count": 100
+          }
+        }
+      ],
+      "candidates": [
+        "candidate crates/nanus-domain/src/approval.rs:53 AllCalls",
+        "candidate crates/nanus-domain/src/approval.rs:49 PerCall",
+        "candidate crates/nanus-bundle/src/agent_loop.rs:2240 a_call_outside_the_sandbox_runs_when_it_is_allowed",
+        "candidate crates/nanus-domain/src/agent.rs:90 approval_policy",
+        "candidate crates/nanus-bundle/src/agent_loop.rs:2214 a_call_the_sandbox_permits_runs_without_asking",
+        "candidate crates/nanus-bundle/src/agent_loop.rs:851 gate",
+        "candidate crates/nanus-cli/src/cli.rs:84 approval",
+        "candidate crates/nanus-domain/src/approval.rs:508 the_defaults_are_the_most_restrictive_values"
+      ]
+    },
+    "fixed": {
+      "initial_evidence": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": null,
+        "task_success": null
+      },
+      "followup_actions": [
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-domain/src/approval.rs",
+            "start": 63,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-domain/src/agent.rs",
+            "start": 63,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "start": 2151,
+            "count": 100
+          }
+        }
+      ],
+      "candidates": [
+        "candidate crates/nanus-domain/src/approval.rs:73 crates/nanus-domain/src/approval.rs",
+        "candidate crates/nanus-domain/src/agent.rs:73 crates/nanus-domain/src/agent.rs",
+        "candidate crates/nanus-bundle/src/agent_loop.rs:2161 crates/nanus-bundle/src/agent_loop.rs",
+        "candidate docs/tui.md:131 docs/tui.md",
+        "candidate crates/nanus-bundle/tests/composition.rs:73 crates/nanus-bundle/tests/composition.rs",
+        "candidate docs/sessions.md:235 docs/sessions.md",
+        "candidate docs/features.md:419 docs/features.md",
+        "candidate crates/nanus-tui/src/runtime.rs:2089 crates/nanus-tui/src/runtime.rs"
+      ]
+    }
+  },
+  {
+    "task_id": "nanus.context.debug",
+    "structured": {
+      "initial_evidence": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0,
+          "r2": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "followup_actions": [
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "start": 634,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-domain/src/context.rs",
+            "start": 412,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "AGENTS.md",
+            "start": 7,
+            "count": 100
+          }
+        }
+      ],
+      "candidates": [
+        "candidate crates/nanus-bundle/src/agent_loop.rs:644 build_request",
+        "candidate crates/nanus-domain/src/context.rs:422 a_prompt_that_cannot_be_shortened_is_refused",
+        "candidate AGENTS.md:17 AGENTS.md",
+        "candidate crates/nanus-bundle/src/error.rs:11 BundleError",
+        "candidate crates/nanus-bundle/src/agent_loop.rs:150 elided",
+        "candidate crates/nanus-link/src/server.rs:606 turns",
+        "candidate crates/nanus-tui/src/mentions.rs:63 after",
+        "candidate docs/tui.md:10 docs/tui.md"
+      ]
+    },
+    "fixed": {
+      "initial_evidence": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0,
+          "r2": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "followup_actions": [
+        {
+          "name": "read",
+          "arguments": {
+            "path": "AGENTS.md",
+            "start": 7,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-domain/src/context.rs",
+            "start": 1,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "start": 567,
+            "count": 100
+          }
+        }
+      ],
+      "candidates": [
+        "candidate AGENTS.md:17 AGENTS.md",
+        "candidate crates/nanus-domain/src/context.rs:1 crates/nanus-domain/src/context.rs",
+        "candidate crates/nanus-bundle/src/agent_loop.rs:577 crates/nanus-bundle/src/agent_loop.rs",
+        "candidate crates/nanus-link/src/protocol.rs:1009 crates/nanus-link/src/protocol.rs",
+        "candidate crates/nanus-link/src/server.rs:1 crates/nanus-link/src/server.rs",
+        "candidate crates/nanus-adapter-config/src/config.rs:1 crates/nanus-adapter-config/src/config.rs",
+        "candidate crates/nanus-domain/src/agent.rs:73 crates/nanus-domain/src/agent.rs",
+        "candidate crates/nanus-adapter-config/src/error.rs:1 crates/nanus-adapter-config/src/error.rs"
+      ]
+    }
+  },
+  {
+    "task_id": "nanus.temporary-paths.debug",
+    "structured": {
+      "initial_evidence": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.273972602739726
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "followup_actions": [
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-bundle/src/guard.rs",
+            "start": 212,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-bundle/src/agent_loop.rs",
+            "start": 2387,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "SAFETY.md",
+            "start": 26,
+            "count": 100
+          }
+        }
+      ],
+      "candidates": [
+        "candidate crates/nanus-bundle/src/guard.rs:222 only_a_command_whose_targets_are_all_temporary_is_exempt",
+        "candidate crates/nanus-bundle/src/guard.rs:86 targets_are_temporary",
+        "candidate crates/nanus-bundle/src/agent_loop.rs:2397 permitted_grants_a_destructive_call_in_a_temporary_directory",
+        "candidate crates/nanus-bundle/src/agent_loop.rs:2366 permitted_asks_about_a_destructive_call",
+        "candidate SAFETY.md:36 SAFETY.md",
+        "candidate crates/nanus-bundle/src/guard.rs:183 a_deleting_command_is_destructive_and_the_rest_are_not",
+        "candidate docs/sessions.md:264 docs/sessions.md",
+        "candidate AGENTS.md:17 AGENTS.md"
+      ]
+    },
+    "fixed": {
+      "initial_evidence": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "followup_actions": [
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-bundle/src/guard.rs",
+            "start": 207,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "SAFETY.md",
+            "start": 26,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "AGENTS.md",
+            "start": 7,
+            "count": 100
+          }
+        }
+      ],
+      "candidates": [
+        "candidate crates/nanus-bundle/src/guard.rs:217 crates/nanus-bundle/src/guard.rs",
+        "candidate SAFETY.md:36 SAFETY.md",
+        "candidate AGENTS.md:17 AGENTS.md",
+        "candidate crates/nanus-bundle/src/agent_loop.rs:2377 crates/nanus-bundle/src/agent_loop.rs",
+        "candidate docs/design.md:70 docs/design.md",
+        "candidate docs/sessions.md:264 docs/sessions.md",
+        "candidate crates/nanus-ports/src/fs.rs:361 crates/nanus-ports/src/fs.rs",
+        "candidate crates/nanus-adapter-local/src/fs.rs:361 crates/nanus-adapter-local/src/fs.rs"
+      ]
+    }
+  },
+  {
+    "task_id": "nanus.argument-types.debug",
+    "structured": {
+      "initial_evidence": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.6206896551724138
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "followup_actions": [
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-bundle/src/args.rs",
+            "start": 73,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-bundle/src/tools/glob.rs",
+            "start": 64,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-bundle/src/tools/read.rs",
+            "start": 99,
+            "count": 100
+          }
+        }
+      ],
+      "candidates": [
+        "candidate crates/nanus-bundle/src/args.rs:83 optional_u32",
+        "candidate crates/nanus-bundle/src/args.rs:207 a_string_boolean_is_rejected_rather_than_coerced",
+        "candidate crates/nanus-bundle/src/tools/glob.rs:74 glob_outcome",
+        "candidate crates/nanus-bundle/src/args.rs:105 flag",
+        "candidate crates/nanus-bundle/src/tools/read.rs:109 read_outcome",
+        "candidate crates/nanus-bundle/src/tools/read.rs:34 read_tool",
+        "candidate crates/nanus-domain/src/tool.rs:1006 arguments_json_is_parsed_verbatim",
+        "candidate crates/nanus-bundle/src/args.rs:217 an_integer_boundary_is_respected"
+      ]
+    },
+    "fixed": {
+      "initial_evidence": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.6724137931034483
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "followup_actions": [
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-bundle/src/args.rs",
+            "start": 63,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-bundle/src/tools/grep.rs",
+            "start": 207,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-bundle/src/tools/glob.rs",
+            "start": 63,
+            "count": 100
+          }
+        }
+      ],
+      "candidates": [
+        "candidate crates/nanus-bundle/src/args.rs:73 crates/nanus-bundle/src/args.rs",
+        "candidate crates/nanus-bundle/src/tools/grep.rs:217 crates/nanus-bundle/src/tools/grep.rs",
+        "candidate crates/nanus-bundle/src/tools/glob.rs:73 crates/nanus-bundle/src/tools/glob.rs",
+        "candidate crates/nanus-bundle/src/tools/read.rs:73 crates/nanus-bundle/src/tools/read.rs",
+        "candidate crates/nanus-domain/src/tool.rs:1009 crates/nanus-domain/src/tool.rs",
+        "candidate cordis-mechanisms-report.md:249 cordis-mechanisms-report.md",
+        "candidate crates/nanus-tui/src/view.rs:865 crates/nanus-tui/src/view.rs",
+        "candidate AGENTS.md:17 AGENTS.md"
+      ]
+    }
+  },
+  {
+    "task_id": "nanus.argument-types.change",
+    "structured": {
+      "initial_evidence": {
+        "required_file_recall": 0.0,
+        "region_coverage": {
+          "r1": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "followup_actions": [
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-domain/src/tool.rs",
+            "start": 715,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-bundle/src/tools/edit.rs",
+            "start": 134,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-adapter-local/src/fs.rs",
+            "start": 458,
+            "count": 100
+          }
+        }
+      ],
+      "candidates": [
+        "candidate crates/nanus-domain/src/tool.rs:725 validate",
+        "candidate crates/nanus-bundle/src/tools/edit.rs:144 call",
+        "candidate crates/nanus-adapter-local/src/fs.rs:468 io_error",
+        "candidate crates/nanus-bundle/src/tools/write.rs:23 write_tool",
+        "candidate crates/nanus-domain/src/error.rs:25 Tool",
+        "candidate AGENTS.md:435 AGENTS.md",
+        "candidate crates/nanus-adapter-store/src/store.rs:992 refuse_symlinked_dir",
+        "candidate crates/nanus-bundle/src/tools/edit.rs:72 edit_outcome"
+      ]
+    },
+    "fixed": {
+      "initial_evidence": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.06896551724137931
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "followup_actions": [
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-bundle/src/tools/mod.rs",
+            "start": 1,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-bundle/src/tools/write.rs",
+            "start": 1,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-bundle/src/tools/edit.rs",
+            "start": 1,
+            "count": 100
+          }
+        }
+      ],
+      "candidates": [
+        "candidate crates/nanus-bundle/src/tools/mod.rs:1 crates/nanus-bundle/src/tools/mod.rs",
+        "candidate crates/nanus-bundle/src/tools/write.rs:1 crates/nanus-bundle/src/tools/write.rs",
+        "candidate crates/nanus-bundle/src/tools/edit.rs:1 crates/nanus-bundle/src/tools/edit.rs",
+        "candidate crates/nanus-bundle/src/tools/read.rs:73 crates/nanus-bundle/src/tools/read.rs",
+        "candidate crates/nanus-bundle/src/args.rs:73 crates/nanus-bundle/src/args.rs",
+        "candidate crates/nanus-adapter-config/src/config.rs:217 crates/nanus-adapter-config/src/config.rs",
+        "candidate AGENTS.md:333 AGENTS.md",
+        "candidate crates/nanus-bundle/src/tools/grep.rs:1 crates/nanus-bundle/src/tools/grep.rs"
+      ]
+    }
+  },
+  {
+    "task_id": "nanus.edit.change",
+    "structured": {
+      "initial_evidence": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "followup_actions": [
+        {
+          "name": "read",
+          "arguments": {
+            "path": "AGENTS.md",
+            "start": 7,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-bundle/src/tools/edit.rs",
+            "start": 198,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-ports/src/fs.rs",
+            "start": 647,
+            "count": 100
+          }
+        }
+      ],
+      "candidates": [
+        "candidate AGENTS.md:17 AGENTS.md",
+        "candidate crates/nanus-bundle/src/tools/edit.rs:208 an_identical_replacement_is_refused",
+        "candidate crates/nanus-ports/src/fs.rs:657 a_unified_diff_handles_pure_insertion_and_deletion",
+        "candidate crates/nanus-ports/src/fs.rs:1 crates/nanus-ports/src/fs.rs",
+        "candidate crates/nanus-adapter-local/tests/fs.rs:213 edit_returns_the_diff_and_requires_a_unique_match",
+        "candidate crates/nanus-ports/src/fs.rs:645 a_unified_diff_of_an_unchanged_edit_is_empty",
+        "candidate crates/nanus-adapter-local/src/fs.rs:207 edit_blocking",
+        "candidate crates/nanus-ports/src/fs.rs:628 a_unified_diff_shows_both_sides_of_the_change"
+      ]
+    },
+    "fixed": {
+      "initial_evidence": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.9846153846153847
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "followup_actions": [
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-bundle/src/tools/edit.rs",
+            "start": 63,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "AGENTS.md",
+            "start": 7,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-ports/src/fs.rs",
+            "start": 1,
+            "count": 100
+          }
+        }
+      ],
+      "candidates": [
+        "candidate crates/nanus-bundle/src/tools/edit.rs:73 crates/nanus-bundle/src/tools/edit.rs",
+        "candidate AGENTS.md:17 AGENTS.md",
+        "candidate crates/nanus-ports/src/fs.rs:1 crates/nanus-ports/src/fs.rs",
+        "candidate crates/nanus-adapter-config/src/config.rs:217 crates/nanus-adapter-config/src/config.rs",
+        "candidate crates/nanus-ports/tests/contracts.rs:289 crates/nanus-ports/tests/contracts.rs",
+        "candidate crates/nanus-adapter-local/src/fs.rs:145 crates/nanus-adapter-local/src/fs.rs",
+        "candidate crates/nanus-adapter-local/tests/fs.rs:217 crates/nanus-adapter-local/tests/fs.rs",
+        "candidate docs/testing.md:156 docs/testing.md"
+      ]
+    }
+  },
+  {
+    "task_id": "nanus.grep.change",
+    "structured": {
+      "initial_evidence": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.08823529411764706,
+          "r2": 0.7083333333333334
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "followup_actions": [
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-adapter-local/tests/fs.rs",
+            "start": 312,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-adapter-local/src/fs.rs",
+            "start": 197,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "AGENTS.md",
+            "start": 425,
+            "count": 100
+          }
+        }
+      ],
+      "candidates": [
+        "candidate crates/nanus-adapter-local/tests/fs.rs:322 a_literal_search_is_truncated_only_when_a_match_is_dropped",
+        "candidate crates/nanus-adapter-local/src/fs.rs:207 edit_blocking",
+        "candidate AGENTS.md:435 AGENTS.md",
+        "candidate crates/nanus-bundle/src/tools/grep.rs:161 filter_by_include",
+        "candidate crates/nanus-adapter-local/tests/fs.rs:281 glob_search_reports_truncation_at_the_cap",
+        "candidate crates/nanus-bundle/src/tools/grep.rs:86 grep_outcome",
+        "candidate crates/nanus-adapter-local/src/fs.rs:431 collect_literal",
+        "candidate crates/nanus-adapter-local/src/fs.rs:25 crates/nanus-adapter-local/src/fs.rs"
+      ]
+    },
+    "fixed": {
+      "initial_evidence": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.058823529411764705,
+          "r2": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "followup_actions": [
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-adapter-local/src/fs.rs",
+            "start": 207,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-bundle/src/tools/grep.rs",
+            "start": 63,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-adapter-local/tests/fs.rs",
+            "start": 207,
+            "count": 100
+          }
+        }
+      ],
+      "candidates": [
+        "candidate crates/nanus-adapter-local/src/fs.rs:217 crates/nanus-adapter-local/src/fs.rs",
+        "candidate crates/nanus-bundle/src/tools/grep.rs:73 crates/nanus-bundle/src/tools/grep.rs",
+        "candidate crates/nanus-adapter-local/tests/fs.rs:217 crates/nanus-adapter-local/tests/fs.rs",
+        "candidate crates/nanus-ports/src/fs.rs:649 crates/nanus-ports/src/fs.rs",
+        "candidate docs/features.md:68 docs/features.md",
+        "candidate AGENTS.md:17 AGENTS.md",
+        "candidate crates/nanus-bundle/src/tools/glob.rs:73 crates/nanus-bundle/src/tools/glob.rs",
+        "candidate docs/testing.md:156 docs/testing.md"
+      ]
+    }
+  },
+  {
+    "task_id": "nanus.read.debug",
+    "structured": {
+      "initial_evidence": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.21311475409836064,
+          "r2": 1.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "followup_actions": [
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-bundle/src/tools/read.rs",
+            "start": 99,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-adapter-store/src/store.rs",
+            "start": 631,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-tui/src/markdown/render.rs",
+            "start": 597,
+            "count": 100
+          }
+        }
+      ],
+      "candidates": [
+        "candidate crates/nanus-bundle/src/tools/read.rs:109 read_outcome",
+        "candidate crates/nanus-bundle/src/tools/read.rs:34 read_tool",
+        "candidate crates/nanus-bundle/src/tools/read.rs:182 render_window",
+        "candidate crates/nanus-bundle/src/tools/read.rs:21 DEFAULT_READ_LIMIT",
+        "candidate crates/nanus-adapter-store/src/store.rs:641 write_claim",
+        "candidate crates/nanus-tui/src/markdown/render.rs:607 a_highlighted_fence_fits_the_width",
+        "candidate AGENTS.md:17 AGENTS.md",
+        "candidate crates/nanus-adapter-config/src/config.rs:498 write_atomic"
+      ]
+    },
+    "fixed": {
+      "initial_evidence": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0,
+          "r2": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "followup_actions": [
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-bundle/src/tools/read.rs",
+            "start": 1,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "AGENTS.md",
+            "start": 7,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-bundle/src/tools/glob.rs",
+            "start": 1,
+            "count": 100
+          }
+        }
+      ],
+      "candidates": [
+        "candidate crates/nanus-bundle/src/tools/read.rs:1 crates/nanus-bundle/src/tools/read.rs",
+        "candidate AGENTS.md:17 AGENTS.md",
+        "candidate crates/nanus-bundle/src/tools/glob.rs:1 crates/nanus-bundle/src/tools/glob.rs",
+        "candidate crates/nanus-adapter-store/src/store.rs:649 crates/nanus-adapter-store/src/store.rs",
+        "candidate crates/nanus-tui/src/runtime.rs:1153 crates/nanus-tui/src/runtime.rs",
+        "candidate crates/nanus-bundle/src/tools/grep.rs:1 crates/nanus-bundle/src/tools/grep.rs",
+        "candidate crates/nanus-tui/src/compact.rs:289 crates/nanus-tui/src/compact.rs",
+        "candidate crates/nanus-adapter-local/tests/fs.rs:73 crates/nanus-adapter-local/tests/fs.rs"
+      ]
+    }
+  },
+  {
+    "task_id": "nanus.write.debug",
+    "structured": {
+      "initial_evidence": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.35555555555555557
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "followup_actions": [
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-bundle/src/tools/write.rs",
+            "start": 13,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-adapter-store/src/store.rs",
+            "start": 631,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-adapter-local/src/fs.rs",
+            "start": 147,
+            "count": 100
+          }
+        }
+      ],
+      "candidates": [
+        "candidate crates/nanus-bundle/src/tools/write.rs:23 write_tool",
+        "candidate crates/nanus-adapter-store/src/store.rs:641 write_claim",
+        "candidate crates/nanus-adapter-local/src/fs.rs:157 write_blocking",
+        "candidate crates/nanus-ports/src/fs.rs:42 write",
+        "candidate crates/nanus-bundle/src/tools/write.rs:68 write_outcome",
+        "candidate crates/nanus-adapter-store/src/store.rs:621 take_claim",
+        "candidate crates/nanus-adapter-config/src/config.rs:498 write_atomic",
+        "candidate crates/nanus-adapter-store/src/store.rs:1014 write_atomic"
+      ]
+    },
+    "fixed": {
+      "initial_evidence": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "followup_actions": [
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-bundle/src/tools/write.rs",
+            "start": 1,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-adapter-local/src/fs.rs",
+            "start": 135,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-adapter-store/src/store.rs",
+            "start": 567,
+            "count": 100
+          }
+        }
+      ],
+      "candidates": [
+        "candidate crates/nanus-bundle/src/tools/write.rs:1 crates/nanus-bundle/src/tools/write.rs",
+        "candidate crates/nanus-adapter-local/src/fs.rs:145 crates/nanus-adapter-local/src/fs.rs",
+        "candidate crates/nanus-adapter-store/src/store.rs:577 crates/nanus-adapter-store/src/store.rs",
+        "candidate crates/nanus-bundle/tests/live_wire.rs:217 crates/nanus-bundle/tests/live_wire.rs",
+        "candidate crates/nanus-adapter-config/src/config.rs:433 crates/nanus-adapter-config/src/config.rs",
+        "candidate AGENTS.md:17 AGENTS.md",
+        "candidate crates/nanus-ports/src/fs.rs:1 crates/nanus-ports/src/fs.rs",
+        "candidate crates/nanus-bundle/src/tests_support.rs:1 crates/nanus-bundle/src/tests_support.rs"
+      ]
+    }
+  },
+  {
+    "task_id": "nanus.grep.debug",
+    "structured": {
+      "initial_evidence": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.20588235294117646,
+          "r2": 1.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "followup_actions": [
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-bundle/src/tools/grep.rs",
+            "start": 76,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-bundle/src/tools/glob.rs",
+            "start": 16,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-adapter-local/src/fs.rs",
+            "start": 248,
+            "count": 100
+          }
+        }
+      ],
+      "candidates": [
+        "candidate crates/nanus-bundle/src/tools/grep.rs:86 grep_outcome",
+        "candidate crates/nanus-bundle/src/tools/grep.rs:212 render_matches",
+        "candidate crates/nanus-bundle/src/tools/grep.rs:161 filter_by_include",
+        "candidate crates/nanus-bundle/src/tools/grep.rs:348 the_include_filter_keeps_only_matching_paths",
+        "candidate crates/nanus-bundle/src/tools/glob.rs:26 glob_tool",
+        "candidate crates/nanus-adapter-local/src/fs.rs:258 walk",
+        "candidate crates/nanus-tui/src/markdown/parse.rs:302 image_line",
+        "candidate crates/nanus-bundle/src/tools/grep.rs:34 grep_tool"
+      ]
+    },
+    "fixed": {
+      "initial_evidence": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.9852941176470589,
+          "r2": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "followup_actions": [
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-bundle/src/tools/grep.rs",
+            "start": 63,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-bundle/src/tools/glob.rs",
+            "start": 63,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-adapter-local/src/fs.rs",
+            "start": 279,
+            "count": 100
+          }
+        }
+      ],
+      "candidates": [
+        "candidate crates/nanus-bundle/src/tools/grep.rs:73 crates/nanus-bundle/src/tools/grep.rs",
+        "candidate crates/nanus-bundle/src/tools/glob.rs:73 crates/nanus-bundle/src/tools/glob.rs",
+        "candidate crates/nanus-adapter-local/src/fs.rs:289 crates/nanus-adapter-local/src/fs.rs",
+        "candidate docs/features.md:68 docs/features.md",
+        "candidate crates/nanus-ports/src/fs.rs:289 crates/nanus-ports/src/fs.rs",
+        "candidate crates/nanus-adapter-local/tests/fs.rs:289 crates/nanus-adapter-local/tests/fs.rs",
+        "candidate crates/nanus-bundle/tests/end_to_end.rs:433 crates/nanus-bundle/tests/end_to_end.rs",
+        "candidate crates/nanus-bundle/src/tools/read.rs:145 crates/nanus-bundle/src/tools/read.rs"
+      ]
+    }
+  },
+  {
+    "task_id": "nanus.glob.debug",
+    "structured": {
+      "initial_evidence": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.05333333333333334
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "followup_actions": [
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-adapter-local/tests/fs.rs",
+            "start": 271,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-adapter-local/src/fs.rs",
+            "start": 272,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-bundle/src/tools/grep.rs",
+            "start": 76,
+            "count": 100
+          }
+        }
+      ],
+      "candidates": [
+        "candidate crates/nanus-adapter-local/tests/fs.rs:281 glob_search_reports_truncation_at_the_cap",
+        "candidate crates/nanus-adapter-local/tests/fs.rs:322 a_literal_search_is_truncated_only_when_a_match_is_dropped",
+        "candidate crates/nanus-adapter-local/src/fs.rs:282 search_blocking",
+        "candidate crates/nanus-bundle/src/tools/grep.rs:86 grep_outcome",
+        "candidate crates/nanus-bundle/src/tools/glob.rs:74 glob_outcome",
+        "candidate crates/nanus-adapter-local/tests/fs.rs:299 a_search_that_exactly_fills_its_cap_is_not_truncated",
+        "candidate crates/nanus-adapter-config/src/config.rs:342 load",
+        "candidate crates/nanus-bundle/src/tools/grep.rs:212 render_matches"
+      ]
+    },
+    "fixed": {
+      "initial_evidence": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.14666666666666667
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "followup_actions": [
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-adapter-local/tests/fs.rs",
+            "start": 207,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-adapter-local/src/fs.rs",
+            "start": 351,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-bundle/src/tools/glob.rs",
+            "start": 63,
+            "count": 100
+          }
+        }
+      ],
+      "candidates": [
+        "candidate crates/nanus-adapter-local/tests/fs.rs:217 crates/nanus-adapter-local/tests/fs.rs",
+        "candidate crates/nanus-adapter-local/src/fs.rs:361 crates/nanus-adapter-local/src/fs.rs",
+        "candidate crates/nanus-bundle/src/tools/glob.rs:73 crates/nanus-bundle/src/tools/glob.rs",
+        "candidate crates/nanus-bundle/src/tools/grep.rs:73 crates/nanus-bundle/src/tools/grep.rs",
+        "candidate crates/nanus-ports/src/fs.rs:217 crates/nanus-ports/src/fs.rs",
+        "candidate crates/nanus-bundle/tests/end_to_end.rs:433 crates/nanus-bundle/tests/end_to_end.rs",
+        "candidate crates/nanus-adapter-store/src/store.rs:577 crates/nanus-adapter-store/src/store.rs",
+        "candidate AGENTS.md:17 AGENTS.md"
+      ]
+    }
+  },
+  {
+    "task_id": "nanus.markdown-resume.debug",
+    "structured": {
+      "initial_evidence": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0,
+          "r2": 1.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": null,
+        "task_success": null
+      },
+      "followup_actions": [
+        {
+          "name": "read",
+          "arguments": {
+            "path": "docs/sessions.md",
+            "start": 183,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "docs/features.md",
+            "start": 269,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "docs/tui.md",
+            "start": 149,
+            "count": 100
+          }
+        }
+      ],
+      "candidates": [
+        "candidate docs/sessions.md:193 docs/sessions.md",
+        "candidate docs/features.md:279 docs/features.md",
+        "candidate docs/tui.md:159 docs/tui.md",
+        "candidate docs/service.md:91 docs/service.md",
+        "candidate README.md:142 README.md",
+        "candidate docs/design.md:143 docs/design.md",
+        "candidate crates/nanus-cli/src/cli.rs:142 Tui",
+        "candidate crates/nanus-link/src/server.rs:1917 start_turn"
+      ]
+    },
+    "fixed": {
+      "initial_evidence": {
+        "required_file_recall": 0.0,
+        "region_coverage": {
+          "r1": 0.0,
+          "r2": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": null,
+        "task_success": null
+      },
+      "followup_actions": [
+        {
+          "name": "read",
+          "arguments": {
+            "path": "docs/tui.md",
+            "start": 149,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "crates/nanus-tui/src/runtime.rs",
+            "start": 4527,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "docs/design.md",
+            "start": 138,
+            "count": 100
+          }
+        }
+      ],
+      "candidates": [
+        "candidate docs/tui.md:159 docs/tui.md",
+        "candidate crates/nanus-tui/src/runtime.rs:4537 crates/nanus-tui/src/runtime.rs",
+        "candidate docs/design.md:148 docs/design.md",
+        "candidate docs/service.md:91 docs/service.md",
+        "candidate docs/sessions.md:193 docs/sessions.md",
+        "candidate crates/nanus-link/src/protocol.rs:145 crates/nanus-link/src/protocol.rs",
+        "candidate docs/features.md:279 docs/features.md",
+        "candidate docs/testing.md:103 docs/testing.md"
+      ]
+    }
+  },
+  {
+    "task_id": "blogwright.secret-upsert.debug",
+    "structured": {
+      "initial_evidence": {
+        "required_file_recall": 0.0,
+        "region_coverage": {
+          "r1": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "followup_actions": [
+        {
+          "name": "read",
+          "arguments": {
+            "path": "packages/cli/src/graph.test.ts",
+            "start": 112,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "packages/core/src/aws/cloudfront.ts",
+            "start": 311,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "packages/pds/src/commands.ts",
+            "start": 108,
+            "count": 100
+          }
+        }
+      ],
+      "candidates": [
+        "candidate packages/cli/src/graph.test.ts:122 packages/cli/src/graph.test.ts",
+        "candidate packages/core/src/aws/cloudfront.ts:321 ensureFunction",
+        "candidate packages/pds/src/commands.ts:118 init",
+        "candidate packages/pds/src/sync.ts:95 publicationRecord",
+        "candidate packages/cli/src/graph.test.ts:108 updating",
+        "candidate packages/cli/src/graph.ts:58 applyGraph",
+        "candidate packages/pds/src/secret.test.ts:61 packages/pds/src/secret.test.ts",
+        "candidate packages/pds/src/secret.ts:83 updatePdsSecret"
+      ]
+    },
+    "fixed": {
+      "initial_evidence": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 1.0
+        },
+        "evidence_ready": true,
+        "relationship_evidence_recall": 1.0,
+        "task_success": null
+      },
+      "followup_actions": [
+        {
+          "name": "read",
+          "arguments": {
+            "path": "packages/cli/src/graph.test.ts",
+            "start": 63,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "packages/core/src/aws/cloudfront.ts",
+            "start": 279,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "packages/core/src/aws/secretsmanager.ts",
+            "start": 1,
+            "count": 100
+          }
+        }
+      ],
+      "candidates": [
+        "candidate packages/cli/src/graph.test.ts:73 packages/cli/src/graph.test.ts",
+        "candidate packages/core/src/aws/cloudfront.ts:289 packages/core/src/aws/cloudfront.ts",
+        "candidate packages/core/src/aws/secretsmanager.ts:1 packages/core/src/aws/secretsmanager.ts",
+        "candidate packages/pds/src/commands.ts:73 packages/pds/src/commands.ts",
+        "candidate packages/pds/src/sync.ts:73 packages/pds/src/sync.ts",
+        "candidate packages/core/src/aws/signer.ts:145 packages/core/src/aws/signer.ts",
+        "candidate packages/cli/src/nodes.test.ts:1 packages/cli/src/nodes.test.ts",
+        "candidate packages/core/src/config.ts:289 packages/core/src/config.ts"
+      ]
+    }
+  },
+  {
+    "task_id": "blogwright.fresh-sitemap-pages.debug",
+    "structured": {
+      "initial_evidence": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": null,
+        "task_success": null
+      },
+      "followup_actions": [
+        {
+          "name": "read",
+          "arguments": {
+            "path": "packages/build-agent/src/build.ts",
+            "start": 346,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "packages/core/src/config.ts",
+            "start": 2,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "packages/build-agent/src/build.test.ts",
+            "start": 48,
+            "count": 100
+          }
+        }
+      ],
+      "candidates": [
+        "candidate packages/build-agent/src/build.ts:356 generateSitemap",
+        "candidate packages/core/src/config.ts:12 SeoConfig",
+        "candidate packages/build-agent/src/build.test.ts:58 packages/build-agent/src/build.test.ts",
+        "candidate docs/src/content/docs/reference/configuration.md:196 docs/src/content/docs/reference/configuration.md",
+        "candidate docs/src/content/docs/guides/non-astro-sites.md:98 docs/src/content/docs/guides/non-astro-sites.md",
+        "candidate packages/cli/src/commands.ts:37 siteBaseUrl",
+        "candidate docs/src/content/docs/guides/troubleshooting.md:227 docs/src/content/docs/guides/troubleshooting.md",
+        "candidate docs/src/content/docs/reference/cli.md:157 docs/src/content/docs/reference/cli.md"
+      ]
+    },
+    "fixed": {
+      "initial_evidence": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.8125
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": null,
+        "task_success": null
+      },
+      "followup_actions": [
+        {
+          "name": "read",
+          "arguments": {
+            "path": "docs/src/content/docs/reference/configuration.md",
+            "start": 186,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "docs/src/content/docs/guides/non-astro-sites.md",
+            "start": 88,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "packages/build-agent/src/build.test.ts",
+            "start": 1,
+            "count": 100
+          }
+        }
+      ],
+      "candidates": [
+        "candidate docs/src/content/docs/reference/configuration.md:196 docs/src/content/docs/reference/configuration.md",
+        "candidate docs/src/content/docs/guides/non-astro-sites.md:98 docs/src/content/docs/guides/non-astro-sites.md",
+        "candidate packages/build-agent/src/build.test.ts:1 packages/build-agent/src/build.test.ts",
+        "candidate packages/build-agent/src/build.ts:289 packages/build-agent/src/build.ts",
+        "candidate docs/src/content/docs/guides/custom-domains.md:82 docs/src/content/docs/guides/custom-domains.md",
+        "candidate packages/core/src/config.ts:73 packages/core/src/config.ts",
+        "candidate docs/src/content/docs/guides/pr-previews.md:17 docs/src/content/docs/guides/pr-previews.md",
+        "candidate docs/src/content/docs/guides/troubleshooting.md:227 docs/src/content/docs/guides/troubleshooting.md"
+      ]
+    }
+  },
+  {
+    "task_id": "blogwright.fresh-refresh-metadata.debug",
+    "structured": {
+      "initial_evidence": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 1.0
+        },
+        "evidence_ready": true,
+        "relationship_evidence_recall": null,
+        "task_success": null
+      },
+      "followup_actions": [
+        {
+          "name": "read",
+          "arguments": {
+            "path": "docs/src/content/docs/guides/deploying.md",
+            "start": 82,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "packages/build-agent/src/build.ts",
+            "start": 6,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "docs/src/content/docs/guides/troubleshooting.md",
+            "start": 140,
+            "count": 100
+          }
+        }
+      ],
+      "candidates": [
+        "candidate docs/src/content/docs/guides/deploying.md:92 docs/src/content/docs/guides/deploying.md",
+        "candidate packages/build-agent/src/build.ts:16 BuildPayload",
+        "candidate docs/src/content/docs/guides/troubleshooting.md:150 docs/src/content/docs/guides/troubleshooting.md",
+        "candidate packages/cli/README.md:58 packages/cli/README.md",
+        "candidate packages/build-agent/src/build.ts:222 shouldUpload",
+        "candidate docs/src/content/docs/reference/cli.md:69 docs/src/content/docs/reference/cli.md",
+        "candidate packages/cli/src/deploy.ts:175 runBuild",
+        "candidate packages/cli/src/repo.ts:80 buildRepoZip"
+      ]
+    },
+    "fixed": {
+      "initial_evidence": {
+        "required_file_recall": 0.0,
+        "region_coverage": {
+          "r1": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": null,
+        "task_success": null
+      },
+      "followup_actions": [
+        {
+          "name": "read",
+          "arguments": {
+            "path": "docs/src/content/docs/guides/deploying.md",
+            "start": 82,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "docs/src/content/docs/guides/troubleshooting.md",
+            "start": 140,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "packages/cli/README.md",
+            "start": 48,
+            "count": 100
+          }
+        }
+      ],
+      "candidates": [
+        "candidate docs/src/content/docs/guides/deploying.md:92 docs/src/content/docs/guides/deploying.md",
+        "candidate docs/src/content/docs/guides/troubleshooting.md:150 docs/src/content/docs/guides/troubleshooting.md",
+        "candidate packages/cli/README.md:58 packages/cli/README.md",
+        "candidate packages/cli/CHANGELOG.md:53 packages/cli/CHANGELOG.md",
+        "candidate packages/core/CHANGELOG.md:43 packages/core/CHANGELOG.md",
+        "candidate packages/pds/CHANGELOG.md:46 packages/pds/CHANGELOG.md",
+        "candidate docs/src/content/docs/reference/cli.md:69 docs/src/content/docs/reference/cli.md",
+        "candidate packages/build-agent/src/build.test.ts:145 packages/build-agent/src/build.test.ts"
+      ]
+    }
+  },
+  {
+    "task_id": "whatsurvey.captcha-retry.change",
+    "structured": {
+      "initial_evidence": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.2153846153846154
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "followup_actions": [
+        {
+          "name": "read",
+          "arguments": {
+            "path": "workspaces/backend/src/core/captcha.ts",
+            "start": 68,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "LOCAL_DEV.md",
+            "start": 94,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "packages/ui/src/lib/components/ui/data-table/data-table.svelte.ts",
+            "start": 81,
+            "count": 100
+          }
+        }
+      ],
+      "candidates": [
+        "candidate workspaces/backend/src/core/captcha.ts:78 verifyCaptcha",
+        "candidate LOCAL_DEV.md:104 LOCAL_DEV.md",
+        "candidate packages/ui/src/lib/components/ui/data-table/data-table.svelte.ts:91 mergeObjects",
+        "candidate workspaces/frontend/infra/__tests__/frontend-app.test.ts:228 activeInfraSourceFiles",
+        "candidate workspaces/frontend/src/lib/survey/__tests__/rendering.test.ts:82 workspaces/frontend/src/lib/survey/__tests__/rendering.test.ts",
+        "candidate docs/research/verification/whatsapp-cloud-api-conversational-surveys.md:31 docs/research/verification/whatsapp-cloud-api-conversational-surveys.md",
+        "candidate workspaces/backend/tests/functions/admin-api/routes/settings.floci.test.ts:28 workspaces/backend/tests/functions/admin-api/routes/settings.floci.test.ts",
+        "candidate workspaces/backend/src/functions/admin-api/routes/forms.ts:230 captchaInput"
+      ]
+    },
+    "fixed": {
+      "initial_evidence": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.36923076923076925
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "followup_actions": [
+        {
+          "name": "read",
+          "arguments": {
+            "path": "workspaces/backend/src/core/captcha.ts",
+            "start": 63,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "LOCAL_DEV.md",
+            "start": 94,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "workspaces/backend/test-fixtures/oidc-04-refresh-contract.json",
+            "start": 1,
+            "count": 100
+          }
+        }
+      ],
+      "candidates": [
+        "candidate workspaces/backend/src/core/captcha.ts:73 workspaces/backend/src/core/captcha.ts",
+        "candidate LOCAL_DEV.md:104 LOCAL_DEV.md",
+        "candidate workspaces/backend/test-fixtures/oidc-04-refresh-contract.json:1 workspaces/backend/test-fixtures/oidc-04-refresh-contract.json",
+        "candidate workspaces/backend/tests/core/captcha.test.ts:217 workspaces/backend/tests/core/captcha.test.ts",
+        "candidate workspaces/frontend/src/lib/api/__tests__/consent.test.ts:361 workspaces/frontend/src/lib/api/__tests__/consent.test.ts",
+        "candidate workspaces/backend/src/functions/form-api/middleware/validate.ts:1 workspaces/backend/src/functions/form-api/middleware/validate.ts",
+        "candidate workspaces/backend/tests/functions/admin-api/routes/forms.test.ts:649 workspaces/backend/tests/functions/admin-api/routes/forms.test.ts",
+        "candidate docs/research/verification/whatsapp-cloud-api-conversational-surveys.md:8 docs/research/verification/whatsapp-cloud-api-conversational-surveys.md"
+      ]
+    }
+  },
+  {
+    "task_id": "whatsurvey.contact-policy.debug",
+    "structured": {
+      "initial_evidence": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0,
+          "r2": 0.0,
+          "r3": 0.20967741935483872
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "followup_actions": [
+        {
+          "name": "read",
+          "arguments": {
+            "path": "workspaces/backend/src/functions/admin-api/routes/sessions.ts",
+            "start": 570,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "workspaces/backend/src/core/consent/can-contact.ts",
+            "start": 113,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "workspaces/backend/tests/functions/orchestrator/confirm.test.ts",
+            "start": 860,
+            "count": 100
+          }
+        }
+      ],
+      "candidates": [
+        "candidate workspaces/backend/src/functions/admin-api/routes/sessions.ts:580 decision",
+        "candidate workspaces/backend/src/core/consent/can-contact.ts:123 CanContactRefusal",
+        "candidate workspaces/backend/tests/functions/orchestrator/confirm.test.ts:870 workspaces/backend/tests/functions/orchestrator/confirm.test.ts",
+        "candidate workspaces/backend/tests/functions/auth-mock/index.test.ts:324 realAuthorizer",
+        "candidate workspaces/backend/src/core/consent/can-contact.ts:138 RECRUITMENT_HARD_REFUSALS",
+        "candidate workspaces/backend/src/core/consent/can-contact.ts:316 canContact",
+        "candidate workspaces/backend/tests/functions/admin-api/role-guard.test.ts:253 workspaces/backend/tests/functions/admin-api/role-guard.test.ts",
+        "candidate workspaces/backend/src/core/consent/can-contact.ts:144 RECRUITMENT_SOFT_REFUSALS"
+      ]
+    },
+    "fixed": {
+      "initial_evidence": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0,
+          "r2": 0.0,
+          "r3": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "followup_actions": [
+        {
+          "name": "read",
+          "arguments": {
+            "path": "workspaces/backend/src/core/consent/can-contact.ts",
+            "start": 63,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "workspaces/backend/src/functions/orchestrator/join.ts",
+            "start": 1,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "workspaces/backend/tests/core/consent/can-contact.test.ts",
+            "start": 711,
+            "count": 100
+          }
+        }
+      ],
+      "candidates": [
+        "candidate workspaces/backend/src/core/consent/can-contact.ts:73 workspaces/backend/src/core/consent/can-contact.ts",
+        "candidate workspaces/backend/src/functions/orchestrator/join.ts:1 workspaces/backend/src/functions/orchestrator/join.ts",
+        "candidate workspaces/backend/tests/core/consent/can-contact.test.ts:721 workspaces/backend/tests/core/consent/can-contact.test.ts",
+        "candidate workspaces/backend/tests/functions/orchestrator/confirm.test.ts:793 workspaces/backend/tests/functions/orchestrator/confirm.test.ts",
+        "candidate workspaces/backend/tests/functions/admin-api/routes/sessions.test.ts:1 workspaces/backend/tests/functions/admin-api/routes/sessions.test.ts",
+        "candidate workspaces/backend/src/functions/orchestrator/confirm.ts:217 workspaces/backend/src/functions/orchestrator/confirm.ts",
+        "candidate workspaces/backend/src/functions/admin-api/routes/sessions.ts:505 workspaces/backend/src/functions/admin-api/routes/sessions.ts",
+        "candidate workspaces/frontend/src/lib/utils/contact-validation.ts:217 workspaces/frontend/src/lib/utils/contact-validation.ts"
+      ]
+    }
+  },
+  {
+    "task_id": "whatsurvey.settings-encryption.change",
+    "structured": {
+      "initial_evidence": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0,
+          "r2": 0.19117647058823528
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "followup_actions": [
+        {
+          "name": "read",
+          "arguments": {
+            "path": "workspaces/backend/tests/functions/admin-api/routes/settings.floci.test.ts",
+            "start": 18,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "workspaces/backend/src/core/settings/crypto.ts",
+            "start": 122,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "workspaces/backend/tests/functions/auth/upstream-contract.test.ts",
+            "start": 63,
+            "count": 100
+          }
+        }
+      ],
+      "candidates": [
+        "candidate workspaces/backend/tests/functions/admin-api/routes/settings.floci.test.ts:28 workspaces/backend/tests/functions/admin-api/routes/settings.floci.test.ts",
+        "candidate workspaces/backend/src/core/settings/crypto.ts:132 encryptSecret",
+        "candidate workspaces/backend/src/core/settings/crypto.ts:165 decryptSecret",
+        "candidate workspaces/backend/tests/functions/auth/upstream-contract.test.ts:73 SOURCE_BACKED_ROWS",
+        "candidate workspaces/backend/tests/core/settings/crypto.test.ts:82 workspaces/backend/tests/core/settings/crypto.test.ts",
+        "candidate workspaces/backend/test-fixtures/oidc-04-refresh-contract.json:73 workspaces/backend/test-fixtures/oidc-04-refresh-contract.json",
+        "candidate workspaces/backend/tests/functions/auth/upstream-contract.test.ts:414 workspaces/backend/tests/functions/auth/upstream-contract.test.ts",
+        "candidate workspaces/backend/tests/functions/admin-api/routes/settings.floci.test.ts:46 createResponse"
+      ]
+    },
+    "fixed": {
+      "initial_evidence": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0,
+          "r2": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "followup_actions": [
+        {
+          "name": "read",
+          "arguments": {
+            "path": "workspaces/backend/tests/functions/auth/upstream-contract.test.ts",
+            "start": 423,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "workspaces/backend/test-fixtures/oidc-04-refresh-contract.json",
+            "start": 1,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "workspaces/backend/src/core/settings/crypto.ts",
+            "start": 1,
+            "count": 100
+          }
+        }
+      ],
+      "candidates": [
+        "candidate workspaces/backend/tests/functions/auth/upstream-contract.test.ts:433 workspaces/backend/tests/functions/auth/upstream-contract.test.ts",
+        "candidate workspaces/backend/test-fixtures/oidc-04-refresh-contract.json:1 workspaces/backend/test-fixtures/oidc-04-refresh-contract.json",
+        "candidate workspaces/backend/src/core/settings/crypto.ts:1 workspaces/backend/src/core/settings/crypto.ts",
+        "candidate .env.local.example:1 .env.local.example",
+        "candidate docs/research/verification/whatsapp-survey-compliance-2025.md:33 docs/research/verification/whatsapp-survey-compliance-2025.md",
+        "candidate workspaces/backend/tests/core/settings/crypto.test.ts:145 workspaces/backend/tests/core/settings/crypto.test.ts",
+        "candidate docs/research/findings/bsp-vs-cloud-api-whatsapp-surveys.md:106 docs/research/findings/bsp-vs-cloud-api-whatsapp-surveys.md",
+        "candidate workspaces/backend/tests/functions/admin-api/routes/settings.floci.test.ts:1 workspaces/backend/tests/functions/admin-api/routes/settings.floci.test.ts"
+      ]
+    }
+  },
+  {
+    "task_id": "whatsurvey.contact-policy.change",
+    "structured": {
+      "initial_evidence": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0,
+          "r2": 0.0,
+          "r3": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "followup_actions": [
+        {
+          "name": "read",
+          "arguments": {
+            "path": "workspaces/frontend/src/routes/contacts/[contactId]/__tests__/page.test.ts",
+            "start": 105,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "workspaces/backend/tests/functions/auth/upstream-contract.test.ts",
+            "start": 63,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "workspaces/backend/src/functions/admin-api/routes/consent.ts",
+            "start": 569,
+            "count": 100
+          }
+        }
+      ],
+      "candidates": [
+        "candidate workspaces/frontend/src/routes/contacts/[contactId]/__tests__/page.test.ts:115 PARTICIPATED",
+        "candidate workspaces/backend/tests/functions/auth/upstream-contract.test.ts:73 SOURCE_BACKED_ROWS",
+        "candidate workspaces/backend/src/functions/admin-api/routes/consent.ts:579 proposeWithdrawal",
+        "candidate workspaces/backend/test-fixtures/oidc-04-refresh-contract.json:1 workspaces/backend/test-fixtures/oidc-04-refresh-contract.json",
+        "candidate workspaces/backend/tests/functions/orchestrator/confirm.test.ts:887 workspaces/backend/tests/functions/orchestrator/confirm.test.ts",
+        "candidate workspaces/backend/tests/core/consent/can-contact.test.ts:1041 workspaces/backend/tests/core/consent/can-contact.test.ts",
+        "candidate workspaces/backend/src/core/consent/can-contact.ts:91 ConsentStage",
+        "candidate workspaces/frontend/src/lib/__tests__/contact-types.test.ts:89 revoke"
+      ]
+    },
+    "fixed": {
+      "initial_evidence": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0,
+          "r2": 0.0,
+          "r3": 0.06451612903225806
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "followup_actions": [
+        {
+          "name": "read",
+          "arguments": {
+            "path": "workspaces/backend/test-fixtures/oidc-04-refresh-contract.json",
+            "start": 1,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "workspaces/backend/tests/functions/auth/upstream-contract.test.ts",
+            "start": 63,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "workspaces/backend/tests/core/consent/can-contact.test.ts",
+            "start": 999,
+            "count": 100
+          }
+        }
+      ],
+      "candidates": [
+        "candidate workspaces/backend/test-fixtures/oidc-04-refresh-contract.json:1 workspaces/backend/test-fixtures/oidc-04-refresh-contract.json",
+        "candidate workspaces/backend/tests/functions/auth/upstream-contract.test.ts:73 workspaces/backend/tests/functions/auth/upstream-contract.test.ts",
+        "candidate workspaces/backend/tests/core/consent/can-contact.test.ts:1009 workspaces/backend/tests/core/consent/can-contact.test.ts",
+        "candidate workspaces/frontend/src/routes/contacts/[contactId]/__tests__/page.test.ts:73 workspaces/frontend/src/routes/contacts/[contactId]/__tests__/page.test.ts",
+        "candidate workspaces/backend/src/functions/orchestrator/confirm.ts:217 workspaces/backend/src/functions/orchestrator/confirm.ts",
+        "candidate workspaces/backend/tests/functions/orchestrator/confirm.test.ts:865 workspaces/backend/tests/functions/orchestrator/confirm.test.ts",
+        "candidate workspaces/frontend/src/routes/consent/statements/__tests__/page.test.ts:505 workspaces/frontend/src/routes/consent/statements/__tests__/page.test.ts",
+        "candidate workspaces/backend/src/core/consent/can-contact.ts:289 workspaces/backend/src/core/consent/can-contact.ts"
+      ]
+    }
+  },
+  {
+    "task_id": "whatsurvey.settings-encryption.debug",
+    "structured": {
+      "initial_evidence": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0,
+          "r2": 0.07352941176470588
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "followup_actions": [
+        {
+          "name": "read",
+          "arguments": {
+            "path": "workspaces/backend/src/core/settings/crypto.ts",
+            "start": 155,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "workspaces/backend/tests/core/whatsapp/resolve.test.ts",
+            "start": 30,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "workspaces/backend/tests/core/settings/keys.test.ts",
+            "start": 84,
+            "count": 100
+          }
+        }
+      ],
+      "candidates": [
+        "candidate workspaces/backend/src/core/settings/crypto.ts:165 decryptSecret",
+        "candidate workspaces/backend/tests/core/whatsapp/resolve.test.ts:40 encrypted",
+        "candidate workspaces/backend/src/core/settings/crypto.ts:1 workspaces/backend/src/core/settings/crypto.ts",
+        "candidate workspaces/backend/tests/core/settings/keys.test.ts:94 workspaces/backend/tests/core/settings/keys.test.ts",
+        "candidate workspaces/backend/src/core/llm/resolve.ts:98 pending",
+        "candidate workspaces/backend/src/core/settings/store.ts:101 projectSetting",
+        "candidate workspaces/backend/src/functions/admin-api/routes/survey-versions.ts:312 workspaces/backend/src/functions/admin-api/routes/survey-versions.ts",
+        "candidate workspaces/backend/tests/core/settings/crypto.test.ts:91 workspaces/backend/tests/core/settings/crypto.test.ts"
+      ]
+    },
+    "fixed": {
+      "initial_evidence": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0,
+          "r2": 0.058823529411764705
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "followup_actions": [
+        {
+          "name": "read",
+          "arguments": {
+            "path": "workspaces/backend/tests/core/settings/crypto.test.ts",
+            "start": 63,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "workspaces/backend/src/core/settings/keys.ts",
+            "start": 1,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "workspaces/backend/src/core/settings/crypto.ts",
+            "start": 135,
+            "count": 100
+          }
+        }
+      ],
+      "candidates": [
+        "candidate workspaces/backend/tests/core/settings/crypto.test.ts:73 workspaces/backend/tests/core/settings/crypto.test.ts",
+        "candidate workspaces/backend/src/core/settings/keys.ts:1 workspaces/backend/src/core/settings/keys.ts",
+        "candidate workspaces/backend/src/core/settings/crypto.ts:145 workspaces/backend/src/core/settings/crypto.ts",
+        "candidate workspaces/backend/src/core/settings/store.ts:1 workspaces/backend/src/core/settings/store.ts",
+        "candidate workspaces/backend/tests/core/whatsapp/resolve.test.ts:1 workspaces/backend/tests/core/whatsapp/resolve.test.ts",
+        "candidate workspaces/backend/src/core/whatsapp/resolve.ts:1 workspaces/backend/src/core/whatsapp/resolve.ts",
+        "candidate workspaces/backend/tests/core/settings/keys.test.ts:1 workspaces/backend/tests/core/settings/keys.test.ts",
+        "candidate workspaces/backend/src/core/index.ts:73 workspaces/backend/src/core/index.ts"
+      ]
+    }
+  },
+  {
+    "task_id": "whatsurvey.captcha-retry.debug",
+    "structured": {
+      "initial_evidence": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.2923076923076923
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "followup_actions": [
+        {
+          "name": "read",
+          "arguments": {
+            "path": "workspaces/backend/tests/core/captcha.test.ts",
+            "start": 123,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "workspaces/frontend/src/lib/auth/http.ts",
+            "start": 1,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "CHANGELOG.md",
+            "start": 28,
+            "count": 100
+          }
+        }
+      ],
+      "candidates": [
+        "candidate workspaces/backend/tests/core/captcha.test.ts:133 workspaces/backend/tests/core/captcha.test.ts",
+        "candidate workspaces/frontend/src/lib/auth/http.ts:6 authFetch",
+        "candidate CHANGELOG.md:38 CHANGELOG.md",
+        "candidate docs/research/findings/whatsapp-cloud-api-conversational-surveys.md:126 docs/research/findings/whatsapp-cloud-api-conversational-surveys.md",
+        "candidate workspaces/backend/src/core/captcha.ts:78 verifyCaptcha",
+        "candidate workspaces/backend/tests/functions/auth/index.test.ts:724 routeVendoredRequest",
+        "candidate workspaces/backend/src/core/observability/http.ts:1 workspaces/backend/src/core/observability/http.ts",
+        "candidate workspaces/backend/tests/functions/form-api/middleware/validate.test.ts:196 workspaces/backend/tests/functions/form-api/middleware/validate.test.ts"
+      ]
+    },
+    "fixed": {
+      "initial_evidence": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "followup_actions": [
+        {
+          "name": "read",
+          "arguments": {
+            "path": "workspaces/backend/tests/core/captcha.test.ts",
+            "start": 135,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "workspaces/backend/src/core/captcha.ts",
+            "start": 1,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "workspaces/backend/src/core/whatsapp/client.ts",
+            "start": 279,
+            "count": 100
+          }
+        }
+      ],
+      "candidates": [
+        "candidate workspaces/backend/tests/core/captcha.test.ts:145 workspaces/backend/tests/core/captcha.test.ts",
+        "candidate workspaces/backend/src/core/captcha.ts:1 workspaces/backend/src/core/captcha.ts",
+        "candidate workspaces/backend/src/core/whatsapp/client.ts:289 workspaces/backend/src/core/whatsapp/client.ts",
+        "candidate workspaces/backend/src/core/whatsapp/media.ts:145 workspaces/backend/src/core/whatsapp/media.ts",
+        "candidate workspaces/frontend/src/lib/auth/http.ts:1 workspaces/frontend/src/lib/auth/http.ts",
+        "candidate docs/research/findings/whatsapp-llm-survey-agent-architecture.md:13 docs/research/findings/whatsapp-llm-survey-agent-architecture.md",
+        "candidate workspaces/backend/tests/core/whatsapp/client.test.ts:577 workspaces/backend/tests/core/whatsapp/client.test.ts",
+        "candidate workspaces/frontend/src/lib/api/client.ts:145 workspaces/frontend/src/lib/api/client.ts"
+      ]
+    }
+  },
+  {
+    "task_id": "whatsurvey.markdown-survey-flow.debug",
+    "structured": {
+      "initial_evidence": {
+        "required_file_recall": 0.0,
+        "region_coverage": {
+          "r1": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": null,
+        "task_success": null
+      },
+      "followup_actions": [
+        {
+          "name": "read",
+          "arguments": {
+            "path": "workspaces/frontend/src/lib/utils/programme.ts",
+            "start": 17,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "workspaces/frontend/src/lib/api/__tests__/templates.test.ts",
+            "start": 19,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "workspaces/backend/src/core/whatsapp/client.ts",
+            "start": 795,
+            "count": 100
+          }
+        }
+      ],
+      "candidates": [
+        "candidate workspaces/frontend/src/lib/utils/programme.ts:27 formChannels",
+        "candidate workspaces/frontend/src/lib/api/__tests__/templates.test.ts:29 submission",
+        "candidate workspaces/backend/src/core/whatsapp/client.ts:805 createGraphTemplate",
+        "candidate workspaces/backend/src/core/whatsapp/client.ts:810 payload",
+        "candidate docs/whatsapp-survey-spec.md:177 docs/whatsapp-survey-spec.md",
+        "candidate workspaces/backend/src/functions/form-api/routes/submit.ts:59 submission",
+        "candidate workspaces/backend/src/functions/admin-api/routes/channel.ts:15 SurveySpend",
+        "candidate workspaces/backend/tests/functions/admin-api/routes/forms.test.ts:724 res"
+      ]
+    },
+    "fixed": {
+      "initial_evidence": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": null,
+        "task_success": null
+      },
+      "followup_actions": [
+        {
+          "name": "read",
+          "arguments": {
+            "path": "README.md",
+            "start": 1,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "docs/research/findings/whatsapp-interactive-flows-survey-ux.md",
+            "start": 28,
+            "count": 100
+          }
+        },
+        {
+          "name": "read",
+          "arguments": {
+            "path": "workspaces/backend/README.md",
+            "start": 1,
+            "count": 100
+          }
+        }
+      ],
+      "candidates": [
+        "candidate README.md:3 README.md",
+        "candidate docs/research/findings/whatsapp-interactive-flows-survey-ux.md:38 docs/research/findings/whatsapp-interactive-flows-survey-ux.md",
+        "candidate workspaces/backend/README.md:7 workspaces/backend/README.md",
+        "candidate docs/research/findings/whatsapp-llm-survey-agent-architecture.md:7 docs/research/findings/whatsapp-llm-survey-agent-architecture.md",
+        "candidate workspaces/backend/src/functions/admin-api/routes/forms.ts:1 workspaces/backend/src/functions/admin-api/routes/forms.ts",
+        "candidate PRODUCT.md:21 PRODUCT.md",
+        "candidate docs/research/findings/whatsapp-pricing-2024-2025-survey-unit-economics.md:91 docs/research/findings/whatsapp-pricing-2024-2025-survey-unit-economics.md",
+        "candidate packages/types/src/index.ts:289 packages/types/src/index.ts"
+      ]
+    }
+  }
+]

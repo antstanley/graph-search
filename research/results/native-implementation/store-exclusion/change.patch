@@ -1,0 +1,319 @@
+--- a/crates/core/src/config.rs
++++ b/crates/core/src/config.rs
+@@ -55,6 +55,9 @@
+     /// Directory names never walked. User values replace the defaults only
+     /// when `replace_defaults` is set (`SPEC.md` §12).
+     pub excludes: Vec<String>,
++    /// Absolute subtrees excluded independently of hidden and ignore flags.
++    /// Hosts use this for index storage; paths must be normalized like the walk root.
++    pub excluded_paths: Vec<std::path::PathBuf>,
+     /// Whether `include_hidden` applies; hidden entries are skipped otherwise.
+     pub include_hidden: bool,
+     /// Whether `.gitignore`, `.ignore`, and git excludes are honoured. The
+@@ -76,6 +79,7 @@
+             max_files: graph_search_types::limits::MAX_FILES,
+             max_walk_entries: graph_search_types::limits::MAX_WALK_ENTRIES,
+             excludes: DEFAULT_EXCLUDES.iter().map(|s| (*s).to_owned()).collect(),
++            excluded_paths: Vec::new(),
+             include_hidden: false,
+             respect_ignore: true,
+             max_file_bytes: graph_search_types::limits::MAX_FILE_BYTES,
+@@ -99,6 +103,8 @@
+             serde_json::json!({
+                 "hidden":self.include_hidden, "ignore":self.respect_ignore,
+                 "excludes":self.excludes, "max_file_bytes":self.max_file_bytes,
++                "excluded_paths": self.excluded_paths.iter()
++                    .map(|path| path.as_os_str().as_encoded_bytes()).collect::<Vec<_>>(),
+                 "max_files":self.max_files, "max_entries":self.max_walk_entries,
+                 "languages":self.languages, "extensions":self.extensions,
+             })
+--- a/crates/core/src/walk.rs
++++ b/crates/core/src/walk.rs
+@@ -159,9 +159,29 @@
+             .parents(false);
+     }
+     let excludes = policy.excludes.clone();
++    // Query scopes may name the same subtree through a symlink or `..`.
++    // Descendant directory symlinks are not followed by WalkBuilder. Translate
++    // exclusions once, avoiding a canonicalization or path allocation per entry.
++    let actual_root = search_root
++        .canonicalize()
++        .map_err(|source| Error::io(search_root, source))?;
++    let exclude_root = policy
++        .excluded_paths
++        .iter()
++        .any(|path| actual_root.starts_with(path));
++    let excluded_paths: Vec<_> = policy
++        .excluded_paths
++        .iter()
++        .filter_map(|path| path.strip_prefix(&actual_root).ok())
++        .map(|relative| search_root.join(relative))
++        .collect();
+     builder.filter_entry(move |entry| {
+         let kind = entry.file_type();
+-        !is_skipped_dir(entry.path(), kind, &excludes)
++        !exclude_root
++            && !excluded_paths
++                .iter()
++                .any(|path| entry.path().starts_with(path))
++            && !is_skipped_dir(entry.path(), kind, &excludes)
+     });
+ 
+     let mut entries: Vec<WalkEntry> = Vec::new();
+--- a/crates/graph-search/src/index.rs
++++ b/crates/graph-search/src/index.rs
+@@ -139,7 +139,14 @@
+         if let Some(languages) = options.languages {
+             config.policy.languages = languages;
+         }
+-        let store_dir = options.store.unwrap_or_else(|| root.join(&config.store));
++        let store_dir =
++            resolve_store_path(&options.store.unwrap_or_else(|| root.join(&config.store)))?;
++        if root.starts_with(&store_dir) {
++            return Err(Error::Config(String::from(
++                "the store directory must not equal or contain the source root",
++            )));
++        }
++        config.policy.excluded_paths.push(store_dir.clone());
+         if !options.read_only {
+             std::fs::create_dir_all(&store_dir)
+                 .map_err(|source| Error::Core(graph_search_core::Error::io(&store_dir, source)))?;
+@@ -311,3 +318,24 @@
+         Ok(report)
+     }
+ }
++
++/// Resolve existing symlinks while allowing a not-yet-created store. Explicit
++/// relative store options retain their process-working-directory semantics.
++fn resolve_store_path(path: &Path) -> Result<PathBuf> {
++    let absolute = std::path::absolute(path)
++        .map_err(|source| Error::Core(graph_search_core::Error::io(path, source)))?;
++    let mut resolved = PathBuf::new();
++    for component in absolute.components() {
++        if component == std::path::Component::ParentDir {
++            resolved.pop();
++        } else if component != std::path::Component::CurDir {
++            resolved.push(component);
++            match resolved.canonicalize() {
++                Ok(canonical) => resolved = canonical,
++                Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
++                Err(error) => return Err(graph_search_core::Error::io(&resolved, error).into()),
++            }
++        }
++    }
++    Ok(resolved)
++}
+--- a/crates/graph-search/tests/store_exclusion.rs
++++ b/crates/graph-search/tests/store_exclusion.rs
+@@ -0,0 +1,211 @@
++//! Index storage must never become searchable source.
++#![allow(clippy::expect_used, clippy::panic)]
++use graph_search::{Index, OpenOptions};
++use graph_search_types::{FilesQuery, TextQuery};
++
++#[test]
++fn custom_in_tree_store_stays_out_of_source_after_reopen() {
++    let temp = tempfile::tempdir().unwrap();
++    let root = temp.path();
++    std::fs::write(root.join("a.rs"), "fn source_marker() {}\n").unwrap();
++    let options = OpenOptions {
++        root: root.to_owned(),
++        store: Some(root.join("index-store")),
++        ..OpenOptions::default()
++    };
++    let index = Index::open(options.clone()).unwrap();
++    let report = index.reindex().unwrap();
++    assert_eq!(report.added, vec!["a.rs"]);
++    assert_eq!(report.coverage.admitted_files, 1);
++    assert!(index.sync().unwrap().added.is_empty());
++    let generation = index.search().status().unwrap().generation;
++    assert_eq!(
++        index.search().status().unwrap().staleness.unwrap().changed,
++        0
++    );
++    drop(index);
++    let index = Index::open(options.clone()).unwrap();
++    assert!(index.sync().unwrap().added.is_empty());
++    assert_eq!(index.search().status().unwrap().generation, generation);
++    std::fs::write(
++        root.join("index-store/decoy.rs"),
++        "fn storage_marker() {}\n",
++    )
++    .unwrap();
++    assert_eq!(
++        index.search().status().unwrap().staleness.unwrap().changed,
++        0
++    );
++    let mut query = FilesQuery::new("*");
++    query.include_hidden = true;
++    query.no_ignore = true;
++    assert_eq!(index.search().files(&query).unwrap().items.len(), 1);
++    query.path = Some(String::from("index-store"));
++    assert!(index.search().files(&query).unwrap().items.is_empty());
++    query.path = Some(String::from("index-store/../index-store"));
++    assert!(index.search().files(&query).unwrap().items.is_empty());
++    #[cfg(unix)]
++    {
++        std::os::unix::fs::symlink(root.join("index-store"), root.join("store-alias")).unwrap();
++        query.path = Some(String::from("store-alias"));
++        assert!(index.search().files(&query).unwrap().items.is_empty());
++    }
++    let mut query = TextQuery::new("source_marker");
++    query.include_hidden = true;
++    query.no_ignore = true;
++    assert_eq!(index.search().text(&query).unwrap().items.len(), 1);
++    assert!(
++        index
++            .search()
++            .explore(&graph_search_types::ExploreQuery::new("storage_marker"))
++            .unwrap()
++            .items
++            .iter()
++            .all(|item| item.node.path == "a.rs")
++    );
++    std::fs::create_dir_all(root.join("other/index-store")).unwrap();
++    std::fs::write(root.join("other/index-store/b.rs"), "fn sibling() {}\n").unwrap();
++    std::fs::write(root.join("a.rs"), "fn changed_source_marker() {}\n").unwrap();
++    let report = index.sync().unwrap();
++    assert_eq!(report.added, vec!["other/index-store/b.rs"]);
++    assert_eq!(report.modified, vec!["a.rs"]);
++    assert_eq!(report.coverage.admitted_files, 2);
++    drop(index);
++    let index = Index::open(OpenOptions {
++        read_only: true,
++        ..options
++    })
++    .unwrap();
++    assert_eq!(
++        index.search().status().unwrap().staleness.unwrap().changed,
++        0
++    );
++}
++
++#[test]
++fn store_cannot_contain_the_source_root() {
++    let temp = tempfile::tempdir().unwrap();
++    let root = temp.path().join("source");
++    std::fs::create_dir(&root).unwrap();
++    for store in [&root, temp.path()] {
++        let result = Index::open(OpenOptions {
++            root: root.clone(),
++            store: Some(store.to_owned()),
++            ..OpenOptions::default()
++        });
++        assert!(matches!(result, Err(graph_search::Error::Config(_))));
++    }
++    assert!(!root.join("CURRENT").exists());
++}
++
++#[cfg(unix)]
++#[test]
++fn symlink_store_and_root_use_the_actual_subtree() {
++    let temp = tempfile::tempdir().unwrap();
++    let root = temp.path().join("source");
++    std::fs::create_dir_all(root.join("storage")).unwrap();
++    std::fs::write(root.join("a.rs"), "fn a() {}\n").unwrap();
++    let alias = temp.path().join("root-alias");
++    std::os::unix::fs::symlink(&root, &alias).unwrap();
++    let store_alias = temp.path().join("store-alias");
++    std::os::unix::fs::symlink(root.join("storage"), &store_alias).unwrap();
++    let index = Index::open(OpenOptions {
++        root: alias,
++        store: Some(store_alias.join("new/../index")),
++        ..OpenOptions::default()
++    })
++    .unwrap();
++    assert_eq!(index.reindex().unwrap().added, vec!["a.rs"]);
++    assert_eq!(index.sync().unwrap().unchanged, 1);
++    assert_eq!(
++        index.store_dir(),
++        root.canonicalize().unwrap().join("storage/index")
++    );
++}
++
++#[test]
++fn external_store_leaves_same_named_source_directory_searchable() {
++    let temp = tempfile::tempdir().unwrap();
++    let root = temp.path().join("source");
++    std::fs::create_dir_all(root.join("index-store")).unwrap();
++    std::fs::write(root.join("index-store/a.rs"), "fn a() {}\n").unwrap();
++    let index = Index::open(OpenOptions {
++        root,
++        store: Some(temp.path().join("index-store")),
++        ..OpenOptions::default()
++    })
++    .unwrap();
++    assert_eq!(index.reindex().unwrap().added, vec!["index-store/a.rs"]);
++    let mut query = FilesQuery::new("*");
++    query.path = Some(String::from("../index-store"));
++    assert!(index.search().files(&query).unwrap().items.is_empty());
++    assert_eq!(index.policy().excluded_paths.len(), 1);
++}
++
++#[test]
++fn configured_store_exclusion_survives_replacing_defaults() {
++    let temp = tempfile::tempdir().unwrap();
++    let root = temp.path();
++    std::fs::create_dir(root.join(".graph-search")).unwrap();
++    std::fs::write(
++        root.join(".graph-search/config.toml"),
++        "store = 'storage'\nreplace_defaults = true\nexcludes = []\ninclude_hidden = true\n",
++    )
++    .unwrap();
++    std::fs::write(root.join("a.rs"), "fn a() {}\n").unwrap();
++    let index = Index::open(OpenOptions {
++        root: root.to_owned(),
++        ..OpenOptions::default()
++    })
++    .unwrap();
++    let report = index.reindex().unwrap();
++    assert_eq!(report.added, vec!["a.rs"]);
++    assert_eq!(index.sync().unwrap().unchanged, 1);
++    assert_eq!(index.policy().excluded_paths.len(), 1);
++    assert_eq!(
++        report.coverage.policy.unwrap().fingerprint,
++        index.policy().fingerprint()
++    );
++}
++
++#[test]
++fn policy_change_removes_previously_indexed_storage() {
++    use graph_search::core::{config::WalkPolicy, ports::ListRegistry, reconcile::Projector};
++    let temp = tempfile::tempdir().unwrap();
++    let root = temp.path().canonicalize().unwrap();
++    let store = root.join("storage");
++    std::fs::create_dir(&store).unwrap();
++    std::fs::write(root.join("a.rs"), "fn a() {}\n").unwrap();
++    std::fs::write(store.join("decoy.rs"), "fn storage_marker() {}\n").unwrap();
++    let registry = ListRegistry::new(graph_search_langs::all_extractors());
++    let mut old = graph_search_engine::GrafeoStore::open(
++        &store,
++        &graph_search_engine::StoreOptions::default(),
++    )
++    .unwrap();
++    let report = Projector::new(&registry, &WalkPolicy::default())
++        .reindex(&root, &mut old)
++        .unwrap();
++    assert!(report.added.contains(&String::from("storage/decoy.rs")));
++    drop(old);
++    let index = Index::open(OpenOptions {
++        root,
++        store: Some(store),
++        ..OpenOptions::default()
++    })
++    .unwrap();
++    assert!(index.sync().unwrap().reindexed_all);
++    assert_eq!(
++        index.search().status().unwrap().staleness.unwrap().changed,
++        0
++    );
++    assert!(
++        index
++            .search()
++            .symbol(&graph_search_types::SymbolQuery::new("storage_marker"))
++            .unwrap()
++            .nodes
++            .is_empty()
++    );
++    assert_eq!(index.sync().unwrap().unchanged, 1);
++}

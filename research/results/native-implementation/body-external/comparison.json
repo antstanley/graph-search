@@ -1,0 +1,435 @@
+{
+  "protocol": "evidence-v1",
+  "valid_tasks": 34,
+  "repeats": 3,
+  "arms": 3,
+  "trials": 306,
+  "protocol_errors": 0,
+  "graph_search_required_files_tasks": {
+    "before": 19,
+    "after": 26
+  },
+  "graph_search_required_regions_tasks": {
+    "before": 6,
+    "after": 5
+  },
+  "task_success_evaluated": false,
+  "baseline": "research/results/native-review-2026-09-19/external-results.json",
+  "note": "Previously exposed labels, not fresh heldout evidence. Mixed retrieval result; context and ranking regressions remain open. Excluded source-drifted labels were not relabeled.",
+  "changes": [
+    {
+      "task": "nanus.grep.change",
+      "arm": "graph-search",
+      "before": {
+        "required_file_recall": 0.0,
+        "region_coverage": {
+          "r1": 0.0,
+          "r2": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "after": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.04411764705882353,
+          "r2": 1.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      }
+    },
+    {
+      "task": "whatsurvey.survey-draft.change",
+      "arm": "graph-search",
+      "before": {
+        "required_file_recall": 0.0,
+        "region_coverage": {
+          "r1": 0.0,
+          "r2": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "after": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0,
+          "r2": 0.058823529411764705
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      }
+    },
+    {
+      "task": "nanus.glob.debug",
+      "arm": "graph-search",
+      "before": {
+        "required_file_recall": 0.0,
+        "region_coverage": {
+          "r1": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "after": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      }
+    },
+    {
+      "task": "nanus.temporary-paths.debug",
+      "arm": "graph-search",
+      "before": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0547945205479452
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "after": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      }
+    },
+    {
+      "task": "nanus.read.change",
+      "arm": "graph-search",
+      "before": {
+        "required_file_recall": 0.0,
+        "region_coverage": {
+          "r1": 0.0,
+          "r2": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "after": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0,
+          "r2": 1.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      }
+    },
+    {
+      "task": "whatsurvey.contact-policy.debug",
+      "arm": "graph-search",
+      "before": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 1.0,
+          "r2": 0.0851063829787234,
+          "r3": 0.04838709677419355
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "after": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 1.0,
+          "r2": 0.0,
+          "r3": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      }
+    },
+    {
+      "task": "nanus.temporary-paths.change",
+      "arm": "graph-search",
+      "before": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0958904109589041
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "after": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      }
+    },
+    {
+      "task": "blogwright.secret-upsert.debug",
+      "arm": "graph-search",
+      "before": {
+        "required_file_recall": 0.0,
+        "region_coverage": {
+          "r1": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "after": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.09523809523809523
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      }
+    },
+    {
+      "task": "blogwright.tag-encoding.change",
+      "arm": "graph-search",
+      "before": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 1.0
+        },
+        "evidence_ready": true,
+        "relationship_evidence_recall": 1.0,
+        "task_success": null
+      },
+      "after": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.6
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      }
+    },
+    {
+      "task": "blogwright.tag-encoding.debug",
+      "arm": "graph-search",
+      "before": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.6
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "after": {
+        "required_file_recall": 0.0,
+        "region_coverage": {
+          "r1": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      }
+    },
+    {
+      "task": "whatsurvey.captcha-retry.debug",
+      "arm": "graph-search",
+      "before": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 1.0
+        },
+        "evidence_ready": true,
+        "relationship_evidence_recall": 1.0,
+        "task_success": null
+      },
+      "after": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      }
+    },
+    {
+      "task": "whatsurvey.webhook-signature.change",
+      "arm": "graph-search",
+      "before": {
+        "required_file_recall": 0.0,
+        "region_coverage": {
+          "r1": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "after": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 1.0
+        },
+        "evidence_ready": true,
+        "relationship_evidence_recall": 1.0,
+        "task_success": null
+      }
+    },
+    {
+      "task": "nanus.write.change",
+      "arm": "graph-search",
+      "before": {
+        "required_file_recall": 0.0,
+        "region_coverage": {
+          "r1": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "after": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      }
+    },
+    {
+      "task": "nanus.context.debug",
+      "arm": "graph-search",
+      "before": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0,
+          "r2": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "after": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0,
+          "r2": 1.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      }
+    },
+    {
+      "task": "nanus.read.debug",
+      "arm": "graph-search",
+      "before": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0,
+          "r2": 0.07692307692307693
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "after": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0,
+          "r2": 1.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      }
+    },
+    {
+      "task": "nanus.argument-types.debug",
+      "arm": "graph-search",
+      "before": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "after": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.06896551724137931
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      }
+    },
+    {
+      "task": "whatsurvey.settings-encryption.change",
+      "arm": "graph-search",
+      "before": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.3888888888888889,
+          "r2": 0.9264705882352942
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "after": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 1.0,
+          "r2": 0.38235294117647056
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      }
+    },
+    {
+      "task": "whatsurvey.survey-draft.debug",
+      "arm": "graph-search",
+      "before": {
+        "required_file_recall": 0.0,
+        "region_coverage": {
+          "r1": 0.0,
+          "r2": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "after": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0,
+          "r2": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      }
+    }
+  ]
+}

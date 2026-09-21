@@ -1,0 +1,149 @@
+{
+  "before": {
+    "search_response_bytes": 13041,
+    "actions": [
+      {
+        "name": "search",
+        "arguments": {
+          "query": "Plan a file-pattern search response that exposes the applied cap while preserving the distinction between exactly-at-cap and truncated results. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository."
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "crates/nanus-adapter-local/src/fs.rs",
+          "start": 272,
+          "count": 100
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "crates/nanus-adapter-local/tests/fs.rs",
+          "start": 289,
+          "count": 100
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "crates/nanus-bundle/src/tools/grep.rs",
+          "start": 76,
+          "count": 100
+        }
+      }
+    ],
+    "stats": {
+      "candidates": 3834,
+      "context_windows_examined": 367,
+      "elapsed_ms": 6,
+      "files_scanned": 1,
+      "graph_edges_examined": 428,
+      "graph_nodes_visited": 40,
+      "lexical_postings_examined": 7502,
+      "occurrences_examined": 3,
+      "retrieval_candidates_admitted": 3834
+    },
+    "truncations": [
+      {
+        "cap": 8,
+        "dropped": true,
+        "kind": "results",
+        "message": "matching nodes exceeded the result cap"
+      },
+      {
+        "cap": 64,
+        "dropped": true,
+        "kind": "snippet",
+        "message": "additional source intervals omitted by the byte or interval budget"
+      }
+    ],
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 0.41333333333333333
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    }
+  },
+  "after": {
+    "search_response_bytes": 12979,
+    "actions": [
+      {
+        "name": "search",
+        "arguments": {
+          "query": "Plan a file-pattern search response that exposes the applied cap while preserving the distinction between exactly-at-cap and truncated results. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository."
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "crates/nanus-adapter-local/src/fs.rs",
+          "start": 272,
+          "count": 100
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "crates/nanus-adapter-local/tests/fs.rs",
+          "start": 289,
+          "count": 100
+        }
+      },
+      {
+        "name": "read",
+        "arguments": {
+          "path": "crates/nanus-bundle/src/tools/grep.rs",
+          "start": 76,
+          "count": 100
+        }
+      }
+    ],
+    "stats": {
+      "candidates": 3834,
+      "context_windows_examined": 367,
+      "elapsed_ms": 6,
+      "files_scanned": 1,
+      "graph_edges_examined": 428,
+      "graph_nodes_visited": 40,
+      "lexical_postings_examined": 7502,
+      "occurrences_examined": 3,
+      "retrieval_candidates_admitted": 3834,
+      "source_bytes_read": 529606,
+      "source_files_attempted": 7
+    },
+    "truncations": [
+      {
+        "cap": 8,
+        "dropped": true,
+        "kind": "results",
+        "message": "matching nodes exceeded the result cap"
+      },
+      {
+        "cap": 64,
+        "dropped": true,
+        "kind": "snippet",
+        "message": "additional source intervals omitted by the byte or interval budget"
+      },
+      {
+        "cap": 16384,
+        "dropped": true,
+        "kind": "bytes",
+        "message": "serialized explore result exceeded its byte cap"
+      }
+    ],
+    "evidence": {
+      "required_file_recall": 1.0,
+      "region_coverage": {
+        "r1": 0.37333333333333335
+      },
+      "evidence_ready": false,
+      "relationship_evidence_recall": 0.0,
+      "task_success": null
+    }
+  },
+  "finding": "Same follow-up actions and retrieval/traversal counts; no source-quota truncation. Added source counters coincide with final serialized-result byte truncation. Context allocation does not yet reserve all late work-statistic growth."
+}

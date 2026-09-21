@@ -1,0 +1,8 @@
+Regression command: cargo test -p graph-search --test store_exclusion -- --nocapture
+Before the subtree exclusion fix, the single-source-file regression failed:
+assertion `left == right` failed
+  left: ["a.rs", "index-store/index.lock", "index-store/wal/wal_00000000.log"]
+ right: ["a.rs"]
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out
+Exit: 101
+This is copied from the captured terminal result; it is not a complete build log.

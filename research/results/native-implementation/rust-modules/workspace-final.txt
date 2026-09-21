@@ -1,0 +1,617 @@
+   Compiling graph-search-types v0.1.0 (/Volumes/Delorean/code/graph-search/crates/types)
+   Compiling graph-search-core v0.1.0 (/Volumes/Delorean/code/graph-search/crates/core)
+   Compiling graph-search-langs v0.1.0 (/Volumes/Delorean/code/graph-search/crates/langs)
+   Compiling graph-search-engine v0.1.0 (/Volumes/Delorean/code/graph-search/crates/engine)
+   Compiling graph-search v0.1.0 (/Volumes/Delorean/code/graph-search/crates/graph-search)
+   Compiling graph-search-cli v0.1.0 (/Volumes/Delorean/code/graph-search/crates/cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 58.22s
+     Running unittests src/lib.rs (target/debug/deps/graph_search-e08d22ed3a7ddc6d)
+
+running 8 tests
+test cargo_targets::tests::explicit_empty_arrays_and_build_script_settings_are_distinct_from_omission ... ok
+test cargo_targets::tests::authored_targets_preserve_omissions_paths_flags_and_workspace_edition ... ok
+test config::tests::replace_defaults_replaces ... ok
+test config::tests::the_spec_example_parses_and_merges ... ok
+test config::tests::a_missing_file_yields_the_defaults ... ok
+test package_manifests::tests::package_syntax_and_caps_do_not_guess_from_strings_or_invalid_metadata ... ok
+test package_manifests::tests::cargo_target_caps_preserve_package_identity_and_legacy_defaults ... ok
+test cargo_targets::tests::invalid_or_over_budget_targets_never_leave_a_partial_projection ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/accuracy.rs (target/debug/deps/accuracy-330902e0e0d377f4)
+
+running 25 tests
+test explore_respects_index_exclusions ... ok
+test explore_body_hits_respect_filters ... ok
+test explore_two_hop_connections_include_intermediate_source ... ok
+test explore_punctuation_and_body_snippets_work ... ok
+test explore_serialized_budget_and_snippet_cap_are_real ... ok
+test callable_parameters_remain_dynamic ... ok
+test ambiguous_targets_are_not_silently_selected ... ok
+test deleting_a_target_rebinds_unchanged_callers ... ok
+test files_and_text_subdirectories_are_resolved_once_and_stay_fresh ... ok
+test first_graph_query_builds_missing_index ... ok
+test graph_limits_are_reported ... ok
+test graph_filters_are_applied_and_bad_globs_rejected ... ok
+test foreign_qualified_calls_do_not_bind_to_bare_local_names ... ok
+test invalid_text_include_does_not_broaden_search ... ok
+test impact_keeps_all_converging_edges_and_orders_by_depth ... ok
+test self_receiver_uses_lexical_impl_owner ... ok
+test js_initializer_calls_use_enclosing_function_and_destructured_bindings_are_siblings ... ok
+test nested_qualified_names_do_not_repeat_ancestors ... ok
+test rust_nested_receiver_calls_are_visited ... ok
+test js_calls_belong_to_functions_and_nested_receivers_are_visited ... ok
+test named_import_aliases_and_js_extension_substitution_resolve ... ok
+test symbol_filters_precede_limit_and_ids_are_supported ... ok
+test tsx_uses_the_tsx_grammar ... ok
+test zero_length_path_contains_its_endpoint ... ok
+test sync_rebinds_unchanged_callers_after_target_edits ... ok
+
+test result: ok. 25 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.98s
+
+     Running tests/body.rs (target/debug/deps/body-1aeadc287c75c7af)
+
+running 15 tests
+test a_single_stopword_is_a_valid_body_query ... ok
+test body_excerpts_show_the_match_without_rewriting_declaration_coordinates ... ok
+test context_cost_work_is_bounded_without_discarding_primary_evidence ... ok
+test expanded_context_preserves_headers_matches_and_hash_checks ... ok
+test body_matches_compete_with_metadata_and_exact_names_keep_priority ... ok
+test distant_body_matches_fit_when_the_whole_region_does_not ... ok
+test adjacent_call_windows_do_not_spend_one_interval_slot_per_site ... ok
+test small_implementations_expand_with_exact_lines_and_no_duplicate_extra_context ... ok
+test distant_regions_of_one_owner_survive_without_duplicating_candidates ... ok
+test oversized_source_lines_do_not_erase_navigation_metadata ... ok
+test returned_connections_include_distant_call_site_context ... ok
+test repeated_relationship_sites_expand_under_an_independent_work_budget ... ok
+test stale_body_facts_are_replaced_by_hash_bound_live_evidence ... ok
+test unselected_owners_do_not_report_context_loss_for_selected_results ... ok
+test indexed_body_queries_cross_the_old_scan_limit_without_reading_every_file ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.83s
+
+     Running tests/coverage.rs (target/debug/deps/coverage-4c4ce1f1706f0560)
+
+running 4 tests
+test source_read_exclusions_and_disabled_extraction_are_reported ... ok
+test a_file_disappearing_during_extraction_does_not_become_empty_source ... ok
+test incomplete_sync_and_reindex_preserve_the_whole_prior_projection ... ok
+test changing_extraction_policy_invalidates_cached_facts ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/doc_comments.rs (target/debug/deps/doc_comments-879e59e7d6f12b85)
+
+running 2 tests
+test documentation_facts_survive_packs_reopen_and_independent_file_edits ... ok
+test documentation_retrieves_the_documented_declaration_without_claiming_containment ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.25s
+
+     Running tests/end_to_end.rs (target/debug/deps/end_to_end-262ccaeac6ea25ca)
+
+running 4 tests
+test a_reader_never_writes_and_a_read_only_index_refuses ... ok
+test the_direction_filter_flows_through_deps ... ok
+test the_full_surface_answers_through_one_handle ... ok
+test a_stale_index_reconciles_before_answering ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.22s
+
+     Running tests/markdown.rs (target/debug/deps/markdown-609115e3b15a076b)
+
+running 11 tests
+test long_fence_fragments_stay_inside_their_original_block ... ok
+test long_frontmatter_is_bounded_and_covers_raw_bytes_without_crossing_into_prose ... ok
+test fenced_examples_keep_their_delimiters_in_bounded_body_context ... ok
+test paragraph_and_list_evidence_survive_reopen_and_live_edits ... ok
+test setext_title_stays_with_its_searchable_section ... ok
+test frontmatter_is_searchable_after_reopen_without_prose_or_false_fence_context ... ok
+test long_table_row_groups_retain_original_headers_after_reopen ... ok
+test heading_ancestry_survives_fragmentation_publication_and_reopen ... ok
+test link_fields_persist_and_incremental_edits_match_fresh_extraction ... ok
+test identical_document_versions_keep_path_occurrences_through_updates_and_reopen ... ok
+test link_metadata_caps_are_visible_after_reopen_without_hiding_body_text ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.87s
+
+     Running tests/occurrences.rs (target/debug/deps/occurrences-945da69960426521)
+
+running 4 tests
+test caps_charge_filtered_occurrences_and_observe_cancellation ... ok
+test routes_preserve_distinct_unicode_crlf_sites_and_resolution_evidence ... ok
+test stale_queries_keep_indexed_coordinates_and_rebinding_keeps_source_ids ... ok
+test serialized_occurrence_payload_drops_whole_records_at_the_byte_cap ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.28s
+
+     Running tests/packages.rs (target/debug/deps/packages-7a64267537f18c55)
+
+running 5 tests
+test repeated_result_packages_share_identity_through_budget_trimming_and_roundtrip ... ok
+test nearest_manifest_scopes_distinguish_packages_and_expose_ambiguity ... ok
+test oversized_manifest_boundaries_invalidate_without_reading_or_inheriting_outer_scope ... ok
+test authored_cargo_targets_survive_edits_reopen_and_clean_rebuild ... ok
+test package_boundary_creation_invalid_edit_removal_and_rename_match_rebuilds ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.86s
+
+     Running tests/payload.rs (target/debug/deps/payload-270a7d0fc5875c77)
+
+running 7 tests
+test direct_core_navigation_enforces_byte_limits_without_changing_exact_boundary ... ok
+test oversized_scan_fields_fail_before_reading_the_tree ... ok
+test oversized_graph_fields_are_rejected_before_automatic_indexing ... ok
+test oversized_required_sync_metadata_fails_before_publication ... ok
+test directly_constructed_file_limits_cannot_bypass_the_execution_ceiling ... ok
+test scan_results_are_bounded_before_and_after_provenance ... ok
+test a_large_call_star_is_bounded_after_provenance_is_attached ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.40s
+
+     Running tests/planner.rs (target/debug/deps/planner-1329f68eca5aff50)
+
+running 12 tests
+test graph_context_admits_only_the_requested_relation_family ... ok
+test automatic_multiword_discovery_uses_body_then_metadata_only_when_empty ... ok
+test channels_and_minimum_coverage_are_independent_controls ... ok
+test explicit_navigation_does_not_broaden_or_spend_posting_work ... ok
+test graph_context_is_explicit_without_changing_lexical_seeds ... ok
+test exact_fast_path_is_optional_and_filtered_misses_fall_back ... ok
+test bm25f_policy_preserves_explicit_intent_boolean_coverage_and_work_limits ... ok
+test identifier_analysis_recovers_whole_names_and_qualified_context ... ok
+test incomplete_postings_cannot_claim_unobserved_boolean_coverage ... ok
+test query_limits_reject_instead_of_weakening_boolean_requirements ... ok
+test task_prompt_policy_is_opt_in_explained_and_preserves_explicit_intent ... ok
+test name_prefix_is_explicit_bounded_and_rebuilt_with_the_generation ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.48s
+
+     Running tests/positional.rs (target/debug/deps/positional-86873c4b9ebde49c)
+
+running 9 tests
+test unchecked_core_host_scans_source_without_spending_posting_allowance ... ok
+test invalid_contract_fails_before_freshness_work ... ok
+test filters_precede_source_verification_and_exact_fill_is_complete ... ok
+test positional_caps_are_shared_and_zero_context_preserves_proof ... ok
+test overlaps_and_different_owners_survive_single_source_scan ... ok
+test edited_source_uses_live_file_witnesses_without_stale_ownership ... ok
+test storage_windows_do_not_bound_matching_or_declaration_ownership ... ok
+test whole_lexemes_stopwords_multiplicity_and_no_metadata_fallback ... ok
+test unicode_original_offsets_survive_reopen_and_reindex ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.33s
+
+     Running tests/provenance.rs (target/debug/deps/provenance-02808d4df103f6b2)
+
+running 5 tests
+test indexed_snippets_never_use_changed_source ... ok
+test each_graph_request_uses_one_complete_freshness_observation ... ok
+test graph_and_impact_context_describe_the_selected_generation ... ok
+test live_text_and_body_evidence_carry_the_bytes_they_used ... ok
+test restored_mtime_is_detected_by_snippets_and_strict_graph_queries ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.22s
+
+     Running tests/retrieval_incremental.rs (target/debug/deps/retrieval_incremental-842c7b56a2310620)
+
+running 4 tests
+test old_manifests_rebuild_and_missing_fact_caches_fall_back_safely ... ok
+test lexical_retrieval_matches_identifiers_signatures_and_exact_names ... ok
+test selective_sync_reuses_persisted_facts_and_tracks_unresolved_and_ambiguous_names ... ok
+test import_precedence_and_cross_language_changes_match_clean_reindex ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.57s
+
+     Running tests/rust_modules.rs (target/debug/deps/rust_modules-1c6ec40f98108f3f)
+
+running 6 tests
+test shared_root_context_and_build_scripts_preserve_uncertainty_and_explicit_paths ... ok
+test file_inner_path_attributes_cannot_select_a_wrong_default_child ... ok
+test cargo_roots_inline_modules_path_attributes_and_ambiguity_have_distinct_paths ... ok
+test nonstandard_module_path_creation_and_removal_rebind_cached_declarations ... ok
+test path_loaded_diamonds_cycles_and_orphans_keep_distinct_directory_contexts ... ok
+test module_creation_conflicts_deletion_and_root_edits_rebind_like_clean_builds ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.89s
+
+     Running tests/scopes.rs (target/debug/deps/scopes-e7292146da47376a)
+
+running 12 tests
+test javascript_and_typescript_binding_patterns_and_hoisting_have_lexical_extent ... ok
+test conditional_declarations_keep_their_own_reference_sites ... ok
+test lexical_targets_and_unresolved_values_survive_publication_and_reopen ... ok
+test rust_values_patterns_closures_and_order_shadow_without_alias_guessing ... ok
+test aggregate_edges_report_repeated_source_occurrences_after_reopen_and_edit ... ok
+test rust_qualified_type_path_is_not_shadowed_by_a_local_function_value ... ok
+test local_callable_shadow_cannot_inherit_an_outer_class_member ... ok
+test qualified_class_calls_follow_the_visible_static_member ... ok
+test static_members_distinguish_deferred_methods_from_accessors_and_initializers ... ok
+test changing_shadow_bindings_matches_a_clean_build_and_persists_file_facts ... ok
+test qualified_callable_shadow_updates_preserve_occurrence_provenance ... ok
+test class_member_changes_rebind_after_sync_and_reopen_like_a_clean_build ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.18s
+
+     Running tests/source_units.rs (target/debug/deps/source_units-dbf58eae96912055)
+
+running 7 tests
+test parser_and_nonparser_text_publish_hash_bound_source_regions ... ok
+test reopening_rejects_hash_consistent_facts_with_a_foreign_owner ... ok
+test noop_sync_needs_only_the_header_and_timestamp_refresh_keeps_raw_facts ... ok
+test a_legacy_generation_rebuilds_source_facts_before_automatic_queries ... ok
+test legacy_identifier_facts_upgrade_without_blocking_reopen_or_using_old_analysis ... ok
+test changed_removed_renamed_and_rebound_source_facts_match_a_clean_build ... ok
+test representation_drift_is_reported_and_cannot_reuse_same_hash_body_facts ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.63s
+
+     Running tests/work.rs (target/debug/deps/work-9ff9c74f2365aa71)
+
+running 22 tests
+test a_reused_engine_inherits_prior_work_only_for_its_first_query ... ok
+test cancellation_and_deadline_fail_explicitly_before_reconciliation ... ok
+test explore_impact_reuses_root_edges_and_preserves_partial_counts ... ok
+test cycle_traversal_is_bounded_and_limits_are_reported ... ok
+test explore_shares_read_work_across_items_and_withholds_budget_exhausted_source ... ok
+test explore_impact_counts_transitive_callers_once_through_cycles_and_diamonds ... ok
+test automatic_cold_build_exhaustion_does_not_publish ... ok
+test freshness_and_retrieval_share_allowances_without_resetting_spent_work ... ok
+test impossible_metadata_does_not_consume_the_later_candidates_source_allowance ... ok
+test invalid_sources_still_consume_literal_read_work ... ok
+test literal_source_budgets_filter_before_admission_and_never_return_a_prefix ... ok
+test automatic_incremental_hash_and_extraction_share_allowances ... ok
+test graph_filters_limit_output_while_result_caps_keep_compact_boundary_references ... ok
+test successive_core_walks_share_entry_allowance_without_changing_policy_identity ... ok
+test returned_edge_limits_preserve_work_counts_and_impact_totals ... ok
+test query_walk_limits_report_partial_enumeration_and_reset_per_service_call ... ok
+test status_honors_work_limits_and_uses_exact_cached_counts ... ok
+test walk_served_queries_honor_host_cancellation_and_deadlines_without_an_index ... ok
+test metadata_examination_limits_are_reported_and_reset_per_query ... ok
+test strict_verification_and_automatic_rebuild_share_allowances ... ok
+test explore_captures_source_once_across_build_verification_and_evidence ... ok
+test strict_explore_capture_detects_restored_metadata_and_is_not_reused_by_next_request ... ok
+
+test result: ok. 22 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.79s
+
+     Running unittests src/main.rs (target/debug/deps/graph_search-eb7e68c8bc6e1d68)
+
+running 1 test
+test budget::tests::required_envelope_metadata_is_not_discarded_to_claim_a_fitting_result ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/contract.rs (target/debug/deps/contract-bf5e9b813d9b9aed)
+
+running 22 tests
+test a_comma_include_is_refused_with_a_usage_error ... ok
+test a_negated_include_is_refused_with_the_same_guidance ... ok
+test an_empty_pattern_is_refused ... ok
+test an_empty_text_result_after_a_cap_hits_the_honest_string ... ok
+test an_empty_glob_result_is_a_success_with_the_nanus_string ... ok
+test graph_modes_without_an_index_and_without_reconcile_exit_4 ... ok
+test impossible_positional_query_is_rejected_before_opening_index ... ok
+test explicit_metadata_normalization_is_explained_without_changing_navigation ... ok
+test explore_intent_and_channel_diagnostics_survive_the_cli_envelope ... ok
+test explore_envelope_keeps_symbols_when_source_lines_exceed_the_byte_cap ... ok
+test graph_context_mode_is_exposed_and_validated_by_the_cli ... ok
+test explore_package_references_survive_final_envelope_trimming ... ok
+test phrase_and_near_intents_have_explicit_distance_contracts ... ok
+test json_exposes_source_mismatch_and_strict_verification_refreshes_it ... ok
+test scoped_live_scans_do_not_require_an_unrelated_status_walk ... ok
+test task_query_policy_keeps_original_input_and_reports_omitted_suffixes ... ok
+test occurrence_json_has_individual_sites_and_fits_transport_budget ... ok
+test the_json_envelope_is_one_document_and_deterministic ... ok
+test graph_and_impact_json_fit_the_final_transport_budget ... ok
+test file_and_text_json_include_envelope_bytes_in_the_cap ... ok
+test index_report_bounds_details_without_losing_committed_totals ... ok
+test status_bounds_changed_path_details_and_preserves_exact_totals ... ok
+
+test result: ok. 22 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.32s
+
+     Running unittests src/lib.rs (target/debug/deps/graph_search_core-b713c947c4f43807)
+
+running 163 tests
+test analyzer::tests::whole_spelling_and_original_offsets_survive_analysis ... ok
+test analyzer::tests::long_names_and_non_ascii_boundaries_are_explicit ... ok
+test adjacency::tests::self_loops_are_once_only_and_cancellation_is_observed ... ok
+test analyzer::tests::match_masks_preserve_distinct_terms_without_counting_aliases_twice ... ok
+test body::tests::postings_agree_with_independent_exhaustive_region_scoring ... ok
+test body::tests::filters_masks_and_work_caps_precede_candidate_allocation ... ok
+test body::tests::file_candidate_filter_does_not_turn_storage_boundaries_into_phrase_boundaries ... ok
+test body::tests::verifier_stop_filters_and_invalid_anchors_cannot_admit_unverified_regions ... ok
+test config::tests::extras_are_added_and_enabled_languages_gate_extraction ... ok
+test analyzer::tests::match_masks_cover_the_entire_query_bound_and_reject_overflow ... ok
+test connections::tests::components_skip_unreachable_targets_and_search_stops_after_last_target ... ok
+test connections::tests::filtered_nodes_parallel_edges_self_loops_and_cancellation ... ok
+test config::tests::extensions_map_to_languages ... ok
+test context_dedup::tests::overlapping_primaries_preserve_union_versions_and_eligibility_without_duplicate_lines ... ok
+test context_dedup::tests::payload_eviction_does_not_reenable_an_unshared_primary ... ok
+test context_dedup::tests::omitted_fragments_are_bounded_reported_and_do_not_hide_later_carriers ... ok
+test context_proximity::tests::repeated_terms_full_mask_and_coordinate_translation_preserve_contract ... ok
+test evidence::tests::adjacent_excerpts_merge_without_crossing_role_version_gap_or_line_limits ... ok
+test context_dedup::tests::entirely_shared_primary_still_receives_its_distinct_declaration_context ... ok
+test evidence::tests::completing_an_already_delivered_window_uses_only_its_new_line_cost ... ok
+test evidence::tests::new_query_coverage_beats_repetition_and_loses_its_bonus_after_delivery ... ok
+test body::tests::positional_verification_precedes_best_region_and_owner_top_k ... ok
+test evidence::tests::proximity_prefers_compact_new_terms_without_overriding_extra_coverage ... ok
+test body::tests::complementary_regions_preserve_owner_rank_and_region_conjunction ... ok
+test adjacency::tests::high_degree_reads_charge_filtered_entries_and_stop_at_the_cap ... ok
+test files_search::tests::an_empty_pattern_is_refused ... ok
+test files_search::tests::double_star_reaches_every_depth ... ok
+test hash::tests::the_hash_is_the_known_sha256 ... ok
+test intersection::tests::dense_conjunction_reads_each_matching_posting_once ... ok
+test files_search::tests::a_bare_pattern_is_top_level_only ... ok
+test files_search::tests::the_cap_says_so ... ok
+test intersection::tests::selective_seeks_skip_common_postings_and_never_emit_unverified_candidates ... ok
+test body::tests::conjunction_matches_union_scores_and_admits_only_complete_matches ... ok
+test lexical::differential::selective_queries_charge_only_matching_postings_and_respect_work_caps ... ok
+test lexical::tests::bm25f_isolates_name_length_from_unmatched_signature_length ... ok
+test intersection::tests::generated_intersections_equal_exhaustive_membership_and_preserve_list_positions ... ok
+test lexical::tests::field_statistics_keep_unweighted_counts_and_separate_lengths ... ok
+test lexical::tests::identifiers_and_query_terms_are_normalized ... ok
+test lexical::tests::whole_and_qualified_fields_are_separate_without_double_counting_plain_words ... ok
+test evidence::tests::optional_document_context_never_displaces_matched_body_windows ... ok
+test lexical::update::tests::unchanged_posting_lists_are_shared_without_mutating_prior_generations ... ok
+test manifest::tests::additions_without_removals_do_not_read_content ... ok
+test manifest::tests::rename_hash_failure_propagates_and_unreadable_is_not_empty ... ok
+test manifest::tests::unreadable_changed_empty_file_is_not_unchanged ... ok
+test lexical::update::tests::additions_deletions_reordering_and_empty_corpora_match_rebuilds ... ok
+test lexical::tests::bm25f_postings_and_conjunctions_match_exhaustive_scoring ... ok
+test markdown::blocks::tests::ordered_and_empty_items_keep_exact_markers_and_do_not_capture_next_headings ... ok
+test markdown::blocks::tests::paragraphs_and_list_items_partition_authored_bytes_and_keep_nested_blocks_opaque ... ok
+test markdown::tables::tests::escaping_and_edge_pipes_preserve_column_identity ... ok
+test markdown::tables::tests::table_extent_accepts_raw_uneven_rows_but_stops_at_new_blocks ... ok
+test markdown::tests::fences_preserve_original_bytes_and_ignore_embedded_headings ... ok
+test markdown::tests::frontmatter_is_opaque_to_heading_and_fence_boundaries ... ok
+test markdown::tests::frontmatter_requires_exact_initial_markers_and_retains_unclosed_bytes ... ok
+test markdown::tests::headings_keep_raw_title_coordinates_without_inline_rewriting ... ok
+test markdown::tests::html_delimiters_shield_headings_fences_and_tables_until_the_closer ... ok
+test markdown::tests::html_shielding_obeys_opener_and_same_line_closer_boundaries ... ok
+test markdown::tests::setext_does_not_promote_code_containers_or_invalid_underlines ... ok
+test markdown::tests::setext_sections_preserve_multiline_titles_and_raw_offsets ... ok
+test markdown::tests::table_delimiters_do_not_become_headings_and_opaque_blocks_stay_opaque ... ok
+test markdown::tests::unmatched_and_indented_fences_have_deliberate_boundaries ... ok
+test metadata::tests::bare_and_qualified_names_are_cached_with_stable_precedence ... ok
+test evidence::tests::final_statistics_fit_without_removing_allocated_evidence ... ok
+test lexical::differential::postings_scores_match_the_original_exhaustive_scorer ... ok
+test lexical::differential::conjunction_scores_match_exhaustive_source_fields_bit_for_bit ... ok
+test metadata::tests::filters_precede_candidate_admission_and_exact_survives_posting_exhaustion ... ok
+test metadata::tests::metadata_allowance_is_shared_across_lexical_lanes ... ok
+test metadata::tests::prefix_dictionary_matches_exhaustive_whole_names ... ok
+test markdown::blocks::tests::mixed_block_sequences_partition_original_utf8_without_gaps_or_overlap ... ok
+test metadata::tests::prefix_expansion_postings_and_admissions_have_independent_caps ... ok
+test neighborhoods::tests::cached_partial_prefix_stays_partial_and_observes_cancellation ... ok
+test metadata::tests::rejected_metadata_records_consume_work_before_candidate_admission ... ok
+test neighborhoods::tests::shared_neighborhoods_preserve_all_relation_and_direction_views ... ok
+test occurrences::tests::identity_preserves_source_evidence_across_rebinding ... ok
+test occurrences::tests::target_deletion_keeps_each_source_occurrence_and_reindexes_the_binding ... ok
+test occurrences::tests::validation_rejects_foreign_owners_duplicate_facts_and_out_of_file_ranges ... ok
+test packages::result_tests::result_sharing_preserves_full_identity_and_stable_references_when_trimmed ... ok
+test packages::target_validation_tests::persisted_targets_reject_partial_unavailable_and_malformed_metadata ... ok
+test payload::status_tests::status_does_not_discard_required_metadata_to_fit ... ok
+test metadata::tests::bounded_heap_matches_full_sort_across_ties_and_cutoffs ... ok
+test metadata::tests::conjunction_does_not_spend_candidate_admissions_on_partial_matches ... ok
+test payload::tests::required_metadata_is_never_silently_discarded ... ok
+test payload::status_tests::sync_trimming_preserves_all_totals_even_if_no_detail_fits ... ok
+test positional::tests::compilation_rejects_unsupported_or_impossible_contracts ... ok
+test positional::tests::distance_and_repetition_boundaries_are_inclusive_and_source_bounded ... ok
+test context_proximity::tests::all_small_masks_match_exhaustive_minimum_intervals ... ok
+test positional::tests::enumeration_preserves_confirmed_prefix_on_quota_exhaustion ... ok
+test positional::tests::original_unicode_offsets_and_whole_lexeme_semantics_survive ... ok
+test positional::tests::quotas_and_cooperative_checks_never_claim_false_absence ... ok
+test payload::tests::impact_packing_preserves_depth_counts_and_counts_candidates ... ok
+test connections::tests::all_small_graphs_preserve_shortest_path_ties_and_original_edge_identity ... ok
+test query_policy::tests::navigation_positions_and_default_policy_preserve_every_byte ... ok
+test query_policy::tests::removes_only_standalone_terminal_instructions_and_records_original_text ... ok
+test reconcile::sync_tests::a_full_sync_indexes_symbols_and_edges ... ok
+test reconcile::sync_tests::a_removed_file_is_forgotten_and_a_renamed_one_is_detected ... ok
+test reconcile::sync_tests::an_unchanged_tree_is_a_no_op_and_a_modified_one_replaces ... ok
+test reconcile::sync_tests::cancellation_inside_extraction_preserves_the_previous_projection ... ok
+test reconcile::tests::line_counts_count_partial_last_lines ... ok
+test reconcile::sync_tests::the_manifest_is_committed_last_and_matches_the_tree ... ok
+test resolve::cross_tests::a_stylesheet_link_becomes_a_file_edge ... ok
+test resolve::tests::ambiguous_global_names_dangle ... ok
+test resolve::tests::explicit_module_syntax_cannot_fall_through_when_projection_is_missing ... ok
+test resolve::tests::imported_bindings_find_the_export ... ok
+test resolve::tests::imports_resolve_to_workspace_files ... ok
+test resolve::tests::qualified_paths_do_not_discard_unknown_module_prefixes ... ok
+test resolve::tests::same_file_same_name_wins ... ok
+test rust_modules::tests::build_scripts_are_roots_without_execution ... ok
+test rust_modules::tests::cargo_root_discovery_honors_explicit_targets_edition_flags_and_layout ... ok
+test rust_modules::tests::conflicting_roots_unknown_manifests_and_workspace_escapes_do_not_guess ... ok
+test source::tests::exhausted_budget_is_visible_and_does_not_return_partial_text ... ok
+test rust_modules::tests::edition_2015_defaults_are_per_family_and_empty_arrays_are_explicit ... ok
+test source::tests::read_budget_losses_are_reported_without_selected_results ... ok
+test source::tests::request_cache_keeps_one_source_version ... ok
+test source_capture::tests::denied_opens_do_not_allocate_and_uncached_requests_keep_accounting ... ok
+test source_capture::tests::drift_creation_and_cancellation_fail_closed_on_reuse ... ok
+test source_capture::tests::prefixes_and_evidence_limits_cannot_be_mistaken_for_complete_source ... ok
+test source_capture::tests::raw_binary_and_invalid_encoding_remain_verified_but_not_text ... ok
+test source_capture::tests::repeated_capture_reuses_raw_bytes_after_exact_allowance_is_spent ... ok
+test stale::tests::metadata_reads_no_source_and_content_detects_same_metadata_edits ... ok
+test stale::tests::bounded_freshness_requires_complete_work_and_allows_exact_limits ... ok
+test text_search::tests::cancellation_between_read_chunks_stops_before_the_next_read ... ok
+test text_search::tests::checked_reads_retry_interruption_and_respect_the_byte_ceiling ... ok
+test text_search::tests::failed_reads_account_for_the_prefix_they_consumed ... ok
+test text_search::tests::line_search_preserves_source_and_deduplicates_occurrences ... ok
+test payload::tests::dense_edges_are_bounded_deterministically_and_counts_follow_evidence ... ok
+test payload::tests::scan_packing_counts_shared_identities_only_at_the_last_removed_hit ... ok
+test text_search::tests::lowercase_expansion_does_not_change_evidence ... ok
+test units::links::tests::authored_fields_keep_utf8_crlf_escapes_balanced_paths_and_empty_values ... ok
+test text_search::tests::multiline_literals_are_rejected_consistently ... ok
+test text_search::tests::cap_requires_an_omitted_matching_line ... ok
+test units::links::tests::code_html_opaque_blocks_and_escaped_openers_cannot_invent_links ... ok
+test units::links::tests::code_span_state_and_link_coordinates_survive_overlapping_windows ... ok
+test units::links::tests::persisted_links_reject_foreign_coordinates_and_legacy_fields_default_empty ... ok
+test text_search::tests::regex_syntax_remains_literal_even_when_it_would_be_invalid_regex ... ok
+test units::tests::block_metadata_is_bounded_validated_and_legacy_fields_remain_optional ... ok
+test units::tests::documentation_fragments_preserve_bytes_and_validate_separate_associations ... ok
+test units::tests::fence_metadata_preserves_fields_and_rejects_invalid_coordinates ... ok
+test units::tests::heading_references_are_bounded_validated_and_backward_readable ... ok
+test units::tests::malformed_documentation_metadata_preserves_body_and_reports_omission ... ok
+test units::tests::nested_declarations_partition_without_losing_source_lines ... ok
+test units::tests::opaque_html_keeps_searchable_bytes_without_fabricating_ancestry ... ok
+test units::tests::region_overflow_is_reported_without_partial_unit_bytes ... ok
+test units::tests::same_line_declarations_keep_exact_byte_ownership ... ok
+test units::tests::windows_cover_original_unicode_crlf_bytes_and_index_all_terms ... ok
+test walk::coverage_tests::cancellation_during_enumeration_does_not_return_a_partial_success ... ok
+test walk::coverage_tests::directory_budget_works_without_admitted_files ... ok
+test walk::coverage_tests::exclusions_are_distinct_from_enumeration_failures ... ok
+test walk::coverage_tests::file_cap_is_deterministic_and_requires_an_omitted_file ... ok
+test walk::coverage_tests::invalid_ignore_files_are_reported_and_cannot_authorize_deletion ... ok
+test walk::tests::hidden_files_need_the_flag ... ok
+test walk::tests::no_ignore_descends_where_ignore_was_honoured ... ok
+test walk::tests::oversized_files_are_skipped ... ok
+test walk::tests::the_walker_honours_ignore_files_and_always_skip_dirs ... ok
+test work::positional_tests::byte_and_token_exhaustion_report_the_actual_shared_allowance ... ok
+test work::positional_tests::positional_ceiling_zero_and_cancellation_contracts_hold ... ok
+test work::positional_tests::positional_lane_work_is_reserved_and_merged_into_the_request ... ok
+test work::positional_tests::witness_allowance_is_shared_across_fields_and_exact_fill_is_complete ... ok
+test units::links::tests::file_link_allowance_is_shared_across_blocks_without_losing_body_terms ... ok
+test positional::tests::overlapping_enumeration_matches_exhaustive_endpoint_oracle_and_exact_caps ... ok
+test units::links::tests::malformed_utf8_safe_markup_never_produces_invalid_metadata ... ok
+test metadata::tests::metadata_deltas_match_rebuilds_through_mutations_and_duplicate_ids ... ok
+test units::links::tests::record_and_work_caps_preserve_searchable_source_and_report_partial_metadata ... ok
+test markdown::blocks::tests::many_small_blocks_stop_at_the_source_unit_cap_with_explicit_truncation ... ok
+test positional::tests::streaming_alignment_matches_exhaustive_interval_oracle ... ok
+
+test result: ok. 163 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.61s
+
+     Running tests/property.rs (target/debug/deps/property-d2fb8dc93800b705)
+
+running 2 tests
+test ids_are_stable_under_unrelated_edits ... ok
+test a_bare_glob_never_matches_a_nested_path ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+     Running unittests src/lib.rs (target/debug/deps/graph_search_engine-b5d633ece71c38a9)
+
+running 30 tests
+test sidecar::tests::the_manifest_round_trips_atomically ... ok
+test sidecar::tests::dangling_references_round_trip_and_filter ... ok
+test source_records::tests::changed_records_are_isolated_and_shared_packs_survive_reclamation ... ok
+test source_records::tests::corrupt_missing_and_escaping_packs_are_rejected ... ok
+test manifest_records::tests::descriptor_is_pinned_and_missing_or_corrupt_packs_and_foreign_facts_fail ... ok
+test source_records::tests::pack_rollover_dedup_and_oversized_records_preserve_exact_bytes ... ok
+test manifest_records::tests::header_is_small_and_same_hash_fact_changes_cannot_reuse_stale_records ... ok
+test manifest_records::tests::legacy_maps_migrate_and_removing_cached_facts_does_not_resurrect_them ... ok
+test source_records::tests::prepared_descriptor_is_pinned_but_pack_bytes_still_require_verification ... ok
+test source_records::tests::legacy_maps_and_individual_records_upgrade_to_packs ... ok
+test store::publication_tests::crash_child ... ok
+test source_records::tests::unsupported_links_fall_back_to_a_synced_copy ... ok
+test source_records::tests::ranges_hashes_overlap_and_version_mismatches_are_rejected ... ok
+test source_records::tests::reuse_uses_the_opened_index_not_later_disk_index_edits ... ok
+test source_records::tests::touched_records_compare_all_fields_even_when_source_hash_is_unchanged ... ok
+test manifest_records::tests::identity_cache_replacement_metadata_and_unique_owner_mutation_are_safe ... ok
+test store::publication_tests::extraction_packs_are_committed_and_verified_before_open ... ok
+test store::publication_tests::legacy_graph_and_sidecars_migrate_without_losing_edges ... ok
+test store::publication_tests::generation_header_does_not_reparse_raw_facts_and_changes_only_on_publication ... ok
+test store::publication_tests::format_five_embedded_manifest_migrates_without_losing_raw_facts ... ok
+test store::publication_tests::failed_pointer_write_preserves_graph_and_manifest ... ok
+test store::publication_tests::corrupted_committed_sidecar_is_an_error_and_old_generations_are_bounded ... ok
+test store::publication_tests::occurrence_facts_share_failure_atomicity_and_generation_integrity ... ok
+test store::publication_tests::orphan_and_invalid_generations_are_not_silently_opened ... ok
+test store::publication_tests::postpublication_error_refuses_reads_until_reopen ... ok
+test store::publication_tests::projection_ownership_does_not_parse_hashes_from_paths ... ok
+test store::publication_tests::source_facts_share_failure_atomicity_and_generation_integrity ... ok
+test source_records::tests::churn_bounds_dead_bytes_and_small_pack_count ... ok
+test store::publication_tests::process_interruption_exposes_only_complete_generations ... ok
+test store::publication_tests::every_prepublication_failure_preserves_old_generation_and_retry ... ok
+
+test result: ok. 30 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.95s
+
+     Running tests/store.rs (target/debug/deps/store-7dcbd264597701b5)
+
+running 5 tests
+test dangling_references_survive_and_filter_by_file ... ok
+test the_conformance_suite_passes_against_memory ... ok
+test native_metadata_rebuilds_on_publication_and_reopen ... ok
+test the_store_persists_across_open ... ok
+test the_conformance_suite_passes_against_grafeo ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.62s
+
+     Running unittests src/lib.rs (target/debug/deps/graph_search_langs-8d4db33d6ce8a38d)
+
+running 10 tests
+test rust::tests::a_struct_field_type_becomes_a_type_use ... ok
+test doc_comments::tests::repeated_declaration_keys_cannot_select_a_different_occurrence ... ok
+test rust::tests::a_free_function_and_a_call_are_extracted ... ok
+test rust::tests::an_impl_makes_methods_and_the_implements_edge ... ok
+test rust::tests::duplicate_impl_names_get_disambiguated_by_core ... ok
+test doc_comments::tests::rust_docs_have_raw_spans_and_conservative_owners_without_string_false_positives ... ok
+test rust::tests::use_statements_expand_groups_and_aliases ... ok
+test rust::tests::module_attributes_and_reference_spans_preserve_declaration_context ... ok
+test doc_comments::tests::js_docs_attach_only_to_the_next_syntax_neighbor_and_ignore_string_contents ... ok
+test doc_comments::tests::comment_cap_requires_an_actual_omitted_documentation_node ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 8.16s
+
+     Running tests/fixtures_test.rs (target/debug/deps/fixtures_test-58cc98af8281e76f)
+
+running 9 tests
+test html_page ... ok
+test css_site ... ok
+test rust_functions_and_calls ... ok
+test rust_imports ... ok
+test javascript_app ... ok
+test rust_items ... ok
+test javascript_and_typescript_spans_slice_original_utf8 ... ok
+test every_language_preserves_raw_byte_and_line_coordinates ... ok
+test typescript_widget ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/deps/graph_search_types-acd352f1dda9150a)
+
+running 13 tests
+test id::tests::file_ids_are_path_keyed ... ok
+test id::tests::symbol_ids_carry_the_disambiguator_only_when_needed ... ok
+test id::tests::edge_ids_render_the_triple ... ok
+test extraction::shared_tests::identity_expires_on_mutation_with_one_or_multiple_owners ... ok
+test limits::tests::defaults_sit_below_their_ceilings ... ok
+test node::tests::a_dangling_edge_keeps_the_referenced_name ... ok
+test node::tests::a_resolved_edge_names_its_target ... ok
+test query::tests::hops_clamp_to_the_ceiling_not_error ... ok
+test query::tests::limits_clamp_into_range ... ok
+test context::tests::historical_context_does_not_claim_current_runtime_or_index_versions ... ok
+test envelope::tests::stale_paths_are_omitted_when_fresh ... ok
+test extraction::shared_tests::wire_bytes_and_value_equality_are_unchanged ... ok
+test extraction::shared_tests::documentation_defaults_roundtrips_merges_and_reports_actual_omission ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+   Doc-tests graph_search
+
+running 1 test
+test crates/graph-search/src/index.rs - index::Index (line 106) - compile fail ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 6.17s
+
+   Doc-tests graph_search_core
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests graph_search_engine
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests graph_search_langs
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests graph_search_types
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

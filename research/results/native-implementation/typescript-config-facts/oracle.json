@@ -1,0 +1,915 @@
+{
+  "compiler_version": "6.0.3",
+  "cases": [
+    {
+      "name": "actual-0.json",
+      "original": "blogwright/tsconfig.base.json",
+      "native": {
+        "config": {
+          "fields": {
+            "compilerOptions": {
+              "declaration": true,
+              "esModuleInterop": true,
+              "exactOptionalPropertyTypes": true,
+              "isolatedModules": true,
+              "lib": [
+                "ES2023"
+              ],
+              "module": "NodeNext",
+              "moduleResolution": "NodeNext",
+              "noFallthroughCasesInSwitch": true,
+              "noImplicitOverride": true,
+              "noUncheckedIndexedAccess": true,
+              "resolveJsonModule": true,
+              "skipLibCheck": true,
+              "strict": true,
+              "target": "ES2023",
+              "verbatimModuleSyntax": true
+            }
+          }
+        },
+        "source_hash": "8dd4e34ef8c02be60c5bc7d35167e6c90ad82348be8cce3b0e6379c513fe70ea",
+        "version": 14
+      },
+      "oracle": {
+        "name": "actual-0.json",
+        "patterns": [],
+        "resolved": null,
+        "error": null,
+        "fields": {
+          "compilerOptions": {
+            "target": "ES2023",
+            "lib": [
+              "ES2023"
+            ],
+            "module": "NodeNext",
+            "moduleResolution": "NodeNext",
+            "verbatimModuleSyntax": true,
+            "isolatedModules": true,
+            "esModuleInterop": true,
+            "resolveJsonModule": true,
+            "strict": true,
+            "noUncheckedIndexedAccess": true,
+            "noImplicitOverride": true,
+            "noFallthroughCasesInSwitch": true,
+            "exactOptionalPropertyTypes": true,
+            "declaration": true,
+            "skipLibCheck": true
+          }
+        }
+      },
+      "matched": true
+    },
+    {
+      "name": "actual-1.json",
+      "original": "blogwright/packages/core/tsconfig.json",
+      "native": {
+        "config": {
+          "fields": {
+            "compilerOptions": {
+              "outDir": "dist",
+              "rootDir": "src",
+              "types": [
+                "node"
+              ]
+            },
+            "exclude": [
+              "dist",
+              "**/*.test.ts"
+            ],
+            "extends": "../../tsconfig.base.json",
+            "include": [
+              "src/**/*"
+            ]
+          }
+        },
+        "source_hash": "f5e188288b189d08a6a366f71b632c5407644085e20e5fc8c317b8f4ff16f6d1",
+        "version": 14
+      },
+      "oracle": {
+        "name": "actual-1.json",
+        "patterns": [],
+        "resolved": null,
+        "error": null,
+        "fields": {
+          "extends": "../../tsconfig.base.json",
+          "compilerOptions": {
+            "rootDir": "src",
+            "outDir": "dist",
+            "types": [
+              "node"
+            ]
+          },
+          "include": [
+            "src/**/*"
+          ],
+          "exclude": [
+            "dist",
+            "**/*.test.ts"
+          ]
+        }
+      },
+      "matched": true
+    },
+    {
+      "name": "actual-2.json",
+      "original": "blogwright/packages/cli/tsconfig.json",
+      "native": {
+        "config": {
+          "fields": {
+            "compilerOptions": {
+              "outDir": "dist",
+              "rootDir": "src",
+              "types": [
+                "node"
+              ]
+            },
+            "exclude": [
+              "dist",
+              "**/*.test.ts",
+              "src/test-support.ts"
+            ],
+            "extends": "../../tsconfig.base.json",
+            "include": [
+              "src/**/*"
+            ]
+          }
+        },
+        "source_hash": "9b81a916463813350440e51f61306f0e8e3ef85f3620971929a607503a6c2faa",
+        "version": 14
+      },
+      "oracle": {
+        "name": "actual-2.json",
+        "patterns": [],
+        "resolved": null,
+        "error": null,
+        "fields": {
+          "extends": "../../tsconfig.base.json",
+          "compilerOptions": {
+            "rootDir": "src",
+            "outDir": "dist",
+            "types": [
+              "node"
+            ]
+          },
+          "include": [
+            "src/**/*"
+          ],
+          "exclude": [
+            "dist",
+            "**/*.test.ts",
+            "src/test-support.ts"
+          ]
+        }
+      },
+      "matched": true
+    },
+    {
+      "name": "actual-3.json",
+      "original": "whatsurvey/tsconfig.json",
+      "native": {
+        "config": {
+          "fields": {
+            "compilerOptions": {
+              "esModuleInterop": true,
+              "isolatedModules": true,
+              "lib": [
+                "ESNext",
+                "DOM",
+                "DOM.Iterable"
+              ],
+              "module": "ESNext",
+              "moduleResolution": "bundler",
+              "resolveJsonModule": true,
+              "skipLibCheck": true,
+              "strict": true,
+              "target": "ESNext",
+              "verbatimModuleSyntax": true
+            },
+            "files": [],
+            "references": [
+              {
+                "path": "./workspaces/backend"
+              },
+              {
+                "path": "./workspaces/frontend"
+              },
+              {
+                "path": "./packages/ui"
+              }
+            ]
+          }
+        },
+        "source_hash": "de5be5781635e7dc73f9f012cdd26b8ce4db3531f3163ef2a783009ccae9148b",
+        "version": 14
+      },
+      "oracle": {
+        "name": "actual-3.json",
+        "patterns": [],
+        "resolved": null,
+        "error": null,
+        "fields": {
+          "compilerOptions": {
+            "strict": true,
+            "moduleResolution": "bundler",
+            "module": "ESNext",
+            "target": "ESNext",
+            "isolatedModules": true,
+            "resolveJsonModule": true,
+            "esModuleInterop": true,
+            "skipLibCheck": true,
+            "verbatimModuleSyntax": true,
+            "lib": [
+              "ESNext",
+              "DOM",
+              "DOM.Iterable"
+            ]
+          },
+          "files": [],
+          "references": [
+            {
+              "path": "./workspaces/backend"
+            },
+            {
+              "path": "./workspaces/frontend"
+            },
+            {
+              "path": "./packages/ui"
+            }
+          ]
+        }
+      },
+      "matched": true
+    },
+    {
+      "name": "actual-4.json",
+      "original": "whatsurvey/workspaces/backend/tsconfig.json",
+      "native": {
+        "config": {
+          "fields": {
+            "compilerOptions": {
+              "esModuleInterop": true,
+              "isolatedModules": true,
+              "lib": [
+                "ESNext"
+              ],
+              "module": "ESNext",
+              "moduleResolution": "bundler",
+              "noEmit": true,
+              "resolveJsonModule": true,
+              "skipLibCheck": true,
+              "strict": true,
+              "target": "ESNext",
+              "types": [
+                "node"
+              ],
+              "verbatimModuleSyntax": true
+            },
+            "exclude": [
+              "node_modules",
+              "dist"
+            ],
+            "include": [
+              "src/**/*",
+              "tests/**/*"
+            ]
+          }
+        },
+        "source_hash": "d2b4ba4f06e1775d713fbe010ab86c6edb473dd6cbef6795252478bdb71240ff",
+        "version": 14
+      },
+      "oracle": {
+        "name": "actual-4.json",
+        "patterns": [],
+        "resolved": null,
+        "error": null,
+        "fields": {
+          "compilerOptions": {
+            "strict": true,
+            "moduleResolution": "bundler",
+            "module": "ESNext",
+            "target": "ESNext",
+            "isolatedModules": true,
+            "resolveJsonModule": true,
+            "esModuleInterop": true,
+            "skipLibCheck": true,
+            "verbatimModuleSyntax": true,
+            "noEmit": true,
+            "types": [
+              "node"
+            ],
+            "lib": [
+              "ESNext"
+            ]
+          },
+          "include": [
+            "src/**/*",
+            "tests/**/*"
+          ],
+          "exclude": [
+            "node_modules",
+            "dist"
+          ]
+        }
+      },
+      "matched": true
+    },
+    {
+      "name": "actual-5.json",
+      "original": "whatsurvey/workspaces/frontend/tsconfig.json",
+      "native": {
+        "config": {
+          "fields": {
+            "compilerOptions": {
+              "esModuleInterop": true,
+              "isolatedModules": true,
+              "module": "ESNext",
+              "moduleResolution": "bundler",
+              "noEmit": true,
+              "resolveJsonModule": true,
+              "skipLibCheck": true,
+              "strict": true,
+              "target": "ESNext",
+              "verbatimModuleSyntax": true
+            },
+            "extends": "./.svelte-kit/tsconfig.json"
+          }
+        },
+        "source_hash": "e57aed64af36f170facb741d5d7e17b7f03895c4f56c7cd5d45c8e74972ed001",
+        "version": 14
+      },
+      "oracle": {
+        "name": "actual-5.json",
+        "patterns": [],
+        "resolved": null,
+        "error": null,
+        "fields": {
+          "extends": "./.svelte-kit/tsconfig.json",
+          "compilerOptions": {
+            "strict": true,
+            "moduleResolution": "bundler",
+            "module": "ESNext",
+            "target": "ESNext",
+            "isolatedModules": true,
+            "resolveJsonModule": true,
+            "esModuleInterop": true,
+            "skipLibCheck": true,
+            "verbatimModuleSyntax": true,
+            "noEmit": true
+          }
+        }
+      },
+      "matched": true
+    },
+    {
+      "name": "actual-6.json",
+      "original": "whatsurvey/workspaces/frontend/.svelte-kit/tsconfig.json",
+      "native": {
+        "config": {
+          "fields": {
+            "compilerOptions": {
+              "isolatedModules": true,
+              "lib": [
+                "esnext",
+                "DOM",
+                "DOM.Iterable"
+              ],
+              "module": "esnext",
+              "moduleResolution": "bundler",
+              "noEmit": true,
+              "paths": {
+                "$app/types": [
+                  "./types/index.d.ts"
+                ],
+                "$lib": [
+                  "../src/lib"
+                ],
+                "$lib/*": [
+                  "../src/lib/*"
+                ]
+              },
+              "rootDirs": [
+                "..",
+                "./types"
+              ],
+              "target": "esnext",
+              "verbatimModuleSyntax": true
+            },
+            "exclude": [
+              "../node_modules/**",
+              "../src/service-worker.js",
+              "../src/service-worker/**/*.js",
+              "../src/service-worker.ts",
+              "../src/service-worker/**/*.ts",
+              "../src/service-worker.d.ts",
+              "../src/service-worker/**/*.d.ts"
+            ],
+            "include": [
+              "ambient.d.ts",
+              "env.d.ts",
+              "non-ambient.d.ts",
+              "./types/**/$types.d.ts",
+              "../vite.config.js",
+              "../vite.config.ts",
+              "../src/**/*.js",
+              "../src/**/*.ts",
+              "../src/**/*.svelte",
+              "../test/**/*.js",
+              "../test/**/*.ts",
+              "../test/**/*.svelte",
+              "../tests/**/*.js",
+              "../tests/**/*.ts",
+              "../tests/**/*.svelte"
+            ]
+          },
+          "path_patterns": [
+            "$lib/*"
+          ]
+        },
+        "source_hash": "c01d35eee60b3cb21e230c392c72c947234d7f406b83959a042a63e09db454c4",
+        "version": 14
+      },
+      "oracle": {
+        "name": "actual-6.json",
+        "patterns": [
+          "$lib/*"
+        ],
+        "resolved": null,
+        "error": null,
+        "fields": {
+          "compilerOptions": {
+            "paths": {
+              "$lib": [
+                "../src/lib"
+              ],
+              "$lib/*": [
+                "../src/lib/*"
+              ],
+              "$app/types": [
+                "./types/index.d.ts"
+              ]
+            },
+            "rootDirs": [
+              "..",
+              "./types"
+            ],
+            "verbatimModuleSyntax": true,
+            "isolatedModules": true,
+            "lib": [
+              "esnext",
+              "DOM",
+              "DOM.Iterable"
+            ],
+            "moduleResolution": "bundler",
+            "module": "esnext",
+            "noEmit": true,
+            "target": "esnext"
+          },
+          "include": [
+            "ambient.d.ts",
+            "env.d.ts",
+            "non-ambient.d.ts",
+            "./types/**/$types.d.ts",
+            "../vite.config.js",
+            "../vite.config.ts",
+            "../src/**/*.js",
+            "../src/**/*.ts",
+            "../src/**/*.svelte",
+            "../test/**/*.js",
+            "../test/**/*.ts",
+            "../test/**/*.svelte",
+            "../tests/**/*.js",
+            "../tests/**/*.ts",
+            "../tests/**/*.svelte"
+          ],
+          "exclude": [
+            "../node_modules/**",
+            "../src/service-worker.js",
+            "../src/service-worker/**/*.js",
+            "../src/service-worker.ts",
+            "../src/service-worker/**/*.ts",
+            "../src/service-worker.d.ts",
+            "../src/service-worker/**/*.d.ts"
+          ]
+        }
+      },
+      "matched": true
+    },
+    {
+      "name": "comments.jsonc",
+      "original": null,
+      "native": {
+        "config": {
+          "fields": {
+            "compilerOptions": {
+              "baseUrl": "https://x/*y*/",
+              "paths": {
+                "$lib/*": [
+                  "../src/*"
+                ]
+              }
+            },
+            "extends": [
+              "./first.json",
+              "./last.json"
+            ],
+            "files": []
+          },
+          "path_patterns": [
+            "$lib/*"
+          ]
+        },
+        "source_hash": "5c103ceb5a338ecac769e0381b967a1692d21066277e2df78dc299932a3f91ce",
+        "version": 14
+      },
+      "oracle": {
+        "name": "comments.jsonc",
+        "patterns": [
+          "$lib/*"
+        ],
+        "resolved": null,
+        "error": null,
+        "fields": {
+          "extends": [
+            "./first.json",
+            "./last.json"
+          ],
+          "compilerOptions": {
+            "paths": {
+              "$lib/*": [
+                "../src/*"
+              ]
+            },
+            "baseUrl": "https://x/*y*/"
+          },
+          "files": []
+        }
+      },
+      "matched": true
+    },
+    {
+      "name": "empty.json",
+      "original": null,
+      "native": {
+        "config": {},
+        "source_hash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+        "version": 14
+      },
+      "oracle": {
+        "name": "empty.json",
+        "patterns": [],
+        "resolved": null,
+        "error": null,
+        "fields": {}
+      },
+      "matched": true
+    },
+    {
+      "name": "null.json",
+      "original": null,
+      "native": {
+        "config": {
+          "fields": {
+            "compilerOptions": {
+              "paths": null
+            },
+            "exclude": null
+          }
+        },
+        "source_hash": "8398392ae0151ef242bc07d0f42a2fbda225002a214a412030746fca4027e8bc",
+        "version": 14
+      },
+      "oracle": {
+        "name": "null.json",
+        "patterns": [],
+        "resolved": null,
+        "error": null,
+        "fields": {
+          "compilerOptions": {
+            "paths": null
+          },
+          "exclude": null
+        }
+      },
+      "matched": true
+    },
+    {
+      "name": "duplicates.json",
+      "original": null,
+      "native": {
+        "config": {
+          "fields": {
+            "compilerOptions": {
+              "baseUrl": "last"
+            }
+          }
+        },
+        "source_hash": "fcfe439f98733f22e11f4adeac25249203ca128301e40b1b537d6138dea992c3",
+        "version": 14
+      },
+      "oracle": {
+        "name": "duplicates.json",
+        "patterns": [],
+        "resolved": null,
+        "error": null,
+        "fields": {
+          "compilerOptions": {
+            "baseUrl": "last"
+          }
+        }
+      },
+      "matched": true
+    },
+    {
+      "name": "quoted.json",
+      "original": null,
+      "native": {
+        "config": {
+          "fields": {
+            "compilerOptions": {
+              "baseUrl": "quoted\"// /* string \\ caf\u00e9",
+              "paths": {
+                "*": [
+                  "./one/*",
+                  "./two/*"
+                ]
+              }
+            },
+            "references": [
+              {
+                "path": "../other",
+                "prepend": true
+              }
+            ]
+          },
+          "path_patterns": [
+            "*"
+          ]
+        },
+        "source_hash": "793f0be7d721de1c35f3d7e88db68ca810df02548d06c3e8d13e0600f4c08563",
+        "version": 14
+      },
+      "oracle": {
+        "name": "quoted.json",
+        "patterns": [
+          "*"
+        ],
+        "resolved": null,
+        "error": null,
+        "fields": {
+          "compilerOptions": {
+            "baseUrl": "quoted\"// /* string \\ caf\u00e9",
+            "paths": {
+              "*": [
+                "./one/*",
+                "./two/*"
+              ]
+            }
+          },
+          "references": [
+            {
+              "path": "../other",
+              "prepend": true
+            }
+          ]
+        }
+      },
+      "matched": true
+    },
+    {
+      "name": "tie-first.json",
+      "original": null,
+      "native": {
+        "config": {
+          "fields": {
+            "compilerOptions": {
+              "paths": {
+                "a*YZ": [
+                  "/second.ts"
+                ],
+                "a*Z": [
+                  "/first.ts"
+                ]
+              }
+            }
+          },
+          "path_patterns": [
+            "a*Z",
+            "a*YZ"
+          ]
+        },
+        "source_hash": "b2727aa5266afd509e4f57aab715ae335fc4ee0fdb917d192bd84248d27d6b91",
+        "version": 14
+      },
+      "oracle": {
+        "name": "tie-first.json",
+        "patterns": [
+          "a*Z",
+          "a*YZ"
+        ],
+        "resolved": "/first.ts",
+        "error": null,
+        "fields": {
+          "compilerOptions": {
+            "paths": {
+              "a*Z": [
+                "/first.ts"
+              ],
+              "a*YZ": [
+                "/second.ts"
+              ]
+            }
+          }
+        }
+      },
+      "matched": true
+    },
+    {
+      "name": "tie-second.json",
+      "original": null,
+      "native": {
+        "config": {
+          "fields": {
+            "compilerOptions": {
+              "paths": {
+                "a*YZ": [
+                  "/second.ts"
+                ],
+                "a*Z": [
+                  "/first.ts"
+                ]
+              }
+            }
+          },
+          "path_patterns": [
+            "a*YZ",
+            "a*Z"
+          ]
+        },
+        "source_hash": "ac9fcb2be520aff171d0da2bbab14f72a3b59fede783b439a6a85cc8e083834f",
+        "version": 14
+      },
+      "oracle": {
+        "name": "tie-second.json",
+        "patterns": [
+          "a*YZ",
+          "a*Z"
+        ],
+        "resolved": "/second.ts",
+        "error": null,
+        "fields": {
+          "compilerOptions": {
+            "paths": {
+              "a*YZ": [
+                "/second.ts"
+              ],
+              "a*Z": [
+                "/first.ts"
+              ]
+            }
+          }
+        }
+      },
+      "matched": true
+    },
+    {
+      "name": "duplicate-containers.json",
+      "original": null,
+      "native": {
+        "config": {
+          "fields": {
+            "compilerOptions": {
+              "paths": {
+                "a*YZ": [
+                  "second"
+                ],
+                "a*Z": [
+                  "last"
+                ],
+                "exact": []
+              }
+            }
+          },
+          "path_patterns": [
+            "a*Z",
+            "a*YZ"
+          ]
+        },
+        "source_hash": "2e7209068246154fce9e4d54aa45edfdf4620d5ee9d9abd0a176f19c7223b39f",
+        "version": 14
+      },
+      "oracle": {
+        "name": "duplicate-containers.json",
+        "patterns": [
+          "a*Z",
+          "a*YZ"
+        ],
+        "resolved": null,
+        "error": null,
+        "fields": {
+          "compilerOptions": {
+            "paths": {
+              "a*Z": [
+                "last"
+              ],
+              "a*YZ": [
+                "second"
+              ],
+              "exact": []
+            }
+          }
+        }
+      },
+      "matched": true
+    },
+    {
+      "name": "unterminated.json",
+      "original": null,
+      "native": {
+        "config": {
+          "unavailable_reason": "unterminated_config_comment"
+        },
+        "source_hash": "2d4e806fb6e1bb13be3c0e2b9200929bb4d7e57dbe91e7fdb3fbe877964c5069",
+        "version": 14
+      },
+      "oracle": {
+        "name": "unterminated.json",
+        "patterns": null,
+        "resolved": null,
+        "error": {
+          "code": 1010,
+          "message": "'*/' expected."
+        },
+        "fields": null
+      },
+      "matched": true
+    },
+    {
+      "name": "holes.json",
+      "original": null,
+      "native": {
+        "config": {
+          "unavailable_reason": "invalid_config_syntax"
+        },
+        "source_hash": "8d26f32d3e0dad9ceaad2a88b0dbdeab248d155d5cf71ef4b0520074ce5f6025",
+        "version": 14
+      },
+      "oracle": {
+        "name": "holes.json",
+        "patterns": null,
+        "resolved": null,
+        "error": {
+          "code": 1328,
+          "message": "Property value can only be string literal, numeric literal, 'true', 'false', 'null', object literal or array literal."
+        },
+        "fields": null
+      },
+      "matched": true
+    },
+    {
+      "name": "value.json",
+      "original": null,
+      "native": {
+        "config": {
+          "unavailable_reason": "invalid_config_syntax"
+        },
+        "source_hash": "6e1a779b3c4fac64290b6e38ddc2ee603922e0d0ffbf314b82ad7cf04f55ef7e",
+        "version": 14
+      },
+      "oracle": {
+        "name": "value.json",
+        "patterns": null,
+        "resolved": null,
+        "error": {
+          "code": 1109,
+          "message": "Expression expected."
+        },
+        "fields": null
+      },
+      "matched": true
+    },
+    {
+      "name": "syntax.json",
+      "original": null,
+      "native": {
+        "config": {
+          "unavailable_reason": "invalid_config_syntax"
+        },
+        "source_hash": "92fc660be55096119933c789e30540cf36e0eb874a19ac9e81e2c13f2882d991",
+        "version": 14
+      },
+      "oracle": {
+        "name": "syntax.json",
+        "patterns": null,
+        "resolved": null,
+        "error": {
+          "code": 1005,
+          "message": "',' expected."
+        },
+        "fields": null
+      },
+      "matched": true
+    }
+  ],
+  "sibling_sources_unchanged": true
+}

@@ -42,10 +42,17 @@ impl LanguageExtractor for TypeScriptExtractor {
             dialect,
             extraction: Extraction::default(),
             scope: Vec::new(),
-            imports: std::collections::BTreeMap::new(),
         };
         extractor.walk_node(tree.root_node());
+        crate::scopes::enrich(tree.root_node(), file.text, &mut extractor.extraction);
+        crate::js_modules::enrich(tree.root_node(), file.text, &mut extractor.extraction);
         extractor.bind_imports();
+        crate::doc_comments::enrich(
+            tree.root_node(),
+            file.text,
+            false,
+            &mut extractor.extraction,
+        );
         Ok(extractor.extraction)
     }
 }

@@ -29,6 +29,16 @@ pub enum Reconcile {
     Explicit,
 }
 
+/// How query freshness checks compare the live tree with indexed sources.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum Verification {
+    /// Check inclusion, size, modification time, and parser versions.
+    #[default]
+    Metadata,
+    /// Hash file contents too, detecting same-size edits with restored mtimes.
+    Content,
+}
+
 /// How to open an index.
 #[derive(Clone, Debug)]
 pub struct OpenOptions {
@@ -42,6 +52,8 @@ pub struct OpenOptions {
     pub languages: Option<Vec<graph_search_types::Language>>,
     /// How queries treat staleness.
     pub reconcile: Reconcile,
+    /// Strength of filesystem freshness verification.
+    pub verification: Verification,
     /// Refuse to build or mutate.
     pub read_only: bool,
 }
@@ -54,6 +66,7 @@ impl Default for OpenOptions {
             excludes: Vec::new(),
             languages: None,
             reconcile: Reconcile::default(),
+            verification: Verification::default(),
             read_only: false,
         }
     }
@@ -65,6 +78,20 @@ struct RegistryList {
 }
 
 impl graph_search_core::ports::LanguageRegistry for RegistryList {
+    fn typescript_config(
+        &self,
+        file: &graph_search_core::ports::SourceFile<'_>,
+    ) -> Option<graph_search_types::typescript::TypeScriptConfig> {
+        crate::typescript_config::extract(file)
+    }
+
+    fn package_manifest(
+        &self,
+        file: &graph_search_core::ports::SourceFile<'_>,
+    ) -> Option<graph_search_types::package::PackageManifest> {
+        crate::package_manifests::extract(file)
+    }
+
     fn extractor_for(
         &self,
         path: &Path,
@@ -78,13 +105,21 @@ impl graph_search_core::ports::LanguageRegistry for RegistryList {
 
 /// An opened workspace index, held for as long as it is queried.
 ///
-/// The store sits behind a lock so `sync` (interior mutation) and reads coexist:
-/// one writer, snapshot readers (`SPEC.md` §6.6).
+/// Store callbacks hold a shared or exclusive lock for the whole operation.
+/// Snapshots borrow the guarded store; queries do not release the guard before
+/// materializing results. `GraphStore: Send` does not require `Sync`, so this
+/// handle does not promise concurrent shared access across threads (`SPEC.md` §6.6).
+///
+/// ```compile_fail
+/// fn requires_sync<T: Sync>() {}
+/// requires_sync::<graph_search::Index>();
+/// ```
 pub struct Index {
     root: PathBuf,
     store_dir: PathBuf,
     policy: WalkPolicy,
     reconcile: Reconcile,
+    verification: Verification,
     read_only: bool,
     store: RwLock<Box<dyn GraphStore>>,
     /// Whether the index has been verified fresh *in this process* — the
@@ -111,7 +146,14 @@ impl Index {
         if let Some(languages) = options.languages {
             config.policy.languages = languages;
         }
-        let store_dir = options.store.unwrap_or_else(|| root.join(&config.store));
+        let store_dir =
+            resolve_store_path(&options.store.unwrap_or_else(|| root.join(&config.store)))?;
+        if root.starts_with(&store_dir) {
+            return Err(Error::Config(String::from(
+                "the store directory must not equal or contain the source root",
+            )));
+        }
+        config.policy.excluded_paths.push(store_dir.clone());
         if !options.read_only {
             std::fs::create_dir_all(&store_dir)
                 .map_err(|source| Error::Core(graph_search_core::Error::io(&store_dir, source)))?;
@@ -126,6 +168,7 @@ impl Index {
             store_dir,
             policy: config.policy,
             reconcile: options.reconcile,
+            verification: options.verification,
             read_only: options.read_only,
             store: RwLock::new(Box::new(store)),
             fresh: AtomicBool::new(false),
@@ -154,6 +197,12 @@ impl Index {
     #[must_use]
     pub const fn reconcile(&self) -> Reconcile {
         self.reconcile
+    }
+
+    /// The strength of filesystem freshness checks.
+    #[must_use]
+    pub const fn verification(&self) -> Verification {
+        self.verification
     }
 
     /// Whether the index was opened read-only.
@@ -232,6 +281,30 @@ impl Index {
         Ok(report)
     }
 
+    pub(crate) fn maintain_with_work(
+        &self,
+        reindex: bool,
+        work: &mut graph_search_core::work::WorkBudget,
+    ) -> Result<SyncReport> {
+        work.check().map_err(Error::Core)?;
+        if self.read_only {
+            return Err(Error::ReadOnly);
+        }
+        let _lock = lock::try_lock(&self.store_dir)?;
+        let search_root = resolve_search_root(&self.root, None).map_err(Error::Core)?;
+        let report = self.store_write(|store| {
+            let projector = self.projector().with_work_budget(work);
+            if reindex {
+                projector.reindex(&search_root, store)
+            } else {
+                projector.sync(&search_root, store)
+            }
+            .map_err(Error::Core)
+        })?;
+        self.mark_fresh();
+        Ok(report)
+    }
+
     /// Incremental reconcile; the normal way to keep current
     /// (`SPEC.md` §6.5.2).
     ///
@@ -251,4 +324,25 @@ impl Index {
         self.mark_fresh();
         Ok(report)
     }
+}
+
+/// Resolve existing symlinks while allowing a not-yet-created store. Explicit
+/// relative store options retain their process-working-directory semantics.
+fn resolve_store_path(path: &Path) -> Result<PathBuf> {
+    let absolute = std::path::absolute(path)
+        .map_err(|source| Error::Core(graph_search_core::Error::io(path, source)))?;
+    let mut resolved = PathBuf::new();
+    for component in absolute.components() {
+        if component == std::path::Component::ParentDir {
+            resolved.pop();
+        } else if component != std::path::Component::CurDir {
+            resolved.push(component);
+            match resolved.canonicalize() {
+                Ok(canonical) => resolved = canonical,
+                Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+                Err(error) => return Err(graph_search_core::Error::io(&resolved, error).into()),
+            }
+        }
+    }
+    Ok(resolved)
 }

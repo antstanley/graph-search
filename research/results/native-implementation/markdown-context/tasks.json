@@ -1,0 +1,370 @@
+[
+  {
+    "id": "nanus.context.debug",
+    "repo": "nanus",
+    "family": "context",
+    "split": "dev",
+    "kind": "debug",
+    "prompt": "A long conversation cannot fit even after older turns are removed. Explain what the context fitter preserves and why it can still fail. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions."
+  },
+  {
+    "id": "nanus.context.change",
+    "repo": "nanus",
+    "family": "context",
+    "split": "dev",
+    "kind": "change",
+    "prompt": "Plan a change to the context token estimator while preserving whole-turn eviction and valid tool-call histories. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository."
+  },
+  {
+    "id": "nanus.edit.debug",
+    "repo": "nanus",
+    "family": "edit",
+    "split": "dev",
+    "kind": "debug",
+    "prompt": "An edit request with identical old and new text fails before changing the file. Trace validation and explain what a successful edit returns. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions."
+  },
+  {
+    "id": "nanus.edit.change",
+    "repo": "nanus",
+    "family": "edit",
+    "split": "dev",
+    "kind": "change",
+    "prompt": "Plan a clearer diagnostic for no-op edits without changing replacement behavior or the successful diff response. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository."
+  },
+  {
+    "id": "nanus.write.debug",
+    "repo": "nanus",
+    "family": "write",
+    "split": "dev",
+    "kind": "debug",
+    "prompt": "A write request omitting its mode fails instead of overwriting a file. Explain the accepted modes and the write path. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions."
+  },
+  {
+    "id": "nanus.write.change",
+    "repo": "nanus",
+    "family": "write",
+    "split": "dev",
+    "kind": "change",
+    "prompt": "Plan improved write-mode error messages while preserving explicit create versus overwrite selection. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository."
+  },
+  {
+    "id": "nanus.read.debug",
+    "repo": "nanus",
+    "family": "read",
+    "split": "dev",
+    "kind": "debug",
+    "prompt": "Reading a small line window from a very large file is rejected. Explain the size guard, line numbering, and limit handling. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions."
+  },
+  {
+    "id": "nanus.read.change",
+    "repo": "nanus",
+    "family": "read",
+    "split": "dev",
+    "kind": "change",
+    "prompt": "Plan a streaming implementation for bounded file reads that preserves the current line-window response and explicit limit validation. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository."
+  },
+  {
+    "id": "nanus.grep.debug",
+    "repo": "nanus",
+    "family": "grep",
+    "split": "dev",
+    "kind": "debug",
+    "prompt": "A text search with an include filter returns fewer matches than its limit although matching files exist. Explain where filtering and truncation occur. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions."
+  },
+  {
+    "id": "nanus.grep.change",
+    "repo": "nanus",
+    "family": "grep",
+    "split": "dev",
+    "kind": "change",
+    "prompt": "Plan to apply include filtering before the text-search cap, preserving truthful truncation reporting. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository."
+  },
+  {
+    "id": "nanus.glob.debug",
+    "repo": "nanus",
+    "family": "glob",
+    "split": "dev",
+    "kind": "debug",
+    "prompt": "A file-pattern search at its result cap sometimes has no truncation warning. Explain the validation and warning decision. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions."
+  },
+  {
+    "id": "nanus.glob.change",
+    "repo": "nanus",
+    "family": "glob",
+    "split": "dev",
+    "kind": "change",
+    "prompt": "Plan a file-pattern search response that exposes the applied cap while preserving the distinction between exactly-at-cap and truncated results. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository."
+  },
+  {
+    "id": "nanus.argument-types.debug",
+    "repo": "nanus",
+    "family": "argument-types",
+    "split": "heldout",
+    "kind": "debug",
+    "prompt": "Tool arguments containing the string \"true\" or a negative numeric limit fail. Explain accepted optional boolean and unsigned integer values. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions."
+  },
+  {
+    "id": "nanus.argument-types.change",
+    "repo": "nanus",
+    "family": "argument-types",
+    "split": "heldout",
+    "kind": "change",
+    "prompt": "Plan better type-error diagnostics for optional tool arguments without coercing strings to booleans or accepting overflowing limits. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository."
+  },
+  {
+    "id": "nanus.temporary-paths.debug",
+    "repo": "nanus",
+    "family": "temporary-paths",
+    "split": "heldout",
+    "kind": "debug",
+    "prompt": "A destructive command referring to a relative temporary path does not receive the temporary-target exemption. Explain the path checks and the no-target case. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions."
+  },
+  {
+    "id": "nanus.temporary-paths.change",
+    "repo": "nanus",
+    "family": "temporary-paths",
+    "split": "heldout",
+    "kind": "change",
+    "prompt": "Plan tests for destructive-command temporary-path exemptions, including parent traversal, relative paths, multiple targets, and commands without a recognized target. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository."
+  },
+  {
+    "id": "blogwright.secret-upsert.debug",
+    "repo": "blogwright",
+    "family": "secret-upsert",
+    "split": "heldout",
+    "kind": "debug",
+    "prompt": "Updating an existing AWS secret starts with a create request. Explain which error causes an update and which failures must propagate. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions."
+  },
+  {
+    "id": "blogwright.secret-upsert.change",
+    "repo": "blogwright",
+    "family": "secret-upsert",
+    "split": "heldout",
+    "kind": "change",
+    "prompt": "Plan tests for secret upsert and lookup that distinguish already-existing, missing, permission-denied, and transport failures. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository."
+  },
+  {
+    "id": "whatsurvey.webhook-signature.debug",
+    "repo": "whatsurvey",
+    "family": "webhook-signature",
+    "split": "dev",
+    "kind": "debug",
+    "prompt": "A webhook signature with the wrong digest length is rejected before comparison. Explain which bytes are authenticated and the acceptance checks. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions."
+  },
+  {
+    "id": "whatsurvey.webhook-signature.change",
+    "repo": "whatsurvey",
+    "family": "webhook-signature",
+    "split": "dev",
+    "kind": "change",
+    "prompt": "Plan signature-verification regression tests for changed raw payloads, missing prefixes, wrong lengths, and mismatched digests. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository."
+  },
+  {
+    "id": "whatsurvey.settings-encryption.debug",
+    "repo": "whatsurvey",
+    "family": "settings-encryption",
+    "split": "dev",
+    "kind": "debug",
+    "prompt": "An encrypted settings value cannot be moved to another settings field and decrypted there. Explain context binding and failure reporting. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions."
+  },
+  {
+    "id": "whatsurvey.settings-encryption.change",
+    "repo": "whatsurvey",
+    "family": "settings-encryption",
+    "split": "dev",
+    "kind": "change",
+    "prompt": "Plan tests for settings encryption across fields and rows, including multibyte size limits and local versus deployed behavior. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository."
+  },
+  {
+    "id": "whatsurvey.contact-policy.debug",
+    "repo": "whatsurvey",
+    "family": "contact-policy",
+    "split": "dev",
+    "kind": "debug",
+    "prompt": "A contact decision differs between recruitment and an ongoing conversation for the same participant. Explain which refusal checks always apply and which are recruitment-only. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions."
+  },
+  {
+    "id": "whatsurvey.contact-policy.change",
+    "repo": "whatsurvey",
+    "family": "contact-policy",
+    "split": "dev",
+    "kind": "change",
+    "prompt": "Plan policy tests for recruitment versus live conversation, preserving explicit withdrawal and channel-specific consent behavior. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository."
+  },
+  {
+    "id": "whatsurvey.captcha-retry.debug",
+    "repo": "whatsurvey",
+    "family": "captcha-retry",
+    "split": "heldout",
+    "kind": "debug",
+    "prompt": "A CAPTCHA response saying success=false is not retried, but an HTTP failure is. Explain retry and timeout behavior. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions."
+  },
+  {
+    "id": "whatsurvey.captcha-retry.change",
+    "repo": "whatsurvey",
+    "family": "captcha-retry",
+    "split": "heldout",
+    "kind": "change",
+    "prompt": "Plan CAPTCHA tests that distinguish a negative verification from transport or provider errors, preserving the bounded retry count. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository."
+  },
+  {
+    "id": "whatsurvey.survey-draft.debug",
+    "repo": "whatsurvey",
+    "family": "survey-draft",
+    "split": "heldout",
+    "kind": "debug",
+    "prompt": "Opening a legacy survey for editing creates a published version before a draft. Explain why and how concurrent changes are guarded. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions."
+  },
+  {
+    "id": "whatsurvey.survey-draft.change",
+    "repo": "whatsurvey",
+    "family": "survey-draft",
+    "split": "heldout",
+    "kind": "change",
+    "prompt": "Plan tests for legacy survey adoption that preserve historical content, existing drafts, archived-survey rejection, and optimistic concurrency. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository."
+  },
+  {
+    "id": "blogwright.tag-encoding.debug",
+    "repo": "blogwright",
+    "family": "tag-encoding",
+    "split": "heldout",
+    "kind": "debug",
+    "prompt": "Resource tag values containing ampersands and spaces must survive an S3 tagging header. Explain the encoding boundary and empty input behavior. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions."
+  },
+  {
+    "id": "blogwright.tag-encoding.change",
+    "repo": "blogwright",
+    "family": "tag-encoding",
+    "split": "heldout",
+    "kind": "change",
+    "prompt": "Plan tag-encoding tests for reserved characters, Unicode, empty tags, and keys as well as values without double encoding. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository."
+  },
+  {
+    "id": "whatsurvey.storage-envelope.debug",
+    "repo": "whatsurvey",
+    "family": "storage-envelope",
+    "split": "dev",
+    "kind": "debug",
+    "prompt": "A database read must remove internal storage keys without dropping domain fields that also support indexes. Explain the cleanup helper and whether it mutates input. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions."
+  },
+  {
+    "id": "whatsurvey.storage-envelope.change",
+    "repo": "whatsurvey",
+    "family": "storage-envelope",
+    "split": "dev",
+    "kind": "change",
+    "prompt": "Plan storage-envelope tests that preserve domain keys and input objects while stripping database-only fields from individual items and lists. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository."
+  },
+  {
+    "id": "whatsurvey.money-rounding.debug",
+    "repo": "whatsurvey",
+    "family": "money-rounding",
+    "split": "heldout",
+    "kind": "debug",
+    "prompt": "An LLM cost estimate retains fractions of a cent instead of rounding to two decimal places. Explain the precision and return type. Cite the relevant source and explain the execution path. Distinguish observed behavior from assumptions."
+  },
+  {
+    "id": "whatsurvey.money-rounding.change",
+    "repo": "whatsurvey",
+    "family": "money-rounding",
+    "split": "heldout",
+    "kind": "change",
+    "prompt": "Plan rounding tests for micro-dollar estimates while preserving numeric output and the shared six-decimal convention. Cite the relevant source and explain the execution path. Propose regression tests; do not edit the repository."
+  },
+  {
+    "id": "nanus.fresh-turn-closure.debug",
+    "repo": "nanus",
+    "family": "fresh-turn-closure",
+    "split": "heldout",
+    "kind": "debug",
+    "prompt": "A provider failure must not leave an unfinished step or turn in a conversation that can later resume. Locate the error paths that close both records."
+  },
+  {
+    "id": "nanus.fresh-runtime-tools.debug",
+    "repo": "nanus",
+    "family": "fresh-runtime-tools",
+    "split": "heldout",
+    "kind": "debug",
+    "prompt": "After registering another tool at runtime, what makes its schema appear on the very next model request without rebuilding the runner?"
+  },
+  {
+    "id": "nanus.fresh-legacy-approval.debug",
+    "repo": "nanus",
+    "family": "fresh-legacy-approval",
+    "split": "heldout",
+    "kind": "debug",
+    "prompt": "Which approval behavior does the old configuration spelling \"never\" select, and how does it differ from allowing every outside-sandbox call?"
+  },
+  {
+    "id": "nanus.fresh-delete-symlink.debug",
+    "repo": "nanus",
+    "family": "fresh-delete-symlink",
+    "split": "heldout",
+    "kind": "debug",
+    "prompt": "Deleting a saved conversation must not recursively remove the target of a planted directory symlink. Locate the handling of that case and of a missing session."
+  },
+  {
+    "id": "blogwright.fresh-refresh-metadata.debug",
+    "repo": "blogwright",
+    "family": "fresh-refresh-metadata",
+    "split": "heldout",
+    "kind": "debug",
+    "prompt": "A deployment has unchanged file bytes but needs new object metadata. Where can it force an upload despite a matching content checksum?"
+  },
+  {
+    "id": "blogwright.fresh-tagging-fallback.debug",
+    "repo": "blogwright",
+    "family": "fresh-tagging-fallback",
+    "split": "heldout",
+    "kind": "debug",
+    "prompt": "A deployment role can write objects but cannot attach tags. Find the retry logic that still publishes files and avoids repeating the tagging failure for every upload."
+  },
+  {
+    "id": "blogwright.fresh-invalid-date-rkey.debug",
+    "repo": "blogwright",
+    "family": "fresh-invalid-date-rkey",
+    "split": "heldout",
+    "kind": "debug",
+    "prompt": "A post URL contains digits that look like a date but are not a real calendar date. How does record-key derivation avoid an invalid timestamp?"
+  },
+  {
+    "id": "blogwright.fresh-sitemap-pages.debug",
+    "repo": "blogwright",
+    "family": "fresh-sitemap-pages",
+    "split": "heldout",
+    "kind": "debug",
+    "prompt": "Where are generated HTML pages converted to sitemap URLs, with error pages excluded and stable ordering applied?"
+  },
+  {
+    "id": "whatsurvey.fresh-option-code-collision.debug",
+    "repo": "whatsurvey",
+    "family": "fresh-option-code-collision",
+    "split": "heldout",
+    "kind": "debug",
+    "prompt": "Two survey answer labels must not share the same stored code, even if one code has surrounding whitespace. Locate the validation that rejects this ambiguity."
+  },
+  {
+    "id": "whatsurvey.fresh-media-flow.debug",
+    "repo": "whatsurvey",
+    "family": "fresh-media-flow",
+    "split": "heldout",
+    "kind": "debug",
+    "prompt": "Why can a media question not bind to a Flow, and where are empty, unknown, or repeated accepted media kinds refused?"
+  },
+  {
+    "id": "whatsurvey.fresh-study-anchor.debug",
+    "repo": "whatsurvey",
+    "family": "fresh-study-anchor",
+    "split": "heldout",
+    "kind": "debug",
+    "prompt": "After a form is created, what prevents an update from moving it to a different study or clearing its study association?"
+  },
+  {
+    "id": "whatsurvey.fresh-refusal-observability.debug",
+    "repo": "whatsurvey",
+    "family": "fresh-refusal-observability",
+    "split": "heldout",
+    "kind": "debug",
+    "prompt": "When a form submission is refused, where are a warning and refusal metric recorded without logging the submitted API key or client input?"
+  }
+]

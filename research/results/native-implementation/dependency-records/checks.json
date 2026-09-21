@@ -1,0 +1,69 @@
+[
+  {
+    "name": "initial-core-engine",
+    "command": "cargo test -p graph-search-engine -p graph-search-core --lib",
+    "exit_code": 101,
+    "log": "initial-core-engine.log"
+  },
+  {
+    "name": "intermediate-core-engine",
+    "command": "cargo test -p graph-search-engine -p graph-search-core --lib",
+    "exit_code": 0,
+    "log": "intermediate-core-engine.log"
+  },
+  {
+    "name": "initial-integration",
+    "command": "cargo test -p graph-search --test binding_invalidation --test retrieval_incremental -p graph-search-engine --test extraction_facts",
+    "exit_code": 101,
+    "log": "initial-integration.log"
+  },
+  {
+    "name": "initial-clippy",
+    "command": "cargo clippy --workspace --all-targets -- -D warnings",
+    "exit_code": 101,
+    "log": "initial-clippy.log"
+  },
+  {
+    "name": "final-clippy",
+    "command": "cargo clippy --workspace --all-targets -- -D warnings",
+    "exit_code": 0,
+    "log": "final-clippy.log"
+  },
+  {
+    "name": "final-integration",
+    "command": "cargo test -p graph-search --test binding_invalidation --test retrieval_incremental -p graph-search-engine --test extraction_facts",
+    "exit_code": 0,
+    "log": "final-integration.log"
+  },
+  {
+    "name": "probe-clippy",
+    "command": "cargo clippy --manifest-path research/harness/Cargo.toml --bin stable_target_probe -- -D warnings",
+    "exit_code": 0,
+    "log": "probe-clippy.log"
+  },
+  {
+    "name": "broad-regression-before-fixture-repair",
+    "command": "cargo test -p graph-search-core -p graph-search-engine -p graph-search --tests",
+    "exit_code": 101,
+    "log": "broad-regression-before-fixture-repair.log",
+    "note": "All preceding suites passed; source_units legacy-format fixture retained new dependencies artifact. Only fixture construction corrected. Remaining suites run separately."
+  },
+  {
+    "name": "final-storage",
+    "command": "cargo test -p graph-search-core -p graph-search-engine --tests",
+    "exit_code": 0,
+    "log": "final-storage.log"
+  },
+  {
+    "name": "fixture-clippy",
+    "command": "cargo clippy -p graph-search --test source_units -- -D warnings",
+    "exit_code": 0,
+    "log": "fixture-clippy.log"
+  },
+  {
+    "name": "remaining-integration",
+    "command": "cargo test -p graph-search --test source_units --test store_exclusion --test typescript_config --test typescript_files --test typescript_inheritance --test typescript_roots --test work",
+    "exit_code": 0,
+    "log": "remaining-integration.log"
+  }
+]

@@ -1,0 +1,297 @@
+{
+  "adjacency": {
+    "edge_inline_capacity_bytes": 1382848,
+    "edges": 6847,
+    "edges_json_bytes_not_heap": 2211680,
+    "incident": {
+      "entries": 10263,
+      "entry_count_by_length_1_4_16_128_more": [
+        1072,
+        673,
+        3376,
+        5009,
+        133
+      ],
+      "front_coded_suffix_bytes_lower_bound": 22210,
+      "item_size": 8,
+      "key_string_headers_bytes": 44208,
+      "list_count_by_length_1_4_16_128_more": [
+        1072,
+        227,
+        389,
+        153,
+        1
+      ],
+      "list_vec_headers_bytes": 44208,
+      "term_utf8_bytes": 106193,
+      "terms": 1842,
+      "vector_capacity_bytes": 136288,
+      "vector_length_bytes": 82104
+    }
+  },
+  "body": {
+    "docid_encoding": {
+      "delta_varint_bytes_lower_bound": 124041,
+      "entries": 99159,
+      "maximum_ordinal": 5408,
+      "note": "Doc IDs only: excludes payload, offsets, skips, checksums and decoding costs; no codec implemented.",
+      "plain_usize_bytes": 793272
+    },
+    "document_capacity_bytes": 327680,
+    "document_length_bytes": 216360,
+    "document_size": 40,
+    "documents": 5409,
+    "file_path_utf8_bytes": 5252,
+    "files": 167,
+    "identifier_lane": {
+      "docid_encoding": {
+        "delta_varint_bytes_lower_bound": 138490,
+        "entries": 109124,
+        "maximum_ordinal": 5408,
+        "note": "Doc IDs only: excludes payload, offsets, skips, checksums and decoding costs; no codec implemented.",
+        "plain_usize_bytes": 872992
+      },
+      "document_capacity_bytes": 327680,
+      "document_length_bytes": 216360,
+      "document_size": 40,
+      "documents": 5409,
+      "file_path_utf8_bytes": 5252,
+      "files": 167,
+      "identifier_lane": null,
+      "posting_field_bytes": 20,
+      "postings": {
+        "entries": 109124,
+        "entry_count_by_length_1_4_16_128_more": [
+          11633,
+          8611,
+          18038,
+          34633,
+          36209
+        ],
+        "front_coded_suffix_bytes_lower_bound": 95523,
+        "item_size": 24,
+        "key_string_headers_bytes": 436416,
+        "list_count_by_length_1_4_16_128_more": [
+          11633,
+          3518,
+          2101,
+          800,
+          132
+        ],
+        "list_vec_headers_bytes": 436416,
+        "term_utf8_bytes": 146360,
+        "terms": 18184,
+        "vector_capacity_bytes": 4501920,
+        "vector_length_bytes": 2618976
+      }
+    },
+    "posting_field_bytes": 20,
+    "postings": {
+      "entries": 99159,
+      "entry_count_by_length_1_4_16_128_more": [
+        9404,
+        6573,
+        15446,
+        32769,
+        34967
+      ],
+      "front_coded_suffix_bytes_lower_bound": 33215,
+      "item_size": 24,
+      "key_string_headers_bytes": 353664,
+      "list_count_by_length_1_4_16_128_more": [
+        9404,
+        2686,
+        1783,
+        735,
+        128
+      ],
+      "list_vec_headers_bytes": 353664,
+      "term_utf8_bytes": 70425,
+      "terms": 14736,
+      "vector_capacity_bytes": 4013952,
+      "vector_length_bytes": 2379816
+    }
+  },
+  "metadata": {
+    "bare": {
+      "entries": 2003,
+      "entry_count_by_length_1_4_16_128_more": [
+        783,
+        439,
+        497,
+        284,
+        0
+      ],
+      "front_coded_suffix_bytes_lower_bound": 6262,
+      "item_size": 8,
+      "key_string_headers_bytes": 24576,
+      "list_count_by_length_1_4_16_128_more": [
+        783,
+        173,
+        59,
+        9,
+        0
+      ],
+      "list_vec_headers_bytes": 24576,
+      "term_utf8_bytes": 9838,
+      "terms": 1024,
+      "vector_capacity_bytes": 39296,
+      "vector_length_bytes": 16024
+    },
+    "file_ordinal_capacity_bytes": 2048,
+    "folded": {
+      "entries": 2941,
+      "entry_count_by_length_1_4_16_128_more": [
+        1669,
+        450,
+        536,
+        286,
+        0
+      ],
+      "front_coded_suffix_bytes_lower_bound": 11564,
+      "item_size": 8,
+      "key_string_headers_bytes": 46080,
+      "list_count_by_length_1_4_16_128_more": [
+        1669,
+        178,
+        64,
+        9,
+        0
+      ],
+      "list_vec_headers_bytes": 46080,
+      "term_utf8_bytes": 30269,
+      "terms": 1920,
+      "vector_capacity_bytes": 68192,
+      "vector_length_bytes": 23528
+    },
+    "identifiers": {
+      "arc_map_pointer_bytes": 14272,
+      "arc_payload_header_bytes": 71360,
+      "docid_encoding": {
+        "delta_varint_bytes_lower_bound": 29390,
+        "entries": 26596,
+        "maximum_ordinal": 2002,
+        "note": "Doc IDs only: excludes payload, offsets, skips, checksums and decoding costs; no codec implemented.",
+        "plain_usize_bytes": 212768
+      },
+      "documents": 2003,
+      "norm_capacity_bytes": 144216,
+      "norm_length_bytes": 144216,
+      "note": "List Vec headers are inside Arc payload, not map values; do not add both header figures. BTree nodes, allocator overhead and String spare capacity excluded.",
+      "posting_field_bytes": 44,
+      "postings": {
+        "entries": 26596,
+        "entry_count_by_length_1_4_16_128_more": [
+          577,
+          1497,
+          3713,
+          7668,
+          13141
+        ],
+        "front_coded_suffix_bytes_lower_bound": 7762,
+        "item_size": 48,
+        "key_string_headers_bytes": 42816,
+        "list_count_by_length_1_4_16_128_more": [
+          577,
+          560,
+          433,
+          189,
+          25
+        ],
+        "list_vec_headers_bytes": 42816,
+        "term_utf8_bytes": 14663,
+        "terms": 1784,
+        "vector_capacity_bytes": 1763520,
+        "vector_length_bytes": 1276608
+      },
+      "zero_whole_frequency_postings": 4837
+    },
+    "node_inline_capacity_bytes": 1015808,
+    "nodes": 2172,
+    "nodes_json_bytes_not_heap": 1265908,
+    "qualified": {
+      "entries": 1107,
+      "entry_count_by_length_1_4_16_128_more": [
+        1092,
+        9,
+        6,
+        0,
+        0
+      ],
+      "front_coded_suffix_bytes_lower_bound": 9472,
+      "item_size": 8,
+      "key_string_headers_bytes": 26328,
+      "list_count_by_length_1_4_16_128_more": [
+        1092,
+        4,
+        1,
+        0,
+        0
+      ],
+      "list_vec_headers_bytes": 26328,
+      "term_utf8_bytes": 25929,
+      "terms": 1097,
+      "vector_capacity_bytes": 35136,
+      "vector_length_bytes": 8856
+    },
+    "split": {
+      "arc_map_pointer_bytes": 8184,
+      "arc_payload_header_bytes": 40920,
+      "docid_encoding": {
+        "delta_varint_bytes_lower_bound": 23795,
+        "entries": 21891,
+        "maximum_ordinal": 2002,
+        "note": "Doc IDs only: excludes payload, offsets, skips, checksums and decoding costs; no codec implemented.",
+        "plain_usize_bytes": 175128
+      },
+      "documents": 2003,
+      "norm_capacity_bytes": 144216,
+      "norm_length_bytes": 144216,
+      "note": "List Vec headers are inside Arc payload, not map values; do not add both header figures. BTree nodes, allocator overhead and String spare capacity excluded.",
+      "posting_field_bytes": 44,
+      "postings": {
+        "entries": 21891,
+        "entry_count_by_length_1_4_16_128_more": [
+          286,
+          817,
+          2096,
+          6433,
+          12259
+        ],
+        "front_coded_suffix_bytes_lower_bound": 2904,
+        "item_size": 48,
+        "key_string_headers_bytes": 24552,
+        "list_count_by_length_1_4_16_128_more": [
+          286,
+          311,
+          246,
+          158,
+          22
+        ],
+        "list_vec_headers_bytes": 24552,
+        "term_utf8_bytes": 5585,
+        "terms": 1023,
+        "vector_capacity_bytes": 1413696,
+        "vector_length_bytes": 1050768
+      },
+      "zero_whole_frequency_postings": 21891
+    },
+    "symbol_ordinal_capacity_bytes": 16384
+  },
+  "note": "Partial composition: neither JSON bytes nor inline sizes are complete heap estimates. No token-position stream or source-text blob retained in these native postings. Grafeo internals, map nodes, record strings and allocator overhead excluded.",
+  "occurrence_facts": {
+    "files": 169,
+    "json_bytes_not_heap": 3505302,
+    "records": 7490
+  },
+  "source_facts": {
+    "files": 167,
+    "identifier_utf8_bytes": 493323,
+    "json_bytes_not_heap": 4596054,
+    "line_capacity_bytes": 3092080,
+    "line_length_bytes": 1081412,
+    "line_occurrences": 270353,
+    "term_utf8_bytes": 459670,
+    "units": 6460
+  }
+}

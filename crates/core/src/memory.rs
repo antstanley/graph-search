@@ -11,7 +11,7 @@ use graph_search_types::kind::{Direction, EdgeKind, NodeKind};
 use graph_search_types::manifest::Manifest;
 use graph_search_types::node::Node;
 use graph_search_types::{ApplyOutcome, Edge, NodeId, Scored, Subgraph, WriteBatch};
-use std::collections::{BTreeMap, BTreeSet, HashMap};
+use std::collections::{BTreeMap, BTreeSet};
 
 /// An in-memory projection of one workspace.
 #[derive(Default)]
@@ -19,6 +19,14 @@ pub struct MemoryStore {
     nodes: BTreeMap<NodeId, Node>,
     edges: Vec<Edge>,
     manifest: Option<Manifest>,
+    dependencies: Option<crate::dependencies::DependencyIndex>,
+    counts: graph_search_types::result::StoreCounts,
+    adjacency: crate::adjacency::AdjacencyIndex,
+    metadata: crate::metadata::MetadataIndex,
+    body: crate::body::BodyIndex,
+    sources: BTreeMap<String, graph_search_types::source::SourceFileUnits>,
+    occurrence_files: BTreeMap<String, graph_search_types::occurrence::OccurrenceFile>,
+    occurrences: crate::occurrences::OccurrenceIndex,
 }
 
 impl MemoryStore {
@@ -39,49 +47,33 @@ impl MemoryStore {
     pub fn is_empty(&self) -> bool {
         self.nodes.is_empty()
     }
-
-    fn file_ids(&self, path: &str) -> Vec<NodeId> {
-        let mut ids: Vec<NodeId> = self
-            .nodes
-            .values()
-            .filter(|node| node.path == path)
-            .map(|node| node.id.clone())
-            .collect();
-        ids.push(NodeId::file(path));
-        ids
-    }
-
-    fn remove_nodes(&mut self, ids: &[NodeId]) -> u64 {
-        let set: BTreeSet<&NodeId> = ids.iter().collect();
-        self.nodes.retain(|id, _| !set.contains(id));
-        self.edges.retain(|edge| {
-            !set.contains(&edge.from) && edge.to.as_ref().is_none_or(|to| !set.contains(to))
-        });
-        set.len() as u64
-    }
 }
 
 impl GraphStore for MemoryStore {
     fn apply(&mut self, batch: WriteBatch) -> Result<ApplyOutcome> {
-        let mut outcome = ApplyOutcome::default();
-        for path in &batch.removed_files {
-            outcome.nodes_deleted = outcome
-                .nodes_deleted
-                .saturating_add(self.remove_nodes(&self.file_ids(path)));
-            outcome.files_touched = outcome.files_touched.saturating_add(1);
-        }
+        crate::units::validate_batch(&batch, self.nodes.values(), &self.sources)?;
         for upsert in &batch.upserts {
-            outcome.nodes_deleted = outcome
-                .nodes_deleted
-                .saturating_add(self.remove_nodes(&self.file_ids(&upsert.file.path)));
+            if let Some(facts) = &upsert.occurrences {
+                let owners: BTreeMap<_, _> = std::iter::once(&upsert.file)
+                    .chain(&upsert.symbols)
+                    .map(|node| (&node.id, node))
+                    .collect();
+                crate::occurrences::validate(&upsert.file, facts, |id| owners.get(id).copied())?;
+            }
         }
+        let mut outcome = ApplyOutcome::default();
+        self.dependencies = None;
+        let mutation = crate::mutation::Mutation::new(&batch, self.nodes.values());
+        self.nodes.retain(|id, _| !mutation.removed.contains(id));
+        self.edges.retain(|edge| !mutation.removes_edge(edge));
+        outcome.nodes_deleted = mutation.removed.len() as u64;
+        outcome.files_touched = batch.removed_files.len() as u64;
         for upsert in &batch.upserts {
             let mut nodes = vec![upsert.file.clone()];
             nodes.extend(upsert.symbols.iter().cloned());
             for node in nodes {
-                if self.nodes.insert(node.id.clone(), node).is_none() {
-                    outcome.nodes_upserted = outcome.nodes_upserted.saturating_add(1);
-                }
+                self.nodes.insert(node.id.clone(), node);
+                outcome.nodes_upserted = outcome.nodes_upserted.saturating_add(1);
             }
             let mut edge_keys: BTreeSet<graph_search_types::EdgeId> = BTreeSet::new();
             for edge in &upsert.edges {
@@ -92,12 +84,62 @@ impl GraphStore for MemoryStore {
             }
             outcome.files_touched = outcome.files_touched.saturating_add(1);
         }
+        for path in &batch.removed_files {
+            self.sources.remove(path);
+        }
+        for upsert in &batch.upserts {
+            self.sources.remove(&upsert.file.path);
+            if let Some(source) = &upsert.source {
+                self.sources
+                    .insert(upsert.file.path.clone(), source.clone());
+            }
+        }
+        crate::occurrences::apply(&mut self.occurrence_files, &batch, |id| {
+            self.nodes.contains_key(id)
+        });
+        self.occurrences = crate::occurrences::OccurrenceIndex::new(&self.occurrence_files);
         self.edges.sort_by(|a, b| {
             a.from
                 .cmp(&b.from)
                 .then(a.kind.cmp(&b.kind))
                 .then(a.id.cmp(&b.id))
         });
+        self.counts = crate::counts::summarize(self.nodes.values(), &self.edges);
+        self.metadata = self
+            .metadata
+            .updated(self.nodes.values().cloned().collect());
+        self.adjacency = crate::adjacency::AdjacencyIndex::new(self.edges.clone());
+        self.body = crate::body::BodyIndex::new(&self.sources);
+        Ok(outcome)
+    }
+
+    fn publish_retaining(
+        &mut self,
+        mut batch: WriteBatch,
+        retention: &crate::retention::FactRetention,
+    ) -> Result<ApplyOutcome> {
+        retention.validate_batch(self, &batch)?;
+        let facts = self.extraction_facts(&retention.paths)?;
+        if facts.len() != retention.paths.len() {
+            return Err(Error::Store("missing retained extraction".into()));
+        }
+        let partial = batch.manifest.clone();
+        for (path, facts) in facts {
+            if let Some(entry) = batch.manifest.entries.get_mut(&path) {
+                entry.extraction = Some(facts);
+            }
+        }
+        let full = batch.manifest.clone();
+        let previous = self.dependencies.clone();
+        let outcome = self.apply(batch)?;
+        self.dependencies = crate::dependencies::DependencyIndex::build_retaining(
+            &partial,
+            self.nodes.values(),
+            &self.edges,
+            previous.as_ref(),
+            &retention.paths,
+        );
+        self.manifest = Some(full);
         Ok(outcome)
     }
 
@@ -109,30 +151,48 @@ impl GraphStore for MemoryStore {
         Ok(self.manifest.clone())
     }
 
+    fn extraction_facts(&self, paths: &BTreeSet<String>) -> Result<crate::ports::ExtractionFacts> {
+        Ok(paths
+            .iter()
+            .filter_map(|path| {
+                self.manifest
+                    .as_ref()?
+                    .entries
+                    .get(path)?
+                    .extraction
+                    .as_ref()
+                    .map(|facts| (path.clone(), facts.clone()))
+            })
+            .collect())
+    }
+
+    fn manifest_header(&self) -> Result<Option<Manifest>> {
+        Ok(self.manifest.as_ref().map(Manifest::header))
+    }
+
     fn commit_manifest(&mut self, manifest: Manifest) -> Result<()> {
+        self.dependencies = crate::dependencies::DependencyIndex::build(
+            &manifest,
+            self.nodes.values(),
+            &self.edges,
+        );
         self.manifest = Some(manifest);
         Ok(())
+    }
+
+    fn dependency_index(&self) -> Result<Option<&crate::dependencies::DependencyIndex>> {
+        Ok(self.dependencies.as_ref())
     }
 }
 
 /// The read view over a [`MemoryStore`].
 pub struct MemorySnapshot<'a> {
     store: &'a MemoryStore,
-    by_name: HashMap<String, Vec<NodeId>>,
 }
 
 impl<'a> MemorySnapshot<'a> {
-    fn new(store: &'a MemoryStore) -> Self {
-        let mut by_name: HashMap<String, Vec<NodeId>> = HashMap::new();
-        for node in store.nodes.values() {
-            if let Some(name) = &node.name {
-                by_name
-                    .entry(name.clone())
-                    .or_default()
-                    .push(node.id.clone());
-            }
-        }
-        Self { store, by_name }
+    const fn new(store: &'a MemoryStore) -> Self {
+        Self { store }
     }
 
     fn edge_matches(edge: &Edge, kinds: &[EdgeKind], dir: Direction, id: &NodeId) -> bool {
@@ -148,50 +208,36 @@ impl<'a> MemorySnapshot<'a> {
 }
 
 impl GraphSnapshot for MemorySnapshot<'_> {
+    fn counts(&self) -> &graph_search_types::result::StoreCounts {
+        &self.store.counts
+    }
+
+    fn occurrence_files(
+        &self,
+    ) -> &BTreeMap<String, graph_search_types::occurrence::OccurrenceFile> {
+        &self.store.occurrence_files
+    }
+    fn occurrences(&self) -> &crate::occurrences::OccurrenceIndex {
+        &self.store.occurrences
+    }
+    fn body(&self) -> &crate::body::BodyIndex {
+        &self.store.body
+    }
+
+    fn source_files(&self) -> &BTreeMap<String, graph_search_types::source::SourceFileUnits> {
+        &self.store.sources
+    }
+
     fn node_by_id(&self, id: &NodeId) -> Result<Option<Node>> {
         Ok(self.store.nodes.get(id).cloned())
     }
 
+    fn metadata(&self) -> &crate::metadata::MetadataIndex {
+        &self.store.metadata
+    }
+
     fn find_by_name(&self, name: &str, kinds: &[NodeKind], k: usize) -> Result<Vec<Scored<Node>>> {
-        let mut scored: Vec<Scored<Node>> = Vec::new();
-        let mut seen: BTreeSet<NodeId> = BTreeSet::new();
-        let push = |node: &Node,
-                    score: f32,
-                    scored: &mut Vec<Scored<Node>>,
-                    seen: &mut BTreeSet<NodeId>| {
-            if !kinds.is_empty() && !kinds.contains(&node.kind) {
-                return;
-            }
-            if seen.insert(node.id.clone()) {
-                scored.push(Scored::new(node.clone(), score));
-            }
-        };
-        // Exact bare name outranks exact qualified name; the spec's ordering
-        // (score desc, path asc, line asc) resolves the rest.
-        for id in self.by_name.get(name).into_iter().flatten() {
-            if let Some(node) = self.store.nodes.get(id) {
-                push(node, 1.0, &mut scored, &mut seen);
-            }
-        }
-        for node in self.store.nodes.values() {
-            if node.qualified_name.as_deref() == Some(name) {
-                push(node, 0.9, &mut scored, &mut seen);
-            }
-        }
-        scored.sort_by(|a, b| {
-            b.score
-                .partial_cmp(&a.score)
-                .unwrap_or(std::cmp::Ordering::Equal)
-                .then_with(|| a.item.path.cmp(&b.item.path))
-                .then_with(|| {
-                    a.item
-                        .span
-                        .map(|s| s.start_line)
-                        .cmp(&b.item.span.map(|s| s.start_line))
-                })
-        });
-        scored.truncate(k);
-        Ok(scored)
+        Ok(self.store.metadata.find_by_name(name, kinds, k))
     }
 
     fn edges_from(&self, id: &NodeId, kinds: &[EdgeKind], dir: Direction) -> Result<Vec<Edge>> {
@@ -209,6 +255,16 @@ impl GraphSnapshot for MemorySnapshot<'_> {
                 .then(a.id.cmp(&b.id))
         });
         Ok(out)
+    }
+
+    fn edges_bounded(
+        &self,
+        id: &NodeId,
+        kinds: &[EdgeKind],
+        dir: Direction,
+        budget: &mut crate::work::WorkBudget,
+    ) -> Result<Vec<Edge>> {
+        self.store.adjacency.read(id, kinds, dir, budget)
     }
 
     fn expand(

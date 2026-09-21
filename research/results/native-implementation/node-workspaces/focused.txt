@@ -1,0 +1,46 @@
+   Compiling graph-search-types v0.1.0 (/Volumes/Delorean/code/graph-search/crates/types)
+   Compiling graph-search-core v0.1.0 (/Volumes/Delorean/code/graph-search/crates/core)
+   Compiling graph-search-engine v0.1.0 (/Volumes/Delorean/code/graph-search/crates/engine)
+   Compiling graph-search-langs v0.1.0 (/Volumes/Delorean/code/graph-search/crates/langs)
+   Compiling graph-search v0.1.0 (/Volumes/Delorean/code/graph-search/crates/graph-search)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 34.24s
+     Running unittests src/lib.rs (target/debug/deps/graph_search-6d5a38aabd640ae8)
+
+running 12 tests
+test cargo_targets::tests::explicit_empty_arrays_and_build_script_settings_are_distinct_from_omission ... ok
+test cargo_targets::tests::authored_targets_preserve_omissions_paths_flags_and_workspace_edition ... ok
+test node_package::tests::authored_maps_preserve_absence_empty_null_and_unsupported_targets ... ok
+test config::tests::replace_defaults_replaces ... ok
+test config::tests::the_spec_example_parses_and_merges ... ok
+test node_package::tests::conditions_bind_only_when_every_branch_has_the_same_path_and_a_default ... ok
+test config::tests::a_missing_file_yields_the_defaults ... ok
+test package_manifests::tests::package_syntax_and_caps_do_not_guess_from_strings_or_invalid_metadata ... ok
+test pnpm_workspace::tests::extracts_only_complete_declared_membership_in_the_supported_yaml_subset ... ok
+test node_package::tests::invalid_or_over_budget_metadata_never_leaves_partial_decisions ... ok
+test package_manifests::tests::cargo_target_caps_preserve_package_identity_and_legacy_defaults ... ok
+test cargo_targets::tests::invalid_or_over_budget_targets_never_leave_a_partial_projection ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/js_modules.rs (target/debug/deps/js_modules-e3c44b60c38611ed)
+
+running 6 tests
+test package_self_exports_and_private_maps_require_authored_targets ... ok
+test reexports_follow_bindings_and_handle_stars_cycles_duplicates_and_type_only_calls ... ok
+test explicit_exports_override_stars_and_long_forwarding_chains_stop ... ok
+test imports_require_exports_and_preserve_named_default_and_namespace_identity ... ok
+test package_map_edits_and_missing_target_creation_rebind_after_reopen ... ok
+test export_edits_rebind_consumers_after_reopen_like_clean_rebuilds ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.41s
+
+     Running tests/node_workspaces.rs (target/debug/deps/node_workspaces-9105074ef42afeaf)
+
+running 4 tests
+test pnpm_workspace_dependencies_follow_declared_identity_and_uniform_exports ... ok
+test explicit_pnpm_manager_never_uses_package_json_workspaces_as_a_substitute ... ok
+test package_json_workspace_declarations_and_missing_dependencies_are_distinct ... ok
+test edits_rebind_workspace_dependencies_after_reopen_like_a_clean_build ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.58s
+

@@ -1,0 +1,755 @@
+{
+  "scope": "six-file source-backed correctness fixture, not a whole-repository quality or timing claim; no application code executes",
+  "source_sha256": {
+    "package.json": "f5d78fcb0d723274a8c0f703024cde52fd09c5749371315860b75e417cd06072",
+    "pnpm-workspace.yaml": "ca83ef3822d34a66b19acb7f6bd0ecf9ae9f88c08e382534a6b72beafaeadf4e",
+    "packages/types/package.json": "b0ddc0394ab37323ef927f35ce73ba3d90bb56a71d164152dca90ffcfa7a76ec",
+    "packages/types/src/contact-name.ts": "23ea3ca50f286cb7b3427e9210eae9d3b1efe8ecf1a9b3e8c9cc2fda93feaae2",
+    "workspaces/backend/package.json": "5a78f2b50aba0bfcf385e874c4ff80ca8b724c35dc9c15d67b3d3d4b917f6d5d",
+    "workspaces/backend/src/core/db/contacts.ts": "d747f99b9d883f5030d7f7b2f70ab6556c160ee405689ec168c4d01dbdfda08c"
+  },
+  "cli_sha256": "6bf7bf93d31619a3a133b1cb223adb9de8fa22f4a9e0b3c4981768a2d75b0c60",
+  "sources_unchanged": true,
+  "captures": {
+    "declared_workspace": {
+      "indexed_files": 6,
+      "items": [
+        {
+          "path": "workspaces/backend/src/core/db/contacts.ts",
+          "source_hash": "d747f99b9d883f5030d7f7b2f70ab6556c160ee405689ec168c4d01dbdfda08c",
+          "occurrence": {
+            "id": "occ:97cce42518afce95c88f17b8173a0c12f18398f46dd91f76fd3104e9d0c9b16e",
+            "owner": "sym:workspaces/backend/src/core/db/contacts.ts#function:createContact",
+            "kind": "calls",
+            "span": {
+              "start_line": 946,
+              "end_line": 946,
+              "start_byte": 40061,
+              "end_byte": 40084
+            },
+            "line": 946,
+            "extent": "expression",
+            "raw_name": "contactNameParts",
+            "name": "contactNameParts",
+            "ordinal": 147,
+            "target": "sym:packages/types/src/contact-name.ts#function:contactNameParts",
+            "target_name": "contactNameParts",
+            "resolution": "explicit_import",
+            "reason": null,
+            "scope": 82,
+            "binding": null
+          }
+        },
+        {
+          "path": "workspaces/backend/src/core/db/contacts.ts",
+          "source_hash": "d747f99b9d883f5030d7f7b2f70ab6556c160ee405689ec168c4d01dbdfda08c",
+          "occurrence": {
+            "id": "occ:49f641956ab56b0dd2f125e60e1b349341c4c67fb4f0b5b7b6005140ff441fcc",
+            "owner": "sym:workspaces/backend/src/core/db/contacts.ts#function:normaliseContactNames",
+            "kind": "calls",
+            "span": {
+              "start_line": 991,
+              "end_line": 991,
+              "start_byte": 41642,
+              "end_byte": 41667
+            },
+            "line": 991,
+            "extent": "expression",
+            "raw_name": "contactNameParts",
+            "name": "contactNameParts",
+            "ordinal": 164,
+            "target": "sym:packages/types/src/contact-name.ts#function:contactNameParts",
+            "target_name": "contactNameParts",
+            "resolution": "explicit_import",
+            "reason": null,
+            "scope": 88,
+            "binding": null
+          }
+        },
+        {
+          "path": "workspaces/backend/src/core/db/contacts.ts",
+          "source_hash": "d747f99b9d883f5030d7f7b2f70ab6556c160ee405689ec168c4d01dbdfda08c",
+          "occurrence": {
+            "id": "occ:4a15d9f3d6624083de9da47171d5af9f54b47a36b9ac7158cd26f579152eecc4",
+            "owner": "sym:workspaces/backend/src/core/db/contacts.ts#function:updateContact",
+            "kind": "calls",
+            "span": {
+              "start_line": 1299,
+              "end_line": 1299,
+              "start_byte": 54113,
+              "end_byte": 54136
+            },
+            "line": 1299,
+            "extent": "expression",
+            "raw_name": "contactNameParts",
+            "name": "contactNameParts",
+            "ordinal": 258,
+            "target": "sym:packages/types/src/contact-name.ts#function:contactNameParts",
+            "target_name": "contactNameParts",
+            "resolution": "explicit_import",
+            "reason": null,
+            "scope": 128,
+            "binding": null
+          }
+        },
+        {
+          "path": "workspaces/backend/src/core/db/contacts.ts",
+          "source_hash": "d747f99b9d883f5030d7f7b2f70ab6556c160ee405689ec168c4d01dbdfda08c",
+          "occurrence": {
+            "id": "occ:7a713a35bc066ced96e14e64fd9559c20b7bed714f61ad98f284de010c49b875",
+            "owner": "sym:workspaces/backend/src/core/db/contacts.ts#function:updateContact",
+            "kind": "calls",
+            "span": {
+              "start_line": 1300,
+              "end_line": 1304,
+              "start_byte": 54147,
+              "end_byte": 54389
+            },
+            "line": 1300,
+            "extent": "expression",
+            "raw_name": "contactNameParts",
+            "name": "contactNameParts",
+            "ordinal": 259,
+            "target": "sym:packages/types/src/contact-name.ts#function:contactNameParts",
+            "target_name": "contactNameParts",
+            "resolution": "explicit_import",
+            "reason": null,
+            "scope": 128,
+            "binding": null
+          }
+        },
+        {
+          "path": "workspaces/backend/src/core/db/contacts.ts",
+          "source_hash": "d747f99b9d883f5030d7f7b2f70ab6556c160ee405689ec168c4d01dbdfda08c",
+          "occurrence": {
+            "id": "occ:7469dac575f861e2d777d856874513f2a10811bb82048b7c99610141ad0a6c52",
+            "owner": "sym:workspaces/backend/src/core/db/contacts.ts#function:updateContact",
+            "kind": "calls",
+            "span": {
+              "start_line": 1301,
+              "end_line": 1301,
+              "start_byte": 54181,
+              "end_byte": 54206
+            },
+            "line": 1301,
+            "extent": "expression",
+            "raw_name": "contactNameParts",
+            "name": "contactNameParts",
+            "ordinal": 260,
+            "target": "sym:packages/types/src/contact-name.ts#function:contactNameParts",
+            "target_name": "contactNameParts",
+            "resolution": "explicit_import",
+            "reason": null,
+            "scope": 128,
+            "binding": null
+          }
+        }
+      ],
+      "versions": {
+        "occurrences": 1,
+        "parser": 18,
+        "schema": 2,
+        "source": 13,
+        "analyzer": 2,
+        "unicode": [
+          17,
+          0,
+          0
+        ],
+        "chunker": 9
+      }
+    },
+    "membership_removed_in_copy": {
+      "indexed_files": 6,
+      "items": [
+        {
+          "path": "workspaces/backend/src/core/db/contacts.ts",
+          "source_hash": "d747f99b9d883f5030d7f7b2f70ab6556c160ee405689ec168c4d01dbdfda08c",
+          "occurrence": {
+            "id": "occ:97cce42518afce95c88f17b8173a0c12f18398f46dd91f76fd3104e9d0c9b16e",
+            "owner": "sym:workspaces/backend/src/core/db/contacts.ts#function:createContact",
+            "kind": "calls",
+            "span": {
+              "start_line": 946,
+              "end_line": 946,
+              "start_byte": 40061,
+              "end_byte": 40084
+            },
+            "line": 946,
+            "extent": "expression",
+            "raw_name": "contactNameParts",
+            "name": "contactNameParts",
+            "ordinal": 147,
+            "target": null,
+            "target_name": "contactNameParts",
+            "resolution": "unresolved",
+            "reason": "node_workspace_target_missing",
+            "scope": 82,
+            "binding": null
+          }
+        },
+        {
+          "path": "workspaces/backend/src/core/db/contacts.ts",
+          "source_hash": "d747f99b9d883f5030d7f7b2f70ab6556c160ee405689ec168c4d01dbdfda08c",
+          "occurrence": {
+            "id": "occ:49f641956ab56b0dd2f125e60e1b349341c4c67fb4f0b5b7b6005140ff441fcc",
+            "owner": "sym:workspaces/backend/src/core/db/contacts.ts#function:normaliseContactNames",
+            "kind": "calls",
+            "span": {
+              "start_line": 991,
+              "end_line": 991,
+              "start_byte": 41642,
+              "end_byte": 41667
+            },
+            "line": 991,
+            "extent": "expression",
+            "raw_name": "contactNameParts",
+            "name": "contactNameParts",
+            "ordinal": 164,
+            "target": null,
+            "target_name": "contactNameParts",
+            "resolution": "unresolved",
+            "reason": "node_workspace_target_missing",
+            "scope": 88,
+            "binding": null
+          }
+        },
+        {
+          "path": "workspaces/backend/src/core/db/contacts.ts",
+          "source_hash": "d747f99b9d883f5030d7f7b2f70ab6556c160ee405689ec168c4d01dbdfda08c",
+          "occurrence": {
+            "id": "occ:4a15d9f3d6624083de9da47171d5af9f54b47a36b9ac7158cd26f579152eecc4",
+            "owner": "sym:workspaces/backend/src/core/db/contacts.ts#function:updateContact",
+            "kind": "calls",
+            "span": {
+              "start_line": 1299,
+              "end_line": 1299,
+              "start_byte": 54113,
+              "end_byte": 54136
+            },
+            "line": 1299,
+            "extent": "expression",
+            "raw_name": "contactNameParts",
+            "name": "contactNameParts",
+            "ordinal": 258,
+            "target": null,
+            "target_name": "contactNameParts",
+            "resolution": "unresolved",
+            "reason": "node_workspace_target_missing",
+            "scope": 128,
+            "binding": null
+          }
+        },
+        {
+          "path": "workspaces/backend/src/core/db/contacts.ts",
+          "source_hash": "d747f99b9d883f5030d7f7b2f70ab6556c160ee405689ec168c4d01dbdfda08c",
+          "occurrence": {
+            "id": "occ:7a713a35bc066ced96e14e64fd9559c20b7bed714f61ad98f284de010c49b875",
+            "owner": "sym:workspaces/backend/src/core/db/contacts.ts#function:updateContact",
+            "kind": "calls",
+            "span": {
+              "start_line": 1300,
+              "end_line": 1304,
+              "start_byte": 54147,
+              "end_byte": 54389
+            },
+            "line": 1300,
+            "extent": "expression",
+            "raw_name": "contactNameParts",
+            "name": "contactNameParts",
+            "ordinal": 259,
+            "target": null,
+            "target_name": "contactNameParts",
+            "resolution": "unresolved",
+            "reason": "node_workspace_target_missing",
+            "scope": 128,
+            "binding": null
+          }
+        },
+        {
+          "path": "workspaces/backend/src/core/db/contacts.ts",
+          "source_hash": "d747f99b9d883f5030d7f7b2f70ab6556c160ee405689ec168c4d01dbdfda08c",
+          "occurrence": {
+            "id": "occ:7469dac575f861e2d777d856874513f2a10811bb82048b7c99610141ad0a6c52",
+            "owner": "sym:workspaces/backend/src/core/db/contacts.ts#function:updateContact",
+            "kind": "calls",
+            "span": {
+              "start_line": 1301,
+              "end_line": 1301,
+              "start_byte": 54181,
+              "end_byte": 54206
+            },
+            "line": 1301,
+            "extent": "expression",
+            "raw_name": "contactNameParts",
+            "name": "contactNameParts",
+            "ordinal": 260,
+            "target": null,
+            "target_name": "contactNameParts",
+            "resolution": "unresolved",
+            "reason": "node_workspace_target_missing",
+            "scope": 128,
+            "binding": null
+          }
+        }
+      ],
+      "versions": {
+        "occurrences": 1,
+        "parser": 18,
+        "schema": 2,
+        "source": 13,
+        "analyzer": 2,
+        "unicode": [
+          17,
+          0,
+          0
+        ],
+        "chunker": 9
+      }
+    },
+    "membership_restored": {
+      "indexed_files": 6,
+      "items": [
+        {
+          "path": "workspaces/backend/src/core/db/contacts.ts",
+          "source_hash": "d747f99b9d883f5030d7f7b2f70ab6556c160ee405689ec168c4d01dbdfda08c",
+          "occurrence": {
+            "id": "occ:97cce42518afce95c88f17b8173a0c12f18398f46dd91f76fd3104e9d0c9b16e",
+            "owner": "sym:workspaces/backend/src/core/db/contacts.ts#function:createContact",
+            "kind": "calls",
+            "span": {
+              "start_line": 946,
+              "end_line": 946,
+              "start_byte": 40061,
+              "end_byte": 40084
+            },
+            "line": 946,
+            "extent": "expression",
+            "raw_name": "contactNameParts",
+            "name": "contactNameParts",
+            "ordinal": 147,
+            "target": "sym:packages/types/src/contact-name.ts#function:contactNameParts",
+            "target_name": "contactNameParts",
+            "resolution": "explicit_import",
+            "reason": null,
+            "scope": 82,
+            "binding": null
+          }
+        },
+        {
+          "path": "workspaces/backend/src/core/db/contacts.ts",
+          "source_hash": "d747f99b9d883f5030d7f7b2f70ab6556c160ee405689ec168c4d01dbdfda08c",
+          "occurrence": {
+            "id": "occ:49f641956ab56b0dd2f125e60e1b349341c4c67fb4f0b5b7b6005140ff441fcc",
+            "owner": "sym:workspaces/backend/src/core/db/contacts.ts#function:normaliseContactNames",
+            "kind": "calls",
+            "span": {
+              "start_line": 991,
+              "end_line": 991,
+              "start_byte": 41642,
+              "end_byte": 41667
+            },
+            "line": 991,
+            "extent": "expression",
+            "raw_name": "contactNameParts",
+            "name": "contactNameParts",
+            "ordinal": 164,
+            "target": "sym:packages/types/src/contact-name.ts#function:contactNameParts",
+            "target_name": "contactNameParts",
+            "resolution": "explicit_import",
+            "reason": null,
+            "scope": 88,
+            "binding": null
+          }
+        },
+        {
+          "path": "workspaces/backend/src/core/db/contacts.ts",
+          "source_hash": "d747f99b9d883f5030d7f7b2f70ab6556c160ee405689ec168c4d01dbdfda08c",
+          "occurrence": {
+            "id": "occ:4a15d9f3d6624083de9da47171d5af9f54b47a36b9ac7158cd26f579152eecc4",
+            "owner": "sym:workspaces/backend/src/core/db/contacts.ts#function:updateContact",
+            "kind": "calls",
+            "span": {
+              "start_line": 1299,
+              "end_line": 1299,
+              "start_byte": 54113,
+              "end_byte": 54136
+            },
+            "line": 1299,
+            "extent": "expression",
+            "raw_name": "contactNameParts",
+            "name": "contactNameParts",
+            "ordinal": 258,
+            "target": "sym:packages/types/src/contact-name.ts#function:contactNameParts",
+            "target_name": "contactNameParts",
+            "resolution": "explicit_import",
+            "reason": null,
+            "scope": 128,
+            "binding": null
+          }
+        },
+        {
+          "path": "workspaces/backend/src/core/db/contacts.ts",
+          "source_hash": "d747f99b9d883f5030d7f7b2f70ab6556c160ee405689ec168c4d01dbdfda08c",
+          "occurrence": {
+            "id": "occ:7a713a35bc066ced96e14e64fd9559c20b7bed714f61ad98f284de010c49b875",
+            "owner": "sym:workspaces/backend/src/core/db/contacts.ts#function:updateContact",
+            "kind": "calls",
+            "span": {
+              "start_line": 1300,
+              "end_line": 1304,
+              "start_byte": 54147,
+              "end_byte": 54389
+            },
+            "line": 1300,
+            "extent": "expression",
+            "raw_name": "contactNameParts",
+            "name": "contactNameParts",
+            "ordinal": 259,
+            "target": "sym:packages/types/src/contact-name.ts#function:contactNameParts",
+            "target_name": "contactNameParts",
+            "resolution": "explicit_import",
+            "reason": null,
+            "scope": 128,
+            "binding": null
+          }
+        },
+        {
+          "path": "workspaces/backend/src/core/db/contacts.ts",
+          "source_hash": "d747f99b9d883f5030d7f7b2f70ab6556c160ee405689ec168c4d01dbdfda08c",
+          "occurrence": {
+            "id": "occ:7469dac575f861e2d777d856874513f2a10811bb82048b7c99610141ad0a6c52",
+            "owner": "sym:workspaces/backend/src/core/db/contacts.ts#function:updateContact",
+            "kind": "calls",
+            "span": {
+              "start_line": 1301,
+              "end_line": 1301,
+              "start_byte": 54181,
+              "end_byte": 54206
+            },
+            "line": 1301,
+            "extent": "expression",
+            "raw_name": "contactNameParts",
+            "name": "contactNameParts",
+            "ordinal": 260,
+            "target": "sym:packages/types/src/contact-name.ts#function:contactNameParts",
+            "target_name": "contactNameParts",
+            "resolution": "explicit_import",
+            "reason": null,
+            "scope": 128,
+            "binding": null
+          }
+        }
+      ],
+      "versions": {
+        "occurrences": 1,
+        "parser": 18,
+        "schema": 2,
+        "source": 13,
+        "analyzer": 2,
+        "unicode": [
+          17,
+          0,
+          0
+        ],
+        "chunker": 9
+      }
+    },
+    "dependency_removed_in_copy": {
+      "indexed_files": 6,
+      "items": [
+        {
+          "path": "workspaces/backend/src/core/db/contacts.ts",
+          "source_hash": "d747f99b9d883f5030d7f7b2f70ab6556c160ee405689ec168c4d01dbdfda08c",
+          "occurrence": {
+            "id": "occ:97cce42518afce95c88f17b8173a0c12f18398f46dd91f76fd3104e9d0c9b16e",
+            "owner": "sym:workspaces/backend/src/core/db/contacts.ts#function:createContact",
+            "kind": "calls",
+            "span": {
+              "start_line": 946,
+              "end_line": 946,
+              "start_byte": 40061,
+              "end_byte": 40084
+            },
+            "line": 946,
+            "extent": "expression",
+            "raw_name": "contactNameParts",
+            "name": "contactNameParts",
+            "ordinal": 147,
+            "target": null,
+            "target_name": "contactNameParts",
+            "resolution": "unresolved",
+            "reason": "node_dependency_not_declared",
+            "scope": 82,
+            "binding": null
+          }
+        },
+        {
+          "path": "workspaces/backend/src/core/db/contacts.ts",
+          "source_hash": "d747f99b9d883f5030d7f7b2f70ab6556c160ee405689ec168c4d01dbdfda08c",
+          "occurrence": {
+            "id": "occ:49f641956ab56b0dd2f125e60e1b349341c4c67fb4f0b5b7b6005140ff441fcc",
+            "owner": "sym:workspaces/backend/src/core/db/contacts.ts#function:normaliseContactNames",
+            "kind": "calls",
+            "span": {
+              "start_line": 991,
+              "end_line": 991,
+              "start_byte": 41642,
+              "end_byte": 41667
+            },
+            "line": 991,
+            "extent": "expression",
+            "raw_name": "contactNameParts",
+            "name": "contactNameParts",
+            "ordinal": 164,
+            "target": null,
+            "target_name": "contactNameParts",
+            "resolution": "unresolved",
+            "reason": "node_dependency_not_declared",
+            "scope": 88,
+            "binding": null
+          }
+        },
+        {
+          "path": "workspaces/backend/src/core/db/contacts.ts",
+          "source_hash": "d747f99b9d883f5030d7f7b2f70ab6556c160ee405689ec168c4d01dbdfda08c",
+          "occurrence": {
+            "id": "occ:4a15d9f3d6624083de9da47171d5af9f54b47a36b9ac7158cd26f579152eecc4",
+            "owner": "sym:workspaces/backend/src/core/db/contacts.ts#function:updateContact",
+            "kind": "calls",
+            "span": {
+              "start_line": 1299,
+              "end_line": 1299,
+              "start_byte": 54113,
+              "end_byte": 54136
+            },
+            "line": 1299,
+            "extent": "expression",
+            "raw_name": "contactNameParts",
+            "name": "contactNameParts",
+            "ordinal": 258,
+            "target": null,
+            "target_name": "contactNameParts",
+            "resolution": "unresolved",
+            "reason": "node_dependency_not_declared",
+            "scope": 128,
+            "binding": null
+          }
+        },
+        {
+          "path": "workspaces/backend/src/core/db/contacts.ts",
+          "source_hash": "d747f99b9d883f5030d7f7b2f70ab6556c160ee405689ec168c4d01dbdfda08c",
+          "occurrence": {
+            "id": "occ:7a713a35bc066ced96e14e64fd9559c20b7bed714f61ad98f284de010c49b875",
+            "owner": "sym:workspaces/backend/src/core/db/contacts.ts#function:updateContact",
+            "kind": "calls",
+            "span": {
+              "start_line": 1300,
+              "end_line": 1304,
+              "start_byte": 54147,
+              "end_byte": 54389
+            },
+            "line": 1300,
+            "extent": "expression",
+            "raw_name": "contactNameParts",
+            "name": "contactNameParts",
+            "ordinal": 259,
+            "target": null,
+            "target_name": "contactNameParts",
+            "resolution": "unresolved",
+            "reason": "node_dependency_not_declared",
+            "scope": 128,
+            "binding": null
+          }
+        },
+        {
+          "path": "workspaces/backend/src/core/db/contacts.ts",
+          "source_hash": "d747f99b9d883f5030d7f7b2f70ab6556c160ee405689ec168c4d01dbdfda08c",
+          "occurrence": {
+            "id": "occ:7469dac575f861e2d777d856874513f2a10811bb82048b7c99610141ad0a6c52",
+            "owner": "sym:workspaces/backend/src/core/db/contacts.ts#function:updateContact",
+            "kind": "calls",
+            "span": {
+              "start_line": 1301,
+              "end_line": 1301,
+              "start_byte": 54181,
+              "end_byte": 54206
+            },
+            "line": 1301,
+            "extent": "expression",
+            "raw_name": "contactNameParts",
+            "name": "contactNameParts",
+            "ordinal": 260,
+            "target": null,
+            "target_name": "contactNameParts",
+            "resolution": "unresolved",
+            "reason": "node_dependency_not_declared",
+            "scope": 128,
+            "binding": null
+          }
+        }
+      ],
+      "versions": {
+        "occurrences": 1,
+        "parser": 18,
+        "schema": 2,
+        "source": 13,
+        "analyzer": 2,
+        "unicode": [
+          17,
+          0,
+          0
+        ],
+        "chunker": 9
+      }
+    },
+    "dependency_restored": {
+      "indexed_files": 6,
+      "items": [
+        {
+          "path": "workspaces/backend/src/core/db/contacts.ts",
+          "source_hash": "d747f99b9d883f5030d7f7b2f70ab6556c160ee405689ec168c4d01dbdfda08c",
+          "occurrence": {
+            "id": "occ:97cce42518afce95c88f17b8173a0c12f18398f46dd91f76fd3104e9d0c9b16e",
+            "owner": "sym:workspaces/backend/src/core/db/contacts.ts#function:createContact",
+            "kind": "calls",
+            "span": {
+              "start_line": 946,
+              "end_line": 946,
+              "start_byte": 40061,
+              "end_byte": 40084
+            },
+            "line": 946,
+            "extent": "expression",
+            "raw_name": "contactNameParts",
+            "name": "contactNameParts",
+            "ordinal": 147,
+            "target": "sym:packages/types/src/contact-name.ts#function:contactNameParts",
+            "target_name": "contactNameParts",
+            "resolution": "explicit_import",
+            "reason": null,
+            "scope": 82,
+            "binding": null
+          }
+        },
+        {
+          "path": "workspaces/backend/src/core/db/contacts.ts",
+          "source_hash": "d747f99b9d883f5030d7f7b2f70ab6556c160ee405689ec168c4d01dbdfda08c",
+          "occurrence": {
+            "id": "occ:49f641956ab56b0dd2f125e60e1b349341c4c67fb4f0b5b7b6005140ff441fcc",
+            "owner": "sym:workspaces/backend/src/core/db/contacts.ts#function:normaliseContactNames",
+            "kind": "calls",
+            "span": {
+              "start_line": 991,
+              "end_line": 991,
+              "start_byte": 41642,
+              "end_byte": 41667
+            },
+            "line": 991,
+            "extent": "expression",
+            "raw_name": "contactNameParts",
+            "name": "contactNameParts",
+            "ordinal": 164,
+            "target": "sym:packages/types/src/contact-name.ts#function:contactNameParts",
+            "target_name": "contactNameParts",
+            "resolution": "explicit_import",
+            "reason": null,
+            "scope": 88,
+            "binding": null
+          }
+        },
+        {
+          "path": "workspaces/backend/src/core/db/contacts.ts",
+          "source_hash": "d747f99b9d883f5030d7f7b2f70ab6556c160ee405689ec168c4d01dbdfda08c",
+          "occurrence": {
+            "id": "occ:4a15d9f3d6624083de9da47171d5af9f54b47a36b9ac7158cd26f579152eecc4",
+            "owner": "sym:workspaces/backend/src/core/db/contacts.ts#function:updateContact",
+            "kind": "calls",
+            "span": {
+              "start_line": 1299,
+              "end_line": 1299,
+              "start_byte": 54113,
+              "end_byte": 54136
+            },
+            "line": 1299,
+            "extent": "expression",
+            "raw_name": "contactNameParts",
+            "name": "contactNameParts",
+            "ordinal": 258,
+            "target": "sym:packages/types/src/contact-name.ts#function:contactNameParts",
+            "target_name": "contactNameParts",
+            "resolution": "explicit_import",
+            "reason": null,
+            "scope": 128,
+            "binding": null
+          }
+        },
+        {
+          "path": "workspaces/backend/src/core/db/contacts.ts",
+          "source_hash": "d747f99b9d883f5030d7f7b2f70ab6556c160ee405689ec168c4d01dbdfda08c",
+          "occurrence": {
+            "id": "occ:7a713a35bc066ced96e14e64fd9559c20b7bed714f61ad98f284de010c49b875",
+            "owner": "sym:workspaces/backend/src/core/db/contacts.ts#function:updateContact",
+            "kind": "calls",
+            "span": {
+              "start_line": 1300,
+              "end_line": 1304,
+              "start_byte": 54147,
+              "end_byte": 54389
+            },
+            "line": 1300,
+            "extent": "expression",
+            "raw_name": "contactNameParts",
+            "name": "contactNameParts",
+            "ordinal": 259,
+            "target": "sym:packages/types/src/contact-name.ts#function:contactNameParts",
+            "target_name": "contactNameParts",
+            "resolution": "explicit_import",
+            "reason": null,
+            "scope": 128,
+            "binding": null
+          }
+        },
+        {
+          "path": "workspaces/backend/src/core/db/contacts.ts",
+          "source_hash": "d747f99b9d883f5030d7f7b2f70ab6556c160ee405689ec168c4d01dbdfda08c",
+          "occurrence": {
+            "id": "occ:7469dac575f861e2d777d856874513f2a10811bb82048b7c99610141ad0a6c52",
+            "owner": "sym:workspaces/backend/src/core/db/contacts.ts#function:updateContact",
+            "kind": "calls",
+            "span": {
+              "start_line": 1301,
+              "end_line": 1301,
+              "start_byte": 54181,
+              "end_byte": 54206
+            },
+            "line": 1301,
+            "extent": "expression",
+            "raw_name": "contactNameParts",
+            "name": "contactNameParts",
+            "ordinal": 260,
+            "target": "sym:packages/types/src/contact-name.ts#function:contactNameParts",
+            "target_name": "contactNameParts",
+            "resolution": "explicit_import",
+            "reason": null,
+            "scope": 128,
+            "binding": null
+          }
+        }
+      ],
+      "versions": {
+        "occurrences": 1,
+        "parser": 18,
+        "schema": 2,
+        "source": 13,
+        "analyzer": 2,
+        "unicode": [
+          17,
+          0,
+          0
+        ],
+        "chunker": 9
+      }
+    }
+  }
+}

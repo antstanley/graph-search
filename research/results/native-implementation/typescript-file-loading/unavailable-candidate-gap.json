@@ -1,0 +1,44 @@
+{
+  "binary_sha256": "1e13ce462c522243d76f1d9a47d60d758f30352fccf4c023a319746e676d234e",
+  "compiler_sha256": "569177652966bd528c319171c7dd22860dbf72bde116cbc4f644f1d02bb12e39",
+  "scope": "Known integration gap: admitted-only inventory cannot prove absence of an oversized higher-priority candidate. Default search does not yet publish these alias bindings.",
+  "native": {
+    "probes": [
+      {
+        "package_boundary": false,
+        "path": "src/entry.ts",
+        "present": false
+      },
+      {
+        "package_boundary": false,
+        "path": "src/entry.tsx",
+        "present": false
+      },
+      {
+        "package_boundary": false,
+        "path": "src/entry.d.ts",
+        "present": false
+      },
+      {
+        "package_boundary": false,
+        "path": "src/entry.js",
+        "present": true
+      }
+    ],
+    "query": {
+      "config": "tsconfig.json",
+      "mode": "bundler",
+      "specifier": "@/entry.js"
+    },
+    "result": {
+      "pattern": "@/*",
+      "route": "paths",
+      "target": "src/entry.js"
+    }
+  },
+  "compiler": {
+    "version": "6.0.3",
+    "target": "<fixture>/src/entry.ts"
+  },
+  "required_next_step": "Classify unavailable ordinary candidates and validate negative probes before accepting default bindings; do not treat this mismatch as successful compiler equivalence."
+}

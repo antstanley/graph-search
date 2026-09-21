@@ -1,0 +1,46 @@
+   Compiling graph-search-types v0.1.0 (/Volumes/Delorean/code/graph-search/crates/types)
+   Compiling graph-search-core v0.1.0 (/Volumes/Delorean/code/graph-search/crates/core)
+   Compiling graph-search-langs v0.1.0 (/Volumes/Delorean/code/graph-search/crates/langs)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 19.97s
+     Running unittests src/lib.rs (target/debug/deps/graph_search_langs-fa256a18e321b460)
+
+running 11 tests
+test rust::tests::a_free_function_and_a_call_are_extracted ... ok
+test rust::tests::an_impl_makes_methods_and_the_implements_edge ... ok
+test rust::tests::a_struct_field_type_becomes_a_type_use ... ok
+test rust::tests::duplicate_impl_names_get_disambiguated_by_core ... ok
+test doc_comments::tests::rust_docs_have_raw_spans_and_conservative_owners_without_string_false_positives ... ok
+test doc_comments::tests::repeated_declaration_keys_cannot_select_a_different_occurrence ... ok
+test rust::tests::use_statements_expand_groups_and_aliases ... ok
+test rust::tests::module_attributes_and_reference_spans_preserve_declaration_context ... ok
+depth=4 source_bytes=88 symbol_key_bytes=470
+test doc_comments::tests::js_docs_attach_only_to_the_next_syntax_neighbor_and_ignore_string_contents ... ok
+depth=8 source_bytes=136 symbol_key_bytes=1790
+depth=12 source_bytes=184 symbol_key_bytes=4438
+depth=16 source_bytes=232 symbol_key_bytes=8862
+test rust::tests::nested_scope_keys_do_not_repeat_entire_ancestor_chains ... ok
+test doc_comments::tests::comment_cap_requires_an_actual_omitted_documentation_node ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 8.15s
+
+     Running tests/fixtures_test.rs (target/debug/deps/fixtures_test-73db6a1d05a9c4b6)
+
+running 9 tests
+test css_site ... ok
+test html_page ... ok
+test rust_functions_and_calls ... ok
+test rust_imports ... ok
+test javascript_app ... ok
+test javascript_and_typescript_spans_slice_original_utf8 ... ok
+test rust_items ... ok
+test every_language_preserves_raw_byte_and_line_coordinates ... ok
+test typescript_widget ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests graph_search_langs
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

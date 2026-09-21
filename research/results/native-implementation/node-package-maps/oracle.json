@@ -1,0 +1,359 @@
+{
+  "node": "v24.19.0",
+  "cases": [
+    {
+      "name": "self_named",
+      "manifest": {
+        "name": "@demo/api",
+        "type": "module",
+        "main": "./wrong.js",
+        "exports": {
+          ".": "./api.js",
+          "./sub": "./sub.js",
+          "./hidden": null
+        },
+        "imports": {
+          "#internal": "./api.js"
+        }
+      },
+      "files": {
+        "a\npi.js": "export function send(){return 'literal-decoy'}",
+        "api.js": "export function send(){return 'send'} export default function primary(){return 'primary'}",
+        "sub.js": "export function sub(){return 'sub'}",
+        "wrong.js": "export function send(){return 'wrong'}"
+      },
+      "source": "import {send} from '@demo/api'; assert.equal(send(),'send');",
+      "nested": false,
+      "expected_success": true,
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "",
+      "expected_error_code": null
+    },
+    {
+      "name": "self_default",
+      "manifest": {
+        "name": "@demo/api",
+        "type": "module",
+        "main": "./wrong.js",
+        "exports": {
+          ".": "./api.js",
+          "./sub": "./sub.js",
+          "./hidden": null
+        },
+        "imports": {
+          "#internal": "./api.js"
+        }
+      },
+      "files": {
+        "a\npi.js": "export function send(){return 'literal-decoy'}",
+        "api.js": "export function send(){return 'send'} export default function primary(){return 'primary'}",
+        "sub.js": "export function sub(){return 'sub'}",
+        "wrong.js": "export function send(){return 'wrong'}"
+      },
+      "source": "import main from '@demo/api'; assert.equal(main(),'primary');",
+      "nested": false,
+      "expected_success": true,
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "",
+      "expected_error_code": null
+    },
+    {
+      "name": "self_subpath",
+      "manifest": {
+        "name": "@demo/api",
+        "type": "module",
+        "main": "./wrong.js",
+        "exports": {
+          ".": "./api.js",
+          "./sub": "./sub.js",
+          "./hidden": null
+        },
+        "imports": {
+          "#internal": "./api.js"
+        }
+      },
+      "files": {
+        "a\npi.js": "export function send(){return 'literal-decoy'}",
+        "api.js": "export function send(){return 'send'} export default function primary(){return 'primary'}",
+        "sub.js": "export function sub(){return 'sub'}",
+        "wrong.js": "export function send(){return 'wrong'}"
+      },
+      "source": "import {sub} from '@demo/api/sub'; assert.equal(sub(),'sub');",
+      "nested": false,
+      "expected_success": true,
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "",
+      "expected_error_code": null
+    },
+    {
+      "name": "private_map",
+      "manifest": {
+        "name": "@demo/api",
+        "type": "module",
+        "main": "./wrong.js",
+        "exports": {
+          ".": "./api.js",
+          "./sub": "./sub.js",
+          "./hidden": null
+        },
+        "imports": {
+          "#internal": "./api.js"
+        }
+      },
+      "files": {
+        "a\npi.js": "export function send(){return 'literal-decoy'}",
+        "api.js": "export function send(){return 'send'} export default function primary(){return 'primary'}",
+        "sub.js": "export function sub(){return 'sub'}",
+        "wrong.js": "export function send(){return 'wrong'}"
+      },
+      "source": "import {send} from '#internal'; assert.equal(send(),'send');",
+      "nested": false,
+      "expected_success": true,
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "",
+      "expected_error_code": null
+    },
+    {
+      "name": "blocked_export",
+      "manifest": {
+        "name": "@demo/api",
+        "type": "module",
+        "main": "./wrong.js",
+        "exports": {
+          ".": "./api.js",
+          "./sub": "./sub.js",
+          "./hidden": null
+        },
+        "imports": {
+          "#internal": "./api.js"
+        }
+      },
+      "files": {
+        "a\npi.js": "export function send(){return 'literal-decoy'}",
+        "api.js": "export function send(){return 'send'} export default function primary(){return 'primary'}",
+        "sub.js": "export function sub(){return 'sub'}",
+        "wrong.js": "export function send(){return 'wrong'}"
+      },
+      "source": "import {send} from '@demo/api/hidden'; send();",
+      "nested": false,
+      "expected_success": false,
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "node:internal/modules/esm/resolve:314\n  return new ERR_PACKAGE_PATH_NOT_EXPORTED(\n         ^\n\nError [ERR_PACKAGE_PATH_NOT_EXPORTED]: Package subpath './hidden' is not defined by \"exports\" in /private/var/folders/ft/6fdqp3c914xfdlk47w5cblzc0000gn/T/graph-search-node-package-51d4la83/package.json imported from /private/var/folders/ft/6fdqp3c914xfdlk47w5cblzc0000gn/T/graph-search-node-package-51d4la83/case.mjs\n    at exportsNotFound (node:internal/modules/esm/resolve:314:10)\n    at packageExportsResolve (node:internal/modules/esm/resolve:605:13)\n    at packageResolve (node:internal/modules/esm/resolve:774:12)\n    at moduleResolve (node:internal/modules/esm/resolve:859:18)\n    at defaultResolve (node:internal/modules/esm/resolve:992:11)\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:701:20)\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:721:38)\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:759:56)\n    at #resolve (node:internal/modules/esm/loader:683:17)\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:603:35) {\n  code: 'ERR_PACKAGE_PATH_NOT_EXPORTED'\n}\n\nNode.js v24.19.0\n",
+      "expected_error_code": "ERR_PACKAGE_PATH_NOT_EXPORTED"
+    },
+    {
+      "name": "unlisted_export",
+      "manifest": {
+        "name": "@demo/api",
+        "type": "module",
+        "main": "./wrong.js",
+        "exports": {
+          ".": "./api.js",
+          "./sub": "./sub.js",
+          "./hidden": null
+        },
+        "imports": {
+          "#internal": "./api.js"
+        }
+      },
+      "files": {
+        "a\npi.js": "export function send(){return 'literal-decoy'}",
+        "api.js": "export function send(){return 'send'} export default function primary(){return 'primary'}",
+        "sub.js": "export function sub(){return 'sub'}",
+        "wrong.js": "export function send(){return 'wrong'}"
+      },
+      "source": "import {send} from '@demo/api/api.js'; send();",
+      "nested": false,
+      "expected_success": false,
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "node:internal/modules/esm/resolve:314\n  return new ERR_PACKAGE_PATH_NOT_EXPORTED(\n         ^\n\nError [ERR_PACKAGE_PATH_NOT_EXPORTED]: Package subpath './api.js' is not defined by \"exports\" in /private/var/folders/ft/6fdqp3c914xfdlk47w5cblzc0000gn/T/graph-search-node-package-psnnkkjo/package.json imported from /private/var/folders/ft/6fdqp3c914xfdlk47w5cblzc0000gn/T/graph-search-node-package-psnnkkjo/case.mjs\n    at exportsNotFound (node:internal/modules/esm/resolve:314:10)\n    at packageExportsResolve (node:internal/modules/esm/resolve:662:9)\n    at packageResolve (node:internal/modules/esm/resolve:774:12)\n    at moduleResolve (node:internal/modules/esm/resolve:859:18)\n    at defaultResolve (node:internal/modules/esm/resolve:992:11)\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:701:20)\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:721:38)\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:759:56)\n    at #resolve (node:internal/modules/esm/loader:683:17)\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:603:35) {\n  code: 'ERR_PACKAGE_PATH_NOT_EXPORTED'\n}\n\nNode.js v24.19.0\n",
+      "expected_error_code": "ERR_PACKAGE_PATH_NOT_EXPORTED"
+    },
+    {
+      "name": "no_self_without_exports",
+      "manifest": {
+        "name": "@demo/api",
+        "type": "module",
+        "main": "./wrong.js",
+        "imports": {
+          "#internal": "./api.js"
+        }
+      },
+      "files": {
+        "a\npi.js": "export function send(){return 'literal-decoy'}",
+        "api.js": "export function send(){return 'send'} export default function primary(){return 'primary'}",
+        "sub.js": "export function sub(){return 'sub'}",
+        "wrong.js": "export function send(){return 'wrong'}"
+      },
+      "source": "import {send} from '@demo/api'; send();",
+      "nested": false,
+      "expected_success": false,
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "node:internal/modules/package_json_reader:301\n  throw new ERR_MODULE_NOT_FOUND(packageName, fileURLToPath(base), null);\n        ^\n\nError [ERR_MODULE_NOT_FOUND]: Cannot find package '@demo/api' imported from /private/var/folders/ft/6fdqp3c914xfdlk47w5cblzc0000gn/T/graph-search-node-package-cyx2htlp/case.mjs\n    at Object.getPackageJSONURL (node:internal/modules/package_json_reader:301:9)\n    at packageResolve (node:internal/modules/esm/resolve:768:81)\n    at moduleResolve (node:internal/modules/esm/resolve:859:18)\n    at defaultResolve (node:internal/modules/esm/resolve:992:11)\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:701:20)\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:721:38)\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:759:56)\n    at #resolve (node:internal/modules/esm/loader:683:17)\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:603:35)\n    at ModuleJob.syncLink (node:internal/modules/esm/module_job:163:33) {\n  code: 'ERR_MODULE_NOT_FOUND'\n}\n\nNode.js v24.19.0\n",
+      "expected_error_code": "ERR_MODULE_NOT_FOUND"
+    },
+    {
+      "name": "null_does_not_use_main",
+      "manifest": {
+        "name": "@demo/api",
+        "type": "module",
+        "main": "./wrong.js",
+        "exports": null,
+        "imports": {
+          "#internal": "./api.js"
+        }
+      },
+      "files": {
+        "a\npi.js": "export function send(){return 'literal-decoy'}",
+        "api.js": "export function send(){return 'send'} export default function primary(){return 'primary'}",
+        "sub.js": "export function sub(){return 'sub'}",
+        "wrong.js": "export function send(){return 'wrong'}"
+      },
+      "source": "import {send} from '@demo/api'; send();",
+      "nested": false,
+      "expected_success": false,
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "node:internal/modules/package_json_reader:301\n  throw new ERR_MODULE_NOT_FOUND(packageName, fileURLToPath(base), null);\n        ^\n\nError [ERR_MODULE_NOT_FOUND]: Cannot find package '@demo/api' imported from /private/var/folders/ft/6fdqp3c914xfdlk47w5cblzc0000gn/T/graph-search-node-package-go583zdl/case.mjs\n    at Object.getPackageJSONURL (node:internal/modules/package_json_reader:301:9)\n    at packageResolve (node:internal/modules/esm/resolve:768:81)\n    at moduleResolve (node:internal/modules/esm/resolve:859:18)\n    at defaultResolve (node:internal/modules/esm/resolve:992:11)\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:701:20)\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:721:38)\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:759:56)\n    at #resolve (node:internal/modules/esm/loader:683:17)\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:603:35)\n    at ModuleJob.syncLink (node:internal/modules/esm/module_job:163:33) {\n  code: 'ERR_MODULE_NOT_FOUND'\n}\n\nNode.js v24.19.0\n",
+      "expected_error_code": "ERR_MODULE_NOT_FOUND"
+    },
+    {
+      "name": "outside_target",
+      "manifest": {
+        "name": "@demo/api",
+        "type": "module",
+        "main": "./wrong.js",
+        "exports": "../api.js",
+        "imports": {
+          "#internal": "./api.js"
+        }
+      },
+      "files": {
+        "a\npi.js": "export function send(){return 'literal-decoy'}",
+        "api.js": "export function send(){return 'send'} export default function primary(){return 'primary'}",
+        "sub.js": "export function sub(){return 'sub'}",
+        "wrong.js": "export function send(){return 'wrong'}"
+      },
+      "source": "import {send} from '@demo/api'; send();",
+      "nested": false,
+      "expected_success": false,
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "node:internal/modules/esm/resolve:352\n  return new ERR_INVALID_PACKAGE_TARGET(\n         ^\n\nError [ERR_INVALID_PACKAGE_TARGET]: Invalid \"exports\" main target \"../api.js\" defined in the package config /private/var/folders/ft/6fdqp3c914xfdlk47w5cblzc0000gn/T/graph-search-node-package-772jwsk3/package.json imported from /private/var/folders/ft/6fdqp3c914xfdlk47w5cblzc0000gn/T/graph-search-node-package-772jwsk3/case.mjs; targets must start with \"./\"\n    at invalidPackageTarget (node:internal/modules/esm/resolve:352:10)\n    at resolvePackageTargetString (node:internal/modules/esm/resolve:405:11)\n    at resolvePackageTarget (node:internal/modules/esm/resolve:484:12)\n    at packageExportsResolve (node:internal/modules/esm/resolve:599:27)\n    at packageResolve (node:internal/modules/esm/resolve:774:12)\n    at moduleResolve (node:internal/modules/esm/resolve:859:18)\n    at defaultResolve (node:internal/modules/esm/resolve:992:11)\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:701:20)\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:721:38)\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:759:56) {\n  code: 'ERR_INVALID_PACKAGE_TARGET'\n}\n\nNode.js v24.19.0\n",
+      "expected_error_code": "ERR_INVALID_PACKAGE_TARGET"
+    },
+    {
+      "name": "node_modules_target",
+      "manifest": {
+        "name": "@demo/api",
+        "type": "module",
+        "main": "./wrong.js",
+        "exports": "./NODE_MODULES/api.js",
+        "imports": {
+          "#internal": "./api.js"
+        }
+      },
+      "files": {
+        "a\npi.js": "export function send(){return 'literal-decoy'}",
+        "api.js": "export function send(){return 'send'} export default function primary(){return 'primary'}",
+        "sub.js": "export function sub(){return 'sub'}",
+        "wrong.js": "export function send(){return 'wrong'}"
+      },
+      "source": "import {send} from '@demo/api'; send();",
+      "nested": false,
+      "expected_success": false,
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "node:internal/modules/esm/resolve:352\n  return new ERR_INVALID_PACKAGE_TARGET(\n         ^\n\nError [ERR_INVALID_PACKAGE_TARGET]: Invalid \"exports\" main target \"./NODE_MODULES/api.js\" defined in the package config /private/var/folders/ft/6fdqp3c914xfdlk47w5cblzc0000gn/T/graph-search-node-package-4301y_34/package.json imported from /private/var/folders/ft/6fdqp3c914xfdlk47w5cblzc0000gn/T/graph-search-node-package-4301y_34/case.mjs\n    at invalidPackageTarget (node:internal/modules/esm/resolve:352:10)\n    at resolvePackageTargetString (node:internal/modules/esm/resolve:420:13)\n    at resolvePackageTarget (node:internal/modules/esm/resolve:484:12)\n    at packageExportsResolve (node:internal/modules/esm/resolve:599:27)\n    at packageResolve (node:internal/modules/esm/resolve:774:12)\n    at moduleResolve (node:internal/modules/esm/resolve:859:18)\n    at defaultResolve (node:internal/modules/esm/resolve:992:11)\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:701:20)\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:721:38)\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:759:56) {\n  code: 'ERR_INVALID_PACKAGE_TARGET'\n}\n\nNode.js v24.19.0\n",
+      "expected_error_code": "ERR_INVALID_PACKAGE_TARGET"
+    },
+    {
+      "name": "nested_scope_blocks_private_inheritance",
+      "manifest": {
+        "name": "@demo/api",
+        "type": "module",
+        "main": "./wrong.js",
+        "exports": {
+          ".": "./api.js",
+          "./sub": "./sub.js",
+          "./hidden": null
+        },
+        "imports": {
+          "#internal": "./api.js"
+        }
+      },
+      "files": {
+        "a\npi.js": "export function send(){return 'literal-decoy'}",
+        "api.js": "export function send(){return 'send'} export default function primary(){return 'primary'}",
+        "sub.js": "export function sub(){return 'sub'}",
+        "wrong.js": "export function send(){return 'wrong'}"
+      },
+      "source": "import {send} from '#internal'; send();",
+      "nested": true,
+      "expected_success": false,
+      "exit_code": 1,
+      "stdout": "",
+      "stderr": "node:internal/modules/esm/resolve:301\n  return new ERR_PACKAGE_IMPORT_NOT_DEFINED(\n         ^\n\nTypeError [ERR_PACKAGE_IMPORT_NOT_DEFINED]: Package import specifier \"#internal\" is not defined in package /private/var/folders/ft/6fdqp3c914xfdlk47w5cblzc0000gn/T/graph-search-node-package-wtgs1rwz/nested/package.json imported from /private/var/folders/ft/6fdqp3c914xfdlk47w5cblzc0000gn/T/graph-search-node-package-wtgs1rwz/nested/case.mjs\n    at importNotDefined (node:internal/modules/esm/resolve:301:10)\n    at packageImportsResolve (node:internal/modules/esm/resolve:751:9)\n    at moduleResolve (node:internal/modules/esm/resolve:848:16)\n    at defaultResolve (node:internal/modules/esm/resolve:992:11)\n    at #cachedDefaultResolve (node:internal/modules/esm/loader:701:20)\n    at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:721:38)\n    at ModuleLoader.resolveSync (node:internal/modules/esm/loader:759:56)\n    at #resolve (node:internal/modules/esm/loader:683:17)\n    at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:603:35)\n    at ModuleJob.syncLink (node:internal/modules/esm/module_job:163:33) {\n  code: 'ERR_PACKAGE_IMPORT_NOT_DEFINED'\n}\n\nNode.js v24.19.0\n",
+      "expected_error_code": "ERR_PACKAGE_IMPORT_NOT_DEFINED"
+    },
+    {
+      "name": "control_target_normalizes_but_native_rejects",
+      "manifest": {
+        "name": "@demo/api",
+        "type": "module",
+        "main": "./wrong.js",
+        "exports": "./a\npi.js",
+        "imports": {
+          "#internal": "./api.js"
+        }
+      },
+      "files": {
+        "a\npi.js": "export function send(){return 'literal-decoy'}",
+        "api.js": "export function send(){return 'send'} export default function primary(){return 'primary'}",
+        "sub.js": "export function sub(){return 'sub'}",
+        "wrong.js": "export function send(){return 'wrong'}"
+      },
+      "source": "import {send} from '@demo/api'; assert.equal(send(),'send');",
+      "nested": false,
+      "expected_success": true,
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "",
+      "expected_error_code": null
+    },
+    {
+      "name": "conditional_is_valid_but_native_unmodeled",
+      "manifest": {
+        "name": "@demo/api",
+        "type": "module",
+        "main": "./wrong.js",
+        "exports": {
+          "import": "./api.js"
+        },
+        "imports": {
+          "#internal": "./api.js"
+        }
+      },
+      "files": {
+        "a\npi.js": "export function send(){return 'literal-decoy'}",
+        "api.js": "export function send(){return 'send'} export default function primary(){return 'primary'}",
+        "sub.js": "export function sub(){return 'sub'}",
+        "wrong.js": "export function send(){return 'wrong'}"
+      },
+      "source": "import {send} from '@demo/api'; assert.equal(send(),'send');",
+      "nested": false,
+      "expected_success": true,
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "",
+      "expected_error_code": null
+    }
+  ]
+}

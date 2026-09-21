@@ -1,0 +1,26 @@
+   Compiling graph-search-langs v0.1.0 (/Volumes/Delorean/code/graph-search/crates/langs)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 8.71s
+     Running unittests src/lib.rs (target/debug/deps/graph_search_langs-fa256a18e321b460)
+
+running 18 tests
+test rust::tests::a_struct_field_type_becomes_a_type_use ... ok
+test rust::tests::an_impl_makes_methods_and_the_implements_edge ... ok
+test rust::tests::duplicate_impl_names_get_disambiguated_by_core ... ok
+test doc_comments::tests::repeated_declaration_keys_cannot_select_a_different_occurrence ... ok
+test rust::tests::a_free_function_and_a_call_are_extracted ... ok
+test doc_comments::tests::rust_docs_have_raw_spans_and_conservative_owners_without_string_false_positives ... ok
+test rust::tests::nested_keys_preserve_duplicate_groups_and_distinct_parents ... ok
+test rust::tests::module_attributes_and_reference_spans_preserve_declaration_context ... ok
+test rust::tests::explicit_visibility_uses_the_grammar_modifier_node ... ok
+test rust::tests::unsupported_use_leaf_discards_partial_expansion ... ok
+test rust::tests::nested_use_groups_preserve_self_and_sibling_paths ... ok
+test rust::tests::use_statements_expand_groups_and_aliases ... ok
+test rust::tests::oversized_import_alias_expansion_stays_explicitly_unresolved ... ok
+test scopes::import_budget_tests::expansion_counts_utf8_provenance_and_stops_before_oversized_allocations ... ok
+test doc_comments::tests::js_docs_attach_only_to_the_next_syntax_neighbor_and_ignore_string_contents ... ok
+test rust::tests::use_leaves_keep_aliases_globs_visibility_and_original_scopes ... ok
+test rust::tests::nested_scope_keys_do_not_repeat_entire_ancestor_chains ... ok
+test doc_comments::tests::comment_cap_requires_an_actual_omitted_documentation_node ... ok
+
+test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 8.29s
+

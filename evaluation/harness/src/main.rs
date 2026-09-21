@@ -35,6 +35,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     q.k = 8;
                     q.hops = 1;
                     q.max_bytes = 16384;
+                    if let Some(options) = req.get("retrieval") {
+                        q.retrieval = serde_json::from_value(options.clone())?;
+                    }
                     serde_json::to_value(service.explore(&q)?)?
                 }
                 "symbol" => serde_json::to_value(service.symbol(&SymbolQuery::new(query))?)?,

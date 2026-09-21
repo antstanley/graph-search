@@ -1,0 +1,697 @@
+--- before/crates/core/src/lib.rs
++++ after/crates/core/src/lib.rs
+@@ -48,6 +48,7 @@
+ pub mod text_search;
+ pub mod typescript;
+ pub mod typescript_aliases;
++pub mod typescript_files;
+ pub mod units;
+ pub mod walk;
+ pub mod work;
+--- before/crates/core/src/typescript_files.rs
++++ after/crates/core/src/typescript_files.rs
+@@ -0,0 +1,494 @@
++//! Native modern TypeScript file loading over one generation's admitted paths.
++use crate::typescript::EffectiveConfig;
++use serde_json::Value;
++use std::collections::{BTreeMap, BTreeSet};
++
++/// Maximum distinct presence checks across all substitutions of one resolution.
++pub const MAX_PROBES: usize = 256;
++/// Maximum authored module suffixes.
++pub const MAX_SUFFIXES: usize = 32;
++
++/// Explicitly selected modern resolution mode. Project/module classification is
++/// the caller's responsibility; this loader never guesses it from a filename.
++#[derive(Clone, Copy, Debug, PartialEq, Eq)]
++pub enum Mode {
++    /// TypeScript's bundler file and directory behavior.
++    Bundler,
++    /// `Node16`/`NodeNext` imports resolved in ESM mode.
++    NodeEsm,
++    /// `Node16`/`NodeNext` imports resolved in `CommonJS` mode.
++    NodeCommonJs,
++}
++
++/// Compiled options that affect native file probing.
++#[derive(Clone, Debug)]
++pub struct Options {
++    mode: Mode,
++    suffixes: Vec<String>,
++    json: bool,
++}
++
++impl Options {
++    /// Compile the supported modern file options from a selected configuration.
++    /// JSON defaults follow TypeScript 6: bundler, `NodeNext` and `Node20` enable it.
++    ///
++    /// # Errors
++    /// Unavailable facts, unsupported resolution mode, invalid option shapes or bounds.
++    pub fn compile(config: &EffectiveConfig, mode: Mode) -> Result<Self, &'static str> {
++        if !config.configuration.valid() || config.configuration.unavailable_reason.is_some() {
++            return Err("ts_module_config_unavailable");
++        }
++        let options = config
++            .configuration
++            .fields
++            .get("compilerOptions")
++            .and_then(Value::as_object)
++            .ok_or("ts_module_options_shape")?;
++        let resolution = options
++            .get("moduleResolution")
++            .and_then(Value::as_str)
++            .ok_or("ts_module_resolution_unmodeled")?
++            .to_ascii_lowercase();
++        if !matches!(
++            (mode, resolution.as_str()),
++            (Mode::Bundler, "bundler")
++                | (Mode::NodeEsm | Mode::NodeCommonJs, "node16" | "nodenext")
++        ) {
++            return Err("ts_module_resolution_unmodeled");
++        }
++        // This compiler API-only switch is not a supported authored config option.
++        if options.contains_key("noDtsResolution") {
++            return Err("ts_module_option_unmodeled");
++        }
++        let module = options
++            .get("module")
++            .map(|value| value.as_str().ok_or("ts_module_options_shape"))
++            .transpose()?
++            .unwrap_or("")
++            .to_ascii_lowercase();
++        let json = options
++            .get("resolveJsonModule")
++            .map(|value| value.as_bool().ok_or("ts_module_options_shape"))
++            .transpose()?
++            .unwrap_or(mode == Mode::Bundler || matches!(module.as_str(), "nodenext" | "node20"));
++        let mut suffixes = Vec::new();
++        if let Some(values) = options.get("moduleSuffixes") {
++            let values = values.as_array().ok_or("ts_module_suffixes_shape")?;
++            if values.len() > MAX_SUFFIXES {
++                return Err("ts_module_suffix_limit");
++            }
++            for value in values {
++                let suffix = value.as_str().ok_or("ts_module_suffixes_shape")?;
++                if suffix.len() > 128 || suffix.contains(['/', '\\', ':', '\0']) {
++                    return Err("ts_module_suffix_unsupported");
++                }
++                suffixes.push(suffix.into());
++            }
++        }
++        if suffixes.is_empty() {
++            suffixes.push(String::new());
++        }
++        Ok(Self {
++            mode,
++            suffixes,
++            json,
++        })
++    }
++}
++
++/// A distinct path observed during resolution, including negative dependencies.
++#[derive(Clone, Debug, PartialEq, Eq)]
++pub struct Probe {
++    /// Workspace-relative path.
++    pub path: String,
++    /// Admitted file was present in this generation.
++    pub present: bool,
++    /// A package boundary was present, even if its source was unavailable.
++    pub package_boundary: bool,
++}
++
++/// One resolution's bounded lookup state; reuse across alias substitutions.
++/// All facts must describe the same generation. Package boundaries must include
++/// unavailable manifests so their entry rules cannot be bypassed with index files.
++pub struct Lookup<'a> {
++    options: &'a Options,
++    files: &'a BTreeSet<String>,
++    packages: &'a BTreeSet<String>,
++    cache: BTreeMap<String, bool>,
++    probes: Vec<Probe>,
++}
++
++impl<'a> Lookup<'a> {
++    /// Start a single resolution without reading the filesystem.
++    #[must_use]
++    pub fn new(
++        options: &'a Options,
++        files: &'a BTreeSet<String>,
++        packages: &'a BTreeSet<String>,
++    ) -> Self {
++        Self {
++            options,
++            files,
++            packages,
++            cache: BTreeMap::new(),
++            probes: Vec::new(),
++        }
++    }
++
++    /// Distinct presence observations in first-lookup order. Missing files and
++    /// package boundaries are dependencies, not merely successful targets.
++    #[must_use]
++    pub fn probes(&self) -> &[Probe] {
++        &self.probes
++    }
++
++    /// Load a normalized workspace-relative candidate. `substitution` is the
++    /// unexpanded paths value supplied by the alias dispatcher, or `None` for an
++    /// ordinary file/baseUrl lookup. Explicitly authored supported extensions get
++    /// an exact-file attempt before replacement; wildcard-introduced ones do not.
++    ///
++    /// # Errors
++    /// Invalid paths, exhausted probe budget or unmodeled directory-package rules.
++    pub fn load(
++        &mut self,
++        candidate: &str,
++        substitution: Option<&str>,
++    ) -> Result<Option<String>, &'static str> {
++        valid_path(candidate)?;
++        if substitution.is_some_and(|text| known_extension(text).is_some())
++            && let Some(path) = self.suffixed(candidate)?
++        {
++            return Ok(Some(path));
++        }
++        if !candidate.is_empty()
++            && !candidate.ends_with('/')
++            && let Some(path) = self.file(candidate)?
++        {
++            return Ok(Some(path));
++        }
++        if self.options.mode == Mode::NodeEsm {
++            return Ok(None);
++        }
++        let directory = candidate.trim_end_matches('/');
++        let package = in_directory(directory, "package.json");
++        if self.observe(&package)? || self.packages.contains(&package) {
++            return Err("ts_module_package_directory_unmodeled");
++        }
++        self.file(&in_directory(directory, "index"))
++    }
++
++    fn file(&mut self, candidate: &str) -> Result<Option<String>, &'static str> {
++        let name = candidate.rsplit('/').next().unwrap_or(candidate);
++        if name.contains('.') {
++            let extension = known_extension(candidate)
++                .or_else(|| name.rfind('.').map(|position| &name[position..]));
++            if let Some(extension) = extension {
++                let stem = candidate
++                    .strip_suffix(extension)
++                    .ok_or("ts_module_path_unsupported")?;
++                if let Some(path) = self.extensions(stem, extension)? {
++                    return Ok(Some(path));
++                }
++            }
++        }
++        if self.options.mode == Mode::NodeEsm {
++            return Ok(None);
++        }
++        self.extensions(candidate, "")
++    }
++
++    fn extensions(&mut self, stem: &str, original: &str) -> Result<Option<String>, &'static str> {
++        let extensions: &[&str] = match original {
++            ".mjs" | ".mts" | ".d.mts" => &[".mts", ".d.mts", ".mjs"],
++            ".cjs" | ".cts" | ".d.cts" => &[".cts", ".d.cts", ".cjs"],
++            ".tsx" | ".jsx" => &[".tsx", ".ts", ".d.ts", ".jsx", ".js"],
++            ".ts" | ".d.ts" | ".js" | "" => &[".ts", ".tsx", ".d.ts", ".js", ".jsx"],
++            ".json" if self.options.json => &[".d.json.ts", ".json"],
++            ".json" => &[".d.json.ts"],
++            other => return self.suffixed(&format!("{stem}.d{other}.ts")),
++        };
++        for extension in extensions {
++            if let Some(path) = self.suffixed(&format!("{stem}{extension}"))? {
++                return Ok(Some(path));
++            }
++        }
++        Ok(None)
++    }
++
++    fn suffixed(&mut self, candidate: &str) -> Result<Option<String>, &'static str> {
++        let extension = known_extension(candidate).unwrap_or("");
++        let stem = candidate
++            .strip_suffix(extension)
++            .ok_or("ts_module_path_unsupported")?;
++        for suffix in &self.options.suffixes {
++            let path = format!("{stem}{suffix}{extension}");
++            if self.observe(&path)? {
++                return Ok(Some(path));
++            }
++            if self.packages.contains(&path) {
++                return Err("ts_module_target_unavailable");
++            }
++        }
++        Ok(None)
++    }
++
++    fn observe(&mut self, path: &str) -> Result<bool, &'static str> {
++        valid_path(path)?;
++        if let Some(present) = self.cache.get(path) {
++            return Ok(*present);
++        }
++        if self.probes.len() >= MAX_PROBES {
++            return Err("ts_module_probe_limit");
++        }
++        let present = self.files.contains(path);
++        self.cache.insert(path.into(), present);
++        self.probes.push(Probe {
++            path: path.into(),
++            present,
++            package_boundary: self.packages.contains(path),
++        });
++        Ok(present)
++    }
++}
++
++fn valid_path(path: &str) -> Result<(), &'static str> {
++    if path.len() > 4096
++        || path.starts_with('/')
++        || path.contains(['\\', ':', '\0'])
++        || (!path.is_empty()
++            && path
++                .trim_end_matches('/')
++                .split('/')
++                .any(|part| matches!(part, "" | "." | "..")))
++    {
++        return Err("ts_module_path_unsupported");
++    }
++    Ok(())
++}
++
++fn in_directory(directory: &str, name: &str) -> String {
++    if directory.is_empty() {
++        name.into()
++    } else {
++        format!("{directory}/{name}")
++    }
++}
++
++// Literal, case-sensitive suffixes follow the compiler's precedence, including
++// declaration suffixes and dotfiles; Path::extension is insufficient here.
++#[allow(clippy::case_sensitive_file_extension_comparisons)]
++fn known_extension(path: &str) -> Option<&'static str> {
++    [
++        ".d.ts", ".d.mts", ".d.cts", ".mjs", ".mts", ".cjs", ".cts", ".ts", ".js", ".tsx", ".jsx",
++        ".json",
++    ]
++    .into_iter()
++    .find(|extension| path.ends_with(extension))
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++    use serde_json::json;
++
++    fn compile_options(mode: Mode, extra: Value) -> Result<Options, &'static str> {
++        let Value::Object(mut values) = extra else {
++            panic!("object fixture required");
++        };
++        values.entry("moduleResolution").or_insert_with(|| {
++            json!(if mode == Mode::Bundler {
++                "bundler"
++            } else {
++                "nodenext"
++            })
++        });
++        let config = EffectiveConfig {
++            configuration: graph_search_types::typescript::TypeScriptConfig {
++                fields: BTreeMap::from([("compilerOptions".into(), Value::Object(values))]),
++                ..Default::default()
++            },
++            ..Default::default()
++        };
++        Options::compile(&config, mode)
++    }
++
++    fn files(names: &[&str]) -> BTreeSet<String> {
++        names.iter().map(|name| (*name).into()).collect()
++    }
++
++    #[test]
++    fn authored_extensions_and_wildcard_introduced_extensions_have_different_priority() {
++        let options = compile_options(Mode::Bundler, json!({})).unwrap();
++        let known = files(&["src/x.js", "src/x.ts", "src/x.tsx"]);
++        let packages = BTreeSet::new();
++        let mut lookup = Lookup::new(&options, &known, &packages);
++        assert_eq!(
++            lookup.load("src/x.js", Some("./src/x.js")).unwrap(),
++            Some("src/x.js".into())
++        );
++        assert_eq!(
++            lookup.load("src/x.js", Some("./src/*")).unwrap(),
++            Some("src/x.ts".into())
++        );
++        assert_eq!(
++            lookup.load("src/x.jsx", None).unwrap(),
++            Some("src/x.tsx".into())
++        );
++        assert_eq!(lookup.probes().len(), 3);
++    }
++
++    #[test]
++    fn modes_separate_extensionless_and_index_loading_from_esm() {
++        let known = files(&["src/file.ts", "src/dir/index.ts", "src/dir.ts"]);
++        let packages = BTreeSet::new();
++        for mode in [Mode::Bundler, Mode::NodeCommonJs, Mode::NodeEsm] {
++            let options = compile_options(mode, json!({})).unwrap();
++            let mut lookup = Lookup::new(&options, &known, &packages);
++            assert_eq!(
++                lookup.load("src/file.js", None).unwrap(),
++                Some("src/file.ts".into())
++            );
++            assert_eq!(
++                lookup.load("src/file", None).unwrap(),
++                (mode != Mode::NodeEsm).then(|| "src/file.ts".into())
++            );
++            assert_eq!(
++                lookup.load("src/dir/", None).unwrap(),
++                (mode != Mode::NodeEsm).then(|| "src/dir/index.ts".into())
++            );
++        }
++    }
++
++    #[test]
++    fn suffix_order_is_inside_extension_order_and_omitted_empty_suffix_does_not_fall_back() {
++        let known = files(&["x.ts", "x.tsx", "x.native.tsx", "x.native.d.ts"]);
++        let packages = BTreeSet::new();
++        let options =
++            compile_options(Mode::Bundler, json!({"moduleSuffixes":[".native", ""]})).unwrap();
++        let mut lookup = Lookup::new(&options, &known, &packages);
++        assert_eq!(lookup.load("x", None).unwrap(), Some("x.ts".into()));
++        assert_eq!(
++            lookup
++                .probes()
++                .iter()
++                .map(|probe| probe.path.as_str())
++                .collect::<Vec<_>>(),
++            ["x.native.ts", "x.ts"]
++        );
++        let only = compile_options(Mode::Bundler, json!({"moduleSuffixes":[".native"]})).unwrap();
++        assert_eq!(
++            Lookup::new(&only, &known, &packages)
++                .load("x", None)
++                .unwrap(),
++            Some("x.native.tsx".into())
++        );
++        assert_eq!(
++            Lookup::new(&only, &known, &packages)
++                .load("x.d.ts", Some("x.d.ts"))
++                .unwrap(),
++            Some("x.native.d.ts".into())
++        );
++    }
++
++    #[test]
++    fn json_declaration_wrappers_runtime_families_and_custom_extensions_are_distinct() {
++        let known = files(&[
++            "x.d.mts",
++            "y.cts",
++            "data.json",
++            "style.d.css.ts",
++            "double.js.ts",
++        ]);
++        let packages = BTreeSet::new();
++        let options = compile_options(Mode::Bundler, json!({"resolveJsonModule":false})).unwrap();
++        let mut lookup = Lookup::new(&options, &known, &packages);
++        for (candidate, expected) in [
++            ("x.mjs", "x.d.mts"),
++            ("y.cjs", "y.cts"),
++            ("style.css", "style.d.css.ts"),
++            ("double.js", "double.js.ts"),
++        ] {
++            assert_eq!(lookup.load(candidate, None).unwrap(), Some(expected.into()));
++        }
++        assert_eq!(lookup.load("data.json", None).unwrap(), None);
++        assert_eq!(
++            lookup.load("data.json", Some("data.json")).unwrap(),
++            Some("data.json".into())
++        );
++    }
++
++    #[test]
++    fn package_boundaries_cannot_be_bypassed_or_mistaken_for_admitted_source() {
++        let options = compile_options(Mode::Bundler, json!({})).unwrap();
++        let known = files(&["pkg/index.ts"]);
++        let packages = files(&["pkg/package.json"]);
++        let mut lookup = Lookup::new(&options, &known, &packages);
++        assert_eq!(
++            lookup.load("pkg", None),
++            Err("ts_module_package_directory_unmodeled")
++        );
++        let boundary = lookup
++            .probes()
++            .iter()
++            .find(|probe| probe.path == "pkg/package.json")
++            .unwrap();
++        assert!(!boundary.present && boundary.package_boundary);
++        assert_eq!(
++            lookup.load("pkg/package.json", Some("pkg/package.json")),
++            Err("ts_module_target_unavailable")
++        );
++    }
++
++    #[test]
++    fn negative_observations_are_deduplicated_and_budget_is_shared_across_substitutions() {
++        let options = compile_options(Mode::Bundler, json!({})).unwrap();
++        let known = BTreeSet::new();
++        let packages = BTreeSet::new();
++        let mut lookup = Lookup::new(&options, &known, &packages);
++        assert_eq!(lookup.load("missing", None).unwrap(), None);
++        let count = lookup.probes().len();
++        assert_eq!(lookup.load("missing", None).unwrap(), None);
++        assert_eq!(lookup.probes().len(), count);
++        let mut exhausted = false;
++        for index in 0..MAX_PROBES {
++            if lookup.load(&format!("missing{index}"), None) == Err("ts_module_probe_limit") {
++                exhausted = true;
++                break;
++            }
++        }
++        assert!(exhausted);
++        assert_eq!(lookup.probes().len(), MAX_PROBES);
++        assert!(
++            lookup
++                .probes()
++                .iter()
++                .all(|probe| !probe.present && !probe.package_boundary)
++        );
++    }
++
++    #[test]
++    fn unsupported_options_and_noncanonical_candidates_fail_explicitly() {
++        for extra in [
++            json!({"moduleResolution":"classic"}),
++            json!({"moduleResolution":"node10"}),
++            json!({"resolveJsonModule":"yes"}),
++            json!({"moduleSuffixes":[7]}),
++            json!({"moduleSuffixes":["/escape"]}),
++            json!({"moduleSuffixes":vec![""; MAX_SUFFIXES + 1]}),
++            json!({"noDtsResolution":true}),
++        ] {
++            assert!(compile_options(Mode::Bundler, extra).is_err());
++        }
++        let options = compile_options(Mode::Bundler, json!({})).unwrap();
++        let known = BTreeSet::new();
++        let packages = BTreeSet::new();
++        for candidate in ["../x", "/absolute", "a/../x", "a//x", "a\\x"] {
++            let mut lookup = Lookup::new(&options, &known, &packages);
++            assert_eq!(
++                lookup.load(candidate, None),
++                Err("ts_module_path_unsupported")
++            );
++            assert!(lookup.probes().is_empty());
++        }
++    }
++}
+--- before/crates/graph-search/tests/typescript_files.rs
++++ after/crates/graph-search/tests/typescript_files.rs
+@@ -0,0 +1,187 @@
++//! Composed native module lookup uses published facts, including negative paths.
++#![allow(clippy::unwrap_used, clippy::panic)]
++use graph_search::{Index, OpenOptions};
++use graph_search_core::{
++    ports::GraphStore,
++    typescript::inherit,
++    typescript_aliases::{Aliases, Dispatch},
++    typescript_files::{Lookup, Mode, Options, Probe},
++};
++use graph_search_engine::{GrafeoStore, StoreOptions};
++use std::{collections::BTreeSet, path::Path};
++
++fn open(root: &Path, store: &Path) -> Index {
++    Index::open(OpenOptions {
++        root: root.into(),
++        store: Some(store.into()),
++        ..Default::default()
++    })
++    .unwrap()
++}
++
++type Result = (
++    std::result::Result<Dispatch<String>, &'static str>,
++    Vec<Probe>,
++);
++
++fn resolve(store: &Path, specifier: &str) -> Result {
++    let store = GrafeoStore::open(store, &StoreOptions::default()).unwrap();
++    let packages = store.manifest().unwrap().unwrap().package_boundaries;
++    let snapshot = store.snapshot().unwrap();
++    let config = inherit("tsconfig.json", snapshot.source_files()).unwrap();
++    let aliases = Aliases::compile(&config).unwrap();
++    let options = Options::compile(&config, Mode::Bundler).unwrap();
++    let known: BTreeSet<_> = snapshot.source_files().keys().cloned().collect();
++    let mut lookup = Lookup::new(&options, &known, &packages);
++    let result = aliases.resolve(specifier, |path, substitution| {
++        lookup.load(path, substitution)
++    });
++    (result, lookup.probes().to_vec())
++}
++
++fn assert_target(result: &Result, target: &str) {
++    assert!(matches!(&result.0, Ok(Dispatch::Paths { target: Some(path), .. }) if path == target));
++}
++
++fn parity(root: &Path, store: &Path, specifier: &str) -> Result {
++    let actual = resolve(store, specifier);
++    let clean = tempfile::tempdir().unwrap();
++    open(root, clean.path()).reindex().unwrap();
++    assert_eq!(actual, resolve(clean.path(), specifier));
++    actual
++}
++
++#[test]
++fn higher_priority_file_creation_removal_rename_and_config_edits_match_clean_rebuilds() {
++    let root = tempfile::tempdir().unwrap();
++    let store = tempfile::tempdir().unwrap();
++    std::fs::create_dir(root.path().join("src")).unwrap();
++    let config = root.path().join("tsconfig.json");
++    std::fs::write(
++        &config,
++        r#"{"compilerOptions":{"moduleResolution":"bundler","paths":{"@/*":["./src/*"]}}}"#,
++    )
++    .unwrap();
++    std::fs::write(
++        root.path().join("src/target.js"),
++        "export function target() {}\n",
++    )
++    .unwrap();
++    let index = open(root.path(), store.path());
++    index.reindex().unwrap();
++    let original = resolve(store.path(), "@/target.js");
++    assert_target(&original, "src/target.js");
++    assert!(
++        original
++            .1
++            .iter()
++            .any(|probe| probe.path == "src/target.ts" && !probe.present)
++    );
++
++    std::fs::write(
++        root.path().join("src/target.ts"),
++        "export function target() {}\n",
++    )
++    .unwrap();
++    index.sync().unwrap();
++    assert_target(
++        &parity(root.path(), store.path(), "@/target.js"),
++        "src/target.ts",
++    );
++
++    std::fs::write(
++        root.path().join("src/target.native.ts"),
++        "export function target() {}\n",
++    )
++    .unwrap();
++    std::fs::write(&config, r#"{"compilerOptions":{"moduleResolution":"bundler","moduleSuffixes":[".native",""],"paths":{"@/*":["./src/*"]}}}"#).unwrap();
++    index.sync().unwrap();
++    assert_target(
++        &parity(root.path(), store.path(), "@/target.js"),
++        "src/target.native.ts",
++    );
++
++    std::fs::remove_file(root.path().join("src/target.native.ts")).unwrap();
++    index.sync().unwrap();
++    assert_target(
++        &parity(root.path(), store.path(), "@/target.js"),
++        "src/target.ts",
++    );
++
++    std::fs::rename(
++        root.path().join("src/target.ts"),
++        root.path().join("src/renamed.ts"),
++    )
++    .unwrap();
++    index.sync().unwrap();
++    assert_target(
++        &parity(root.path(), store.path(), "@/target.js"),
++        "src/target.js",
++    );
++
++    std::fs::write(&config, r#"{"compilerOptions":{"moduleResolution":"bundler","paths":{"@/target.js":["./src/renamed.ts"]}}}"#).unwrap();
++    index.sync().unwrap();
++    assert_target(
++        &parity(root.path(), store.path(), "@/target.js"),
++        "src/renamed.ts",
++    );
++    assert_target(&original, "src/target.js");
++    assert!(
++        original
++            .1
++            .iter()
++            .any(|probe| probe.path == "src/target.ts" && !probe.present)
++    );
++}
++
++#[test]
++fn unavailable_package_boundaries_block_directory_guessing_and_are_not_source_files() {
++    let root = tempfile::tempdir().unwrap();
++    let store = tempfile::tempdir().unwrap();
++    std::fs::create_dir(root.path().join(".graph-search")).unwrap();
++    std::fs::write(
++        root.path().join(".graph-search/config.toml"),
++        "max_file_bytes = 256\n",
++    )
++    .unwrap();
++    std::fs::create_dir(root.path().join("pkg")).unwrap();
++    std::fs::write(root.path().join("tsconfig.json"), r#"{"compilerOptions":{"moduleResolution":"bundler","paths":{"@pkg":["./pkg"],"@manifest":["./pkg/package.json"]}}}"#).unwrap();
++    std::fs::write(
++        root.path().join("pkg/index.ts"),
++        "export function misleading() {}\n",
++    )
++    .unwrap();
++    let package = root.path().join("pkg/package.json");
++    std::fs::write(
++        &package,
++        serde_json::json!({"name":"pkg","padding":"x".repeat(1024)}).to_string(),
++    )
++    .unwrap();
++    let index = open(root.path(), store.path());
++    index.reindex().unwrap();
++    let blocked = parity(root.path(), store.path(), "@pkg");
++    assert_eq!(blocked.0, Err("ts_module_package_directory_unmodeled"));
++    assert!(
++        blocked
++            .1
++            .iter()
++            .any(|probe| probe.path == "pkg/package.json"
++                && !probe.present
++                && probe.package_boundary)
++    );
++    assert_eq!(
++        resolve(store.path(), "@manifest").0,
++        Err("ts_module_target_unavailable")
++    );
++
++    std::fs::write(&package, r#"{"name":"pkg"}"#).unwrap();
++    index.sync().unwrap();
++    assert_eq!(
++        parity(root.path(), store.path(), "@pkg").0,
++        Err("ts_module_package_directory_unmodeled")
++    );
++    assert_target(
++        &parity(root.path(), store.path(), "@manifest"),
++        "pkg/package.json",
++    );
++}

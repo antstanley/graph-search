@@ -1,0 +1,170 @@
+{
+  "valid_ids": [
+    "nanus.context.debug",
+    "nanus.context.change",
+    "nanus.edit.debug",
+    "nanus.edit.change",
+    "nanus.write.debug",
+    "nanus.write.change",
+    "nanus.read.debug",
+    "nanus.read.change",
+    "nanus.grep.debug",
+    "nanus.grep.change",
+    "nanus.glob.debug",
+    "nanus.glob.change",
+    "nanus.argument-types.debug",
+    "nanus.argument-types.change",
+    "nanus.temporary-paths.debug",
+    "nanus.temporary-paths.change",
+    "blogwright.secret-upsert.debug",
+    "blogwright.secret-upsert.change",
+    "whatsurvey.webhook-signature.debug",
+    "whatsurvey.webhook-signature.change",
+    "whatsurvey.settings-encryption.debug",
+    "whatsurvey.settings-encryption.change",
+    "whatsurvey.contact-policy.debug",
+    "whatsurvey.contact-policy.change",
+    "whatsurvey.captcha-retry.debug",
+    "whatsurvey.captcha-retry.change",
+    "whatsurvey.survey-draft.debug",
+    "whatsurvey.survey-draft.change",
+    "blogwright.tag-encoding.debug",
+    "blogwright.tag-encoding.change",
+    "whatsurvey.storage-envelope.debug",
+    "whatsurvey.storage-envelope.change",
+    "whatsurvey.money-rounding.debug",
+    "whatsurvey.money-rounding.change"
+  ],
+  "excluded": [
+    {
+      "id": "blogwright.pds-config.debug",
+      "repo": "blogwright",
+      "reason": "source file missing: packages/pds/src/config.ts"
+    },
+    {
+      "id": "blogwright.pds-config.change",
+      "repo": "blogwright",
+      "reason": "source file missing: packages/pds/src/config.ts"
+    },
+    {
+      "id": "blogwright.pds-secret.debug",
+      "repo": "blogwright",
+      "reason": "source drift: blogwright.pds-secret.debug: packages/pds/src/secret.ts"
+    },
+    {
+      "id": "blogwright.pds-secret.change",
+      "repo": "blogwright",
+      "reason": "source drift: blogwright.pds-secret.change: packages/pds/src/secret.ts"
+    },
+    {
+      "id": "blogwright.post-content.debug",
+      "repo": "blogwright",
+      "reason": "source drift: blogwright.post-content.debug: packages/pds/src/content.ts"
+    },
+    {
+      "id": "blogwright.post-content.change",
+      "repo": "blogwright",
+      "reason": "source drift: blogwright.post-content.change: packages/pds/src/content.ts"
+    },
+    {
+      "id": "blogwright.record-key.debug",
+      "repo": "blogwright",
+      "reason": "source drift: blogwright.record-key.debug: packages/pds/src/rkey.ts"
+    },
+    {
+      "id": "blogwright.record-key.change",
+      "repo": "blogwright",
+      "reason": "source drift: blogwright.record-key.change: packages/pds/src/rkey.ts"
+    },
+    {
+      "id": "blogwright.xrpc-pagination.debug",
+      "repo": "blogwright",
+      "reason": "source drift: blogwright.xrpc-pagination.debug: packages/pds/src/xrpc.ts"
+    },
+    {
+      "id": "blogwright.xrpc-pagination.change",
+      "repo": "blogwright",
+      "reason": "source drift: blogwright.xrpc-pagination.change: packages/pds/src/xrpc.ts"
+    },
+    {
+      "id": "blogwright.state-storage.debug",
+      "repo": "blogwright",
+      "reason": "source drift: blogwright.state-storage.debug: packages/core/src/state.ts"
+    },
+    {
+      "id": "blogwright.state-storage.change",
+      "repo": "blogwright",
+      "reason": "source drift: blogwright.state-storage.change: packages/core/src/state.ts"
+    },
+    {
+      "id": "blogwright.publication-sync.debug",
+      "repo": "blogwright",
+      "reason": "source drift: blogwright.publication-sync.debug: packages/pds/src/sync.ts"
+    },
+    {
+      "id": "blogwright.publication-sync.change",
+      "repo": "blogwright",
+      "reason": "source drift: blogwright.publication-sync.change: packages/pds/src/sync.ts"
+    },
+    {
+      "id": "blogwright.aws-credentials.debug",
+      "repo": "blogwright",
+      "reason": "source drift: blogwright.aws-credentials.debug: packages/core/src/aws/credentials.ts"
+    },
+    {
+      "id": "blogwright.aws-credentials.change",
+      "repo": "blogwright",
+      "reason": "source drift: blogwright.aws-credentials.change: packages/core/src/aws/credentials.ts"
+    },
+    {
+      "id": "whatsurvey.message-idempotency.debug",
+      "repo": "whatsurvey",
+      "reason": "source drift: whatsurvey.message-idempotency.debug: workspaces/backend/src/core/db/idempotency.ts"
+    },
+    {
+      "id": "whatsurvey.message-idempotency.change",
+      "repo": "whatsurvey",
+      "reason": "source drift: whatsurvey.message-idempotency.change: workspaces/backend/src/core/db/idempotency.ts"
+    },
+    {
+      "id": "nanus.parallel-tools.debug",
+      "repo": "nanus",
+      "reason": "source drift: nanus.parallel-tools.debug: crates/nanus-bundle/src/agent_loop.rs"
+    },
+    {
+      "id": "nanus.parallel-tools.change",
+      "repo": "nanus",
+      "reason": "source drift: nanus.parallel-tools.change: crates/nanus-bundle/src/agent_loop.rs"
+    },
+    {
+      "id": "nanus.approval-gate.debug",
+      "repo": "nanus",
+      "reason": "source drift: nanus.approval-gate.debug: crates/nanus-bundle/src/agent_loop.rs"
+    },
+    {
+      "id": "nanus.approval-gate.change",
+      "repo": "nanus",
+      "reason": "source drift: nanus.approval-gate.change: crates/nanus-bundle/src/agent_loop.rs"
+    },
+    {
+      "id": "whatsurvey.survey-transitions.debug",
+      "repo": "whatsurvey",
+      "reason": "source drift: whatsurvey.survey-transitions.debug: workspaces/backend/src/core/survey/state-machine.ts"
+    },
+    {
+      "id": "whatsurvey.survey-transitions.change",
+      "repo": "whatsurvey",
+      "reason": "source drift: whatsurvey.survey-transitions.change: workspaces/backend/src/core/survey/state-machine.ts"
+    },
+    {
+      "id": "whatsurvey.webhook-copy-ui.debug",
+      "repo": "whatsurvey",
+      "reason": "source drift: whatsurvey.webhook-copy-ui.debug: workspaces/frontend/src/lib/components/WhatsAppConfigurations.svelte"
+    },
+    {
+      "id": "whatsurvey.webhook-copy-ui.change",
+      "repo": "whatsurvey",
+      "reason": "source drift: whatsurvey.webhook-copy-ui.change: workspaces/frontend/src/lib/components/WhatsAppConfigurations.svelte"
+    }
+  ]
+}

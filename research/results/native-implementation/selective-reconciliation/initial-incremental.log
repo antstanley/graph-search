@@ -1,0 +1,36 @@
+   Compiling graph-search-core v0.1.0 (/Volumes/Delorean/code/graph-search/crates/core)
+   Compiling graph-search-engine v0.1.0 (/Volumes/Delorean/code/graph-search/crates/engine)
+   Compiling graph-search-langs v0.1.0 (/Volumes/Delorean/code/graph-search/crates/langs)
+   Compiling graph-search v0.1.0 (/Volumes/Delorean/code/graph-search/crates/graph-search)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 29.55s
+     Running tests/binding_invalidation.rs (target/debug/deps/binding_invalidation-83ae3c340e553c09)
+
+running 2 tests
+test body_and_signature_edits_refresh_only_their_owner ... ok
+test binding_changes_still_repair_consumers ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.21s
+
+     Running tests/retrieval_incremental.rs (target/debug/deps/retrieval_incremental-c574121807aafe0e)
+
+running 4 tests
+test old_manifests_rebuild_and_missing_fact_caches_fall_back_safely ... ok
+test lexical_retrieval_matches_identifiers_signatures_and_exact_names ... ok
+test selective_sync_reuses_persisted_facts_and_tracks_unresolved_and_ambiguous_names ... ok
+test import_precedence_and_cross_language_changes_match_clean_reindex ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.65s
+
+     Running tests/source_units.rs (target/debug/deps/source_units-b362033cea55fb6e)
+
+running 7 tests
+test parser_and_nonparser_text_publish_hash_bound_source_regions ... ok
+test reopening_rejects_hash_consistent_facts_with_a_foreign_owner ... ok
+test noop_sync_needs_only_the_header_and_timestamp_refresh_keeps_raw_facts ... ok
+test a_legacy_generation_rebuilds_source_facts_before_automatic_queries ... ok
+test legacy_identifier_facts_upgrade_without_blocking_reopen_or_using_old_analysis ... ok
+test changed_removed_renamed_and_rebound_source_facts_match_a_clean_build ... ok
+test representation_drift_is_reported_and_cannot_reuse_same_hash_body_facts ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.72s
+

@@ -138,7 +138,8 @@ class CodeGraph(TextSearch):
 
 class GraphSearch:
     name = 'graph-search'
-    def __init__(self, root, host, **_):
+    def __init__(self, root, host, retrieval=None, **_):
+        self.retrieval=retrieval
         self.root=root
         self.host=host
         self.tmp=tempfile.TemporaryDirectory(prefix='task-eval-store-')
@@ -221,7 +222,10 @@ class GraphSearch:
             remaining=timeout-(time.monotonic()-started)
             if remaining<=0:
                 raise TimeoutError('graph recovery exhausted query timeout')
-            self.process.stdin.write((json.dumps(dict(query=query,mode=mode))+'\n').encode())
+            request=dict(query=query,mode=mode)
+            if self.retrieval is not None:
+                request['retrieval']=self.retrieval
+            self.process.stdin.write((json.dumps(request)+'\n').encode())
             self.process.stdin.flush()
             value=self.receive(remaining)
         except (OSError,RuntimeError,TimeoutError,ValueError):
@@ -232,15 +236,7 @@ class GraphSearch:
             raise RuntimeError(value['error'])
         if mode!='explore':
             return json.dumps(value,ensure_ascii=False)
-        lines=[]
-        for item in value.get('items',[]):
-            node=item['node']; snippet=item.get('snippet')
-            lines.append(f"candidate {node['path']}:{node.get('start_line',1)} {node.get('name','')}")
-            if snippet:
-                for offset,line in enumerate(snippet['lines']):
-                    lines.append(f"{node['path']}:{snippet['start_line']+offset}\t{line}")
-        lines.append(json.dumps({k:v for k,v in value.items() if k!='items'},ensure_ascii=False))
-        return '\n'.join(lines)
+        return render_graph_explore(value)
 
     def close(self):
         if self.closed:
@@ -253,6 +249,11 @@ class GraphSearch:
                 self.stderr.close()
             finally:
                 self.tmp.cleanup()
+
+
+def render_graph_explore(value):
+    """Deliver the complete compact API JSON without dropping or expanding fields."""
+    return json.dumps(value,ensure_ascii=False,separators=(',',':'))
 
 
 BACKENDS={'text':TextSearch,'codegraph':CodeGraph,'graph-search':GraphSearch}

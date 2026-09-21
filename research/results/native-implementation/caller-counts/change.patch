@@ -1,0 +1,184 @@
+--- before/crates/core/src/query.rs
++++ after/crates/core/src/query.rs
+@@ -855,14 +855,7 @@
+                     .filter(|id| *id != &node.id)
+                     .collect::<BTreeSet<_>>()
+                     .len() as u64;
+-                let cone = self.expand_with_seed_edges(
+-                    std::slice::from_ref(&node.id),
+-                    hops,
+-                    &[EdgeKind::Calls],
+-                    Direction::In,
+-                    Some((&node.id, &incoming)),
+-                )?;
+-                let total = cone.nodes.iter().filter(|n| n.id != node.id).count() as u64;
++                let total = self.incoming_caller_count(&node.id, hops, &incoming)?;
+                 Some(ImpactSummary {
+                     direct_callers: direct,
+                     total_callers: total.max(direct),
+@@ -1063,6 +1056,49 @@
+         }
+ 
+         Ok(edges)
++    }
++
++    // The summary needs a count, not retained node/edge payloads. Preserve the
++    // expansion's ordered frontiers, first-read admission and missing-node rules
++    // so this also agrees when shared work limits admit only a graph prefix.
++    fn incoming_caller_count(
++        &self,
++        seed: &NodeId,
++        hops: u8,
++        incoming: &[graph_search_types::Edge],
++    ) -> Result<u64> {
++        if self.read_node(seed)?.is_none() {
++            return Ok(0);
++        }
++        let mut visited = BTreeSet::from([seed.clone()]);
++        let mut frontier = visited.clone();
++        let mut count = 0u64;
++        for _ in 0..hops {
++            let mut next = BTreeSet::new();
++            for id in &frontier {
++                let loaded;
++                let edges = if id == seed {
++                    incoming
++                } else {
++                    loaded = self.read_edges(id, &[EdgeKind::Calls], Direction::In)?;
++                    &loaded
++                };
++                for edge in edges {
++                    if edge.to.is_some()
++                        && visited.insert(edge.from.clone())
++                        && self.read_node(&edge.from)?.is_some()
++                    {
++                        count = count.saturating_add(1);
++                        next.insert(edge.from.clone());
++                    }
++                }
++            }
++            frontier = next;
++            if frontier.is_empty() {
++                break;
++            }
++        }
++        Ok(count)
+     }
+ 
+     /// Node and edge counts for `status` (`SPEC.md` §8.5).
+@@ -1932,3 +1968,115 @@
+     selected.truncate(k);
+     selected
+ }
++
++#[cfg(test)]
++mod caller_count_tests {
++    use super::*;
++    use crate::{GraphStore, memory::MemoryStore, work::WorkLimits};
++    use graph_search_types::Edge;
++
++    #[test]
++    fn counts_and_work_match_materialized_cones_for_all_three_node_graphs() {
++        let ids: Vec<_> = (0..3)
++            .map(|n| NodeId::symbol("src/a.rs", NodeKind::Function, &format!("n{n}"), None))
++            .collect();
++        for mask in 0u16..512 {
++            let mut batch = crate::conformance::fixture_batch();
++            batch.upserts.truncate(1);
++            let prototype = batch.upserts[0].symbols[0].clone();
++            batch.upserts[0].symbols = ids
++                .iter()
++                .enumerate()
++                .map(|(n, id)| Node {
++                    id: id.clone(),
++                    name: Some(format!("n{n}")),
++                    qualified_name: Some(format!("n{n}")),
++                    ..prototype.clone()
++                })
++                .collect();
++            batch.upserts[0].edges.clear();
++            for (from, from_id) in ids.iter().enumerate() {
++                for (to, to_id) in ids.iter().enumerate() {
++                    if mask & (1 << (from * 3 + to)) != 0 {
++                        batch.upserts[0].edges.push(Edge::resolved(
++                            from_id,
++                            EdgeKind::Calls,
++                            to_id,
++                            "target",
++                            Some("src/a.rs"),
++                            Some(1),
++                        ));
++                    }
++                }
++            }
++            batch.upserts[0].edges.push(Edge::resolved(
++                &ids[0],
++                EdgeKind::References,
++                &ids[1],
++                "other relation",
++                Some("src/a.rs"),
++                Some(1),
++            ));
++            batch.upserts[0].edges.push(Edge::dangling(
++                &ids[0],
++                EdgeKind::Calls,
++                "unresolved",
++                Some("src/a.rs"),
++                Some(1),
++            ));
++            let mut store = MemoryStore::new();
++            store.apply(batch).unwrap();
++            let snapshot = store.snapshot().unwrap();
++            for seed in ids.iter().chain(std::iter::once(&NodeId::new("missing"))) {
++                for hops in 0..=4 {
++                    for (nodes, edges) in [(0, 0), (1, 100), (100, 1), (2, 3), (100, 100)] {
++                        let limits = WorkLimits {
++                            nodes,
++                            edges,
++                            ..Default::default()
++                        };
++                        let control =
++                            QueryEngine::with_work_limits(snapshot.as_ref(), limits.clone());
++                        let candidate = QueryEngine::with_work_limits(snapshot.as_ref(), limits);
++                        // A prior phase can have populated an incident neighborhood.
++                        if mask & 1 != 0 {
++                            control.read_edges(&ids[1], &[], Direction::Both).unwrap();
++                            candidate.read_edges(&ids[1], &[], Direction::Both).unwrap();
++                        }
++                        let incoming = control
++                            .read_edges(seed, &[EdgeKind::Calls], Direction::In)
++                            .unwrap();
++                        let expected = control
++                            .expand_with_seed_edges(
++                                std::slice::from_ref(seed),
++                                hops,
++                                &[EdgeKind::Calls],
++                                Direction::In,
++                                Some((seed, &incoming)),
++                            )
++                            .unwrap();
++                        let incoming = candidate
++                            .read_edges(seed, &[EdgeKind::Calls], Direction::In)
++                            .unwrap();
++                        let actual = candidate
++                            .incoming_caller_count(seed, hops, &incoming)
++                            .unwrap();
++                        assert_eq!(
++                            actual,
++                            expected
++                                .nodes
++                                .iter()
++                                .filter(|node| &node.id != seed)
++                                .count() as u64,
++                            "mask={mask} seed={seed} hops={hops} limits={nodes}/{edges}"
++                        );
++                        assert_eq!(
++                            candidate.work.borrow().report(),
++                            control.work.borrow().report()
++                        );
++                    }
++                }
++            }
++        }
++    }
++}

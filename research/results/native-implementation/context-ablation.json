@@ -1,0 +1,437 @@
+{
+  "protocol": "evidence-v1",
+  "valid_tasks": 34,
+  "repeats": 3,
+  "note": "Previously exposed source-valid labels. No model task-success evaluation. Same call, response and context byte budgets; adapter renders the added tool-provided intervals without reading extra source. Retained interval ceiling 80; raising it to 200 did not change any evidence result or response size on this set.",
+  "stages": {
+    "baseline": {
+      "source": "research/results/native-review-2026-09-19/external-results.json",
+      "required_files_tasks": 19,
+      "complete_regions_tasks": 6,
+      "mean_per_task_region_coverage": 0.2319752167190623,
+      "mean_response_bytes_per_trial": 24704.20588235294
+    },
+    "body": {
+      "source": "research/results/native-implementation/body-external/external-results.json",
+      "required_files_tasks": 26,
+      "complete_regions_tasks": 5,
+      "mean_per_task_region_coverage": 0.2618436471951864,
+      "mean_response_bytes_per_trial": 27732.735294117647
+    },
+    "interval80": {
+      "source": "research/results/native-implementation/evidence80-external/external-results.json",
+      "required_files_tasks": 26,
+      "complete_regions_tasks": 6,
+      "mean_per_task_region_coverage": 0.3095610962437713,
+      "mean_response_bytes_per_trial": 33016.794117647056
+    },
+    "interval200": {
+      "source": "research/results/native-implementation/evidence200-external/external-results.json",
+      "required_files_tasks": 26,
+      "complete_regions_tasks": 6,
+      "mean_per_task_region_coverage": 0.3095610962437713,
+      "mean_response_bytes_per_trial": 33016.794117647056
+    }
+  },
+  "interval_ablation_identical_all_evidence_and_response_sizes": true,
+  "baseline_to_retained_changes": [
+    {
+      "task": "nanus.grep.change",
+      "before": {
+        "required_file_recall": 0.0,
+        "region_coverage": {
+          "r1": 0.0,
+          "r2": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "after": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.04411764705882353,
+          "r2": 1.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      }
+    },
+    {
+      "task": "whatsurvey.survey-draft.change",
+      "before": {
+        "required_file_recall": 0.0,
+        "region_coverage": {
+          "r1": 0.0,
+          "r2": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "after": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0,
+          "r2": 0.058823529411764705
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      }
+    },
+    {
+      "task": "nanus.glob.debug",
+      "before": {
+        "required_file_recall": 0.0,
+        "region_coverage": {
+          "r1": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "after": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      }
+    },
+    {
+      "task": "nanus.temporary-paths.debug",
+      "before": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0547945205479452
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "after": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      }
+    },
+    {
+      "task": "nanus.read.change",
+      "before": {
+        "required_file_recall": 0.0,
+        "region_coverage": {
+          "r1": 0.0,
+          "r2": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "after": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0,
+          "r2": 1.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      }
+    },
+    {
+      "task": "whatsurvey.contact-policy.debug",
+      "before": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 1.0,
+          "r2": 0.0851063829787234,
+          "r3": 0.04838709677419355
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "after": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 1.0,
+          "r2": 0.0,
+          "r3": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      }
+    },
+    {
+      "task": "nanus.temporary-paths.change",
+      "before": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0958904109589041
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "after": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      }
+    },
+    {
+      "task": "blogwright.secret-upsert.debug",
+      "before": {
+        "required_file_recall": 0.0,
+        "region_coverage": {
+          "r1": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "after": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.6904761904761905
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      }
+    },
+    {
+      "task": "blogwright.tag-encoding.debug",
+      "before": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.6
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "after": {
+        "required_file_recall": 0.0,
+        "region_coverage": {
+          "r1": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      }
+    },
+    {
+      "task": "whatsurvey.captcha-retry.debug",
+      "before": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 1.0
+        },
+        "evidence_ready": true,
+        "relationship_evidence_recall": 1.0,
+        "task_success": null
+      },
+      "after": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      }
+    },
+    {
+      "task": "whatsurvey.webhook-signature.change",
+      "before": {
+        "required_file_recall": 0.0,
+        "region_coverage": {
+          "r1": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "after": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 1.0
+        },
+        "evidence_ready": true,
+        "relationship_evidence_recall": 1.0,
+        "task_success": null
+      }
+    },
+    {
+      "task": "nanus.write.change",
+      "before": {
+        "required_file_recall": 0.0,
+        "region_coverage": {
+          "r1": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "after": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      }
+    },
+    {
+      "task": "nanus.context.debug",
+      "before": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0,
+          "r2": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "after": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0,
+          "r2": 1.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      }
+    },
+    {
+      "task": "nanus.grep.debug",
+      "before": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0,
+          "r2": 0.125
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "after": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0,
+          "r2": 1.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      }
+    },
+    {
+      "task": "nanus.read.debug",
+      "before": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0,
+          "r2": 0.07692307692307693
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "after": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0,
+          "r2": 1.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      }
+    },
+    {
+      "task": "nanus.argument-types.debug",
+      "before": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "after": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.25862068965517243
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      }
+    },
+    {
+      "task": "whatsurvey.settings-encryption.change",
+      "before": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.3888888888888889,
+          "r2": 0.9264705882352942
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "after": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 1.0,
+          "r2": 0.38235294117647056
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      }
+    },
+    {
+      "task": "whatsurvey.survey-draft.debug",
+      "before": {
+        "required_file_recall": 0.0,
+        "region_coverage": {
+          "r1": 0.0,
+          "r2": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      },
+      "after": {
+        "required_file_recall": 1.0,
+        "region_coverage": {
+          "r1": 0.0,
+          "r2": 0.0
+        },
+        "evidence_ready": false,
+        "relationship_evidence_recall": 0.0,
+        "task_success": null
+      }
+    }
+  ]
+}

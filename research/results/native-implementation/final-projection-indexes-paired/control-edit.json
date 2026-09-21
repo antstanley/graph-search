@@ -1,0 +1,6 @@
+{
+  "file": "crates/engine/src/store.rs",
+  "before": "        prepared.apply_prepared(&self.complete_projection()?)?;\n",
+  "after": "        prepared.apply_prepared(&self.complete_projection()?)?;\n        prepared.refresh_indexes()?;\n",
+  "control_file_sha256": "d1f67ca874ba75afa512e3a2499c0794fe85f8706be31ff622747ea268ac71b9"
+}

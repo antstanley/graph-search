@@ -1,0 +1,27 @@
+{
+  "created_utc": "2026-09-19T21:57:06.518757+00:00",
+  "status": "frozen_before_first_retrieval_trial",
+  "scope": "12 new conceptual queries, four per repository, covering seven source files. Authored from inspected current source without inspecting retrieval results for these prompts. Small convenience sample, not blinded task-success evaluation.",
+  "selection": "Implementation behaviors outside the original 34 source-valid task families; prompts and region labels frozen together.",
+  "variants_predeclared": [
+    "metadata-diversity-0",
+    "metadata-diversity-1",
+    "metadata-diversity-2",
+    "body-diversity-0",
+    "body-diversity-1",
+    "body-diversity-2",
+    "fusion-diversity-0",
+    "fusion-diversity-1",
+    "fusion-diversity-2"
+  ],
+  "budgets": {
+    "max_calls": 4,
+    "response_bytes": 16384,
+    "context_bytes": 49152,
+    "wall_seconds": 180
+  },
+  "artifacts": {
+    "tasks.json": "56ce9d7c74b803d337e449909a00bd526d3ce3752acdb972b2846435f5331ec8",
+    "oracles.json": "08a80b1f22da948b32df422bea8e407bc44a23bc9ff6ed48495cab675562b495"
+  }
+}

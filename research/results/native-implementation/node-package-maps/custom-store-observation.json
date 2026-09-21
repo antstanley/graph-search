@@ -1,0 +1,59 @@
+{
+  "scope": "first fixture setup exposed a library bug: a valid custom in-tree store was admitted as source; excluded from package-map acceptance evidence",
+  "expected_source_files": 4,
+  "observed_coverage": {
+    "source_indexed_files": 13,
+    "source_units": 289,
+    "policy": {
+      "include_hidden": false,
+      "respect_ignore": true,
+      "excludes": [
+        ".git",
+        ".graph-search",
+        "target",
+        "node_modules",
+        "dist",
+        "build",
+        "out",
+        ".venv",
+        "venv",
+        "vendor"
+      ],
+      "max_file_bytes": 1048576,
+      "fingerprint": "caa18b25279ea24c2f8d5c95feb2e2cab911f7e876d32704b2f10ef50aec1c2a"
+    },
+    "enumeration_complete": true,
+    "entries_visited": 43,
+    "admitted_files": 25,
+    "unsupported_files": 22,
+    "quarantined_files": 2
+  },
+  "stale": true,
+  "stale_paths": [
+    "index-store/CURRENT",
+    "index-store/generations/g-18d72607a1e48c70-5700-0/dangling.jsonl",
+    "index-store/generations/g-18d72607a1e48c70-5700-0/extraction-records/1d4e137e403924377a5e09edc5e7ac6040aec2a47582a132cd40e65abf14ebd0",
+    "index-store/generations/g-18d72607a1e48c70-5700-0/extraction-records/c0d34940638e3cc8b62d7038b828952748ccf6149fb0b0ba8160e04e8da8c061",
+    "index-store/generations/g-18d72607a1e48c70-5700-0/extractions.json",
+    "index-store/generations/g-18d72607a1e48c70-5700-0/graph.grafeo",
+    "index-store/generations/g-18d72607a1e48c70-5700-0/manifest.json",
+    "index-store/generations/g-18d72607a1e48c70-5700-0/occurrences.json",
+    "index-store/generations/g-18d72607a1e48c70-5700-0/source-records/4075f8f6f61e54ea3750a42cc5584aeb4f11ac92a0f183a008ddfe4f5c8a1041",
+    "index-store/generations/g-18d72607a1e48c70-5700-0/source-records/7ddae4f0d979a971e0bb964529a58ffd959f7aecd61d657c1e01729ed37c0d5e",
+    "index-store/generations/g-18d72607a1e48c70-5700-0/source-units.json"
+  ],
+  "source_files": {
+    "workspaces/backend/package.json": "5a78f2b50aba0bfcf385e874c4ff80ca8b724c35dc9c15d67b3d3d4b917f6d5d",
+    "workspaces/backend/src/core/index.ts": "e5e1fb7977efc59501b59e65f5ad87bb125b4957d9976f4941a977d4b61cc78d",
+    "workspaces/backend/src/core/whatsapp/flow-json.ts": "481c0551d6f0b7ad2f639d4fe8a6b7e8317cf7ffea9b8d96c7c81106a48f8993",
+    "workspaces/backend/src/functions/admin-api/routes/flows.ts": "3351f9d537098b33a9b0b6e24d821d8d683b94d905777480332e52b7e73d2dd9"
+  },
+  "cli_sha256": "892e78cfb53e1a5e58885e145c641499d8ec3f6df1c7ebc700b2adccd255c8c6",
+  "requires_followup": "Exclude a configured in-tree store from walking; current query indexed its own publication files. This capture is not used as package-map acceptance evidence.",
+  "followup_evidence": "../store-exclusion/README.md",
+  "resolution": {
+    "fixed": true,
+    "evidence": "../store-exclusion/checks.json",
+    "source_probe": "../store-exclusion/source-probe.json"
+  }
+}

@@ -4,13 +4,16 @@
 //! No Grafeo type crosses the port: ids and values are converted at this
 //! boundary, exactly as `nanus` keeps `std::io::Error` out of its domain
 //! (`SPEC.md` §4.3). The store lives at `<root>/.graph-search/index/`; the
-//! manifest and the dangling-reference sidecar live beside it, so deleting
+//! manifest and dangling references are published in native generations, so deleting
 //! the directory is always a safe rebuild (`SPEC.md` §13).
 
 #![forbid(unsafe_code)]
 #![warn(missing_docs)]
 
+mod generation;
+mod manifest_records;
 pub mod sidecar;
+mod source_records;
 pub mod store;
 pub mod value;
 

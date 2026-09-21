@@ -1,0 +1,1529 @@
+{
+  "compiler_version": "6.0.3",
+  "cases": [
+    {
+      "name": "chain/tsconfig.json",
+      "checks": [
+        "baseUrl declaring directory",
+        "rootDir declaring directory",
+        "outDir declaring directory",
+        "strict effective value",
+        "paths effective value",
+        "paths origin and wildcard order",
+        "include declaring directory",
+        "exclude declaring directory",
+        "files declaring directory",
+        "references local only",
+        "all dependency hashes"
+      ],
+      "native": {
+        "configuration": {
+          "fields": {
+            "compilerOptions": {
+              "baseUrl": "./child",
+              "outDir": "./out",
+              "paths": {
+                "a*": [
+                  "./a*"
+                ],
+                "z*": [
+                  "./z*"
+                ]
+              },
+              "rootDir": "./src",
+              "strict": true
+            },
+            "exclude": [
+              "out"
+            ],
+            "files": [],
+            "include": [
+              "src/**/*.ts"
+            ]
+          },
+          "path_patterns": [
+            "z*",
+            "a*"
+          ]
+        },
+        "dependencies": {
+          "chain/configs/base.json": "852f95e920730ba2bbc49c7e21385ae8df732d22055de272e9624c1b4fcb7438",
+          "chain/configs/mid.json": "822426c060a92705c277e9a366fd57ecc5f59e69075df235aff46eb45d13fcc7",
+          "chain/tsconfig.json": "063f1d8e475698a9b8037c2b9f30389b3cf0aaa6ad33c8f270ccbd28edb46077"
+        },
+        "field_origins": {
+          "exclude": "chain/configs/base.json",
+          "files": "chain/tsconfig.json",
+          "include": "chain/configs/base.json"
+        },
+        "option_origins": {
+          "baseUrl": "chain/tsconfig.json",
+          "outDir": "chain/configs/base.json",
+          "paths": "chain/configs/base.json",
+          "rootDir": "chain/configs/base.json",
+          "strict": "chain/configs/mid.json"
+        }
+      },
+      "compiler": {
+        "name": "chain/tsconfig.json",
+        "options": {
+          "baseUrl": "<fixture>/chain/child",
+          "rootDir": "<fixture>/chain/configs/src",
+          "outDir": "<fixture>/chain/configs/out",
+          "strict": true,
+          "paths": {
+            "z*": [
+              "./z*"
+            ],
+            "a*": [
+              "./a*"
+            ]
+          },
+          "pathsBasePath": "<fixture>/chain/configs",
+          "configFilePath": "<fixture>/chain/tsconfig.json"
+        },
+        "raw": {
+          "extends": "./configs/mid.json",
+          "compilerOptions": {
+            "baseUrl": "./child"
+          },
+          "files": [],
+          "include": [
+            "configs/src/**/*.ts"
+          ],
+          "exclude": [
+            "configs/out"
+          ]
+        },
+        "references": [],
+        "diagnostics": []
+      },
+      "matched": true
+    },
+    {
+      "name": "array/tsconfig.json",
+      "checks": [
+        "baseUrl declaring directory",
+        "strict effective value",
+        "paths effective value",
+        "paths origin and wildcard order",
+        "include declaring directory",
+        "references local only",
+        "all dependency hashes"
+      ],
+      "native": {
+        "configuration": {
+          "fields": {
+            "compilerOptions": {
+              "baseUrl": "./first",
+              "paths": {
+                "second*": [
+                  "./second*"
+                ]
+              },
+              "strict": true
+            },
+            "include": [
+              "second/**/*.ts"
+            ],
+            "references": [
+              {
+                "path": "../chain"
+              }
+            ]
+          },
+          "path_patterns": [
+            "second*"
+          ]
+        },
+        "dependencies": {
+          "array/first.json": "beec92e744cc5df4a8183dcd661447a88b27513c572560c83cbfbe03d422fee5",
+          "array/second.json": "53113263504d1214eb8cdbe74779d9f3c150320be2dafbc17fc0aafbbb76682b",
+          "array/tsconfig.json": "13ba19e83d7a00894e2ac74aae58e5a4831c1835ada1533caa3f26c12077639a"
+        },
+        "field_origins": {
+          "include": "array/second.json",
+          "references": "array/tsconfig.json"
+        },
+        "option_origins": {
+          "baseUrl": "array/first.json",
+          "paths": "array/second.json",
+          "strict": "array/first.json"
+        }
+      },
+      "compiler": {
+        "name": "array/tsconfig.json",
+        "options": {
+          "baseUrl": "<fixture>/array/first",
+          "strict": true,
+          "paths": {
+            "second*": [
+              "./second*"
+            ]
+          },
+          "pathsBasePath": "<fixture>/array",
+          "configFilePath": "<fixture>/array/tsconfig.json"
+        },
+        "raw": {
+          "extends": [
+            "./first.json",
+            "./second.json"
+          ],
+          "references": [
+            {
+              "path": "../chain"
+            }
+          ],
+          "include": [
+            "second/**/*.ts"
+          ]
+        },
+        "references": [
+          {
+            "path": "<fixture>/chain",
+            "originalPath": "../chain"
+          }
+        ],
+        "diagnostics": []
+      },
+      "matched": true
+    },
+    {
+      "name": "array/clear.json",
+      "checks": [
+        "baseUrl declaring directory",
+        "strict effective value",
+        "paths effective value",
+        "paths origin and wildcard order",
+        "include declaring directory",
+        "exclude declaring directory",
+        "files declaring directory",
+        "references local only",
+        "all dependency hashes"
+      ],
+      "native": {
+        "configuration": {
+          "fields": {
+            "compilerOptions": {
+              "baseUrl": "./first",
+              "paths": {},
+              "strict": true
+            },
+            "exclude": [],
+            "files": [],
+            "include": [],
+            "references": []
+          }
+        },
+        "dependencies": {
+          "array/clear.json": "b7fd72ddcc813144ed250d13b5b458e33997b00a1752e6ba59cda4c316694341",
+          "array/first.json": "beec92e744cc5df4a8183dcd661447a88b27513c572560c83cbfbe03d422fee5",
+          "array/second.json": "53113263504d1214eb8cdbe74779d9f3c150320be2dafbc17fc0aafbbb76682b",
+          "array/tsconfig.json": "13ba19e83d7a00894e2ac74aae58e5a4831c1835ada1533caa3f26c12077639a"
+        },
+        "field_origins": {
+          "exclude": "array/clear.json",
+          "files": "array/clear.json",
+          "include": "array/clear.json",
+          "references": "array/clear.json"
+        },
+        "option_origins": {
+          "baseUrl": "array/first.json",
+          "paths": "array/clear.json",
+          "strict": "array/first.json"
+        }
+      },
+      "compiler": {
+        "name": "array/clear.json",
+        "options": {
+          "baseUrl": "<fixture>/array/first",
+          "strict": true,
+          "paths": {},
+          "pathsBasePath": "<fixture>/array",
+          "configFilePath": "<fixture>/array/clear.json"
+        },
+        "raw": {
+          "extends": "./tsconfig.json",
+          "compilerOptions": {
+            "paths": {}
+          },
+          "include": [],
+          "exclude": [],
+          "files": [],
+          "references": []
+        },
+        "references": [],
+        "diagnostics": []
+      },
+      "matched": true
+    },
+    {
+      "name": "jsonc/tsconfig.json",
+      "checks": [
+        "rootDir declaring directory",
+        "files declaring directory",
+        "references local only",
+        "all dependency hashes"
+      ],
+      "native": {
+        "configuration": {
+          "fields": {
+            "compilerOptions": {
+              "rootDir": "./source"
+            },
+            "files": [
+              "entry.ts"
+            ]
+          }
+        },
+        "dependencies": {
+          "jsonc/base.jsonc": "0cad18ffede579b81b5aafa48e478d60ce02d4fdfb6312bb041c67c22f21c16a",
+          "jsonc/tsconfig.json": "86bb7675f5ac89c31b401087115e5e8381ab584480d919140a67314db182e7b5"
+        },
+        "field_origins": {
+          "files": "jsonc/base.jsonc"
+        },
+        "option_origins": {
+          "rootDir": "jsonc/base.jsonc"
+        }
+      },
+      "compiler": {
+        "name": "jsonc/tsconfig.json",
+        "options": {
+          "rootDir": "<fixture>/jsonc/source",
+          "configFilePath": "<fixture>/jsonc/tsconfig.json"
+        },
+        "raw": {
+          "extends": "./base.jsonc",
+          "files": [
+            "entry.ts"
+          ]
+        },
+        "references": [],
+        "diagnostics": []
+      },
+      "matched": true
+    },
+    {
+      "name": "diamond/tsconfig.json",
+      "checks": [
+        "rootDir declaring directory",
+        "strict effective value",
+        "references local only",
+        "all dependency hashes"
+      ],
+      "native": {
+        "configuration": {
+          "fields": {
+            "compilerOptions": {
+              "rootDir": "./src",
+              "strict": true
+            }
+          }
+        },
+        "dependencies": {
+          "diamond/base.json": "7cfb688595039d5f808be45c47c6b13a2b5e1c72bb38252569d34f62f7029188",
+          "diamond/left.json": "f28ae9caf1390b2e24eda25e0dda50de1fc21641e2f0740cf0e864d600f9597e",
+          "diamond/right.json": "f4b3b6eae1d2c676b5a031cd922fac639193118fa0ac465ae0f514b1ef256ee8",
+          "diamond/tsconfig.json": "84b2f950fc20e9428c0e180b09518682b353bb9b97c2c36e411a7f71a2949c7d"
+        },
+        "field_origins": {},
+        "option_origins": {
+          "rootDir": "diamond/base.json",
+          "strict": "diamond/base.json"
+        }
+      },
+      "compiler": {
+        "name": "diamond/tsconfig.json",
+        "options": {
+          "rootDir": "<fixture>/diamond/src",
+          "strict": true,
+          "configFilePath": "<fixture>/diamond/tsconfig.json"
+        },
+        "raw": {
+          "extends": [
+            "./left.json",
+            "./right.json"
+          ]
+        },
+        "references": [],
+        "diagnostics": [
+          {
+            "code": 18003,
+            "message": "No inputs were found in config file '<fixture>/diamond/tsconfig.json'. Specified 'include' paths were '[\"**/*\"]' and 'exclude' paths were '[]'."
+          }
+        ]
+      },
+      "matched": true
+    },
+    {
+      "name": "dotted/tsconfig.json",
+      "checks": [
+        "rootDir declaring directory",
+        "strict effective value",
+        "references local only",
+        "all dependency hashes"
+      ],
+      "native": {
+        "configuration": {
+          "fields": {
+            "compilerOptions": {
+              "rootDir": "./src",
+              "strict": true
+            }
+          }
+        },
+        "dependencies": {
+          "dotted/base.custom.json": "f4093f4a8e0840be11d3551b7304edb70aadde9b80167b3cb1eeb57ab6ac6f0d",
+          "dotted/tsconfig.json": "4f9c8200656db9d640f7a83314ceb15cd96bed0f676e5949ebf6b99fff2b45b7"
+        },
+        "field_origins": {},
+        "option_origins": {
+          "rootDir": "dotted/base.custom.json",
+          "strict": "dotted/base.custom.json"
+        }
+      },
+      "compiler": {
+        "name": "dotted/tsconfig.json",
+        "options": {
+          "strict": true,
+          "rootDir": "<fixture>/dotted/src",
+          "configFilePath": "<fixture>/dotted/tsconfig.json"
+        },
+        "raw": {
+          "extends": "./base.custom"
+        },
+        "references": [],
+        "diagnostics": [
+          {
+            "code": 18003,
+            "message": "No inputs were found in config file '<fixture>/dotted/tsconfig.json'. Specified 'include' paths were '[\"**/*\"]' and 'exclude' paths were '[]'."
+          }
+        ]
+      },
+      "matched": true
+    },
+    {
+      "name": "dotfile/tsconfig.json",
+      "checks": [
+        "missing parent fails closed"
+      ],
+      "native": {
+        "error": "ts_config_missing"
+      },
+      "compiler": {
+        "name": "dotfile/tsconfig.json",
+        "options": {
+          "configFilePath": "<fixture>/dotfile/tsconfig.json"
+        },
+        "raw": {
+          "extends": "./.json"
+        },
+        "references": [],
+        "diagnostics": [
+          {
+            "code": 5083,
+            "message": "Cannot read file '<fixture>/dotfile/.json'."
+          },
+          {
+            "code": 18003,
+            "message": "No inputs were found in config file '<fixture>/dotfile/tsconfig.json'. Specified 'include' paths were '[\"**/*\"]' and 'exclude' paths were '[]'."
+          }
+        ]
+      },
+      "matched": true
+    },
+    {
+      "name": "missing/tsconfig.json",
+      "checks": [
+        "missing parent fails closed"
+      ],
+      "native": {
+        "error": "ts_config_missing"
+      },
+      "compiler": {
+        "name": "missing/tsconfig.json",
+        "options": {
+          "configFilePath": "<fixture>/missing/tsconfig.json"
+        },
+        "raw": {
+          "extends": "./absent.json"
+        },
+        "references": [],
+        "diagnostics": [
+          {
+            "code": 5083,
+            "message": "Cannot read file '<fixture>/missing/absent.json'."
+          },
+          {
+            "code": 18003,
+            "message": "No inputs were found in config file '<fixture>/missing/tsconfig.json'. Specified 'include' paths were '[\"**/*\"]' and 'exclude' paths were '[]'."
+          }
+        ]
+      },
+      "matched": true
+    },
+    {
+      "name": "cycle/tsconfig.json",
+      "checks": [
+        "cycle fails closed"
+      ],
+      "native": {
+        "error": "ts_config_inheritance_cycle"
+      },
+      "compiler": {
+        "name": "cycle/tsconfig.json",
+        "options": {
+          "configFilePath": "<fixture>/cycle/tsconfig.json"
+        },
+        "raw": {
+          "extends": "./second.json"
+        },
+        "references": [],
+        "diagnostics": [
+          {
+            "code": 18000,
+            "message": "Circularity detected while resolving configuration: <fixture>/cycle/tsconfig.json -> <fixture>/cycle/second.json -> <fixture>/cycle/tsconfig.json"
+          },
+          {
+            "code": 18003,
+            "message": "No inputs were found in config file '<fixture>/cycle/tsconfig.json'. Specified 'include' paths were '[\"**/*\"]' and 'exclude' paths were '[]'."
+          }
+        ]
+      },
+      "matched": true
+    },
+    {
+      "name": "blogwright/tsconfig.base.json",
+      "checks": [
+        "strict effective value",
+        "skipLibCheck effective value",
+        "declaration effective value",
+        "esModuleInterop effective value",
+        "isolatedModules effective value",
+        "noUncheckedIndexedAccess effective value",
+        "verbatimModuleSyntax effective value",
+        "references local only",
+        "all dependency hashes"
+      ],
+      "native": {
+        "configuration": {
+          "fields": {
+            "compilerOptions": {
+              "declaration": true,
+              "esModuleInterop": true,
+              "exactOptionalPropertyTypes": true,
+              "isolatedModules": true,
+              "lib": [
+                "ES2023"
+              ],
+              "module": "NodeNext",
+              "moduleResolution": "NodeNext",
+              "noFallthroughCasesInSwitch": true,
+              "noImplicitOverride": true,
+              "noUncheckedIndexedAccess": true,
+              "resolveJsonModule": true,
+              "skipLibCheck": true,
+              "strict": true,
+              "target": "ES2023",
+              "verbatimModuleSyntax": true
+            }
+          }
+        },
+        "dependencies": {
+          "blogwright/tsconfig.base.json": "8dd4e34ef8c02be60c5bc7d35167e6c90ad82348be8cce3b0e6379c513fe70ea"
+        },
+        "field_origins": {},
+        "option_origins": {
+          "declaration": "blogwright/tsconfig.base.json",
+          "esModuleInterop": "blogwright/tsconfig.base.json",
+          "exactOptionalPropertyTypes": "blogwright/tsconfig.base.json",
+          "isolatedModules": "blogwright/tsconfig.base.json",
+          "lib": "blogwright/tsconfig.base.json",
+          "module": "blogwright/tsconfig.base.json",
+          "moduleResolution": "blogwright/tsconfig.base.json",
+          "noFallthroughCasesInSwitch": "blogwright/tsconfig.base.json",
+          "noImplicitOverride": "blogwright/tsconfig.base.json",
+          "noUncheckedIndexedAccess": "blogwright/tsconfig.base.json",
+          "resolveJsonModule": "blogwright/tsconfig.base.json",
+          "skipLibCheck": "blogwright/tsconfig.base.json",
+          "strict": "blogwright/tsconfig.base.json",
+          "target": "blogwright/tsconfig.base.json",
+          "verbatimModuleSyntax": "blogwright/tsconfig.base.json"
+        }
+      },
+      "compiler": {
+        "name": "blogwright/tsconfig.base.json",
+        "options": {
+          "target": 10,
+          "lib": [
+            "lib.es2023.d.ts"
+          ],
+          "module": 199,
+          "moduleResolution": 99,
+          "verbatimModuleSyntax": true,
+          "isolatedModules": true,
+          "esModuleInterop": true,
+          "resolveJsonModule": true,
+          "strict": true,
+          "noUncheckedIndexedAccess": true,
+          "noImplicitOverride": true,
+          "noFallthroughCasesInSwitch": true,
+          "exactOptionalPropertyTypes": true,
+          "declaration": true,
+          "skipLibCheck": true,
+          "configFilePath": "<fixture>/blogwright/tsconfig.base.json"
+        },
+        "raw": {
+          "compilerOptions": {
+            "target": "ES2023",
+            "lib": [
+              "ES2023"
+            ],
+            "module": "NodeNext",
+            "moduleResolution": "NodeNext",
+            "verbatimModuleSyntax": true,
+            "isolatedModules": true,
+            "esModuleInterop": true,
+            "resolveJsonModule": true,
+            "strict": true,
+            "noUncheckedIndexedAccess": true,
+            "noImplicitOverride": true,
+            "noFallthroughCasesInSwitch": true,
+            "exactOptionalPropertyTypes": true,
+            "declaration": true,
+            "skipLibCheck": true
+          }
+        },
+        "references": [],
+        "diagnostics": [
+          {
+            "code": 18003,
+            "message": "No inputs were found in config file '<fixture>/blogwright/tsconfig.base.json'. Specified 'include' paths were '[\"**/*\"]' and 'exclude' paths were '[]'."
+          }
+        ]
+      },
+      "matched": true
+    },
+    {
+      "name": "blogwright/packages/core/tsconfig.json",
+      "checks": [
+        "rootDir declaring directory",
+        "outDir declaring directory",
+        "strict effective value",
+        "skipLibCheck effective value",
+        "types effective value",
+        "declaration effective value",
+        "esModuleInterop effective value",
+        "isolatedModules effective value",
+        "noUncheckedIndexedAccess effective value",
+        "verbatimModuleSyntax effective value",
+        "include declaring directory",
+        "exclude declaring directory",
+        "references local only",
+        "all dependency hashes"
+      ],
+      "native": {
+        "configuration": {
+          "fields": {
+            "compilerOptions": {
+              "declaration": true,
+              "esModuleInterop": true,
+              "exactOptionalPropertyTypes": true,
+              "isolatedModules": true,
+              "lib": [
+                "ES2023"
+              ],
+              "module": "NodeNext",
+              "moduleResolution": "NodeNext",
+              "noFallthroughCasesInSwitch": true,
+              "noImplicitOverride": true,
+              "noUncheckedIndexedAccess": true,
+              "outDir": "dist",
+              "resolveJsonModule": true,
+              "rootDir": "src",
+              "skipLibCheck": true,
+              "strict": true,
+              "target": "ES2023",
+              "types": [
+                "node"
+              ],
+              "verbatimModuleSyntax": true
+            },
+            "exclude": [
+              "dist",
+              "**/*.test.ts"
+            ],
+            "include": [
+              "src/**/*"
+            ]
+          }
+        },
+        "dependencies": {
+          "blogwright/packages/core/tsconfig.json": "f5e188288b189d08a6a366f71b632c5407644085e20e5fc8c317b8f4ff16f6d1",
+          "blogwright/tsconfig.base.json": "8dd4e34ef8c02be60c5bc7d35167e6c90ad82348be8cce3b0e6379c513fe70ea"
+        },
+        "field_origins": {
+          "exclude": "blogwright/packages/core/tsconfig.json",
+          "include": "blogwright/packages/core/tsconfig.json"
+        },
+        "option_origins": {
+          "declaration": "blogwright/tsconfig.base.json",
+          "esModuleInterop": "blogwright/tsconfig.base.json",
+          "exactOptionalPropertyTypes": "blogwright/tsconfig.base.json",
+          "isolatedModules": "blogwright/tsconfig.base.json",
+          "lib": "blogwright/tsconfig.base.json",
+          "module": "blogwright/tsconfig.base.json",
+          "moduleResolution": "blogwright/tsconfig.base.json",
+          "noFallthroughCasesInSwitch": "blogwright/tsconfig.base.json",
+          "noImplicitOverride": "blogwright/tsconfig.base.json",
+          "noUncheckedIndexedAccess": "blogwright/tsconfig.base.json",
+          "outDir": "blogwright/packages/core/tsconfig.json",
+          "resolveJsonModule": "blogwright/tsconfig.base.json",
+          "rootDir": "blogwright/packages/core/tsconfig.json",
+          "skipLibCheck": "blogwright/tsconfig.base.json",
+          "strict": "blogwright/tsconfig.base.json",
+          "target": "blogwright/tsconfig.base.json",
+          "types": "blogwright/packages/core/tsconfig.json",
+          "verbatimModuleSyntax": "blogwright/tsconfig.base.json"
+        }
+      },
+      "compiler": {
+        "name": "blogwright/packages/core/tsconfig.json",
+        "options": {
+          "target": 10,
+          "lib": [
+            "lib.es2023.d.ts"
+          ],
+          "module": 199,
+          "moduleResolution": 99,
+          "verbatimModuleSyntax": true,
+          "isolatedModules": true,
+          "esModuleInterop": true,
+          "resolveJsonModule": true,
+          "strict": true,
+          "noUncheckedIndexedAccess": true,
+          "noImplicitOverride": true,
+          "noFallthroughCasesInSwitch": true,
+          "exactOptionalPropertyTypes": true,
+          "declaration": true,
+          "skipLibCheck": true,
+          "rootDir": "<fixture>/blogwright/packages/core/src",
+          "outDir": "<fixture>/blogwright/packages/core/dist",
+          "types": [
+            "node"
+          ],
+          "configFilePath": "<fixture>/blogwright/packages/core/tsconfig.json"
+        },
+        "raw": {
+          "extends": "../../tsconfig.base.json",
+          "compilerOptions": {
+            "rootDir": "src",
+            "outDir": "dist",
+            "types": [
+              "node"
+            ]
+          },
+          "include": [
+            "src/**/*"
+          ],
+          "exclude": [
+            "dist",
+            "**/*.test.ts"
+          ]
+        },
+        "references": [],
+        "diagnostics": [
+          {
+            "code": 18003,
+            "message": "No inputs were found in config file '<fixture>/blogwright/packages/core/tsconfig.json'. Specified 'include' paths were '[\"src/**/*\"]' and 'exclude' paths were '[\"dist\",\"**/*.test.ts\"]'."
+          }
+        ]
+      },
+      "matched": true
+    },
+    {
+      "name": "blogwright/packages/cli/tsconfig.json",
+      "checks": [
+        "rootDir declaring directory",
+        "outDir declaring directory",
+        "strict effective value",
+        "skipLibCheck effective value",
+        "types effective value",
+        "declaration effective value",
+        "esModuleInterop effective value",
+        "isolatedModules effective value",
+        "noUncheckedIndexedAccess effective value",
+        "verbatimModuleSyntax effective value",
+        "include declaring directory",
+        "exclude declaring directory",
+        "references local only",
+        "all dependency hashes"
+      ],
+      "native": {
+        "configuration": {
+          "fields": {
+            "compilerOptions": {
+              "declaration": true,
+              "esModuleInterop": true,
+              "exactOptionalPropertyTypes": true,
+              "isolatedModules": true,
+              "lib": [
+                "ES2023"
+              ],
+              "module": "NodeNext",
+              "moduleResolution": "NodeNext",
+              "noFallthroughCasesInSwitch": true,
+              "noImplicitOverride": true,
+              "noUncheckedIndexedAccess": true,
+              "outDir": "dist",
+              "resolveJsonModule": true,
+              "rootDir": "src",
+              "skipLibCheck": true,
+              "strict": true,
+              "target": "ES2023",
+              "types": [
+                "node"
+              ],
+              "verbatimModuleSyntax": true
+            },
+            "exclude": [
+              "dist",
+              "**/*.test.ts",
+              "src/test-support.ts"
+            ],
+            "include": [
+              "src/**/*"
+            ]
+          }
+        },
+        "dependencies": {
+          "blogwright/packages/cli/tsconfig.json": "9b81a916463813350440e51f61306f0e8e3ef85f3620971929a607503a6c2faa",
+          "blogwright/tsconfig.base.json": "8dd4e34ef8c02be60c5bc7d35167e6c90ad82348be8cce3b0e6379c513fe70ea"
+        },
+        "field_origins": {
+          "exclude": "blogwright/packages/cli/tsconfig.json",
+          "include": "blogwright/packages/cli/tsconfig.json"
+        },
+        "option_origins": {
+          "declaration": "blogwright/tsconfig.base.json",
+          "esModuleInterop": "blogwright/tsconfig.base.json",
+          "exactOptionalPropertyTypes": "blogwright/tsconfig.base.json",
+          "isolatedModules": "blogwright/tsconfig.base.json",
+          "lib": "blogwright/tsconfig.base.json",
+          "module": "blogwright/tsconfig.base.json",
+          "moduleResolution": "blogwright/tsconfig.base.json",
+          "noFallthroughCasesInSwitch": "blogwright/tsconfig.base.json",
+          "noImplicitOverride": "blogwright/tsconfig.base.json",
+          "noUncheckedIndexedAccess": "blogwright/tsconfig.base.json",
+          "outDir": "blogwright/packages/cli/tsconfig.json",
+          "resolveJsonModule": "blogwright/tsconfig.base.json",
+          "rootDir": "blogwright/packages/cli/tsconfig.json",
+          "skipLibCheck": "blogwright/tsconfig.base.json",
+          "strict": "blogwright/tsconfig.base.json",
+          "target": "blogwright/tsconfig.base.json",
+          "types": "blogwright/packages/cli/tsconfig.json",
+          "verbatimModuleSyntax": "blogwright/tsconfig.base.json"
+        }
+      },
+      "compiler": {
+        "name": "blogwright/packages/cli/tsconfig.json",
+        "options": {
+          "target": 10,
+          "lib": [
+            "lib.es2023.d.ts"
+          ],
+          "module": 199,
+          "moduleResolution": 99,
+          "verbatimModuleSyntax": true,
+          "isolatedModules": true,
+          "esModuleInterop": true,
+          "resolveJsonModule": true,
+          "strict": true,
+          "noUncheckedIndexedAccess": true,
+          "noImplicitOverride": true,
+          "noFallthroughCasesInSwitch": true,
+          "exactOptionalPropertyTypes": true,
+          "declaration": true,
+          "skipLibCheck": true,
+          "rootDir": "<fixture>/blogwright/packages/cli/src",
+          "outDir": "<fixture>/blogwright/packages/cli/dist",
+          "types": [
+            "node"
+          ],
+          "configFilePath": "<fixture>/blogwright/packages/cli/tsconfig.json"
+        },
+        "raw": {
+          "extends": "../../tsconfig.base.json",
+          "compilerOptions": {
+            "rootDir": "src",
+            "outDir": "dist",
+            "types": [
+              "node"
+            ]
+          },
+          "include": [
+            "src/**/*"
+          ],
+          "exclude": [
+            "dist",
+            "**/*.test.ts",
+            "src/test-support.ts"
+          ]
+        },
+        "references": [],
+        "diagnostics": [
+          {
+            "code": 18003,
+            "message": "No inputs were found in config file '<fixture>/blogwright/packages/cli/tsconfig.json'. Specified 'include' paths were '[\"src/**/*\"]' and 'exclude' paths were '[\"dist\",\"**/*.test.ts\",\"src/test-support.ts\"]'."
+          }
+        ]
+      },
+      "matched": true
+    },
+    {
+      "name": "whatsurvey/tsconfig.json",
+      "checks": [
+        "strict effective value",
+        "skipLibCheck effective value",
+        "esModuleInterop effective value",
+        "isolatedModules effective value",
+        "verbatimModuleSyntax effective value",
+        "files declaring directory",
+        "references local only",
+        "all dependency hashes"
+      ],
+      "native": {
+        "configuration": {
+          "fields": {
+            "compilerOptions": {
+              "esModuleInterop": true,
+              "isolatedModules": true,
+              "lib": [
+                "ESNext",
+                "DOM",
+                "DOM.Iterable"
+              ],
+              "module": "ESNext",
+              "moduleResolution": "bundler",
+              "resolveJsonModule": true,
+              "skipLibCheck": true,
+              "strict": true,
+              "target": "ESNext",
+              "verbatimModuleSyntax": true
+            },
+            "files": [],
+            "references": [
+              {
+                "path": "./workspaces/backend"
+              },
+              {
+                "path": "./workspaces/frontend"
+              },
+              {
+                "path": "./packages/ui"
+              }
+            ]
+          }
+        },
+        "dependencies": {
+          "whatsurvey/tsconfig.json": "de5be5781635e7dc73f9f012cdd26b8ce4db3531f3163ef2a783009ccae9148b"
+        },
+        "field_origins": {
+          "files": "whatsurvey/tsconfig.json",
+          "references": "whatsurvey/tsconfig.json"
+        },
+        "option_origins": {
+          "esModuleInterop": "whatsurvey/tsconfig.json",
+          "isolatedModules": "whatsurvey/tsconfig.json",
+          "lib": "whatsurvey/tsconfig.json",
+          "module": "whatsurvey/tsconfig.json",
+          "moduleResolution": "whatsurvey/tsconfig.json",
+          "resolveJsonModule": "whatsurvey/tsconfig.json",
+          "skipLibCheck": "whatsurvey/tsconfig.json",
+          "strict": "whatsurvey/tsconfig.json",
+          "target": "whatsurvey/tsconfig.json",
+          "verbatimModuleSyntax": "whatsurvey/tsconfig.json"
+        }
+      },
+      "compiler": {
+        "name": "whatsurvey/tsconfig.json",
+        "options": {
+          "strict": true,
+          "moduleResolution": 100,
+          "module": 99,
+          "target": 99,
+          "isolatedModules": true,
+          "resolveJsonModule": true,
+          "esModuleInterop": true,
+          "skipLibCheck": true,
+          "verbatimModuleSyntax": true,
+          "lib": [
+            "lib.esnext.d.ts",
+            "lib.dom.d.ts",
+            "lib.dom.iterable.d.ts"
+          ],
+          "configFilePath": "<fixture>/whatsurvey/tsconfig.json"
+        },
+        "raw": {
+          "compilerOptions": {
+            "strict": true,
+            "moduleResolution": "bundler",
+            "module": "ESNext",
+            "target": "ESNext",
+            "isolatedModules": true,
+            "resolveJsonModule": true,
+            "esModuleInterop": true,
+            "skipLibCheck": true,
+            "verbatimModuleSyntax": true,
+            "lib": [
+              "ESNext",
+              "DOM",
+              "DOM.Iterable"
+            ]
+          },
+          "files": [],
+          "references": [
+            {
+              "path": "./workspaces/backend"
+            },
+            {
+              "path": "./workspaces/frontend"
+            },
+            {
+              "path": "./packages/ui"
+            }
+          ]
+        },
+        "references": [
+          {
+            "path": "<fixture>/whatsurvey/workspaces/backend",
+            "originalPath": "./workspaces/backend"
+          },
+          {
+            "path": "<fixture>/whatsurvey/workspaces/frontend",
+            "originalPath": "./workspaces/frontend"
+          },
+          {
+            "path": "<fixture>/whatsurvey/packages/ui",
+            "originalPath": "./packages/ui"
+          }
+        ],
+        "diagnostics": []
+      },
+      "matched": true
+    },
+    {
+      "name": "whatsurvey/workspaces/backend/tsconfig.json",
+      "checks": [
+        "strict effective value",
+        "noEmit effective value",
+        "skipLibCheck effective value",
+        "types effective value",
+        "esModuleInterop effective value",
+        "isolatedModules effective value",
+        "verbatimModuleSyntax effective value",
+        "include declaring directory",
+        "exclude declaring directory",
+        "references local only",
+        "all dependency hashes"
+      ],
+      "native": {
+        "configuration": {
+          "fields": {
+            "compilerOptions": {
+              "esModuleInterop": true,
+              "isolatedModules": true,
+              "lib": [
+                "ESNext"
+              ],
+              "module": "ESNext",
+              "moduleResolution": "bundler",
+              "noEmit": true,
+              "resolveJsonModule": true,
+              "skipLibCheck": true,
+              "strict": true,
+              "target": "ESNext",
+              "types": [
+                "node"
+              ],
+              "verbatimModuleSyntax": true
+            },
+            "exclude": [
+              "node_modules",
+              "dist"
+            ],
+            "include": [
+              "src/**/*",
+              "tests/**/*"
+            ]
+          }
+        },
+        "dependencies": {
+          "whatsurvey/workspaces/backend/tsconfig.json": "d2b4ba4f06e1775d713fbe010ab86c6edb473dd6cbef6795252478bdb71240ff"
+        },
+        "field_origins": {
+          "exclude": "whatsurvey/workspaces/backend/tsconfig.json",
+          "include": "whatsurvey/workspaces/backend/tsconfig.json"
+        },
+        "option_origins": {
+          "esModuleInterop": "whatsurvey/workspaces/backend/tsconfig.json",
+          "isolatedModules": "whatsurvey/workspaces/backend/tsconfig.json",
+          "lib": "whatsurvey/workspaces/backend/tsconfig.json",
+          "module": "whatsurvey/workspaces/backend/tsconfig.json",
+          "moduleResolution": "whatsurvey/workspaces/backend/tsconfig.json",
+          "noEmit": "whatsurvey/workspaces/backend/tsconfig.json",
+          "resolveJsonModule": "whatsurvey/workspaces/backend/tsconfig.json",
+          "skipLibCheck": "whatsurvey/workspaces/backend/tsconfig.json",
+          "strict": "whatsurvey/workspaces/backend/tsconfig.json",
+          "target": "whatsurvey/workspaces/backend/tsconfig.json",
+          "types": "whatsurvey/workspaces/backend/tsconfig.json",
+          "verbatimModuleSyntax": "whatsurvey/workspaces/backend/tsconfig.json"
+        }
+      },
+      "compiler": {
+        "name": "whatsurvey/workspaces/backend/tsconfig.json",
+        "options": {
+          "strict": true,
+          "moduleResolution": 100,
+          "module": 99,
+          "target": 99,
+          "isolatedModules": true,
+          "resolveJsonModule": true,
+          "esModuleInterop": true,
+          "skipLibCheck": true,
+          "verbatimModuleSyntax": true,
+          "noEmit": true,
+          "types": [
+            "node"
+          ],
+          "lib": [
+            "lib.esnext.d.ts"
+          ],
+          "configFilePath": "<fixture>/whatsurvey/workspaces/backend/tsconfig.json"
+        },
+        "raw": {
+          "compilerOptions": {
+            "strict": true,
+            "moduleResolution": "bundler",
+            "module": "ESNext",
+            "target": "ESNext",
+            "isolatedModules": true,
+            "resolveJsonModule": true,
+            "esModuleInterop": true,
+            "skipLibCheck": true,
+            "verbatimModuleSyntax": true,
+            "noEmit": true,
+            "types": [
+              "node"
+            ],
+            "lib": [
+              "ESNext"
+            ]
+          },
+          "include": [
+            "src/**/*",
+            "tests/**/*"
+          ],
+          "exclude": [
+            "node_modules",
+            "dist"
+          ]
+        },
+        "references": [],
+        "diagnostics": [
+          {
+            "code": 18003,
+            "message": "No inputs were found in config file '<fixture>/whatsurvey/workspaces/backend/tsconfig.json'. Specified 'include' paths were '[\"src/**/*\",\"tests/**/*\"]' and 'exclude' paths were '[\"node_modules\",\"dist\"]'."
+          }
+        ]
+      },
+      "matched": true
+    },
+    {
+      "name": "whatsurvey/workspaces/frontend/tsconfig.json",
+      "checks": [
+        "strict effective value",
+        "noEmit effective value",
+        "skipLibCheck effective value",
+        "paths effective value",
+        "esModuleInterop effective value",
+        "isolatedModules effective value",
+        "verbatimModuleSyntax effective value",
+        "paths origin and wildcard order",
+        "include declaring directory",
+        "exclude declaring directory",
+        "references local only",
+        "all dependency hashes"
+      ],
+      "native": {
+        "configuration": {
+          "fields": {
+            "compilerOptions": {
+              "esModuleInterop": true,
+              "isolatedModules": true,
+              "lib": [
+                "esnext",
+                "DOM",
+                "DOM.Iterable"
+              ],
+              "module": "ESNext",
+              "moduleResolution": "bundler",
+              "noEmit": true,
+              "paths": {
+                "$app/types": [
+                  "./types/index.d.ts"
+                ],
+                "$lib": [
+                  "../src/lib"
+                ],
+                "$lib/*": [
+                  "../src/lib/*"
+                ]
+              },
+              "resolveJsonModule": true,
+              "rootDirs": [
+                "..",
+                "./types"
+              ],
+              "skipLibCheck": true,
+              "strict": true,
+              "target": "ESNext",
+              "verbatimModuleSyntax": true
+            },
+            "exclude": [
+              "../node_modules/**",
+              "../src/service-worker.js",
+              "../src/service-worker/**/*.js",
+              "../src/service-worker.ts",
+              "../src/service-worker/**/*.ts",
+              "../src/service-worker.d.ts",
+              "../src/service-worker/**/*.d.ts"
+            ],
+            "include": [
+              "ambient.d.ts",
+              "env.d.ts",
+              "non-ambient.d.ts",
+              "./types/**/$types.d.ts",
+              "../vite.config.js",
+              "../vite.config.ts",
+              "../src/**/*.js",
+              "../src/**/*.ts",
+              "../src/**/*.svelte",
+              "../test/**/*.js",
+              "../test/**/*.ts",
+              "../test/**/*.svelte",
+              "../tests/**/*.js",
+              "../tests/**/*.ts",
+              "../tests/**/*.svelte"
+            ]
+          },
+          "path_patterns": [
+            "$lib/*"
+          ]
+        },
+        "dependencies": {
+          "whatsurvey/workspaces/frontend/.svelte-kit/tsconfig.json": "c01d35eee60b3cb21e230c392c72c947234d7f406b83959a042a63e09db454c4",
+          "whatsurvey/workspaces/frontend/tsconfig.json": "e57aed64af36f170facb741d5d7e17b7f03895c4f56c7cd5d45c8e74972ed001"
+        },
+        "field_origins": {
+          "exclude": "whatsurvey/workspaces/frontend/.svelte-kit/tsconfig.json",
+          "include": "whatsurvey/workspaces/frontend/.svelte-kit/tsconfig.json"
+        },
+        "option_origins": {
+          "esModuleInterop": "whatsurvey/workspaces/frontend/tsconfig.json",
+          "isolatedModules": "whatsurvey/workspaces/frontend/tsconfig.json",
+          "lib": "whatsurvey/workspaces/frontend/.svelte-kit/tsconfig.json",
+          "module": "whatsurvey/workspaces/frontend/tsconfig.json",
+          "moduleResolution": "whatsurvey/workspaces/frontend/tsconfig.json",
+          "noEmit": "whatsurvey/workspaces/frontend/tsconfig.json",
+          "paths": "whatsurvey/workspaces/frontend/.svelte-kit/tsconfig.json",
+          "resolveJsonModule": "whatsurvey/workspaces/frontend/tsconfig.json",
+          "rootDirs": "whatsurvey/workspaces/frontend/.svelte-kit/tsconfig.json",
+          "skipLibCheck": "whatsurvey/workspaces/frontend/tsconfig.json",
+          "strict": "whatsurvey/workspaces/frontend/tsconfig.json",
+          "target": "whatsurvey/workspaces/frontend/tsconfig.json",
+          "verbatimModuleSyntax": "whatsurvey/workspaces/frontend/tsconfig.json"
+        }
+      },
+      "compiler": {
+        "name": "whatsurvey/workspaces/frontend/tsconfig.json",
+        "options": {
+          "paths": {
+            "$lib": [
+              "../src/lib"
+            ],
+            "$lib/*": [
+              "../src/lib/*"
+            ],
+            "$app/types": [
+              "./types/index.d.ts"
+            ]
+          },
+          "rootDirs": [
+            "<fixture>/whatsurvey/workspaces/frontend",
+            "<fixture>/whatsurvey/workspaces/frontend/.svelte-kit/types"
+          ],
+          "verbatimModuleSyntax": true,
+          "isolatedModules": true,
+          "lib": [
+            "lib.esnext.d.ts",
+            "lib.dom.d.ts",
+            "lib.dom.iterable.d.ts"
+          ],
+          "moduleResolution": 100,
+          "module": 99,
+          "noEmit": true,
+          "target": 99,
+          "pathsBasePath": "<fixture>/whatsurvey/workspaces/frontend/.svelte-kit",
+          "strict": true,
+          "resolveJsonModule": true,
+          "esModuleInterop": true,
+          "skipLibCheck": true,
+          "configFilePath": "<fixture>/whatsurvey/workspaces/frontend/tsconfig.json"
+        },
+        "raw": {
+          "extends": "./.svelte-kit/tsconfig.json",
+          "compilerOptions": {
+            "strict": true,
+            "moduleResolution": "bundler",
+            "module": "ESNext",
+            "target": "ESNext",
+            "isolatedModules": true,
+            "resolveJsonModule": true,
+            "esModuleInterop": true,
+            "skipLibCheck": true,
+            "verbatimModuleSyntax": true,
+            "noEmit": true
+          },
+          "include": [
+            ".svelte-kit/ambient.d.ts",
+            ".svelte-kit/env.d.ts",
+            ".svelte-kit/non-ambient.d.ts",
+            ".svelte-kit/./types/**/$types.d.ts",
+            ".svelte-kit/../vite.config.js",
+            ".svelte-kit/../vite.config.ts",
+            ".svelte-kit/../src/**/*.js",
+            ".svelte-kit/../src/**/*.ts",
+            ".svelte-kit/../src/**/*.svelte",
+            ".svelte-kit/../test/**/*.js",
+            ".svelte-kit/../test/**/*.ts",
+            ".svelte-kit/../test/**/*.svelte",
+            ".svelte-kit/../tests/**/*.js",
+            ".svelte-kit/../tests/**/*.ts",
+            ".svelte-kit/../tests/**/*.svelte"
+          ],
+          "exclude": [
+            ".svelte-kit/../node_modules/**",
+            ".svelte-kit/../src/service-worker.js",
+            ".svelte-kit/../src/service-worker/**/*.js",
+            ".svelte-kit/../src/service-worker.ts",
+            ".svelte-kit/../src/service-worker/**/*.ts",
+            ".svelte-kit/../src/service-worker.d.ts",
+            ".svelte-kit/../src/service-worker/**/*.d.ts"
+          ]
+        },
+        "references": [],
+        "diagnostics": [
+          {
+            "code": 18003,
+            "message": "No inputs were found in config file '<fixture>/whatsurvey/workspaces/frontend/tsconfig.json'. Specified 'include' paths were '[\".svelte-kit/ambient.d.ts\",\".svelte-kit/env.d.ts\",\".svelte-kit/non-ambient.d.ts\",\".svelte-kit/./types/**/$types.d.ts\",\".svelte-kit/../vite.config.js\",\".svelte-kit/../vite.config.ts\",\".svelte-kit/../src/**/*.js\",\".svelte-kit/../src/**/*.ts\",\".svelte-kit/../src/**/*.svelte\",\".svelte-kit/../test/**/*.js\",\".svelte-kit/../test/**/*.ts\",\".svelte-kit/../test/**/*.svelte\",\".svelte-kit/../tests/**/*.js\",\".svelte-kit/../tests/**/*.ts\",\".svelte-kit/../tests/**/*.svelte\"]' and 'exclude' paths were '[\".svelte-kit/../node_modules/**\",\".svelte-kit/../src/service-worker.js\",\".svelte-kit/../src/service-worker/**/*.js\",\".svelte-kit/../src/service-worker.ts\",\".svelte-kit/../src/service-worker/**/*.ts\",\".svelte-kit/../src/service-worker.d.ts\",\".svelte-kit/../src/service-worker/**/*.d.ts\"]'."
+          }
+        ]
+      },
+      "matched": true
+    },
+    {
+      "name": "whatsurvey/workspaces/frontend/.svelte-kit/tsconfig.json",
+      "checks": [
+        "noEmit effective value",
+        "paths effective value",
+        "isolatedModules effective value",
+        "verbatimModuleSyntax effective value",
+        "paths origin and wildcard order",
+        "include declaring directory",
+        "exclude declaring directory",
+        "references local only",
+        "all dependency hashes"
+      ],
+      "native": {
+        "configuration": {
+          "fields": {
+            "compilerOptions": {
+              "isolatedModules": true,
+              "lib": [
+                "esnext",
+                "DOM",
+                "DOM.Iterable"
+              ],
+              "module": "esnext",
+              "moduleResolution": "bundler",
+              "noEmit": true,
+              "paths": {
+                "$app/types": [
+                  "./types/index.d.ts"
+                ],
+                "$lib": [
+                  "../src/lib"
+                ],
+                "$lib/*": [
+                  "../src/lib/*"
+                ]
+              },
+              "rootDirs": [
+                "..",
+                "./types"
+              ],
+              "target": "esnext",
+              "verbatimModuleSyntax": true
+            },
+            "exclude": [
+              "../node_modules/**",
+              "../src/service-worker.js",
+              "../src/service-worker/**/*.js",
+              "../src/service-worker.ts",
+              "../src/service-worker/**/*.ts",
+              "../src/service-worker.d.ts",
+              "../src/service-worker/**/*.d.ts"
+            ],
+            "include": [
+              "ambient.d.ts",
+              "env.d.ts",
+              "non-ambient.d.ts",
+              "./types/**/$types.d.ts",
+              "../vite.config.js",
+              "../vite.config.ts",
+              "../src/**/*.js",
+              "../src/**/*.ts",
+              "../src/**/*.svelte",
+              "../test/**/*.js",
+              "../test/**/*.ts",
+              "../test/**/*.svelte",
+              "../tests/**/*.js",
+              "../tests/**/*.ts",
+              "../tests/**/*.svelte"
+            ]
+          },
+          "path_patterns": [
+            "$lib/*"
+          ]
+        },
+        "dependencies": {
+          "whatsurvey/workspaces/frontend/.svelte-kit/tsconfig.json": "c01d35eee60b3cb21e230c392c72c947234d7f406b83959a042a63e09db454c4"
+        },
+        "field_origins": {
+          "exclude": "whatsurvey/workspaces/frontend/.svelte-kit/tsconfig.json",
+          "include": "whatsurvey/workspaces/frontend/.svelte-kit/tsconfig.json"
+        },
+        "option_origins": {
+          "isolatedModules": "whatsurvey/workspaces/frontend/.svelte-kit/tsconfig.json",
+          "lib": "whatsurvey/workspaces/frontend/.svelte-kit/tsconfig.json",
+          "module": "whatsurvey/workspaces/frontend/.svelte-kit/tsconfig.json",
+          "moduleResolution": "whatsurvey/workspaces/frontend/.svelte-kit/tsconfig.json",
+          "noEmit": "whatsurvey/workspaces/frontend/.svelte-kit/tsconfig.json",
+          "paths": "whatsurvey/workspaces/frontend/.svelte-kit/tsconfig.json",
+          "rootDirs": "whatsurvey/workspaces/frontend/.svelte-kit/tsconfig.json",
+          "target": "whatsurvey/workspaces/frontend/.svelte-kit/tsconfig.json",
+          "verbatimModuleSyntax": "whatsurvey/workspaces/frontend/.svelte-kit/tsconfig.json"
+        }
+      },
+      "compiler": {
+        "name": "whatsurvey/workspaces/frontend/.svelte-kit/tsconfig.json",
+        "options": {
+          "paths": {
+            "$lib": [
+              "../src/lib"
+            ],
+            "$lib/*": [
+              "../src/lib/*"
+            ],
+            "$app/types": [
+              "./types/index.d.ts"
+            ]
+          },
+          "rootDirs": [
+            "<fixture>/whatsurvey/workspaces/frontend",
+            "<fixture>/whatsurvey/workspaces/frontend/.svelte-kit/types"
+          ],
+          "verbatimModuleSyntax": true,
+          "isolatedModules": true,
+          "lib": [
+            "lib.esnext.d.ts",
+            "lib.dom.d.ts",
+            "lib.dom.iterable.d.ts"
+          ],
+          "moduleResolution": 100,
+          "module": 99,
+          "noEmit": true,
+          "target": 99,
+          "pathsBasePath": "<fixture>/whatsurvey/workspaces/frontend/.svelte-kit",
+          "configFilePath": "<fixture>/whatsurvey/workspaces/frontend/.svelte-kit/tsconfig.json"
+        },
+        "raw": {
+          "compilerOptions": {
+            "paths": {
+              "$lib": [
+                "../src/lib"
+              ],
+              "$lib/*": [
+                "../src/lib/*"
+              ],
+              "$app/types": [
+                "./types/index.d.ts"
+              ]
+            },
+            "rootDirs": [
+              "..",
+              "./types"
+            ],
+            "verbatimModuleSyntax": true,
+            "isolatedModules": true,
+            "lib": [
+              "esnext",
+              "DOM",
+              "DOM.Iterable"
+            ],
+            "moduleResolution": "bundler",
+            "module": "esnext",
+            "noEmit": true,
+            "target": "esnext"
+          },
+          "include": [
+            "ambient.d.ts",
+            "env.d.ts",
+            "non-ambient.d.ts",
+            "./types/**/$types.d.ts",
+            "../vite.config.js",
+            "../vite.config.ts",
+            "../src/**/*.js",
+            "../src/**/*.ts",
+            "../src/**/*.svelte",
+            "../test/**/*.js",
+            "../test/**/*.ts",
+            "../test/**/*.svelte",
+            "../tests/**/*.js",
+            "../tests/**/*.ts",
+            "../tests/**/*.svelte"
+          ],
+          "exclude": [
+            "../node_modules/**",
+            "../src/service-worker.js",
+            "../src/service-worker/**/*.js",
+            "../src/service-worker.ts",
+            "../src/service-worker/**/*.ts",
+            "../src/service-worker.d.ts",
+            "../src/service-worker/**/*.d.ts"
+          ]
+        },
+        "references": [],
+        "diagnostics": [
+          {
+            "code": 18003,
+            "message": "No inputs were found in config file '<fixture>/whatsurvey/workspaces/frontend/.svelte-kit/tsconfig.json'. Specified 'include' paths were '[\"ambient.d.ts\",\"env.d.ts\",\"non-ambient.d.ts\",\"./types/**/$types.d.ts\",\"../vite.config.js\",\"../vite.config.ts\",\"../src/**/*.js\",\"../src/**/*.ts\",\"../src/**/*.svelte\",\"../test/**/*.js\",\"../test/**/*.ts\",\"../test/**/*.svelte\",\"../tests/**/*.js\",\"../tests/**/*.ts\",\"../tests/**/*.svelte\"]' and 'exclude' paths were '[\"../node_modules/**\",\"../src/service-worker.js\",\"../src/service-worker/**/*.js\",\"../src/service-worker.ts\",\"../src/service-worker/**/*.ts\",\"../src/service-worker.d.ts\",\"../src/service-worker/**/*.d.ts\"]'."
+          }
+        ]
+      },
+      "matched": true
+    }
+  ]
+}

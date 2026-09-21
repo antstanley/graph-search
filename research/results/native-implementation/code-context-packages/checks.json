@@ -1,0 +1,52 @@
+{
+  "stability": {
+    "production": true,
+    "binaries": true,
+    "siblings": true,
+    "indexes": true
+  },
+  "repeat_evidence_and_response_bytes_identical": false,
+  "source_snapshots_equal_prior_capture": true,
+  "oracles_equal_prior_capture": true,
+  "trials": 348,
+  "changed_tasks_between_arms": 26,
+  "null_task_success": true,
+  "repeat_evidence_identical": true,
+  "byte_variations": [
+    {
+      "task_id": "nanus.read.change",
+      "arm": "fixed",
+      "response_bytes": [
+        37827,
+        37827,
+        37828
+      ],
+      "identical_after_removing_elapsed_ms": true
+    },
+    {
+      "task_id": "nanus.edit.debug",
+      "arm": "fixed",
+      "response_bytes": [
+        37726,
+        37727,
+        37726
+      ],
+      "identical_after_removing_elapsed_ms": true
+    },
+    {
+      "task_id": "nanus.glob.debug",
+      "arm": "fixed",
+      "response_bytes": [
+        38639,
+        38639,
+        38638
+      ],
+      "identical_after_removing_elapsed_ms": true
+    }
+  ],
+  "byte_variations_only_elapsed_ms": true,
+  "normalized_transcripts_and_delivered_lines_identical": true,
+  "normalization": "Replace elapsed_ms integer only on response metadata lines, including budget-clipped metadata JSON.",
+  "normalized_transcript_differences": [],
+  "delivered_line_differences": []
+}

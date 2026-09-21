@@ -1,0 +1,24 @@
+   Compiling graph-search-langs v0.1.0 (/Volumes/Delorean/code/graph-search/crates/langs)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 10.18s
+     Running unittests src/lib.rs (target/debug/deps/graph_search_langs-fa256a18e321b460)
+
+running 1 test
+test rust::tests::nested_use_groups_preserve_self_and_sibling_paths ... FAILED
+
+failures:
+
+---- rust::tests::nested_use_groups_preserve_self_and_sibling_paths stdout ----
+
+thread 'rust::tests::nested_use_groups_preserve_self_and_sibling_paths' (82096172) panicked at crates/langs/src/rust.rs:713:9:
+assertion `left == right` failed
+  left: ["crate::outer::nested::alpha", "crate::outer::beta", "crate::outer::gamma"]
+ right: ["crate::outer", "crate::outer::nested::alpha", "crate::outer::nested::beta", "crate::outer::gamma"]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    rust::tests::nested_use_groups_preserve_self_and_sibling_paths
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 13 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p graph-search-langs --lib`

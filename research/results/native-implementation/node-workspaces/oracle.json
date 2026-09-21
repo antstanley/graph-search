@@ -1,0 +1,116 @@
+{
+  "versions": {
+    "node": "v24.19.0",
+    "pnpm": "11.24.0"
+  },
+  "scope": "Independent membership and condition-invariance oracles over authored temporary fixtures; no installation or application execution",
+  "captures": [
+    {
+      "case": "direct_and_exclusion",
+      "observed": [
+        "api",
+        "client",
+        "root"
+      ],
+      "expected": [
+        "api",
+        "client",
+        "root"
+      ]
+    },
+    {
+      "case": "recursive",
+      "observed": [
+        "api",
+        "child",
+        "client",
+        "nested",
+        "root"
+      ],
+      "expected": [
+        "api",
+        "child",
+        "client",
+        "nested",
+        "root"
+      ]
+    },
+    {
+      "case": "literal_hidden",
+      "observed": [
+        "hidden",
+        "root"
+      ],
+      "expected": [
+        "hidden",
+        "root"
+      ]
+    },
+    {
+      "case": "empty",
+      "observed": [
+        "root"
+      ],
+      "expected": [
+        "root"
+      ]
+    },
+    {
+      "case": "uniform",
+      "conditions": [
+        "default",
+        "types",
+        "custom"
+      ],
+      "observed": [
+        "runtime",
+        "runtime",
+        "runtime"
+      ],
+      "expected": [
+        "runtime",
+        "runtime",
+        "runtime"
+      ],
+      "native_binding_expected": true
+    },
+    {
+      "case": "divergent",
+      "conditions": [
+        "default",
+        "types",
+        "custom"
+      ],
+      "observed": [
+        "runtime",
+        "types",
+        "runtime"
+      ],
+      "expected": [
+        "runtime",
+        "types",
+        "runtime"
+      ],
+      "native_binding_expected": false
+    },
+    {
+      "case": "nested_uniform",
+      "conditions": [
+        "default",
+        "types",
+        "custom"
+      ],
+      "observed": [
+        "runtime",
+        "runtime",
+        "runtime"
+      ],
+      "expected": [
+        "runtime",
+        "runtime",
+        "runtime"
+      ],
+      "native_binding_expected": true
+    }
+  ]
+}

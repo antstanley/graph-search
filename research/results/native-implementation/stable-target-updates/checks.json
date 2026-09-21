@@ -1,0 +1,51 @@
+{
+  "source_inputs": 157,
+  "source_inputs_unchanged": true,
+  "binary_sha256": "e6ecafc1120e14df7d07e351380db205a3e1ee5601032f9607db848879439707",
+  "results_sha256": "c2cdd45ba83508ad5612fa18d46065c085cec66ff4763d99e9fb2eef6870ef56",
+  "checks": [
+    {
+      "name": "workspace tests before pathless sidecar fix",
+      "exit_code": 0,
+      "passed": 528,
+      "nonempty_suites": 39,
+      "session": 43258
+    },
+    {
+      "name": "new regression initial pathless reopen failure",
+      "exit_code": 101,
+      "session": 6363
+    },
+    {
+      "name": "final engine tests",
+      "exit_code": 0,
+      "passed": 42,
+      "session": 13232
+    },
+    {
+      "name": "strict workspace clippy",
+      "exit_code": 0,
+      "session": 43552
+    },
+    {
+      "name": "native release probe",
+      "exit_code": 0,
+      "session": 79218
+    },
+    {
+      "name": "strict probe clippy",
+      "exit_code": 0,
+      "session": 45195
+    }
+  ],
+  "retained_calls": {
+    "memory": 1,
+    "persistent": 1
+  },
+  "remaining_chain_upserts": [
+    2,
+    8,
+    32
+  ],
+  "performance_claim": false
+}

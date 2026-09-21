@@ -1,0 +1,21 @@
+Traceback (most recent call last):
+  File "/Volumes/Delorean/code/graph-search/research/scripts/typescript_roots_oracle.py", line 109, in <module>
+    assert not failed, json.dumps(failed, indent=2)
+           ^^^^^^^^^^
+AssertionError: [
+  {
+    "case": "json-inferred-none",
+    "native": {
+      "config": "json-inferred-none/tsconfig.json",
+      "error": "ts_config_missing"
+    },
+    "compiler": {
+      "config": "json-inferred-none/tsconfig.json",
+      "roots": [],
+      "diagnostics": [
+        18003
+      ]
+    },
+    "matched": false
+  }
+]

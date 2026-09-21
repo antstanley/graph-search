@@ -1,0 +1,6 @@
+{
+  "file": "crates/engine/src/store.rs",
+  "before": "        // apply_prepared only removes or replaces source facts for these paths;\n        // surviving facts outside the set are exact clones of the previous store.\n        let touched: BTreeSet<&str> = batch\n            .upserts\n            .iter()\n            .map(|file| file.file.path.as_str())\n            .chain(batch.removed_files.iter().map(String::as_str))\n            .collect();\n        self.source_records = Some(\n            crate::source_records::save_cached(\n                dir,\n                &self.sources,\n                &previous.data_dir,\n                &previous.sources,\n                previous.source_records.as_ref(),\n                Some(&touched),\n            )\n            .map_err(store_io)?,\n        );\n",
+  "after": "        sidecar::save_sources(dir, &self.sources).map_err(store_io)?;\n        self.source_records = None;\n",
+  "control_file_sha256": "c3a4f63702934d9448fc02f5fd14b451fd6a18ad2e16517973a349111dd56073"
+}

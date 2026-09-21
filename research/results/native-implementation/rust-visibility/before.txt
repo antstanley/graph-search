@@ -1,0 +1,26 @@
+   Compiling graph-search-types v0.1.0 (/Volumes/Delorean/code/graph-search/crates/types)
+   Compiling graph-search-core v0.1.0 (/Volumes/Delorean/code/graph-search/crates/core)
+   Compiling graph-search-langs v0.1.0 (/Volumes/Delorean/code/graph-search/crates/langs)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 19.55s
+     Running unittests src/lib.rs (target/debug/deps/graph_search_langs-fa256a18e321b460)
+
+running 1 test
+test rust::tests::explicit_visibility_uses_the_grammar_modifier_node ... FAILED
+
+failures:
+
+---- rust::tests::explicit_visibility_uses_the_grammar_modifier_node stdout ----
+
+thread 'rust::tests::explicit_visibility_uses_the_grammar_modifier_node' (82082691) panicked at crates/langs/src/rust.rs:780:9:
+assertion `left == right` failed
+  left: [("public", None), ("internal", None), ("parent", None), ("local", None), ("omitted", None), ("restricted", None)]
+ right: [("public", Some(Public)), ("internal", Some(Crate)), ("parent", Some(Super)), ("local", Some(Private)), ("omitted", None), ("restricted", None)]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    rust::tests::explicit_visibility_uses_the_grammar_modifier_node
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 12 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `-p graph-search-langs --lib`

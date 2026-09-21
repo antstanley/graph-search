@@ -1,0 +1,512 @@
+//! Native configuration inheritance over a caller-selected indexed configuration.
+//! No filesystem lookup, project selection, package installation or compiler execution.
+use graph_search_types::{source::SourceFileUnits, typescript::TypeScriptConfig};
+use serde_json::{Map, Value};
+use std::collections::{BTreeMap, BTreeSet};
+use std::sync::Arc;
+
+/// Maximum distinct configuration files needed by one selected project.
+pub const MAX_CONFIG_FILES: usize = 64;
+/// Maximum active inheritance depth and direct bases of one configuration.
+pub const MAX_CONFIG_DEPTH: usize = 32;
+
+/// Effective authored fields plus the source origins needed for relative values.
+/// This is inheritance, not validation of every compiler option or project membership.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct EffectiveConfig {
+    /// Merged fields; `extends` is consumed and references are local to this config.
+    pub configuration: TypeScriptConfig,
+    /// Defining configuration for non-compiler top-level fields. Compiler options
+    /// may have mixed origins and use `option_origins` instead.
+    pub field_origins: BTreeMap<String, String>,
+    /// Defining configuration for each independently inherited compiler option.
+    pub option_origins: BTreeMap<String, String>,
+    /// Every visited configuration, including this one, and its indexed source hash.
+    pub dependencies: BTreeMap<String, String>,
+}
+
+/// Resolve inheritance using only source records in the selected generation.
+/// Relative paths stay authored; callers use the origin maps when interpreting them.
+///
+/// # Errors
+/// Returns an explicit reason for missing/unavailable facts, unsupported `extends`
+/// targets or field shapes, cycles, workspace escapes, or exhausted bounds. No
+/// partially merged result is returned. Package-based inheritance is not guessed.
+pub fn inherit(
+    path: &str,
+    sources: &BTreeMap<String, SourceFileUnits>,
+) -> Result<Arc<EffectiveConfig>, &'static str> {
+    if normalize("", path)? != path {
+        return Err("ts_config_path_not_canonical");
+    }
+    Loader {
+        sources,
+        active: BTreeSet::new(),
+        cache: BTreeMap::new(),
+    }
+    .load(path)
+}
+
+struct Loader<'a> {
+    sources: &'a BTreeMap<String, SourceFileUnits>,
+    active: BTreeSet<String>,
+    cache: BTreeMap<String, Arc<EffectiveConfig>>,
+}
+impl Loader<'_> {
+    fn load(&mut self, path: &str) -> Result<Arc<EffectiveConfig>, &'static str> {
+        if let Some(config) = self.cache.get(path) {
+            return Ok(Arc::clone(config));
+        }
+        if self.active.contains(path) {
+            return Err("ts_config_inheritance_cycle");
+        }
+        if self.active.len() >= MAX_CONFIG_DEPTH
+            || self.cache.len().saturating_add(self.active.len()) >= MAX_CONFIG_FILES
+        {
+            return Err("ts_config_inheritance_limit");
+        }
+        if !std::path::Path::new(path)
+            .extension()
+            .is_some_and(|ext| ext == "json" || ext == "jsonc")
+        {
+            return Err("ts_config_path_unsupported");
+        }
+        let source = self.sources.get(path).ok_or("ts_config_missing")?;
+        let config = source
+            .typescript_config
+            .as_ref()
+            .filter(|config| {
+                source.version >= 14
+                    && source.version <= graph_search_types::limits::SOURCE_INDEX_VERSION
+                    && !source.source_hash.is_empty()
+                    && config.valid()
+                    && config.unavailable_reason.is_none()
+            })
+            .ok_or("ts_config_facts_unavailable")?;
+        validate_shapes(config)?;
+        let bases = match config.fields.get("extends") {
+            None => Vec::new(),
+            Some(Value::String(base)) => vec![base.as_str()],
+            Some(Value::Array(bases)) if bases.len() <= MAX_CONFIG_DEPTH => bases
+                .iter()
+                .map(|base| base.as_str().ok_or("ts_config_extends_shape"))
+                .collect::<Result<Vec<_>, _>>()?,
+            _ => return Err("ts_config_extends_shape"),
+        };
+        self.active.insert(path.into());
+        let mut effective = EffectiveConfig::default();
+        for base in bases {
+            let target = self.target(path, base)?;
+            let inherited = self.load(&target)?;
+            effective.merge(&inherited, false)?;
+        }
+        let mut local = EffectiveConfig {
+            configuration: config.clone(),
+            ..EffectiveConfig::default()
+        };
+        local.configuration.fields.remove("extends");
+        local.field_origins = local
+            .configuration
+            .fields
+            .keys()
+            .filter(|key| key.as_str() != "compilerOptions")
+            .map(|key| (key.clone(), path.into()))
+            .collect();
+        if let Some(Value::Object(options)) = local.configuration.fields.get("compilerOptions") {
+            local.option_origins = options
+                .keys()
+                .map(|key| (key.clone(), path.into()))
+                .collect();
+        }
+        local
+            .dependencies
+            .insert(path.into(), source.source_hash.clone());
+        effective.merge(&local, true)?;
+        self.active.remove(path);
+        let effective = Arc::new(effective);
+        self.cache.insert(path.into(), Arc::clone(&effective));
+        Ok(effective)
+    }
+    // TypeScript tests the literal suffix, including a dotfile named `.json`.
+    // Path::extension does not preserve that distinction.
+    #[allow(clippy::case_sensitive_file_extension_comparisons)]
+    fn target(&self, from: &str, target: &str) -> Result<String, &'static str> {
+        if !target.starts_with("./") && !target.starts_with("../") {
+            return Err("ts_config_package_extends_unmodeled");
+        }
+        let directory = from.rsplit_once('/').map_or("", |(directory, _)| directory);
+        let candidate = normalize(directory, target)?;
+        if self.sources.contains_key(&candidate) {
+            return Ok(candidate);
+        }
+        let with_extension = format!("{candidate}.json");
+        if !candidate.ends_with(".json") && self.sources.contains_key(&with_extension) {
+            return Ok(with_extension);
+        }
+        Err("ts_config_missing")
+    }
+}
+
+fn validate_shapes(config: &TypeScriptConfig) -> Result<(), &'static str> {
+    if config
+        .fields
+        .get("compilerOptions")
+        .is_some_and(|value| !value.is_object())
+    {
+        return Err("ts_config_options_shape");
+    }
+    for key in ["files", "include", "exclude"] {
+        if let Some(value) = config.fields.get(key)
+            && !value
+                .as_array()
+                .is_some_and(|values| values.iter().all(Value::is_string))
+        {
+            return Err("ts_config_membership_shape");
+        }
+    }
+    if let Some(value) = config.fields.get("references")
+        && !value.as_array().is_some_and(|references| {
+            references
+                .iter()
+                .all(|reference| reference.get("path").is_some_and(Value::is_string))
+        })
+    {
+        return Err("ts_config_references_shape");
+    }
+    Ok(())
+}
+
+impl EffectiveConfig {
+    fn merge(&mut self, other: &Self, local: bool) -> Result<(), &'static str> {
+        for (key, value) in &other.configuration.fields {
+            if key == "references" && !local {
+                continue;
+            }
+            if key == "compilerOptions" {
+                let options = value.as_object().ok_or("ts_config_options_shape")?;
+                let output = self
+                    .configuration
+                    .fields
+                    .entry(key.clone())
+                    .or_insert_with(|| Value::Object(Map::new()))
+                    .as_object_mut()
+                    .ok_or("ts_config_options_shape")?;
+                for (option, value) in options {
+                    output.insert(option.clone(), value.clone());
+                    self.option_origins
+                        .insert(option.clone(), other.option_origins[option].clone());
+                }
+                if options.contains_key("paths") {
+                    self.configuration
+                        .path_patterns
+                        .clone_from(&other.configuration.path_patterns);
+                }
+            } else {
+                self.configuration.fields.insert(key.clone(), value.clone());
+            }
+            if key != "compilerOptions" {
+                self.field_origins
+                    .insert(key.clone(), other.field_origins[key].clone());
+            }
+        }
+        self.dependencies.extend(
+            other
+                .dependencies
+                .iter()
+                .map(|(path, hash)| (path.clone(), hash.clone())),
+        );
+        let origin_bytes = self
+            .field_origins
+            .iter()
+            .chain(&self.option_origins)
+            .chain(&self.dependencies)
+            .fold(0usize, |sum, (key, value)| {
+                sum.saturating_add(key.len()).saturating_add(value.len())
+            });
+        if !self.configuration.valid()
+            || origin_bytes > graph_search_types::limits::MAX_TYPESCRIPT_CONFIG_TEXT_BYTES
+        {
+            return Err("ts_config_effective_limit");
+        }
+        Ok(())
+    }
+}
+
+/// Normalize a relative configuration path without accessing the filesystem.
+pub(crate) fn normalize(directory: &str, path: &str) -> Result<String, &'static str> {
+    if path.is_empty()
+        || path.len() > 4096
+        || path.starts_with('/')
+        || path.ends_with('/')
+        || path.contains(['\\', ':', '\0'])
+    {
+        return Err("ts_config_path_unsupported");
+    }
+    let mut components: Vec<_> = directory
+        .split('/')
+        .filter(|part| !part.is_empty())
+        .collect();
+    for part in path.split('/') {
+        match part {
+            "" | "." => {}
+            ".." => {
+                if components.pop().is_none() {
+                    return Err("ts_config_workspace_escape");
+                }
+            }
+            other => components.push(other),
+        }
+    }
+    if components.is_empty() {
+        return Err("ts_config_path_unsupported");
+    }
+    Ok(components.join("/"))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn missing_dotfile_json_does_not_append_another_json_suffix() {
+        let sources = BTreeMap::from([
+            (
+                "tsconfig.json".into(),
+                record("root", serde_json::json!({"extends":"./.json"}), &[]),
+            ),
+            (
+                ".json.json".into(),
+                record(
+                    "other",
+                    serde_json::json!({"compilerOptions":{"strict":true}}),
+                    &[],
+                ),
+            ),
+        ]);
+        assert_eq!(
+            inherit("tsconfig.json", &sources).unwrap_err(),
+            "ts_config_missing"
+        );
+    }
+
+    fn record(path: &str, fields: Value, order: &[&str]) -> SourceFileUnits {
+        let Value::Object(fields) = fields else {
+            panic!("object fixture required");
+        };
+        SourceFileUnits {
+            source_hash: format!("hash:{path}"),
+            version: graph_search_types::limits::SOURCE_INDEX_VERSION,
+            typescript_config: Some(TypeScriptConfig {
+                fields: fields.into_iter().collect(),
+                path_patterns: order.iter().map(|key| (*key).into()).collect(),
+                unavailable_reason: None,
+            }),
+            ..SourceFileUnits::default()
+        }
+    }
+    #[test]
+    fn origins_order_membership_and_noninherited_references_survive_a_chain() {
+        let sources = BTreeMap::from([
+            (
+                "configs/base.json".into(),
+                record(
+                    "base",
+                    serde_json::json!({"compilerOptions":{"baseUrl":"./base","paths":{"z*":[],"a*":[]},"strict":false},"include":["src/**/*.ts"],"references":[{"path":"../ignored"}]}),
+                    &["z*", "a*"],
+                ),
+            ),
+            (
+                "configs/mid.json".into(),
+                record(
+                    "mid",
+                    serde_json::json!({"extends":"./base","compilerOptions":{"strict":true}}),
+                    &[],
+                ),
+            ),
+            (
+                "tsconfig.json".into(),
+                record(
+                    "root",
+                    serde_json::json!({"extends":"./configs/mid.json","compilerOptions":{"baseUrl":"./child"},"files":[]}),
+                    &[],
+                ),
+            ),
+        ]);
+        let config = inherit("tsconfig.json", &sources).unwrap();
+        assert_eq!(
+            config.configuration.fields["compilerOptions"]["baseUrl"],
+            "./child"
+        );
+        assert_eq!(
+            config.configuration.fields["compilerOptions"]["strict"],
+            true
+        );
+        assert_eq!(config.option_origins["paths"], "configs/base.json");
+        assert_eq!(config.option_origins["baseUrl"], "tsconfig.json");
+        assert_eq!(config.option_origins["strict"], "configs/mid.json");
+        assert_eq!(config.field_origins["include"], "configs/base.json");
+        assert_eq!(config.field_origins["files"], "tsconfig.json");
+        assert!(!config.field_origins.contains_key("compilerOptions"));
+        assert_eq!(config.configuration.path_patterns, ["z*", "a*"]);
+        assert!(!config.configuration.fields.contains_key("references"));
+        assert!(!config.configuration.fields.contains_key("extends"));
+        assert_eq!(config.dependencies.len(), 3);
+    }
+    #[test]
+    fn later_bases_replace_paths_whole_and_local_empty_values_clear_inheritance() {
+        let mut sources = BTreeMap::from([
+            (
+                "first.json".into(),
+                record(
+                    "first",
+                    serde_json::json!({"compilerOptions":{"paths":{"first*":[]},"target":"esnext"},"include":["first"]}),
+                    &["first*"],
+                ),
+            ),
+            (
+                "second.json".into(),
+                record(
+                    "second",
+                    serde_json::json!({"compilerOptions":{"paths":{"second*":[]}},"include":["second"],"references":[{"path":"ignored"}]}),
+                    &["second*"],
+                ),
+            ),
+            (
+                "tsconfig.json".into(),
+                record(
+                    "root",
+                    serde_json::json!({"extends":["./first.json","./second.json"],"references":[{"path":"./own"}]}),
+                    &[],
+                ),
+            ),
+        ]);
+        let original = inherit("tsconfig.json", &sources).unwrap();
+        assert_eq!(original.configuration.path_patterns, ["second*"]);
+        assert!(
+            original.configuration.fields["compilerOptions"]["paths"]
+                .get("first*")
+                .is_none()
+        );
+        assert_eq!(original.option_origins["target"], "first.json");
+        assert_eq!(original.field_origins["include"], "second.json");
+        assert_eq!(
+            original.configuration.fields["references"],
+            serde_json::json!([{"path":"./own"}])
+        );
+        sources.insert("tsconfig.json".into(), record("changed", serde_json::json!({"extends":["./first.json","./second.json"],"compilerOptions":{"paths":{}},"include":[]}), &[]));
+        let changed = inherit("tsconfig.json", &sources).unwrap();
+        assert!(changed.configuration.path_patterns.is_empty());
+        assert_eq!(
+            changed.configuration.fields["include"],
+            serde_json::json!([])
+        );
+        assert_ne!(
+            changed.dependencies["tsconfig.json"],
+            original.dependencies["tsconfig.json"]
+        );
+        assert_eq!(original.configuration.path_patterns, ["second*"]);
+    }
+    #[test]
+    fn missing_cycles_escapes_invalid_shapes_and_stale_facts_never_return_partial_options() {
+        for (base, reason) in [
+            ("./missing.json", "ts_config_missing"),
+            ("./tsconfig.json", "ts_config_inheritance_cycle"),
+            ("../outside.json", "ts_config_workspace_escape"),
+            ("package/base", "ts_config_package_extends_unmodeled"),
+            ("./folder/", "ts_config_path_unsupported"),
+        ] {
+            let sources = BTreeMap::from([(
+                "tsconfig.json".into(),
+                record(
+                    "root",
+                    serde_json::json!({"extends":base,"compilerOptions":{"baseUrl":"./valid"}}),
+                    &[],
+                ),
+            )]);
+            assert_eq!(inherit("tsconfig.json", &sources).unwrap_err(), reason);
+        }
+        for fields in [
+            serde_json::json!({"extends":[1]}),
+            serde_json::json!({"compilerOptions":null}),
+            serde_json::json!({"include":null}),
+            serde_json::json!({"references":[{}]}),
+        ] {
+            assert!(
+                inherit(
+                    "tsconfig.json",
+                    &BTreeMap::from([("tsconfig.json".into(), record("root", fields, &[]))])
+                )
+                .is_err()
+            );
+        }
+        let mut old = record("old", serde_json::json!({}), &[]);
+        old.version = 13;
+        assert_eq!(
+            inherit(
+                "tsconfig.json",
+                &BTreeMap::from([("tsconfig.json".into(), old)])
+            )
+            .unwrap_err(),
+            "ts_config_facts_unavailable"
+        );
+    }
+    #[test]
+    fn depth_file_and_combined_metadata_limits_are_independent() {
+        let mut sources = BTreeMap::new();
+        for depth in 0..=MAX_CONFIG_DEPTH {
+            let path = format!("{depth}.json");
+            let fields = if depth == MAX_CONFIG_DEPTH {
+                serde_json::json!({})
+            } else {
+                serde_json::json!({"extends":format!("./{}.json",depth.saturating_add(1))})
+            };
+            sources.insert(path.clone(), record(&path, fields, &[]));
+        }
+        assert_eq!(
+            inherit("0.json", &sources).unwrap_err(),
+            "ts_config_inheritance_limit"
+        );
+        sources.clear();
+        let root_bases: Vec<_> = (0..3).map(|n| format!("./group{n}.json")).collect();
+        sources.insert(
+            "root.json".into(),
+            record("root", serde_json::json!({"extends":root_bases}), &[]),
+        );
+        for group in 0..3 {
+            let bases: Vec<_> = (0..22).map(|n| format!("./leaf{group}_{n}.json")).collect();
+            for base in &bases {
+                sources.insert(base[2..].into(), record(base, serde_json::json!({}), &[]));
+            }
+            sources.insert(
+                format!("group{group}.json"),
+                record("group", serde_json::json!({"extends":bases}), &[]),
+            );
+        }
+        assert_eq!(
+            inherit("root.json", &sources).unwrap_err(),
+            "ts_config_inheritance_limit"
+        );
+        sources.clear();
+        for n in 0..2 {
+            let options: Map<_, _> = (0..2500)
+                .map(|i| (format!("option{n}_{i}"), Value::Bool(true)))
+                .collect();
+            sources.insert(
+                format!("{n}.json"),
+                record("base", serde_json::json!({"compilerOptions":options}), &[]),
+            );
+        }
+        sources.insert(
+            "root.json".into(),
+            record(
+                "root",
+                serde_json::json!({"extends":["./0.json","./1.json"]}),
+                &[],
+            ),
+        );
+        assert_eq!(
+            inherit("root.json", &sources).unwrap_err(),
+            "ts_config_effective_limit"
+        );
+    }
+}

@@ -1,0 +1,19 @@
+    Checking graph-search-core v0.1.0 (/Volumes/Delorean/code/graph-search/crates/core)
+error: this argument is passed by value, but not consumed in the function body
+   --> crates/core/src/typescript_roots.rs:241:22
+    |
+241 |     fn config(value: Value) -> EffectiveConfig {
+    |                      ^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#needless_pass_by_value
+    = note: `-D clippy::needless-pass-by-value` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::needless_pass_by_value)]`
+help: consider taking a reference instead
+    |
+241 |     fn config(value: &Value) -> EffectiveConfig {
+    |                      +
+
+    Checking graph-search-langs v0.1.0 (/Volumes/Delorean/code/graph-search/crates/langs)
+    Checking graph-search-engine v0.1.0 (/Volumes/Delorean/code/graph-search/crates/engine)
+error: could not compile `graph-search-core` (lib test) due to 1 previous error
+warning: build failed, waiting for other jobs to finish...

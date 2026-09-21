@@ -1,0 +1,985 @@
+{
+  "compiler_version": "6.0.3",
+  "scope": "Native alias dispatch with exact-file research callback, not complete module resolution",
+  "cases": [
+    {
+      "query": {
+        "config": "order/tsconfig.json",
+        "specifier": "@/exact.ts"
+      },
+      "expected": "base/exact.ts",
+      "native": {
+        "attempts": [
+          {
+            "candidate": "base/exact.ts",
+            "mapped": true
+          }
+        ],
+        "query": {
+          "config": "order/tsconfig.json",
+          "specifier": "@/exact.ts"
+        },
+        "result": {
+          "pattern": "@/exact.ts",
+          "route": "paths",
+          "target": "base/exact.ts"
+        }
+      },
+      "compiler": {
+        "query": {
+          "config": "order/tsconfig.json",
+          "specifier": "@/exact.ts"
+        },
+        "target": "<fixture>/base/exact.ts",
+        "traces": [
+          "======== Resolving module '@/exact.ts' from '<fixture>/order/entry.ts'. ========",
+          "Explicitly specified module resolution kind: 'Bundler'.",
+          "Resolving in CJS mode with conditions 'import', 'types'.",
+          "'baseUrl' option is set to '<fixture>/base', using this value to resolve non-relative module name '@/exact.ts'.",
+          "'paths' option is specified, looking for a pattern to match module name '@/exact.ts'.",
+          "Module name '@/exact.ts', matched pattern '@/exact.ts'.",
+          "Trying substitution 'exact.ts', candidate module location: 'exact.ts'.",
+          "File '<fixture>/base/exact.ts' exists - use it as a name resolution result.",
+          "======== Module name '@/exact.ts' was successfully resolved to '<fixture>/base/exact.ts'. ========"
+        ],
+        "diagnostics": [
+          {
+            "code": 18003,
+            "message": "No inputs were found in config file '<fixture>/order/tsconfig.json'. Specified 'include' paths were '[\"**/*\"]' and 'exclude' paths were '[]'."
+          }
+        ]
+      },
+      "matched": true
+    },
+    {
+      "query": {
+        "config": "order/tsconfig.json",
+        "specifier": "@/xYZ"
+      },
+      "expected": "base/first/xY.ts",
+      "native": {
+        "attempts": [
+          {
+            "candidate": "base/first/xY.ts",
+            "mapped": true
+          }
+        ],
+        "query": {
+          "config": "order/tsconfig.json",
+          "specifier": "@/xYZ"
+        },
+        "result": {
+          "pattern": "@/*Z",
+          "route": "paths",
+          "target": "base/first/xY.ts"
+        }
+      },
+      "compiler": {
+        "query": {
+          "config": "order/tsconfig.json",
+          "specifier": "@/xYZ"
+        },
+        "target": "<fixture>/base/first/xY.ts",
+        "traces": [
+          "======== Resolving module '@/xYZ' from '<fixture>/order/entry.ts'. ========",
+          "Explicitly specified module resolution kind: 'Bundler'.",
+          "Resolving in CJS mode with conditions 'import', 'types'.",
+          "'baseUrl' option is set to '<fixture>/base', using this value to resolve non-relative module name '@/xYZ'.",
+          "'paths' option is specified, looking for a pattern to match module name '@/xYZ'.",
+          "Module name '@/xYZ', matched pattern '@/*Z'.",
+          "Trying substitution 'first/*.ts', candidate module location: 'first/xY.ts'.",
+          "File '<fixture>/base/first/xY.ts' exists - use it as a name resolution result.",
+          "======== Module name '@/xYZ' was successfully resolved to '<fixture>/base/first/xY.ts'. ========"
+        ],
+        "diagnostics": [
+          {
+            "code": 18003,
+            "message": "No inputs were found in config file '<fixture>/order/tsconfig.json'. Specified 'include' paths were '[\"**/*\"]' and 'exclude' paths were '[]'."
+          }
+        ]
+      },
+      "matched": true
+    },
+    {
+      "query": {
+        "config": "order/tsconfig.json",
+        "specifier": "@/ghostYZ"
+      },
+      "expected": null,
+      "native": {
+        "attempts": [
+          {
+            "candidate": "base/first/ghostY.ts",
+            "mapped": true
+          }
+        ],
+        "query": {
+          "config": "order/tsconfig.json",
+          "specifier": "@/ghostYZ"
+        },
+        "result": {
+          "pattern": "@/*Z",
+          "route": "paths",
+          "target": null
+        }
+      },
+      "compiler": {
+        "query": {
+          "config": "order/tsconfig.json",
+          "specifier": "@/ghostYZ"
+        },
+        "target": null,
+        "traces": [
+          "======== Resolving module '@/ghostYZ' from '<fixture>/order/entry.ts'. ========",
+          "Explicitly specified module resolution kind: 'Bundler'.",
+          "Resolving in CJS mode with conditions 'import', 'types'.",
+          "'baseUrl' option is set to '<fixture>/base', using this value to resolve non-relative module name '@/ghostYZ'.",
+          "'paths' option is specified, looking for a pattern to match module name '@/ghostYZ'.",
+          "Module name '@/ghostYZ', matched pattern '@/*Z'.",
+          "Trying substitution 'first/*.ts', candidate module location: 'first/ghostY.ts'.",
+          "File '<fixture>/base/first/ghostY.ts' does not exist.",
+          "Loading module as file / folder, candidate module location '<fixture>/base/first/ghostY.ts', target file types: TypeScript, JavaScript, Declaration, JSON.",
+          "File name '<fixture>/base/first/ghostY.ts' has a '.ts' extension - stripping it.",
+          "File '<fixture>/base/first/ghostY.ts' does not exist.",
+          "File '<fixture>/base/first/ghostY.tsx' does not exist.",
+          "File '<fixture>/base/first/ghostY.d.ts' does not exist.",
+          "File '<fixture>/base/first/ghostY.js' does not exist.",
+          "File '<fixture>/base/first/ghostY.jsx' does not exist.",
+          "File '<fixture>/base/first/ghostY.ts.ts' does not exist.",
+          "File '<fixture>/base/first/ghostY.ts.tsx' does not exist.",
+          "File '<fixture>/base/first/ghostY.ts.d.ts' does not exist.",
+          "File '<fixture>/base/first/ghostY.ts.js' does not exist.",
+          "File '<fixture>/base/first/ghostY.ts.jsx' does not exist.",
+          "Directory '<fixture>/base/first/ghostY.ts' does not exist, skipping all lookups in it.",
+          "File '<fixture>/order/package.json' does not exist.",
+          "File '<fixture>/package.json' does not exist.",
+          "File '/private/var/folders/ft/6fdqp3c914xfdlk47w5cblzc0000gn/T/package.json' does not exist.",
+          "File '/private/var/folders/ft/6fdqp3c914xfdlk47w5cblzc0000gn/package.json' does not exist.",
+          "File '/private/var/folders/ft/package.json' does not exist.",
+          "File '/private/var/folders/package.json' does not exist.",
+          "File '/private/var/package.json' does not exist.",
+          "File '/private/package.json' does not exist.",
+          "File '/package.json' does not exist.",
+          "Loading module '@/ghostYZ' from 'node_modules' folder, target file types: TypeScript, JavaScript, Declaration, JSON.",
+          "Searching all ancestor node_modules directories for preferred extensions: TypeScript, Declaration.",
+          "Directory '<fixture>/order/node_modules' does not exist, skipping all lookups in it.",
+          "Scoped package detected, looking in '__ghostYZ'",
+          "Directory '<fixture>/node_modules' does not exist, skipping all lookups in it.",
+          "Scoped package detected, looking in '__ghostYZ'",
+          "Directory '/private/var/folders/ft/6fdqp3c914xfdlk47w5cblzc0000gn/T/node_modules' does not exist, skipping all lookups in it.",
+          "Scoped package detected, looking in '__ghostYZ'",
+          "Directory '/private/var/folders/ft/6fdqp3c914xfdlk47w5cblzc0000gn/node_modules' does not exist, skipping all lookups in it.",
+          "Scoped package detected, looking in '__ghostYZ'",
+          "Directory '/private/var/folders/ft/node_modules' does not exist, skipping all lookups in it.",
+          "Scoped package detected, looking in '__ghostYZ'",
+          "Directory '/private/var/folders/node_modules' does not exist, skipping all lookups in it.",
+          "Scoped package detected, looking in '__ghostYZ'",
+          "Directory '/private/var/node_modules' does not exist, skipping all lookups in it.",
+          "Scoped package detected, looking in '__ghostYZ'",
+          "Directory '/private/node_modules' does not exist, skipping all lookups in it.",
+          "Scoped package detected, looking in '__ghostYZ'",
+          "Directory '/node_modules' does not exist, skipping all lookups in it.",
+          "Scoped package detected, looking in '__ghostYZ'",
+          "Searching all ancestor node_modules directories for fallback extensions: JavaScript, JSON.",
+          "Directory '<fixture>/order/node_modules' does not exist, skipping all lookups in it.",
+          "Directory '<fixture>/node_modules' does not exist, skipping all lookups in it.",
+          "Directory '/private/var/folders/ft/6fdqp3c914xfdlk47w5cblzc0000gn/T/node_modules' does not exist, skipping all lookups in it.",
+          "Directory '/private/var/folders/ft/6fdqp3c914xfdlk47w5cblzc0000gn/node_modules' does not exist, skipping all lookups in it.",
+          "Directory '/private/var/folders/ft/node_modules' does not exist, skipping all lookups in it.",
+          "Directory '/private/var/folders/node_modules' does not exist, skipping all lookups in it.",
+          "Directory '/private/var/node_modules' does not exist, skipping all lookups in it.",
+          "Directory '/private/node_modules' does not exist, skipping all lookups in it.",
+          "Directory '/node_modules' does not exist, skipping all lookups in it.",
+          "======== Module name '@/ghostYZ' was not resolved. ========"
+        ],
+        "diagnostics": [
+          {
+            "code": 18003,
+            "message": "No inputs were found in config file '<fixture>/order/tsconfig.json'. Specified 'include' paths were '[\"**/*\"]' and 'exclude' paths were '[]'."
+          }
+        ]
+      },
+      "matched": true
+    },
+    {
+      "query": {
+        "config": "reverse/tsconfig.json",
+        "specifier": "@/xYZ"
+      },
+      "expected": "base/second/x.ts",
+      "native": {
+        "attempts": [
+          {
+            "candidate": "base/second/x.ts",
+            "mapped": true
+          }
+        ],
+        "query": {
+          "config": "reverse/tsconfig.json",
+          "specifier": "@/xYZ"
+        },
+        "result": {
+          "pattern": "@/*YZ",
+          "route": "paths",
+          "target": "base/second/x.ts"
+        }
+      },
+      "compiler": {
+        "query": {
+          "config": "reverse/tsconfig.json",
+          "specifier": "@/xYZ"
+        },
+        "target": "<fixture>/base/second/x.ts",
+        "traces": [
+          "======== Resolving module '@/xYZ' from '<fixture>/reverse/entry.ts'. ========",
+          "Explicitly specified module resolution kind: 'Bundler'.",
+          "Resolving in CJS mode with conditions 'import', 'types'.",
+          "'baseUrl' option is set to '<fixture>/base', using this value to resolve non-relative module name '@/xYZ'.",
+          "'paths' option is specified, looking for a pattern to match module name '@/xYZ'.",
+          "Module name '@/xYZ', matched pattern '@/*YZ'.",
+          "Trying substitution 'second/*.ts', candidate module location: 'second/x.ts'.",
+          "File '<fixture>/base/second/x.ts' exists - use it as a name resolution result.",
+          "======== Module name '@/xYZ' was successfully resolved to '<fixture>/base/second/x.ts'. ========"
+        ],
+        "diagnostics": [
+          {
+            "code": 18003,
+            "message": "No inputs were found in config file '<fixture>/reverse/tsconfig.json'. Specified 'include' paths were '[\"**/*\"]' and 'exclude' paths were '[]'."
+          }
+        ]
+      },
+      "matched": true
+    },
+    {
+      "query": {
+        "config": "order/tsconfig.json",
+        "specifier": "@/longYZ"
+      },
+      "expected": "base/long/YZ.ts",
+      "native": {
+        "attempts": [
+          {
+            "candidate": "base/long/YZ.ts",
+            "mapped": true
+          }
+        ],
+        "query": {
+          "config": "order/tsconfig.json",
+          "specifier": "@/longYZ"
+        },
+        "result": {
+          "pattern": "@/long*",
+          "route": "paths",
+          "target": "base/long/YZ.ts"
+        }
+      },
+      "compiler": {
+        "query": {
+          "config": "order/tsconfig.json",
+          "specifier": "@/longYZ"
+        },
+        "target": "<fixture>/base/long/YZ.ts",
+        "traces": [
+          "======== Resolving module '@/longYZ' from '<fixture>/order/entry.ts'. ========",
+          "Explicitly specified module resolution kind: 'Bundler'.",
+          "Resolving in CJS mode with conditions 'import', 'types'.",
+          "'baseUrl' option is set to '<fixture>/base', using this value to resolve non-relative module name '@/longYZ'.",
+          "'paths' option is specified, looking for a pattern to match module name '@/longYZ'.",
+          "Module name '@/longYZ', matched pattern '@/long*'.",
+          "Trying substitution 'long/*.ts', candidate module location: 'long/YZ.ts'.",
+          "File '<fixture>/base/long/YZ.ts' exists - use it as a name resolution result.",
+          "======== Module name '@/longYZ' was successfully resolved to '<fixture>/base/long/YZ.ts'. ========"
+        ],
+        "diagnostics": [
+          {
+            "code": 18003,
+            "message": "No inputs were found in config file '<fixture>/order/tsconfig.json'. Specified 'include' paths were '[\"**/*\"]' and 'exclude' paths were '[]'."
+          }
+        ]
+      },
+      "matched": true
+    },
+    {
+      "query": {
+        "config": "order/tsconfig.json",
+        "specifier": "fallback"
+      },
+      "expected": "base/second.ts",
+      "native": {
+        "attempts": [
+          {
+            "candidate": "base/missing.ts",
+            "mapped": true
+          },
+          {
+            "candidate": "base/second.ts",
+            "mapped": true
+          }
+        ],
+        "query": {
+          "config": "order/tsconfig.json",
+          "specifier": "fallback"
+        },
+        "result": {
+          "pattern": "fallback",
+          "route": "paths",
+          "target": "base/second.ts"
+        }
+      },
+      "compiler": {
+        "query": {
+          "config": "order/tsconfig.json",
+          "specifier": "fallback"
+        },
+        "target": "<fixture>/base/second.ts",
+        "traces": [
+          "======== Resolving module 'fallback' from '<fixture>/order/entry.ts'. ========",
+          "Explicitly specified module resolution kind: 'Bundler'.",
+          "Resolving in CJS mode with conditions 'import', 'types'.",
+          "'baseUrl' option is set to '<fixture>/base', using this value to resolve non-relative module name 'fallback'.",
+          "'paths' option is specified, looking for a pattern to match module name 'fallback'.",
+          "Module name 'fallback', matched pattern 'fallback'.",
+          "Trying substitution 'missing.ts', candidate module location: 'missing.ts'.",
+          "File '<fixture>/base/missing.ts' does not exist.",
+          "Loading module as file / folder, candidate module location '<fixture>/base/missing.ts', target file types: TypeScript, JavaScript, Declaration, JSON.",
+          "File name '<fixture>/base/missing.ts' has a '.ts' extension - stripping it.",
+          "File '<fixture>/base/missing.ts' does not exist.",
+          "File '<fixture>/base/missing.tsx' does not exist.",
+          "File '<fixture>/base/missing.d.ts' does not exist.",
+          "File '<fixture>/base/missing.js' does not exist.",
+          "File '<fixture>/base/missing.jsx' does not exist.",
+          "File '<fixture>/base/missing.ts.ts' does not exist.",
+          "File '<fixture>/base/missing.ts.tsx' does not exist.",
+          "File '<fixture>/base/missing.ts.d.ts' does not exist.",
+          "File '<fixture>/base/missing.ts.js' does not exist.",
+          "File '<fixture>/base/missing.ts.jsx' does not exist.",
+          "Directory '<fixture>/base/missing.ts' does not exist, skipping all lookups in it.",
+          "Trying substitution 'second.ts', candidate module location: 'second.ts'.",
+          "File '<fixture>/base/second.ts' exists - use it as a name resolution result.",
+          "======== Module name 'fallback' was successfully resolved to '<fixture>/base/second.ts'. ========"
+        ],
+        "diagnostics": [
+          {
+            "code": 18003,
+            "message": "No inputs were found in config file '<fixture>/order/tsconfig.json'. Specified 'include' paths were '[\"**/*\"]' and 'exclude' paths were '[]'."
+          }
+        ]
+      },
+      "matched": true
+    },
+    {
+      "query": {
+        "config": "order/tsconfig.json",
+        "specifier": "miss.ts"
+      },
+      "expected": null,
+      "native": {
+        "attempts": [
+          {
+            "candidate": "base/absent.ts",
+            "mapped": true
+          }
+        ],
+        "query": {
+          "config": "order/tsconfig.json",
+          "specifier": "miss.ts"
+        },
+        "result": {
+          "pattern": "miss.ts",
+          "route": "paths",
+          "target": null
+        }
+      },
+      "compiler": {
+        "query": {
+          "config": "order/tsconfig.json",
+          "specifier": "miss.ts"
+        },
+        "target": null,
+        "traces": [
+          "======== Resolving module 'miss.ts' from '<fixture>/order/entry.ts'. ========",
+          "Explicitly specified module resolution kind: 'Bundler'.",
+          "Resolving in CJS mode with conditions 'import', 'types'.",
+          "'baseUrl' option is set to '<fixture>/base', using this value to resolve non-relative module name 'miss.ts'.",
+          "'paths' option is specified, looking for a pattern to match module name 'miss.ts'.",
+          "Module name 'miss.ts', matched pattern 'miss.ts'.",
+          "Trying substitution 'absent.ts', candidate module location: 'absent.ts'.",
+          "File '<fixture>/base/absent.ts' does not exist.",
+          "Loading module as file / folder, candidate module location '<fixture>/base/absent.ts', target file types: TypeScript, JavaScript, Declaration, JSON.",
+          "File name '<fixture>/base/absent.ts' has a '.ts' extension - stripping it.",
+          "File '<fixture>/base/absent.ts' does not exist.",
+          "File '<fixture>/base/absent.tsx' does not exist.",
+          "File '<fixture>/base/absent.d.ts' does not exist.",
+          "File '<fixture>/base/absent.js' does not exist.",
+          "File '<fixture>/base/absent.jsx' does not exist.",
+          "File '<fixture>/base/absent.ts.ts' does not exist.",
+          "File '<fixture>/base/absent.ts.tsx' does not exist.",
+          "File '<fixture>/base/absent.ts.d.ts' does not exist.",
+          "File '<fixture>/base/absent.ts.js' does not exist.",
+          "File '<fixture>/base/absent.ts.jsx' does not exist.",
+          "Directory '<fixture>/base/absent.ts' does not exist, skipping all lookups in it.",
+          "File '<fixture>/order/package.json' does not exist.",
+          "File '<fixture>/package.json' does not exist.",
+          "File '/private/var/folders/ft/6fdqp3c914xfdlk47w5cblzc0000gn/T/package.json' does not exist.",
+          "File '/private/var/folders/ft/6fdqp3c914xfdlk47w5cblzc0000gn/package.json' does not exist.",
+          "File '/private/var/folders/ft/package.json' does not exist.",
+          "File '/private/var/folders/package.json' does not exist.",
+          "File '/private/var/package.json' does not exist.",
+          "File '/private/package.json' does not exist.",
+          "File '/package.json' does not exist.",
+          "Loading module 'miss.ts' from 'node_modules' folder, target file types: TypeScript, JavaScript, Declaration, JSON.",
+          "Searching all ancestor node_modules directories for preferred extensions: TypeScript, Declaration.",
+          "Directory '<fixture>/order/node_modules' does not exist, skipping all lookups in it.",
+          "File name '<fixture>/order/node_modules/miss.ts' has a '.ts' extension - stripping it.",
+          "File name '<fixture>/order/node_modules/@types/miss.ts' has a '.ts' extension - stripping it.",
+          "Directory '<fixture>/node_modules' does not exist, skipping all lookups in it.",
+          "File name '<fixture>/node_modules/miss.ts' has a '.ts' extension - stripping it.",
+          "File name '<fixture>/node_modules/@types/miss.ts' has a '.ts' extension - stripping it.",
+          "Directory '/private/var/folders/ft/6fdqp3c914xfdlk47w5cblzc0000gn/T/node_modules' does not exist, skipping all lookups in it.",
+          "File name '/private/var/folders/ft/6fdqp3c914xfdlk47w5cblzc0000gn/T/node_modules/miss.ts' has a '.ts' extension - stripping it.",
+          "File name '/private/var/folders/ft/6fdqp3c914xfdlk47w5cblzc0000gn/T/node_modules/@types/miss.ts' has a '.ts' extension - stripping it.",
+          "Directory '/private/var/folders/ft/6fdqp3c914xfdlk47w5cblzc0000gn/node_modules' does not exist, skipping all lookups in it.",
+          "File name '/private/var/folders/ft/6fdqp3c914xfdlk47w5cblzc0000gn/node_modules/miss.ts' has a '.ts' extension - stripping it.",
+          "File name '/private/var/folders/ft/6fdqp3c914xfdlk47w5cblzc0000gn/node_modules/@types/miss.ts' has a '.ts' extension - stripping it.",
+          "Directory '/private/var/folders/ft/node_modules' does not exist, skipping all lookups in it.",
+          "File name '/private/var/folders/ft/node_modules/miss.ts' has a '.ts' extension - stripping it.",
+          "File name '/private/var/folders/ft/node_modules/@types/miss.ts' has a '.ts' extension - stripping it.",
+          "Directory '/private/var/folders/node_modules' does not exist, skipping all lookups in it.",
+          "File name '/private/var/folders/node_modules/miss.ts' has a '.ts' extension - stripping it.",
+          "File name '/private/var/folders/node_modules/@types/miss.ts' has a '.ts' extension - stripping it.",
+          "Directory '/private/var/node_modules' does not exist, skipping all lookups in it.",
+          "File name '/private/var/node_modules/miss.ts' has a '.ts' extension - stripping it.",
+          "File name '/private/var/node_modules/@types/miss.ts' has a '.ts' extension - stripping it.",
+          "Directory '/private/node_modules' does not exist, skipping all lookups in it.",
+          "File name '/private/node_modules/miss.ts' has a '.ts' extension - stripping it.",
+          "File name '/private/node_modules/@types/miss.ts' has a '.ts' extension - stripping it.",
+          "Directory '/node_modules' does not exist, skipping all lookups in it.",
+          "File name '/node_modules/miss.ts' has a '.ts' extension - stripping it.",
+          "File name '/node_modules/@types/miss.ts' has a '.ts' extension - stripping it.",
+          "Searching all ancestor node_modules directories for fallback extensions: JavaScript, JSON.",
+          "Directory '<fixture>/order/node_modules' does not exist, skipping all lookups in it.",
+          "File name '<fixture>/order/node_modules/miss.ts' has a '.ts' extension - stripping it.",
+          "Directory '<fixture>/node_modules' does not exist, skipping all lookups in it.",
+          "File name '<fixture>/node_modules/miss.ts' has a '.ts' extension - stripping it.",
+          "Directory '/private/var/folders/ft/6fdqp3c914xfdlk47w5cblzc0000gn/T/node_modules' does not exist, skipping all lookups in it.",
+          "File name '/private/var/folders/ft/6fdqp3c914xfdlk47w5cblzc0000gn/T/node_modules/miss.ts' has a '.ts' extension - stripping it.",
+          "Directory '/private/var/folders/ft/6fdqp3c914xfdlk47w5cblzc0000gn/node_modules' does not exist, skipping all lookups in it.",
+          "File name '/private/var/folders/ft/6fdqp3c914xfdlk47w5cblzc0000gn/node_modules/miss.ts' has a '.ts' extension - stripping it.",
+          "Directory '/private/var/folders/ft/node_modules' does not exist, skipping all lookups in it.",
+          "File name '/private/var/folders/ft/node_modules/miss.ts' has a '.ts' extension - stripping it.",
+          "Directory '/private/var/folders/node_modules' does not exist, skipping all lookups in it.",
+          "File name '/private/var/folders/node_modules/miss.ts' has a '.ts' extension - stripping it.",
+          "Directory '/private/var/node_modules' does not exist, skipping all lookups in it.",
+          "File name '/private/var/node_modules/miss.ts' has a '.ts' extension - stripping it.",
+          "Directory '/private/node_modules' does not exist, skipping all lookups in it.",
+          "File name '/private/node_modules/miss.ts' has a '.ts' extension - stripping it.",
+          "Directory '/node_modules' does not exist, skipping all lookups in it.",
+          "File name '/node_modules/miss.ts' has a '.ts' extension - stripping it.",
+          "======== Module name 'miss.ts' was not resolved. ========"
+        ],
+        "diagnostics": [
+          {
+            "code": 18003,
+            "message": "No inputs were found in config file '<fixture>/order/tsconfig.json'. Specified 'include' paths were '[\"**/*\"]' and 'exclude' paths were '[]'."
+          }
+        ]
+      },
+      "matched": true
+    },
+    {
+      "query": {
+        "config": "order/tsconfig.json",
+        "specifier": "other.ts"
+      },
+      "expected": "base/other.ts",
+      "native": {
+        "attempts": [
+          {
+            "candidate": "base/other.ts",
+            "mapped": false
+          }
+        ],
+        "query": {
+          "config": "order/tsconfig.json",
+          "specifier": "other.ts"
+        },
+        "result": {
+          "route": "base_url",
+          "target": "base/other.ts"
+        }
+      },
+      "compiler": {
+        "query": {
+          "config": "order/tsconfig.json",
+          "specifier": "other.ts"
+        },
+        "target": "<fixture>/base/other.ts",
+        "traces": [
+          "======== Resolving module 'other.ts' from '<fixture>/order/entry.ts'. ========",
+          "Explicitly specified module resolution kind: 'Bundler'.",
+          "Resolving in CJS mode with conditions 'import', 'types'.",
+          "'baseUrl' option is set to '<fixture>/base', using this value to resolve non-relative module name 'other.ts'.",
+          "'paths' option is specified, looking for a pattern to match module name 'other.ts'.",
+          "'baseUrl' option is set to '<fixture>/base', using this value to resolve non-relative module name 'other.ts'.",
+          "Resolving module name 'other.ts' relative to base url '<fixture>/base' - '<fixture>/base/other.ts'.",
+          "Loading module as file / folder, candidate module location '<fixture>/base/other.ts', target file types: TypeScript, JavaScript, Declaration, JSON.",
+          "File name '<fixture>/base/other.ts' has a '.ts' extension - stripping it.",
+          "File '<fixture>/base/other.ts' exists - use it as a name resolution result.",
+          "======== Module name 'other.ts' was successfully resolved to '<fixture>/base/other.ts'. ========"
+        ],
+        "diagnostics": [
+          {
+            "code": 18003,
+            "message": "No inputs were found in config file '<fixture>/order/tsconfig.json'. Specified 'include' paths were '[\"**/*\"]' and 'exclude' paths were '[]'."
+          }
+        ]
+      },
+      "matched": true
+    },
+    {
+      "query": {
+        "config": "order/tsconfig.json",
+        "specifier": "empty"
+      },
+      "expected": "base/literal*.ts",
+      "native": {
+        "attempts": [
+          {
+            "candidate": "base/literal*.ts",
+            "mapped": true
+          }
+        ],
+        "query": {
+          "config": "order/tsconfig.json",
+          "specifier": "empty"
+        },
+        "result": {
+          "pattern": "empty*",
+          "route": "paths",
+          "target": "base/literal*.ts"
+        }
+      },
+      "compiler": {
+        "query": {
+          "config": "order/tsconfig.json",
+          "specifier": "empty"
+        },
+        "target": "<fixture>/base/literal*.ts",
+        "traces": [
+          "======== Resolving module 'empty' from '<fixture>/order/entry.ts'. ========",
+          "Explicitly specified module resolution kind: 'Bundler'.",
+          "Resolving in CJS mode with conditions 'import', 'types'.",
+          "'baseUrl' option is set to '<fixture>/base', using this value to resolve non-relative module name 'empty'.",
+          "'paths' option is specified, looking for a pattern to match module name 'empty'.",
+          "Module name 'empty', matched pattern 'empty*'.",
+          "Trying substitution 'literal*.ts', candidate module location: 'literal*.ts'.",
+          "File '<fixture>/base/literal*.ts' exists - use it as a name resolution result.",
+          "======== Module name 'empty' was successfully resolved to '<fixture>/base/literal*.ts'. ========"
+        ],
+        "diagnostics": [
+          {
+            "code": 18003,
+            "message": "No inputs were found in config file '<fixture>/order/tsconfig.json'. Specified 'include' paths were '[\"**/*\"]' and 'exclude' paths were '[]'."
+          }
+        ]
+      },
+      "matched": true
+    },
+    {
+      "query": {
+        "config": "order/tsconfig.json",
+        "specifier": "é中終"
+      },
+      "expected": "base/unicode/中.ts",
+      "native": {
+        "attempts": [
+          {
+            "candidate": "base/unicode/中.ts",
+            "mapped": true
+          }
+        ],
+        "query": {
+          "config": "order/tsconfig.json",
+          "specifier": "é中終"
+        },
+        "result": {
+          "pattern": "é*終",
+          "route": "paths",
+          "target": "base/unicode/中.ts"
+        }
+      },
+      "compiler": {
+        "query": {
+          "config": "order/tsconfig.json",
+          "specifier": "é中終"
+        },
+        "target": "<fixture>/base/unicode/中.ts",
+        "traces": [
+          "======== Resolving module 'é中終' from '<fixture>/order/entry.ts'. ========",
+          "Explicitly specified module resolution kind: 'Bundler'.",
+          "Resolving in CJS mode with conditions 'import', 'types'.",
+          "'baseUrl' option is set to '<fixture>/base', using this value to resolve non-relative module name 'é中終'.",
+          "'paths' option is specified, looking for a pattern to match module name 'é中終'.",
+          "Module name 'é中終', matched pattern 'é*終'.",
+          "Trying substitution 'unicode/*.ts', candidate module location: 'unicode/中.ts'.",
+          "File '<fixture>/base/unicode/中.ts' exists - use it as a name resolution result.",
+          "======== Module name 'é中終' was successfully resolved to '<fixture>/base/unicode/中.ts'. ========"
+        ],
+        "diagnostics": [
+          {
+            "code": 18003,
+            "message": "No inputs were found in config file '<fixture>/order/tsconfig.json'. Specified 'include' paths were '[\"**/*\"]' and 'exclude' paths were '[]'."
+          }
+        ]
+      },
+      "matched": true
+    },
+    {
+      "query": {
+        "config": "order/tsconfig.json",
+        "specifier": ".bare"
+      },
+      "expected": "base/bare.ts",
+      "native": {
+        "attempts": [
+          {
+            "candidate": "base/bare.ts",
+            "mapped": true
+          }
+        ],
+        "query": {
+          "config": "order/tsconfig.json",
+          "specifier": ".bare"
+        },
+        "result": {
+          "pattern": ".bare",
+          "route": "paths",
+          "target": "base/bare.ts"
+        }
+      },
+      "compiler": {
+        "query": {
+          "config": "order/tsconfig.json",
+          "specifier": ".bare"
+        },
+        "target": "<fixture>/base/bare.ts",
+        "traces": [
+          "======== Resolving module '.bare' from '<fixture>/order/entry.ts'. ========",
+          "Explicitly specified module resolution kind: 'Bundler'.",
+          "Resolving in CJS mode with conditions 'import', 'types'.",
+          "'baseUrl' option is set to '<fixture>/base', using this value to resolve non-relative module name '.bare'.",
+          "'paths' option is specified, looking for a pattern to match module name '.bare'.",
+          "Module name '.bare', matched pattern '.bare'.",
+          "Trying substitution 'bare.ts', candidate module location: 'bare.ts'.",
+          "File '<fixture>/base/bare.ts' exists - use it as a name resolution result.",
+          "======== Module name '.bare' was successfully resolved to '<fixture>/base/bare.ts'. ========"
+        ],
+        "diagnostics": [
+          {
+            "code": 18003,
+            "message": "No inputs were found in config file '<fixture>/order/tsconfig.json'. Specified 'include' paths were '[\"**/*\"]' and 'exclude' paths were '[]'."
+          }
+        ]
+      },
+      "matched": true
+    },
+    {
+      "query": {
+        "config": "override/tsconfig.json",
+        "specifier": "@/exact.ts"
+      },
+      "expected": "override-base/exact.ts",
+      "native": {
+        "attempts": [
+          {
+            "candidate": "override-base/exact.ts",
+            "mapped": true
+          }
+        ],
+        "query": {
+          "config": "override/tsconfig.json",
+          "specifier": "@/exact.ts"
+        },
+        "result": {
+          "pattern": "@/exact.ts",
+          "route": "paths",
+          "target": "override-base/exact.ts"
+        }
+      },
+      "compiler": {
+        "query": {
+          "config": "override/tsconfig.json",
+          "specifier": "@/exact.ts"
+        },
+        "target": "<fixture>/override-base/exact.ts",
+        "traces": [
+          "======== Resolving module '@/exact.ts' from '<fixture>/override/entry.ts'. ========",
+          "Explicitly specified module resolution kind: 'Bundler'.",
+          "Resolving in CJS mode with conditions 'import', 'types'.",
+          "'baseUrl' option is set to '<fixture>/override-base', using this value to resolve non-relative module name '@/exact.ts'.",
+          "'paths' option is specified, looking for a pattern to match module name '@/exact.ts'.",
+          "Module name '@/exact.ts', matched pattern '@/exact.ts'.",
+          "Trying substitution 'exact.ts', candidate module location: 'exact.ts'.",
+          "File '<fixture>/override-base/exact.ts' exists - use it as a name resolution result.",
+          "======== Module name '@/exact.ts' was successfully resolved to '<fixture>/override-base/exact.ts'. ========"
+        ],
+        "diagnostics": [
+          {
+            "code": 18003,
+            "message": "No inputs were found in config file '<fixture>/override/tsconfig.json'. Specified 'include' paths were '[\"**/*\"]' and 'exclude' paths were '[]'."
+          }
+        ]
+      },
+      "matched": true
+    },
+    {
+      "query": {
+        "config": "origin/tsconfig.json",
+        "specifier": "@/file"
+      },
+      "expected": "origin/config/src/file.ts",
+      "native": {
+        "attempts": [
+          {
+            "candidate": "origin/config/src/file.ts",
+            "mapped": true
+          }
+        ],
+        "query": {
+          "config": "origin/tsconfig.json",
+          "specifier": "@/file"
+        },
+        "result": {
+          "pattern": "@/*",
+          "route": "paths",
+          "target": "origin/config/src/file.ts"
+        }
+      },
+      "compiler": {
+        "query": {
+          "config": "origin/tsconfig.json",
+          "specifier": "@/file"
+        },
+        "target": "<fixture>/origin/config/src/file.ts",
+        "traces": [
+          "======== Resolving module '@/file' from '<fixture>/origin/entry.ts'. ========",
+          "Explicitly specified module resolution kind: 'Bundler'.",
+          "Resolving in CJS mode with conditions 'import', 'types'.",
+          "'paths' option is specified, looking for a pattern to match module name '@/file'.",
+          "Module name '@/file', matched pattern '@/*'.",
+          "Trying substitution './src/*.ts', candidate module location: './src/file.ts'.",
+          "File '<fixture>/origin/config/src/file.ts' exists - use it as a name resolution result.",
+          "======== Module name '@/file' was successfully resolved to '<fixture>/origin/config/src/file.ts'. ========"
+        ],
+        "diagnostics": []
+      },
+      "matched": true
+    },
+    {
+      "query": {
+        "config": "empty-map/tsconfig.json",
+        "specifier": "miss.ts"
+      },
+      "expected": "base/miss.ts",
+      "native": {
+        "attempts": [
+          {
+            "candidate": "base/miss.ts",
+            "mapped": false
+          }
+        ],
+        "query": {
+          "config": "empty-map/tsconfig.json",
+          "specifier": "miss.ts"
+        },
+        "result": {
+          "route": "base_url",
+          "target": "base/miss.ts"
+        }
+      },
+      "compiler": {
+        "query": {
+          "config": "empty-map/tsconfig.json",
+          "specifier": "miss.ts"
+        },
+        "target": "<fixture>/base/miss.ts",
+        "traces": [
+          "======== Resolving module 'miss.ts' from '<fixture>/empty-map/entry.ts'. ========",
+          "Explicitly specified module resolution kind: 'Bundler'.",
+          "Resolving in CJS mode with conditions 'import', 'types'.",
+          "'baseUrl' option is set to '<fixture>/base', using this value to resolve non-relative module name 'miss.ts'.",
+          "'paths' option is specified, looking for a pattern to match module name 'miss.ts'.",
+          "'baseUrl' option is set to '<fixture>/base', using this value to resolve non-relative module name 'miss.ts'.",
+          "Resolving module name 'miss.ts' relative to base url '<fixture>/base' - '<fixture>/base/miss.ts'.",
+          "Loading module as file / folder, candidate module location '<fixture>/base/miss.ts', target file types: TypeScript, JavaScript, Declaration, JSON.",
+          "File name '<fixture>/base/miss.ts' has a '.ts' extension - stripping it.",
+          "File '<fixture>/base/miss.ts' exists - use it as a name resolution result.",
+          "======== Module name 'miss.ts' was successfully resolved to '<fixture>/base/miss.ts'. ========"
+        ],
+        "diagnostics": [
+          {
+            "code": 18003,
+            "message": "No inputs were found in config file '<fixture>/empty-map/tsconfig.json'. Specified 'include' paths were '[\"**/*\"]' and 'exclude' paths were '[]'."
+          }
+        ]
+      },
+      "matched": true
+    },
+    {
+      "query": {
+        "config": "plain/tsconfig.json",
+        "specifier": "absent-package"
+      },
+      "expected": null,
+      "native": {
+        "attempts": [],
+        "query": {
+          "config": "plain/tsconfig.json",
+          "specifier": "absent-package"
+        },
+        "result": {
+          "route": "unmatched",
+          "target": null
+        }
+      },
+      "compiler": {
+        "query": {
+          "config": "plain/tsconfig.json",
+          "specifier": "absent-package"
+        },
+        "target": null,
+        "traces": [
+          "======== Resolving module 'absent-package' from '<fixture>/plain/entry.ts'. ========",
+          "Explicitly specified module resolution kind: 'Bundler'.",
+          "Resolving in CJS mode with conditions 'import', 'types'.",
+          "File '<fixture>/plain/package.json' does not exist.",
+          "File '<fixture>/package.json' does not exist.",
+          "File '/private/var/folders/ft/6fdqp3c914xfdlk47w5cblzc0000gn/T/package.json' does not exist.",
+          "File '/private/var/folders/ft/6fdqp3c914xfdlk47w5cblzc0000gn/package.json' does not exist.",
+          "File '/private/var/folders/ft/package.json' does not exist.",
+          "File '/private/var/folders/package.json' does not exist.",
+          "File '/private/var/package.json' does not exist.",
+          "File '/private/package.json' does not exist.",
+          "File '/package.json' does not exist.",
+          "Loading module 'absent-package' from 'node_modules' folder, target file types: TypeScript, JavaScript, Declaration, JSON.",
+          "Searching all ancestor node_modules directories for preferred extensions: TypeScript, Declaration.",
+          "Directory '<fixture>/plain/node_modules' does not exist, skipping all lookups in it.",
+          "Directory '<fixture>/node_modules' does not exist, skipping all lookups in it.",
+          "Directory '/private/var/folders/ft/6fdqp3c914xfdlk47w5cblzc0000gn/T/node_modules' does not exist, skipping all lookups in it.",
+          "Directory '/private/var/folders/ft/6fdqp3c914xfdlk47w5cblzc0000gn/node_modules' does not exist, skipping all lookups in it.",
+          "Directory '/private/var/folders/ft/node_modules' does not exist, skipping all lookups in it.",
+          "Directory '/private/var/folders/node_modules' does not exist, skipping all lookups in it.",
+          "Directory '/private/var/node_modules' does not exist, skipping all lookups in it.",
+          "Directory '/private/node_modules' does not exist, skipping all lookups in it.",
+          "Directory '/node_modules' does not exist, skipping all lookups in it.",
+          "Searching all ancestor node_modules directories for fallback extensions: JavaScript, JSON.",
+          "Directory '<fixture>/plain/node_modules' does not exist, skipping all lookups in it.",
+          "Directory '<fixture>/node_modules' does not exist, skipping all lookups in it.",
+          "Directory '/private/var/folders/ft/6fdqp3c914xfdlk47w5cblzc0000gn/T/node_modules' does not exist, skipping all lookups in it.",
+          "Directory '/private/var/folders/ft/6fdqp3c914xfdlk47w5cblzc0000gn/node_modules' does not exist, skipping all lookups in it.",
+          "Directory '/private/var/folders/ft/node_modules' does not exist, skipping all lookups in it.",
+          "Directory '/private/var/folders/node_modules' does not exist, skipping all lookups in it.",
+          "Directory '/private/var/node_modules' does not exist, skipping all lookups in it.",
+          "Directory '/private/node_modules' does not exist, skipping all lookups in it.",
+          "Directory '/node_modules' does not exist, skipping all lookups in it.",
+          "======== Module name 'absent-package' was not resolved. ========"
+        ],
+        "diagnostics": [
+          {
+            "code": 18003,
+            "message": "No inputs were found in config file '<fixture>/plain/tsconfig.json'. Specified 'include' paths were '[\"**/*\"]' and 'exclude' paths were '[]'."
+          }
+        ]
+      },
+      "matched": true
+    },
+    {
+      "query": {
+        "config": "whatsurvey/workspaces/frontend/tsconfig.json",
+        "specifier": "$lib/file.ts"
+      },
+      "expected": "whatsurvey/workspaces/frontend/src/lib/file.ts",
+      "native": {
+        "attempts": [
+          {
+            "candidate": "whatsurvey/workspaces/frontend/src/lib/file.ts",
+            "mapped": true
+          }
+        ],
+        "query": {
+          "config": "whatsurvey/workspaces/frontend/tsconfig.json",
+          "specifier": "$lib/file.ts"
+        },
+        "result": {
+          "pattern": "$lib/*",
+          "route": "paths",
+          "target": "whatsurvey/workspaces/frontend/src/lib/file.ts"
+        }
+      },
+      "compiler": {
+        "query": {
+          "config": "whatsurvey/workspaces/frontend/tsconfig.json",
+          "specifier": "$lib/file.ts"
+        },
+        "target": "<fixture>/whatsurvey/workspaces/frontend/src/lib/file.ts",
+        "traces": [
+          "======== Resolving module '$lib/file.ts' from '<fixture>/whatsurvey/workspaces/frontend/entry.ts'. ========",
+          "Explicitly specified module resolution kind: 'Bundler'.",
+          "Resolving in CJS mode with conditions 'import', 'types'.",
+          "'paths' option is specified, looking for a pattern to match module name '$lib/file.ts'.",
+          "Module name '$lib/file.ts', matched pattern '$lib/*'.",
+          "Trying substitution '../src/lib/*', candidate module location: '../src/lib/file.ts'.",
+          "Loading module as file / folder, candidate module location '<fixture>/whatsurvey/workspaces/frontend/src/lib/file.ts', target file types: TypeScript, JavaScript, Declaration, JSON.",
+          "File name '<fixture>/whatsurvey/workspaces/frontend/src/lib/file.ts' has a '.ts' extension - stripping it.",
+          "File '<fixture>/whatsurvey/workspaces/frontend/src/lib/file.ts' exists - use it as a name resolution result.",
+          "======== Module name '$lib/file.ts' was successfully resolved to '<fixture>/whatsurvey/workspaces/frontend/src/lib/file.ts'. ========"
+        ],
+        "diagnostics": []
+      },
+      "matched": true
+    },
+    {
+      "query": {
+        "config": "whatsurvey/workspaces/frontend/tsconfig.json",
+        "specifier": "$app/types"
+      },
+      "expected": "whatsurvey/workspaces/frontend/.svelte-kit/types/index.d.ts",
+      "native": {
+        "attempts": [
+          {
+            "candidate": "whatsurvey/workspaces/frontend/.svelte-kit/types/index.d.ts",
+            "mapped": true
+          }
+        ],
+        "query": {
+          "config": "whatsurvey/workspaces/frontend/tsconfig.json",
+          "specifier": "$app/types"
+        },
+        "result": {
+          "pattern": "$app/types",
+          "route": "paths",
+          "target": "whatsurvey/workspaces/frontend/.svelte-kit/types/index.d.ts"
+        }
+      },
+      "compiler": {
+        "query": {
+          "config": "whatsurvey/workspaces/frontend/tsconfig.json",
+          "specifier": "$app/types"
+        },
+        "target": "<fixture>/whatsurvey/workspaces/frontend/.svelte-kit/types/index.d.ts",
+        "traces": [
+          "======== Resolving module '$app/types' from '<fixture>/whatsurvey/workspaces/frontend/entry.ts'. ========",
+          "Explicitly specified module resolution kind: 'Bundler'.",
+          "Resolving in CJS mode with conditions 'import', 'types'.",
+          "'paths' option is specified, looking for a pattern to match module name '$app/types'.",
+          "Module name '$app/types', matched pattern '$app/types'.",
+          "Trying substitution './types/index.d.ts', candidate module location: './types/index.d.ts'.",
+          "File '<fixture>/whatsurvey/workspaces/frontend/.svelte-kit/types/index.d.ts' exists - use it as a name resolution result.",
+          "======== Module name '$app/types' was successfully resolved to '<fixture>/whatsurvey/workspaces/frontend/.svelte-kit/types/index.d.ts'. ========"
+        ],
+        "diagnostics": []
+      },
+      "matched": true
+    }
+  ]
+}

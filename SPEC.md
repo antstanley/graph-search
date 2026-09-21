@@ -175,6 +175,8 @@ pub trait GraphSnapshot {
     fn node_by_id(&self, id: &NodeId) -> Result<Option<Node>, Error>;
     fn find_by_name(&self, name: &str, kinds: &[NodeKind], k: usize) -> Result<Vec<Scored<Node>>, Error>;
     fn edges_from(&self, id: &NodeId, kinds: &[EdgeKind], dir: Direction) -> Result<Vec<Edge>, Error>;
+    fn metadata(&self) -> &MetadataIndex;
+    fn edges_bounded(&self, id: &NodeId, kinds: &[EdgeKind], dir: Direction, budget: &mut WorkBudget) -> Result<Vec<Edge>, Error>;
     fn expand(&self, seeds: &[NodeId], hops: u8, kinds: &[EdgeKind], dir: Direction) -> Result<Subgraph, Error>;
     /// Files whose path matches the glob, from the *indexed* set.
     fn files_matching(&self, glob: &str, k: usize) -> Result<Vec<Node>, Error>;
@@ -487,8 +489,9 @@ files and descends `target/`):
 - Always skip: `.git/`, `.graph-search/`, `target/`, `node_modules/`, `dist/`,
   `build/`, `out/`, `.venv/`, `venv/`, `vendor/`, and any configured extras.
 - Skip hidden entries unless configured otherwise.
-- Skip files larger than `MAX_FILE_BYTES` (1 MiB default) and files whose
-  extension has no extractor.
+- Skip files larger than `MAX_FILE_BYTES` (1 MiB default). Unknown extensions
+  remain searchable text and receive file nodes; disabled languages receive no
+  parser facts.
 
 The exclusion policy is a **named, configurable value** (`config.toml`, §12), not
 scattered calls, because an index that eats `target/` is worse than useless.
@@ -498,6 +501,24 @@ scattered calls, because an index that eats `target/` is worse than useless.
 > it, for consistency with the index and because descending `target/` is almost
 > never intended. This is a *deliberate divergence from `nanus` parity* and is
 > flagged in §19 as a decision to confirm during evaluation.
+
+Enumeration is deterministic by path before applying the file cap (200,000)
+and entry cap (1,000,000, including directories). `walk_report` returns partial
+entries plus coverage; `walk` requires complete enumeration. Files, text, and
+explore may serve partial evidence and report the boundary. Sync and reindex
+require complete enumeration before preparing any removals: an incomplete walk
+or a subsequent source read error preserves the previous index. Bounded reads
+also reject files that grow past the size ceiling after enumeration.
+
+Result context, status, and sync reports carry `coverage`: policy choices and a
+fingerprint of the complete policy; optional `enumeration_complete`; counters
+for admitted, oversized, unsupported, disabled-language, unreadable, binary,
+invalid-UTF-8 and quarantined files; and work truncations. Zero counters are
+omitted. An absent enumeration flag means no walk was performed. Counts cover
+entries visible within the inclusion policy, not all ignored descendants.
+Changing the policy fingerprint invalidates extraction caches, including when
+languages are disabled or re-enabled. Body search applies path and language
+filters before spending its file and byte quotas.
 
 ### 6.2 Parse
 
@@ -512,6 +533,220 @@ as a `SourceFile`, which emits nodes, `contains` edges, and candidate
 3. Bounds the per-file extraction: `MAX_NODES_PER_FILE`, `MAX_EDGES_PER_FILE`;
    exceeding either quarantines the file rather than truncating silently.
 
+Binary (NUL in the first 8 KiB) and invalid UTF-8 source is quarantined before
+parsing, with an explicit coverage status when encountered by live search.
+A source read error aborts reconciliation rather than projecting an empty file.
+
+Reconciliation also records native source retrieval facts through `source-units.json`.
+It partitions valid UTF-8 using declaration byte boundaries, chooses the smallest
+containing declaration, and creates windows of at most 80 lines with eight-line
+overlap inside long regions. Regions carry original half-open byte bounds,
+one-based line occurrences for normalized split terms and original whole lexemes,
+and the full-file source hash. Source representation version 2 adds the whole
+field; version 3 adds Markdown heading references; version 4 adds fenced-block fields;
+version 5 adds table descriptors; version 6 adds paragraph/list/opaque block descriptors;
+version 7 adds authored link descriptors and partial-link metadata flags.
+Versions 1–6 remain readable; automatic reconciliation upgrades it, while
+identifier-aware requests against an unreconciled legacy index regenerate old
+facts through the bounded live overlay. Occurrence vectors must be nonempty,
+sorted and within their region; repeated occurrences on one line are valid.
+The manifest records analyzer revision 2, the Rust toolchain's Unicode table
+version and chunker revision 8 independently of parser, serialized source fields,
+storage and result-wire versions. A mismatch invalidates the representation
+during reconciliation. A never-reconcile query masks incompatible body facts
+and regenerates them within live-overlay budgets even when file hashes match.
+Unregenerated incompatible facts remain masked.
+
+Chunker revision 6 shields top-level delimiter-terminated HTML blocks from
+Markdown heading, fence and table recognition. Comments, processing instructions,
+declarations, CDATA and raw pre/script/style/textarea blocks retain their original
+searchable bytes, including blank lines and unclosed blocks through EOF. Closing
+delimiter lines remain inside the block; subsequent Markdown resumes normally.
+This implements boundary shielding for CommonMark HTML block types 1–5, not an
+HTML renderer or complete container parser. Generic HTML blocks, nested Markdown
+containers and inline link structure still require further work.
+
+Result context exposes `indexed_versions` from the actual stored manifest and
+`runtime_versions` from the executing library. Unknown legacy revisions are zero;
+historical results without these fields deserialize as unknown, never as current.
+Runtime ranker revision 13 identifies scoring, routing and context-selection code;
+ranking-only changes do not invalidate persisted parser/source facts. A retrieval
+cache key must additionally include generation, original query, selected options,
+filters and effective limits. No cross-request result cache is currently present.
+Source-inclusion identity remains the policy fingerprint; publication format is
+recorded in `CURRENT`, and result-wire revision remains independently versioned.
+Required version metadata participates in byte fitting, so a very small requested
+budget may produce `ResultBudget` instead of an empty successful result.
+Unknown-language, configuration and Markdown text remain eligible; parser
+quarantine does not discard otherwise readable source text. Binary/invalid UTF-8
+has no source facts. The per-file region cap is 8,192, with explicit truncation.
+
+Chunker revision 8 partitions Markdown (`md`, `mdx`, `markdown`) at top-level
+ATX/Setext headings and fenced code blocks. The native scanner recognizes backtick or
+tilde runs of at least three characters, up to three leading spaces, matching
+closers at least as long as the opener, and unclosed fences through EOF.
+Backtick info strings containing a backtick do not open a fence. Headings and
+shorter/mismatched fence runs inside a block are code. Original UTF-8 and CRLF
+offsets are retained. Fenced regions have kind `markdown_code_fence`; large
+blocks still use bounded overlapping fragments and do not claim complete-block
+delivery. Small blocks remain intact as retrieval regions, allowing context
+assembly to retain both delimiters when the response budget permits.
+
+An exact, unindented first line `---` or `+++` opens frontmatter. YAML-style
+`---` closes with `---` or `...`; TOML-style `+++` closes with `+++`. The closing
+line is included. Missing closers retain the remaining bytes as frontmatter.
+Markers with surrounding whitespace, a BOM, or preceding blank lines are not
+recognized by this declared dialect. Frontmatter is opaque to heading/fence
+recognition and has kind `markdown_frontmatter`; its authored terms remain
+searchable. Long metadata blocks use the same bounded overlapping windows as
+other source regions. Values are not parsed or rewritten. This extension is a
+local Markdown dialect choice, not a CommonMark frontmatter claim.
+
+Setext headings begin at the start of a contiguous top-level prose paragraph,
+including multiline titles. An underline contains only `=` or only `-`, with
+up to three leading spaces and optional trailing spaces/tabs. Blank lines break
+title eligibility. Code fences and frontmatter remain opaque. Recognition is
+conservatively suppressed through indented code, list/quote/HTML/reference-like
+blocks until a blank line or a recognized top-level boundary; the delimiter-terminated
+HTML blocks described above remain opaque until their closer or EOF. Nested container
+semantics are not inferred. Original title and underline bytes remain authored
+source, with no generated heading prefix.
+
+Headings and paragraphs are separate authored units. A blank line ends a prose
+paragraph; its trailing blank lines stay attached. Leading blank runs remain
+plain source regions. Paragraphs have kind `markdown_paragraph` and reference
+heading ancestry without copying titles into their analyzed body terms.
+
+Flat top-level bullet (`-`, `+`, `*`) and ordered (one to nine digits followed by
+`.` or `)`) list items have kind `markdown_list_item`. Markers permit up to three
+leading spaces and require following whitespace or end of line. Setext underline
+recognition takes precedence over an empty `-` item when a title is pending;
+thematic-break lines are not list markers. Continuation text stays in its item;
+blank-separated indented continuations stay with it. The next peer marker,
+unindented structural boundary, or unindented text after a blank line ends it.
+Nested headings, fences, lists and other unsupported content remain searchable
+inside the item and set `contains_unsupported`; they cannot change document-level
+heading ancestry. Tabs and unusually deep marker padding are also flagged.
+
+Paragraph, list and opaque units carry a `block` descriptor with the entire raw
+block span, optional raw list-marker span, and `contains_unsupported`. Long blocks
+use the existing 80-line/eight-line-overlap windows sharing that descriptor.
+Opaque HTML, quote, indented-code and reference-like blocks have kind
+`markdown_opaque`. Generic unsupported blocks are conservatively blank-delimited;
+the recognized delimiter-terminated HTML blocks retain their explicit closer rule.
+Metadata validation rejects foreign kinds, missing required descriptors, invalid
+marker coordinates and out-of-file block bounds. Scanning and refinement retain
+only a bounded prefix plus an omitted-region sentinel at the source-unit limit;
+extraction reports truncation rather than silently claiming complete coverage.
+
+Eligible heading, paragraph, flat-list and table regions also retain authored
+inline-link, image and URI-autolink fields. Each `MarkdownLink` records its complete
+syntax, label, destination, optional title and syntax kind as original spans.
+Link fields are metadata beside the original analyzed text, not duplicated body
+terms or synthesized graph edges. Destinations are not decoded, normalized,
+resolved against the filesystem or fetched. Overlapping windows can carry the
+same descriptor; validation requires consistent fields for the same source span.
+
+The initial link dialect supports single-line `[label](destination)` and
+`![label](destination)` with an optional single- or double-quoted title, empty
+destinations, angle-wrapped destinations, preserved backslash escapes and up to
+16 nested destination parentheses. Labels containing nested brackets or code
+spans are not interpreted as outer links. URI autolinks require a 2–32-character
+ASCII scheme and no ASCII whitespace/control characters in the URI. Ordinary code
+spans, raw HTML tags/attributes and opaque source blocks suppress link metadata;
+code-span state spans the original block before windows are formed. Unmatched
+code/tag openers conservatively suppress further link recognition in that block.
+Reference links, email autolinks, multiline links and parenthesized titles are
+outside this declared initial dialect. Their bytes remain searchable.
+
+Link extraction retains at most 256 descriptors per original block and 4,096
+distinct links per file. Per-block byte inspections are bounded by eight times
+block length plus 32, with an absolute ceiling of 1,048,576. `links_truncated`
+marks fragments of blocks where either scan work or eligible-link count exceeded
+the allowance. The generation's `source_link_truncated_files` coverage counter
+reports these files independently of omitted source regions; raw body indexing
+continues. Legacy units lacking link fields decode with empty metadata.
+
+This boundary scanner does not recursively model blockquote/list containers or
+MDX expressions.
+It is not a full Markdown renderer or CommonMark parser. Those richer document
+structures remain implementation work, rather than being inferred from isolated
+heading-like lines inside known fences.
+
+Stored source units carry optional `headings` ancestry,
+ordered outer-to-inner with strictly increasing levels (at most six). Every
+heading records its full original span and separate title span in the same file
+and source hash; no heading text is prepended to body terms or excerpts. ATX title
+spans omit opening/optional closing markers and surrounding whitespace; inline
+markup remains authored text. Setext title spans preserve all title lines and
+exclude the underline. Equal/shallower headings replace the corresponding
+ancestry suffix. Code-fence fragments retain their parent headings; frontmatter
+has none. Older records deserialize with absent ancestry. Publication/reopen
+validation rejects invalid levels, ordering, file bounds and title containment.
+
+Ranker revision 10 retains document context in internal candidate context and offers
+verified parent headings as `document_heading` excerpts after structural and
+matched source windows. Undelivered heading references do not consume serialized
+result space. These remain optional: source-hash checks, marginal byte costs, line
+deduplication, context work, interval limits and the final payload cap all apply.
+Only selected snippets/excerpts contain delivered source; stored heading
+references are not returned as mandatory response metadata. Long headings are clipped
+by the existing interval limit and do not imply complete-title delivery.
+
+Fenced fragments store a shared `fence` descriptor: original block span,
+content span excluding delimiter lines, trimmed info-string span, optional first
+ASCII-whitespace-delimited label span, and whether a compatible closer exists.
+Label splitting follows Rust ASCII-whitespace rules (vertical tab stays authored
+label text). The label is authored text, not a verified language/parser selection; attributes,
+escapes and indentation inside the body are not rewritten. Empty and unclosed
+blocks have explicit coordinates. Version-4 fence facts require valid metadata;
+older source records may omit it. All fields are checked for ordering, source
+bounds and fragment containment on publication/reopen.
+
+The context planner can deliver the original opener/info line and existing
+closer as separate `document_fence` excerpts, after matched evidence. It never
+synthesizes a closing delimiter, concatenates omitted code or claims a fragment
+is the full block. Descriptors remain internal candidate context; unused fields
+do not consume response bytes. The same source/hash, work, interval, byte and
+line-deduplication rules used for heading context apply.
+
+The native top-level pipe-table subset recognizes a header immediately followed
+by a delimiter/alignment row with the same cell count. Delimiter cells contain
+one or more hyphens with optional edge colons; optional edge pipes and escaped
+literal pipes are handled without rewriting authored cells. At least one
+unescaped pipe is required across the header/delimiter pair. Uneven data rows,
+including one-cell rows without pipes, remain verbatim until a blank line or a
+recognized block boundary. Container/HTML/reference-like blocks retain the
+scanner's conservative fallback; full nested GFM conformance is not claimed.
+
+Tables have kind `markdown_table`. Their bounded overlapping row groups retain
+a shared `table` descriptor containing the full table span, original header and
+delimiter spans, and column count. Header text is not copied into each group's
+postings. Missing/excess cells are neither padded nor dropped. New table facts
+require valid descriptors; heading ancestry is retained when present. The context planner
+may deliver the original header/delimiter as a `document_table_header` excerpt
+after matched evidence; unused table metadata stays out of the response budget.
+This is a source-fidelity contract, not an assertion that structural partitioning
+improves every query. [GFM table syntax](https://github.github.com/gfm/#tables-extension-)
+informs the declared subset.
+
+These facts are replaced and removed with their file projection, preserved when
+unchanged parser facts are merely rebound, and covered by generation checksums.
+Both stores validate source ownership before mutation: an owner must exist in the
+file projection, be a declaration in the same file, and enclose the entire
+region in bytes and lines. Persistent reopen checks the same invariant against
+the selected graph generation, independently of artifact checksums.
+Descriptor format 1 remains readable; a missing/old manifest `source_version`
+causes automatic reconciliation to rebuild using source representation revision
+1. The facts are persisted separately from the hot manifest and never duplicate
+the original source blob. Each generation prepares native source-region postings
+from these facts. Queries enumerate all matching term lists; they no longer
+scan unchanged source files to discover body matches.
+
+Coverage reports include indexed-source file/region counts and files whose
+region cap fired. Zero-valued work/statistic counters are omitted on the wire
+and deserialize as zero, preserving output space for evidence and provenance.
+
 ### 6.3 Manifest and diff
 
 A manifest is the store's self-fingerprint, one entry per file:
@@ -519,6 +754,22 @@ A manifest is the store's self-fingerprint, one entry per file:
 ```
 { path, size, mtime_ns, content_hash, parser_version, schema_version, extraction }
 ```
+
+Query freshness, result context and status use `GraphStore::manifest_header`.
+Both native adapters omit extraction facts without cloning them; the persistent
+adapter loads this small header once when opening a generation and replaces it
+only with successful publication. Header reads check the same unavailable-state
+guard as graph reads. Full raw extraction remains available through `manifest()`
+for compatibility and inspection. Generation format 6 and later keep only the header
+in `manifest.json`; extraction entries live in independently hashed native packs.
+Cold open verifies their bytes without deserializing their values. A true no-op sync
+uses only the header. Native changed-sync uses persisted dependencies to select the
+unchanged files requiring rebinding and requests just their raw facts. Changed files
+are parsed normally. Unchanged ECMAScript module surfaces come from compact dependency
+records, so module resolution does not require all parser payloads. Adapters without
+a dependency index retain the full-manifest compatibility path. Full reindex needs
+only the previous header because it extracts every current file. Timestamp-only
+refreshes preserve all caches and decode only records whose packed fingerprint changes.
 
 Reconcile classifies every path against the stored manifest into exactly one
 bucket:
@@ -534,22 +785,210 @@ bucket:
 | `unchanged-global` | `parser_version`/`schema_version` changed | re-parse all |
 
 Schema 2 persists raw symbol/reference facts in `extraction` (no source bodies).
-Changed files are parsed; reverse name dependencies include unresolved names and
-new ambiguities, and imports are checked against old/new file sets. Affected
-unchanged files are rebound from cached facts. Incoming-edge closure preserves
-edges deleted by subtree replacement; HTML/CSS cross-matching is conservatively
-rebound on every change. `SyncReport.modified` includes rebound files, while
+Changed files are parsed. For Rust/JavaScript/TypeScript, consumer repair is seeded
+by changes to binding-relevant symbol values and normalized authored module surfaces,
+not merely by source hashes. Source spans, documentation, signatures and async flags
+do not affect the current resolver's cross-file kind/name target selection; the
+edited file still receives fresh source facts, nodes, occurrences and outgoing edges.
+IDs, names, kind, parentage, visibility and semantic attributes remain exact, and
+import/export names, targets, type-only flags and completeness remain authoritative.
+Missing facts, quarantine or graph/manifest fingerprint disagreement retain
+conservative repair. Reverse name dependencies include unresolved names and new
+ambiguities, and imports are checked against old/new file sets. Affected unchanged
+files are rebound from cached facts. Both stores preserve nodes with
+unchanged ID, path and kind during upserts, replace source-owned edges, and retain
+untouched sources' edges to surviving endpoints. Explicit removals still delete
+incident edges, including when the same batch recreates an ID. Edge ownership is
+its explicit source path, falling back to the pre-update source node's path.
+Incoming-edge closure remains conservative pending narrower binding-dependency
+invalidation; HTML/CSS cross-matching is conservatively rebound on every change. `SyncReport.modified` includes rebound files, while
 `unchanged` excludes them. A no-op skips graph application; same-content metadata
 changes refresh only the manifest. Missing caches fall back conservatively, and
-older schemas trigger a rebuild. The dependency walk and manifest I/O are still
-workspace-sized; this is not constant-time incremental indexing.
+older schemas trigger a rebuild. Selected raw-fact decoding is proportional to affected
+files, but the compact dependency walk, graph snapshots and generation preparation
+still include workspace-sized work; this is not constant-time incremental indexing.
+
+
+Reconciliation reports carry optional `counts` with exact added, modified, removed,
+renamed and quarantined totals; `unchanged` remains its own exact counter. Readers
+of older reports may derive totals from their complete detail lists. Rename totals
+overlap the added destination and removed source, preserving the existing class
+semantics. Quarantine totals count work in this reconciliation; coverage reports
+all quarantined files in the resulting generation.
+
+Reports fit the 64 KiB compact-JSON ceiling before publication, including final
+coverage and space for the largest elapsed-time counter. When needed, detail
+suffixes are dropped in added, modified, removed, renamed, then quarantined order,
+with an explicit `bytes` coverage notice; exact totals survive even if no detail
+fits. Required metadata overflow fails before publication or a metadata-only
+manifest commit. Source coverage is calculated over retained and prepared facts
+without cloning all source facts or rereading the published generation. The CLI
+also fits its final JSON envelope and prints totals with any detail omission.
+Transport/write failures after successful publication do not roll it back.
+The `--fail-if-stale --no-reconcile` notice also fits its complete JSON envelope;
+its exact changed total is retained in `context.staleness.changed` even when
+path details are omitted, and its text total does not use the retained-list length.
 
 ### 6.4 Apply
 
-The delta is applied as one atomic `WriteBatch`. **The manifest is committed
-last**, after the apply succeeds: an interrupted run leaves the old manifest, so
-the next run recomputes the same delta from content hashes. Correctness comes
-from convergence, not from transactional safety.
+Reconciliation calls `GraphStore::publish` with one `WriteBatch`. The Grafeo
+adapter prepares a complete replacement graph in isolation, saves it with the
+manifest, dangling references, native source facts and reference occurrences under `generations/<id>/`, then publishes a
+small `CURRENT` descriptor by atomic rename. The descriptor records storage
+format 7 and SHA-256 fingerprints of every committed top-level artifact. Readers validate
+it on open and open the graph read-only. A missing or corrupt committed artifact
+is an error, never a silently empty index. Legacy stores are readable and migrate
+on the first successful publication.
+
+Preparation applies the old projection and the update before constructing derived
+retrieval indexes. Intermediate mutation reads only the graph, ID maps and owned
+facts; it does not query those indexes. The final indexes are built before
+persistence or exposure of the replacement store. Publication borrows the batch's
+manifest instead of cloning its raw extraction cache.
+
+Source facts use a version-2 per-file index in `source-units.json`. Each entry
+contains a pack SHA-256, record SHA-256, byte offset and nonzero length. Immutable
+packs under `source-records/` contain concatenated original serialized records;
+records never straddle packs. New packs target 8 MiB; a single larger record gets
+its own pack. This is a buffering target, not a maximum serialized-record size.
+The index transitively commits pack and record bytes. Open checks pack hashes,
+record hashes, checked slice bounds and non-overlap; identical references may
+share an exact range. Hash names accept only 64 lowercase hexadecimal characters.
+Generation selection passes the authenticated, decoded source descriptor directly
+to the loader. Each referenced pack is loaded and verified once before the store
+is exposed; replacing the descriptor on disk cannot redirect this handoff.
+Generation formats 1–5, legacy whole-map facts and version-1 individual records
+remain readable. Packed source indexes require generation format 5 or later. Source representation
+and chunker revisions are independent of this layout.
+
+Publication uses its cached, validated record index for reuse. Surviving source
+facts outside the batch upsert/removal paths are unchanged by construction;
+touched facts compare the complete representation with the previous generation. It verifies each retained pack once,
+then shares it by hard link or synced-copy fallback. New/changed records become
+small delta packs; publication never overwrites a shared inode. Packs below 75%
+live bytes are repacked from current facts, and multiple existing packs smaller
+than 1 MiB are combined. At most two sub-MiB packs survive a publication; other
+retained packs carry at least 75% live bytes. Identical serialized records are
+deduplicated. Repacking and removal preserve original per-file facts, and deleting
+older generations unlinks their references without deleting current packs.
+The pack directory is synced before committing its index and CURRENT.
+
+Generation format 7 additionally commits `dependencies.json` whenever it commits a
+manifest. This compact version-1 index contains per-file header identities, raw
+non-dynamic reference names (including unresolved references), defined/exported
+names, authored module surfaces and specifiers, binding-surface fingerprints,
+selected module candidates and incoming file relationships. It is authenticated
+by CURRENT; readers check header/cache availability and reproducible reverse maps
+before admitting it. Legacy generations or incoherent direct adapter batches have
+no dependency index and use conservative repair. Explicit JSON null denotes that
+fallback in new generations. Dependency publication occurs before CURRENT changes.
+
+Native reconciliation uses the cached dependency index to select consumer repair.
+Stable Rust/JS/TS binding surfaces do not seed repair merely because source display
+coordinates or bodies changed. Missing extraction caches, package boundaries,
+Rust context changes and HTML/CSS retain conservative invalidation. Presence changes
+reconsider authored module choices; reverse raw names include previously unresolved
+references; graph and selected-module dependencies participate in transitive closure.
+The writer reuses per-file dependency records for explicitly retained extractions,
+recomputes changed records, and reconstructs reverse maps against the complete final
+graph/file set. Reconciliation still snapshots all nodes and edges, but does not
+hydrate raw facts for unchanged, unaffected files when native dependency records exist.
+
+Generation format 6 and later commit `extractions.json` whenever they commit a manifest.
+This version-2 record index uses the same native pack codec under `extraction-records/`.
+Each record is a complete per-file manifest entry with a present extraction value;
+header entries carry no extraction values. Reopen authenticates the header and index,
+rejects unknown record owners, and verifies pack/record hashes and checked ranges.
+It defers raw JSON value decoding until facts are requested. A private verified-index
+wrapper can be constructed only by initial pack/record verification or the writer.
+Hydration rechecks each full pack hash and range bounds. With that pinned descriptor,
+identical pack bytes preserve the already-verified record hashes, so hydration does
+not hash every record again. Standalone sidecar reads still verify record hashes.
+Hydration requires extraction presence and an exact match of the remaining entry fingerprint,
+and combines records with the pinned header. Malformed fact values or mismatched
+fingerprints fail hydration rather than silently becoming empty caches.
+
+`GraphStore::extraction_facts(paths)` returns only requested cached facts; missing
+records and unknown paths are omitted, while present empty extractions remain present.
+MemoryStore selects shared facts directly. Grafeo uses the pinned verified descriptor
+to look up requested paths, groups by pack and exact byte slice, seeks only to those
+slices, and verifies each selected record hash before decoding. Duplicate slices
+share one data read. Unselected records are not decoded and unrelated packs are not
+opened. This authenticates returned records, not unselected bytes that may have
+changed after open; full hydration still verifies whole packs. Selected records must
+match the complete per-file header fingerprint. Its identity cache stores only weak
+references and merges selected paths without evicting other cached identities.
+Empty requests perform no fact I/O; unavailable handles still refuse reads. Legacy
+embedded manifests use the full-read compatibility path for nonempty requests.
+Generation leases keep lazy reads pinned across later publications. Native changed-sync
+uses this API for affected unchanged files only.
+
+`GraphStore::publish_retaining` takes a separate `FactRetention` request with the
+observed generation, exact old header and retained path set. Retained owners cannot
+be upserted or removed, must exist in both manifests, and must have identical entry
+fingerprints except for mtime. Representation and policy identities must agree.
+Stale requests, conflicting ownership and missing caches fail before mutation.
+Ordinary publication still treats absent extraction values as cache removal.
+
+Grafeo retains verified descriptors for untouched records. Timestamp-only changes
+load and rewrite just those records with updated fingerprints. Compaction copies
+verified record slices without typed JSON decoding; malformed cold values remain
+errors when explicitly requested, rather than being silently converted to empty
+facts. New/materialized records use shared-identity or serialized-hash equality to
+prove reuse; source hashes alone do not prove equal facts. MemoryStore preserves
+shared payloads and reuses compact dependency records. Compatibility adapters may
+materialize retained facts before ordinary publication. Legacy embedded manifests
+migrate on publication. Header, extraction index, packs and graph become visible
+through the same CURRENT swap; generation leases protect retained readers.
+
+This layout reduces unchanged source-fact serialization and storage duplication.
+Earlier pack-layout measurements are recorded in `research/IMPLEMENTATION.md`;
+they predate selective reconciliation and must not be treated as measurements of
+its end-to-end latency or memory. The preceding individual-record experiment had
+a measured latency regression. Graph reconstruction,
+whole occurrence publication, header replacement and generation-local retrieval-index rebuilding
+still occur. This is not per-file incremental graph/posting maintenance.
+
+Preparation failures preserve the previous generation. Every artifact file is
+synced before its rename. During generation preparation, manifest and dangling
+writers defer their parent-directory sync to the generation owner; standalone
+sidecar writes retain their own directory sync. Pack subdirectories are still
+synced separately. After all artifacts are ready, the generation directory and
+its parent are synced before CURRENT is replaced; the store root is synced after
+that replacement. No unpublished intermediate state needs a separate directory
+commit. File contents and containing directories are synced before durable acknowledgement. If syncing
+the directory fails after the pointer rename, publication is uncertain: the
+handle refuses reads and writes until reopen. Reopen follows the complete
+published descriptor; it does not combine artifacts from different generations.
+Orphan prepared directories are invisible. Reclamation retains the current and
+previous generation plus every generation leased by a live store handle. A
+reader pins the existing mandatory `dangling.jsonl` sidecar with a shared OS
+file lock before validating/loading its generation; no reader-side file creation
+or write permission is required. Publication pins the newly prepared store before
+changing CURRENT. The lease lasts through lazy extraction reads and closes after
+the store's graph/fact fields. Reclamation takes a nonblocking exclusive lock on
+the same file before removing an older directory. Contention or lock/open errors
+skip removal; unfinished directories missing the mandatory sidecar cannot have
+an admitted reader and remain reclaimable. Cleanup retries on a later publication,
+not immediately when a reader exits. Failed cleanup may leave additional files.
+Retaining arbitrarily many distinct reader generations therefore retains their
+disk data; there is no unconditional two-generation disk bound. OS handle closure,
+including process exit without destructors, releases the lease.
+
+If a selected generation is retired before a reader acquires its lease, opening
+retries only after observing that CURRENT changed. Stable corruption/locking
+errors remain errors. Eight unsuccessful selections under repeated publication
+return a retryable opening failure rather than looping indefinitely. This protocol
+requires participating binaries that honor the lease; it does not coordinate
+with older writers or arbitrary external deletion of generation files.
+Process-interruption tests exercise publication boundaries; these are not a
+simulation of storage-device power loss.
+
+The lower-level `apply` API publishes graph changes while retaining the prior
+manifest for compatibility; `commit_manifest` separately publishes metadata.
+Callers requiring coherence use `publish`, as reconciliation does. The initial
+implementation copies the full graph per publication, using additional memory
+and temporary disk space. Compact deltas remain a measured optimization.
 
 ### 6.5 Freshness
 
@@ -570,13 +1009,49 @@ v1 has no watcher. Freshness is provided by four mechanisms, in increasing cost:
 `sync` is therefore the *correct* thing to run after a burst of edits, and the
 lazy check makes forgetting it safe rather than silently wrong.
 
+Every library search result now includes `context`: the selected graph generation
+(if applicable), verification method, reconciliation policy, observed staleness,
+and source fingerprints. These values describe the generation read under the
+query's store lock. A later `status()` call is not used to certify the result.
+`files` and `text` report `live`; direct domain queries without a host freshness
+check report `unchecked`.
+
+`OpenOptions.verification` defaults to `Verification::Metadata`. This compares
+inclusion, size, mtime, and parser versions; it can miss same-size edits with
+restored mtimes. `Verification::Content` (CLI `--verify-content`) additionally
+hashes source files. With automatic reconciliation, observed content drift forces
+a full rebuild so metadata shortcuts cannot reuse stale parser facts. This is
+an explicit, more expensive mode; checks occur per file, not as an atomic
+snapshot of the live filesystem. `never` and `explicit` policies report drift
+without reconciling.
+
 ### 6.6 Concurrent writers
 
 `index`/`sync` take an OS advisory lock on `<store>/index.lock`. A second writer
 is refused with a sentence naming the holder — the same posture as `nanus`'s
-session claim. Readers do not lock; a reader during an apply sees either the old
-or the new revision (the engine's snapshot isolation), never a half-applied
-batch.
+session claim. Read-only queries do not take that **writer file lock**. Within
+one `Index`, however, `store_read` holds a shared `RwLock` guard for its complete
+callback, including snapshot use and result materialization; maintenance holds
+an exclusive guard. The current `GraphStore` trait requires `Send`, not `Sync`.
+Consequently `Index` does not provide a `Sync` contract for arbitrary concurrent
+shared queries across threads. An immutable persisted generation is a publication
+boundary, not a promise of lock-free concurrent query execution.
+
+Opening the persistent adapter verifies one published generation. An existing
+handle retains its opened state; it is not an automatically refreshing view of
+other processes' writes. Publication failure/durability behavior follows §6.4.
+Multiple independent handles/processes can retain their opened generations
+through later publications using the leases in §6.4. Tests cover lazy facts,
+multiple readers, normal/crash exit and selection/reclamation races. This does
+not make one `Index` shareable across concurrent threads. Independent handles
+own resident graph/index state; sharing a persisted generation or hard-linked
+packs does not share those allocations. Holding arbitrary reader handles or
+distinct histories therefore has no global memory/disk cap. Own-process RSS and
+disk-retention experiments are recorded in `research/results/native-implementation/`
+under `generation-memory` and `generation-churn`; sampled RSS is not a peak or
+physical-memory guarantee. An `Arc`-owned snapshot
+that outlives its store guard or automatically refreshed readers still requires
+a separate lifecycle contract; the current borrowed-snapshot API provides neither.
 
 ---
 
@@ -654,19 +1129,91 @@ False negatives are expected and reported in the result's `stats` (e.g.
 Static resolution is a best effort; the spec commits to doing it the *same way
 every time* and to **saying what was not resolved**.
 
-1. **Same file, same name** — resolve to the local definition.
-2. **Imports** — a reference to an imported binding resolves to the importing
-   file's corresponding export, if found.
-3. **Qualified paths** — `a::b::c` / `A.b.c` resolve along modules/classes when
-   the first segment resolves.
-4. **Global unique name** — a bare name that matches exactly one workspace symbol
-   of a compatible kind resolves to it.
-5. **Everything else is dangling** — recorded with `resolved: false` and the
+1. **Lexical call bindings** — Rust and JS/TS scopes choose the nearest visible
+   binding before workspace lookup. A direct declaration with a unique fact key
+   resolves to that declaration. A local value or parameter with an unknown
+   callable target remains unresolved; it cannot fall through to a same-named
+   function elsewhere. Failed explicit lexical targets also remain unresolved.
+2. **Imports** — explicit import provenance uses the supported module resolver
+   and a unique compatible target. Failure cannot fall through to workspace names.
+3. **Same file, same name** — require one visible, compatible definition.
+   Function/block-local declarations cannot escape their lexical source extent.
+4. **Qualified paths** — require the complete qualified name, without discarding
+   an unknown receiver or module prefix to match a suffix.
+5. **Global unique name** — a bare name that matches exactly one non-local
+   workspace symbol of a compatible kind is a heuristic target.
+6. **Everything else is dangling** — recorded with `resolved: false` and the
    *referenced name*, counted in `stats.unresolved`.
 
+Parser revision 5 persists file-local scopes and binding patterns in the raw
+extraction cache. Scope construction walks syntax once; per-scope name lists
+support declaration-order lookup. Parameters, destructuring, closures, Rust
+`let`/loop/match/conditional bindings, JS block bindings, function-scoped `var`
+and catch bindings participate. Pattern keys, constructors, types and default
+expressions are not mistaken for bound identifiers. Rust locals become visible
+after their declaration; JS lexical bindings suppress outer lookup even before
+initialization. Direct immutable `const` function expressions have syntactic
+targets, including self-reference from their body. Mutable aliases and arbitrary
+value flow are not inferred.
+
+Call facts retain original expression spans and raw callee spelling before
+import/receiver rewriting, plus scope/binding ordinals, explicit lexical target
+keys or an unresolved reason. Other reference kinds may have only an enclosing
+syntax range; no exact token-occurrence claim is made for them. These raw facts
+survive unchanged-file rebinding; graph adjacency still aggregates repeated
+relationships. Individual occurrence results expose the indexed binding class
+and unresolved reason. This call-binding subset is not a full compiler
+scope/type system: package visibility, reexports, dynamic mutation, receiver
+types and unsupported grammar constructs retain their existing approximation.
+
+Reference occurrence representation 1 additionally persists each raw reference
+in a checksummed `occurrences.json` artifact owned by its source file and hash.
+Occurrence identity encodes the original file, hash, owner, relationship kind,
+name/spelling, raw-reference ordinal, line and optional byte/line span. It excludes
+the selected target and binding reason, so rebinding unchanged source preserves
+the evidence identity. Resolution classes distinguish explicit lexical/import
+selection, same-file/qualified/unique-name heuristics and unresolved references.
+Deleting a target clears that binding without deleting the source occurrence.
+Synthetic containment and cross-language matches do not claim raw occurrence
+facts. File completeness means extraction succeeded, not compiler completeness.
+Native generation-local indexes retain lookup positions by target, owner, raw
+name and aggregate edge; adjacency continues to deduplicate relationships.
+Returned graph edges include `occurrence_count` when indexed raw references
+support the relationship. This is a source-occurrence count, not a traversal
+degree or compiler-completeness claim. Legacy and synthetic edges omit the
+field rather than reporting a fabricated zero. Counts are attached only after
+the returned-edge cap; exact serialized-byte admission includes the new field.
+`SearchService::occurrences` / `search occurrences <target>` returns individual
+records. `--by target` (default) resolves a declaration name/id and reads its
+incoming occurrence index; `--by owner` selects references directly owned by
+that declaration or file, without recursive traversal. `--by name` matches
+original reference spelling exactly, including unresolved references. Where an
+adapter does not preserve raw spelling, this route uses its parser reference
+name. Ambiguous declaration names require an exact id. `--rel`, `--lang` and
+`--path` filter relationship kind and source files before result admission.
+
+The default record cap is 50, hard ceiling 500; lookup strings contain 1–8,192
+bytes. `WorkLimits::occurrences` independently allows 10,000 examined entries
+by default, hard ceiling 100,000, with zero allowed. Every entry is charged
+before kind/path/language filtering; cancellation/deadline checks are cooperative.
+Results report `occurrences_examined` and fired work/result caps. Returned records
+retain full identity, source hash, coordinates, spelling and binding evidence;
+64-KiB library and final JSON-envelope limits drop whole records. Required
+metadata is never removed to manufacture a fitting response.
+
+Occurrence results carry indexed/executing revisions, generation, freshness and
+source verification. These are indexed coordinates, not claims about unchecked
+live bytes. `indexed_files` counts files with occurrence metadata and
+`extracted_files` counts successful reference extraction; neither claims full
+language/compiler coverage. Legacy facts are explicitly absent. Occurrence
+queries do not read source snippets or infer occurrences from synthetic edges.
+Occurrence revision mismatches require reconciliation independently of source
+body compatibility. Legacy generations without occurrence facts remain readable.
+
 Macros, conditional compilation, dynamic dispatch, re-exports, generated code,
-and any language without an enabled extractor are all sources of **false
-negatives**. The tool never presents the graph as exhaustive. Every `graph` and
+and any language without an enabled extractor cause missing relationships;
+workspace-name heuristics can also produce false positives. The tool never
+presents the graph as exhaustive. Every `graph` and
 `explore` result carries:
 
 ```
@@ -698,6 +1245,8 @@ graph-search search files <pattern> [--path DIR] [--limit N] [--hidden]
   so `*.rs` is top-level and `**/*.rs` is any depth — identical to `nanus`
   `glob`.
 - Default `limit` 100, ceiling 1000.
+- Pattern and optional path fields are each limited to 8,192 UTF-8 bytes before
+  glob compilation or filesystem access. Oversized fields return `InvalidQuery`.
 - Empty result renders `No files found.`
 - Truncation notice: `(more than {limit} matches; narrow the pattern to see the rest)`.
 
@@ -711,13 +1260,20 @@ graph-search search text <literal> [--path DIR] [--include GLOB] [--limit N]
 - **Literal substring, not a regex** — identical to `nanus` `grep`. `include`
   takes exactly one positive glob; a comma list or a leading `!` is rejected with
   the same guidance `nanus` gives.
-- Default `limit` 250, ceiling 2000. Lines are capped at 400 characters with `…`.
+- Matching is line-oriented: empty literals and literals containing CR or LF are rejected.
+  `--ignore-case` uses Unicode lowercase (not full case folding); returned lines
+  always retain their original source spelling. One matching line produces one hit.
+- Default `limit` 250, ceiling 2000. Lines are capped at 400 bytes at a UTF-8 boundary with `…`.
+- Literal, include and optional path fields are each limited to 8,192 UTF-8 bytes.
+  Oversized fields return `InvalidQuery` before compilation or filesystem access.
+  Shortened lines explicitly report `match_line`.
 - Matches are grouped by file, `path:` header then `  <line>: <text>`.
 - Empty result renders `No matches found.`
 - A capped search that matched nothing renders:
-  `No matches in the files reached: the search stopped at the {limit}-match cap before it finished, so matches may exist beyond it.`
+  `No matches in the files reached; evidence is incomplete.` followed by the
+  actual truncation notices. Byte/source limits are not described as match limits.
 - Truncation notice: `(stopped at {limit} matches; narrow the pattern or the include filter)`.
-- **Sourced by scanning the files** (mmap + a SIMD substring search), not by the
+- **Sourced by scanning the files** (one forward line pass and a reusable literal finder), not by the
   index; §4.6. A `--ranked` mode backed by Grafeo's BM25 text index is a possible
   later addition with explicitly different (tokenized, ranked) semantics — it
   would not be a drop-in for `grep`.
@@ -757,21 +1313,246 @@ Semantics:
 ```
 graph-search search explore <query> [--k 8] [--hops 1] [--context-lines 2]
                                     [--max-bytes N] [--lang L]
+                                    [--intent auto|exact-name|exact-id|name-prefix|path|terms|phrase|near]
+                                    [--phrase-gap 0] [--near-window 8]
+                                    [--ranking auto|fusion|metadata|body]
+                                    [--normalization combined|bm25f]
+                                    [--graph-context semantic|none|calls|imports|types]
+                                    [--analysis split|identifiers]
+                                    [--all-terms | --min-terms N] [--per-file N]
+                                    [--exact-fast-path] [--explain]
 ```
 
 This is the context-efficient entry point and the closest analogue to
 `codegraph`'s single tool. Given free-text terms:
 
-1. **Seed** — exact bare/qualified names take priority. Otherwise split camelCase,
+`retrieval.graph_context` controls relation enrichment independently of seed
+ranking. Its backward-compatible default `semantic` admits Calls, References,
+TypeUses, Imports, Implements and Extends, excluding Contains. `calls` admits
+Calls; `imports` admits Imports; `types` admits TypeUses, Implements and Extends.
+Only `semantic` and `calls` calculate caller-impact summaries. `none` omits
+connection expansion, bridge-node admission and impact summaries. Navigation or
+owner lookup may still read graph nodes; disabling enrichment does not promise
+that all candidate routes avoid graph storage. These policies are exposed by
+`--graph-context` and included in explained options.
+
+Connections use the selected relations bidirectionally and retain original edge
+direction in their output. The bounded expanded graph is shared across seeds.
+A native union/find component map skips seeds with no reachable seed peer;
+each deterministic shortest-path BFS stops once it has reached every peer in
+its component. Every examined BFS adjacency still consumes the shared edge
+allowance. A truncated expanded graph remains partial and carries its notices;
+component membership does not certify completeness beyond that admitted graph.
+
+1. **Seed** — explicit name/ID/path/prefix intent runs only its navigation route.
+   `name-prefix` means a case-sensitive prefix of the complete bare or qualified
+   name, preserving Unicode spelling and punctuation. It is neither a split-token
+   prefix, a glob nor an arbitrary substring. Empty prefixes are rejected; misses
+   never trigger fuzzy correction or ranked fallback. Bare dictionary entries
+   precede qualified entries, and duplicate entities are admitted once.
+   Explicit `phrase` verifies ordered whole lexemes with total unmatched positions
+   at most `phrase_gap` (default 0); `near` verifies the query multiset in an
+   inclusive `near_window` token span (default 8). Distances are at most 4096;
+   an unordered window must fit all 1..128 query positions. Empty/punctuation-only
+   queries are invalid. Validation precedes service freshness and CLI index open.
+   Both retain stopwords and repetitions, use the whole-lexeme Unicode contract
+   below, and override discovery analyzer/channel/Boolean policies. There is no
+   metadata/navigation fallback. Native file-level postings are only a necessary
+   filter: verification scans captured source across region boundaries. Missing,
+   changed, unchecked, old or truncated facts require a source scan. Confirmed
+   witnesses retain original byte spans, source hashes and inclusive line spans.
+   A hash-matching declaration must enclose the whole witness; the smallest
+   enclosing declaration wins, otherwise evidence belongs to the file. Multiple
+   matching owners and overlapping witnesses survive before top-k grouping.
+   One shortest witness per matching end token is enumerated, not all possible
+   alignments. Owners rank by deterministic file/source encounter order; ordinary
+   body relevance scores do not claim to rank these verified predicates.
+   Positional byte/token/witness allowances are shared across files, and quota
+   stops retain proven witnesses with explicit truncation. Source-read, graph,
+   candidate, context and payload budgets still apply. Zero context suppresses
+   excerpts without suppressing verified source evidence.
+   In ranked metadata retrieval, exact bare/qualified names take priority. Split camelCase,
    acronym, snake_case, and path tokens and rank metadata with BM25 (name/path/
    signature weights 8/2/1). Deduplicate query terms and remove sentence function
    words. Require a real token match; scores are relevance, not confidence.
-   A bounded literal body scan supplies lower-priority fallback files. Lexical
-   statistics are built from the graph snapshot; there is no separate persistent
-   text index or embedding model. Filters apply before the result cap.
-2. **Assemble** — for the top `k` seeds: the definition location, its
-   `signature`, and a **bounded snippet** of `context_lines` around the
-   definition.
+   Split analysis remains the default. Opt-in `identifiers` keeps whole query
+   lexemes, matching folded whole-name evidence as well as split postings, and
+   adds a qualified-name metadata field with weight 4 when it differs from the
+   bare name. Whole and split frequencies/lengths are retained separately; each
+   field uses their maximum rather than summing overlapping aliases. Metadata
+   defaults to the existing combined-length normalization and clipped Robertson
+   IDF. Opt-in `normalization: bm25f` normalizes each field frequency by
+   `0.25 + 0.75 * field_length / average_field_length`, combines weights 8/2/1/4,
+   then saturates once with k1=1.2. IDF remains the global symbol-document DF,
+   clipped to 1e-6. Per-field averages use all symbol documents, missing fields
+   contribute zero, and averages are floored at 1. Whole/split aliases use their
+   per-field maxima for both frequency and length. This is a query-time policy
+   over the same generation-owned postings; no additional persisted terms or
+   reindex are required. Exact-name priority, conjunction/minimum coverage,
+   filters and work limits are unchanged. Body and positional routes ignore this
+   metadata normalization choice. Whole fields retain stopwords, and single-word queries do
+   too; sentence stopwords are removed only from multiword queries.
+   Whole lexemes split on Unicode whitespace and ASCII punctuation except `_`.
+   Original spelling and UTF-8 offsets are preserved; matching uses Rust Unicode
+   lowercase, without stemming, canonical normalization, full case folding or
+   confusable folding. Non-ASCII punctuation remains inside a whole lexeme; the
+   split field still supplies its legacy terms. Line occurrences establish match
+   locations, not positional phrase proof. Exact navigation and raw text search
+   preserve their separate spelling and punctuation contracts.
+   Native source-region postings supply an independent body lane. Lexical
+   statistics and native postings are built with the graph generation and reused
+   by its snapshots. Exact bare/qualified tables and cached file languages avoid
+   per-query node scans. The ordered term dictionary maps to sorted document
+   ordinals and weighted frequencies; sparse queries enumerate matching postings.
+   Metadata publication reuses documents only when stable identity and analyzed
+   name/path/signature/qualified-name fields agree. It analyzes changed fields,
+   updates affected posting lists, remaps moved ordinals and shares untouched
+   immutable lists. Corpus length totals change by subtracting removed/changed
+   documents and adding the analyzed delta; scoring uses the new population,
+   averages and list lengths. Exact maps, file languages and compact ordering
+   are reconstructed for the new view. Preparation never mutates the old cache.
+   Reopen builds a fresh resident index; no posting codec or schema migration is
+   introduced. These updates do not remove global graph/body/fact maintenance.
+   Path filters compile once per request and run before candidate admission.
+   Source facts and body postings are native; no external text index or embedding model is used.
+   Metadata selection uses a deterministic bounded heap of compact ordinals;
+   full nodes are cloned only for winners. The metadata pool is at least 64 and
+   otherwise four times the requested seed count, capped at 500; it is never
+   smaller than the clamped final seed count. Selection scores every admitted
+   candidate and is not WAND or score pruning. Candidate counts retain the
+   pre-selection total. Name/path/signature term counts and field lengths remain
+   separate in postings for field-aware ranker evaluation; cached weighted term
+   frequencies retain the existing score computation.
+   Body retrieval uses positive-IDF BM25 (k1=1.2, b=0.75) over source regions,
+   with all query terms eligible. Selective posting lists run first. Each owner
+   or unowned file contributes its best region before body top-k selection, so
+   overlapping windows cannot fill the pool. After owner top-k, retain up to three
+   complementary regions per owner: prefer previously uncovered query terms,
+   then BM25 score and stable region ordinal; a region without new terms must
+   have its matching anchor outside already retained region boundaries. These
+   regions contribute source context only, never additional owner scores or
+   result slots. Matching regions omitted by this bound receive a candidates
+   truncation notice. AND/minimum coverage still applies within each region;
+   terms in separate regions do not fabricate an AND match. Additional matched
+   windows retain their own source boundaries and Markdown heading/fence/table
+   labels, share the selected source hash, and compete under the existing exact
+   context byte/work/interval budgets. Automatic ranking treats multiword
+   queries as conceptual discovery: run body retrieval first, then metadata only
+   if the body pool is empty. Single-token queries retain exact-priority fusion.
+   This is a documented lexical heuristic, not semantic intent recognition.
+   Explicit `metadata`, `body`, and `fusion` strategies remain selectable.
+   Fusion combines ranks with reciprocal rank (constant 60) and an exact-name
+   priority tier. File diversity is disabled by default after controlled tests;
+   a positive `per_file` makes a soft first pass, with exact-name exemptions,
+   then fills remaining slots from deferred entities.
+
+   `RetrievalOptions` preserves the original query separately from mode, ranking,
+   minimum term coverage and diversification. `Any` is OR discovery; `All` and
+   `AtLeast(n)` require observed distinct terms in one metadata document or source
+   region. Coverage counts are collected in the same budgeted posting pass;
+   unexamined terms cannot satisfy a conjunction. AND (including a minimum equal
+   to the distinct term count) uses the shortest posting list as its driver,
+   with monotonic galloping/binary seeks through the remaining lists. Every
+   inspected posting, including seek probes, consumes work. Only fully verified
+   intersections receive candidate admission and scores; missing terms prove an
+   empty lexical intersection without scanning other lists. Scoring retains each
+   channel's original addition order and corpus statistics. Smaller minimum-term
+   thresholds retain bounded union accumulation with coverage filtering.
+   Explicit name lookup is case-sensitive; explicit IDs and anchored path globs
+   do not broaden on a miss. Automatic mode recognizes stable ID prefixes. The
+   optional exact-name fast path stops only when a name survives filtering.
+   Explore rejects input exceeding 8,192 bytes or 128 distinct analyzed terms;
+   it never silently drops terms to make an AND query cheaper.
+
+   `explain` adds the original query, effective structured options, analyzed terms,
+   actual retrieval routes, and per-seed metadata/body ranks. Diagnostics participate
+   in the normal result byte limit and are omitted by default. The CLI exposes
+   these controls directly; its JSON envelope retains the library plan.
+
+   Known changed paths mask indexed body facts. A bounded request-local overlay
+   reads at most 512 eligible files and 8 MiB, builds replacement facts, and uses
+   the same bytes for snippets. Unchanged indexed files need no body scan.
+   Direct core queries without freshness context may verify a bounded prefix;
+   unobserved facts retain indexed provenance. Complete enumeration masks removed
+   paths; partial enumeration never implies deletion. Live and indexed body
+   pools merge by rank, since their BM25 corpus statistics differ.
+
+2. **Assemble** — for the top `k` seeds: the definition location and signature,
+   plus a bounded snippet. Body hits carry separate `evidence` coordinates, kind,
+   owner, source hash, live/indexed origin and matched line. The excerpt centers
+   on the line with the most distinct query terms (earliest on ties); declaration
+   coordinates are unchanged. Other hits use the definition location. Snippets
+   require captured bytes matching the evidence hash. The primary excerpt stays
+   bounded to ten lines. Additional labeled `excerpts` use the remaining byte
+   budget: complete declarations up to 80 lines, matched body regions, declaration
+   headers for larger symbols, and original occurrence sites for returned
+   relationships. Repeated references sharing one adjacency edge remain eligible
+   independently. A native owner lookup avoids repeatedly scanning every edge
+   for each item; occurrence entries consume the independent query work budget
+   before their records are inspected. Repeated sites on the same line share one
+   candidate window. Legacy/synthetic edges without raw facts retain their coarse
+   indexed-line anchor. All added lines come from the same captured source; hash mismatches
+   suppress both primary and additional excerpts.
+
+   Matching line positions from each selected body region are retained internally
+   for both indexed and live retrieval. Each line carries a query-local 128-bit
+   term-membership mask under the existing 128-term bound. Repeated occurrences
+   and whole/split aliases for one query term share its bit; population count
+   preserves the primary anchor's distinct-term density. These masks are not
+   persisted, do not encode within-line word order and do not boost fallback
+   priorities by total or previously unseen term counts. After structural and relationship windows
+   have been considered, five-line windows centered on these matches compete for
+   remaining space, clipped to the verified region. If these do not fit, a final
+   tier tries the matching lines alone. These labeled excerpts do not claim to
+   deliver the complete region. This fallback does not scan other regions
+   belonging to the same owner or reanalyze source; all tiers share the same
+   byte, interval and context-window work limits. Primary snippets remain
+   independent of this optional-window admission.
+
+   Additional interval candidates compete by rank-adjusted value per estimated
+   new source byte, with exact serialized-byte admission. Response bytes are
+   measured after occurrence-discovery counters and already-fired notices are
+   attached. Allocation reserves full integer widths for the final elapsed-time
+   and context-window counters, so their growth cannot evict admitted evidence.
+   New work-limit notices remain subject to the final whole-result byte check.
+   Estimated costs are
+   recomputed after successful admission, excluding already delivered lines and
+   charging overhead for each remaining contiguous gap. Fully covered windows
+   leave the candidate set. Within each existing role tier, value is multiplied
+   by one plus the number of distinct query terms the candidate adds beyond
+   source lines already delivered for that owner. This term mask is recomputed
+   after successful admission, so repetition loses its novelty bonus. The
+   source-region mask passes consume the context-window work budget too.
+   This is a lexical coverage heuristic, not marginal semantic information,
+   phrase verification, or a guarantee that every labeled region improves.
+   Each window-cost evaluation consumes an independent `context_windows` work
+   budget (10,000 default, 100,000 ceiling, zero allowed), checking cancellation
+   and deadlines before inspecting at most 80 lines. Exhaustion reports an
+   explicit `context_windows` truncation; `context_windows_examined` includes
+   repeated evaluations. Primary evidence remains reserved. Context uses a damped
+   reciprocal-rank prior proportional to `1 / (60 + rank)` (one-based rank),
+   matching the retrieval fusion offset. Source-role priorities remain separate;
+   this reduces the context-value penalty from small reorders without treating
+   scores as confidence probabilities. This is a deterministic
+   heuristic, not an optimal knapsack solver. Lines already delivered by any
+   primary/additional excerpt from the same source version are excluded from new
+   intervals. Adjacent additional excerpts within one result item are merged
+   when their source hashes and roles agree and their combined length is at most
+   80 lines. Gaps, different roles, different source versions and primary snippets
+   remain separate. Admission recomputes actual serialized size and interval count
+   after merging, including any saved overhead; failed admission restores the
+   previous excerpts. At most 64 additional intervals are retained, and interval/byte
+   omissions are explicit. Occurrence work omissions are reported separately,
+   and final work counters include source-context selection. Required metadata
+   and primary snippets are reserved first. Final packing removes optional
+   intervals, then edges, then primary
+   snippets before discarding symbol metadata. An oversized source line cannot
+   by itself erase its symbol or stop consideration of later candidates; excerpt
+   omission reports the effective byte cap without altering source text.
+   `context_lines=0` disables all source excerpts; nonzero values control the
+   primary excerpt radius while bounded implementation expansion uses remaining
+   space. Execution clamps the radius to half the ten-line primary ceiling so
+   oversized public/decoded requests cannot move the excerpt away from its anchor.
 3. **Connect** — the edges among the returned nodes, up to `hops`.
 4. **Summarise impact** — for function/method seeds, a one-line blast-radius
    count.
@@ -779,15 +1560,25 @@ This is the context-efficient entry point and the closest analogue to
    reported in `truncations`.
 
 `explore` is where the context-efficiency hypothesis lives: the goal is one call
-that returns *enough to act on* and no more. It must never return whole bodies by
-default — that is the failure mode `codegraph` itself documents (fewer tokens
-processed, more tokens resident).
+that returns *enough to act on* within explicit budgets. A complete small
+implementation can be cheaper and more useful than repeated partial reads;
+large implementations receive selected intervals rather than unbounded bodies.
 
 ### 8.5 `status`
 
 Reports whether an index exists, its store path, schema and parser versions,
 node/edge counts by kind, per-language file counts, last-index time, and
-staleness (count of changed paths, computed cheaply). Exit 0 either way.
+staleness (observed changed-path count under the selected verification mode).
+A completed inspection exits 0 whether or not an index exists.
+
+Status counts are exact summaries cached with each graph generation, including
+unresolved edges; reading them does not clone or traverse the graph. Status honors
+request cancellation/deadlines and uses the same bounded freshness verifier as
+search, without automatically reconciling. Incomplete verification fails explicitly.
+Both the library status result and compact CLI JSON envelope fit the 64 KiB ceiling.
+When changed-path details overflow, a deterministic suffix is omitted with a
+`bytes` coverage notice; the observed changed total, graph counts, generation and
+policy remain intact. Required metadata that cannot fit returns `ResultBudget`.
 
 ---
 
@@ -799,7 +1590,7 @@ staleness (count of changed paths, computed cheaply). Exit 0 either way.
 
 ```json
 {
-  "schema_version": 2,
+  "schema_version": 4,
   "command": "search.text",
   "root": "/abs/workspace",
   "query": { "pattern": "fn main", "include": "*.rs", "limit": 250 },
@@ -812,7 +1603,8 @@ staleness (count of changed paths, computed cheaply). Exit 0 either way.
 }
 ```
 
-- `schema_version` is bumped on any change to a result/edge field; the CLI refuses
+- `schema_version` is the independent `RESULT_SCHEMA_VERSION` (currently 4),
+  distinct from the stored projection schema and generation descriptor format; the CLI refuses
   nothing but the agent should check it.
 - `command` is the dotted path (`search.files`, `search.graph.callers`).
 - `query` echoes normalized arguments — the answer is reproducible from it.
@@ -828,7 +1620,7 @@ Result shapes:
 | `files` | `{ "path", "language" }` |
 | `text` | `{ "path", "line", "text" }` |
 | `symbol`/`graph` | `{ "id", "name", "qualified_name", "kind", "path", "start_line", "end_line", "signature" }` |
-| `explore` | a `{ "node", "snippet": {"start_line", "lines":[…]}, "impact": {…} }` |
+| `explore` | a `{ "node", "snippet": {"source_hash", "start_line", "lines":[…]}, "impact": {…} }` |
 | edge | `{ "from", "kind", "to", "to_name", "path", "line", "resolved" }` |
 
 ### 9.2 Truncation
@@ -847,7 +1639,188 @@ rendering prints the same messages.
 - `--context-lines` defaults to 2 for `explore`, 0 for `graph`; ceiling 10.
 - `MAX_TOTAL_BYTES` (64 KiB default) caps the whole payload; when reached, the
   result is cut and a `bytes` truncation is reported.
+- File/text scans account for serialized hit bytes while collecting results,
+  then fit the complete library result, including source identities, counters
+  and notices. Final fitting removes a suffix and removes a source identity only
+  with its last hit. `stats.matches` retains the number of text hits collected
+  before final packing; it is not an exhaustive corpus total. Result count
+  ceilings apply inside execution even to directly constructed/deserialized
+  queries. The CLI separately fits the complete compact JSON envelope, including
+  echoed query fields, to the same 64 KiB hard cap. Required metadata that cannot
+  fit yields `ResultBudget`; it is not silently discarded.
 - `signature` is one line capped at `MAX_SIGNATURE_CHARS` (200).
+- Indexed snippets are emitted only when the observed file hash matches its
+  indexed fingerprint. On mismatch, the snippet is absent and
+  `context.sources[path].verification` is `mismatch`; unavailable and budget-limited
+  reads are distinguished. A live body hit carries its own source hash and may
+  still show live evidence while the indexed fingerprint is stale.
+- A request-local source cache shares the bytes used for body matching and
+  snippets. Reads are capped by the walk policy per file and 8 MiB per request
+  (with one extra byte used to detect overflow). Coverage counts distinct cached
+  paths withheld by read budgets and reports `source_bytes` or `source_file_bytes`
+  truncations even when those paths never become selected results.
+  Snippet lines preserve source spelling without inserting ellipses; each snippet
+  carries the SHA-256 of the original file bytes. The complete serialized result,
+  including provenance, must fit the requested output budget.
+- Byte coordinates are zero-based half-open UTF-8 ranges; display lines are
+  one-based. Parser revision 4 invalidates older Rust and JS/TS offsets.
+
+Graph and impact packing enforces 64 KiB on the compact serialized library
+result, including provenance, at both the core and service boundaries. It removes
+tail edges before ranked nodes, preserves candidate/depth counts, and recomputes
+approximation counts from delivered edges. If required metadata alone cannot fit,
+the query fails with `ResultBudget`; metadata is not silently stripped. The
+graph/impact CLI serializes compact JSON and applies a second check after adding
+its transport envelope. It trims tail edges before ranked nodes, preserves impact
+depth totals and required provenance, and refreshes delivered-edge counts/source
+identities. Required metadata overflow returns `ResultBudget` without partial
+stdout. Payload packing is independent of traversal-work limits.
+
+Graph navigation targets, both shortest-path endpoints, explore query text and
+path-filter fields have an 8,192 UTF-8 byte ceiling. The service checks these
+lengths before freshness or automatic maintenance, and core navigation independently
+checks targets before copying IDs or reporting lookup failures. Oversized-input
+errors describe the field and limit without echoing its contents. This is byte
+validation; later syntax, resolution and analyzed-term validation retain their
+own contracts.
+
+Ordinary CLI `--no-reconcile` searches use the query result's provenance directly;
+they do not run a separate status inspection whose result would be discarded.
+Scoped live file/text scans therefore do not depend on enumeration in unrelated
+subtrees. The explicit `--fail-if-stale --no-reconcile` workspace check remains.
+
+Graph queries share `WorkLimits` across adjacency reads, graph expansion, path
+search, connection search and impact summaries. Defaults admit 10,000 distinct
+node identities and examine 50,000 adjacency entries; hard ceilings are 100,000
+and 500,000. Filtered adjacency entries consume work too. Exhausted caps return
+partial results with `graph_nodes`/`graph_edges` truncations; candidate and impact
+counts are then lower bounds. `stats.graph_nodes_visited` and
+`stats.graph_edges_examined` describe the work charged to these budgets.
+Graph path/language filters restrict output, not traversal. Expansion can cross
+an excluded intermediate node to discover an included node at a later hop, and
+that intermediate work still consumes its budget. Delivered edges require their
+known endpoints to satisfy the output filters. A resolved edge may refer by stable
+ID to an endpoint omitted by the result-count cap: this is a compact, navigable
+boundary reference, not an unresolved relationship. Delivered-edge and byte caps
+still apply. Presentation filters are not an authorization boundary.
+
+A separate `WorkLimits.returned_edges` allowance caps delivered relationships
+at 1,000 by default (10,000 hard ceiling); zero suppresses edge output. Every graph,
+impact and explore query applies it before final serialization, with a
+`returned_edges` truncation only when a relationship was omitted. Traversal work
+and impact depth totals retain their independently measured values; approximation
+counts describe the edges actually delivered.
+
+Metadata and body retrieval share limits on candidate admissions (10,000 by default,
+100,000 hard ceiling) and examined postings (200,000 by default, 1,000,000 hard
+ceiling). `candidates` and `postings` truncations report incomplete retrieval;
+`stats.retrieval_candidates_admitted` and `stats.lexical_postings_examined` expose
+charged work. Fusion gives metadata at most half the remaining lexical budget
+(rounded up), reserving capacity for body retrieval. Metadata-only execution uses
+the full remaining budget; automatic body-first discovery skips metadata unless
+its body pool is empty. The live overlay receives
+at most half what remains; indexed body search uses the remainder. Unused capacity
+is retained. Lane caps report incomplete retrieval even if another lane leaves
+capacity unused. Exact candidates reserve admission before lexical accumulation.
+Filtered postings still consume examination work, while filters precede candidate
+allocation. Corpus statistics describe the complete indexed symbol set, not only
+the admitted query prefix. The scorer retains its existing weights, combined
+length normalization and clipped IDF; formula changes are evaluated separately.
+
+Unscored metadata examination has an independent `WorkLimits.metadata_entries`
+allowance: 100,000 by default, clamped to 1,000,000, with zero permitted. Exact-name
+lookup, case-folded exact seeding and path navigation charge each record before
+kind/path/language filtering. Rejected records consume examination work without
+consuming candidate admission. `metadata_entries` truncations and
+`stats.metadata_entries_examined` expose incomplete examination. Successive
+retrieval phases share the remaining allowance; lexical lanes do not divide this
+allowance because body postings use their own examination budget. Prefix expansion
+continues to use its independent dictionary and posting limits. Identical bare
+and qualified name entries are stored once, so duplicate filtering cannot hide
+an uncharged second scan. Direct exact-ID lookup and bounded ambiguity lookup
+remain dictionary/property lookups rather than metadata scans.
+
+Explicit name-prefix lookup expands at most 256 dictionary entries by default,
+with a hard ceiling of 4,096. `dictionary_entries` truncation and
+`stats.dictionary_entries_examined` expose incomplete expansion. Bare/qualified
+entries are charged separately, including repeated spellings; posting entries
+are charged before filtering, and candidates after filtering/deduplication.
+
+A reused query engine resets its accounting at each public query entry point.
+
+`WorkLimits.walk_entries` bounds visible entries processed by file/text queries
+and explore's body-candidate enumeration, defaulting and clamping to 1,000,000.
+Zero is permitted. The allowance is shared across successive walks using the
+same work budget; each walk also honors the independent policy ceiling. The
+root, visible directories, files and yielded entry errors consume this allowance.
+Entries suppressed internally by ignore/exclusion processing are not counted.
+One unprocessed lookahead entry per walk distinguishes exact completion from
+overflow. Coverage reports processed entries and `enumeration_complete=false`
+with `walk_entries` on exhaustion. Such a report fails `require_complete` and
+cannot safely infer deletions. Query limits do not change the stored inclusion
+policy or its fingerprint. Service freshness walks consume this same allowance.
+Automatic index maintenance and status freshness checks share this allowance.
+
+The core `stale::inspect_with_work` entry point supports bounded freshness checks
+using an existing `WorkBudget`. It requires complete enumeration before comparing
+the manifest and charges content reads through the shared chunked reader. An
+insufficient source-file or byte allowance returns `IncompleteVerification`,
+not a successful fresh observation. Metadata-only checks read no source blobs.
+The service takes one complete request-scoped observation for both the
+reconciliation decision and returned generation context. If automatic maintenance
+publishes a generation, it inspects again afterward; the pre-maintenance context
+is discarded. Observations never persist across requests. Both passes, when
+needed, consume the same request allowance; actual verification reads are charged.
+This is an observed source boundary, not an atomic filesystem snapshot; indexed
+snippets still independently verify the bytes they deliver. Retrieval receives
+the already-spent budget through `QueryEngine::with_work_budget`, so it cannot
+reset source or enumeration allowances. Its first query inherits the supplied
+work; later queries on that core engine reset normally. An incomplete freshness
+check fails the service call rather than returning partially verified provenance.
+
+Hosts can use `index.search().with_work_limits(limits)` with a cloneable
+`CancellationToken` and optional monotonic deadline. Checkpoints return explicit
+cancellation/deadline errors. Already-cancelled or expired requests fail before
+freshness reconciliation. File and literal-text service queries use the same
+cancellation/deadline settings without requiring an index. Their walker checks
+before and after each iterator advance and around final sorting; file matching
+checks each entry, and text search checks between 8 KiB read chunks and source
+lines. Explore's body-candidate enumeration also uses the checked walker.
+Cancellation returns an error, not a successful partial response. Existing
+policy enumeration/per-file read caps and result limits remain separate from
+numeric graph work limits.
+
+Literal scans and explore's live source cache share request source quotas:
+`source_files` defaults to 10,000 open attempts (ceiling 200,000), and
+`source_bytes` defaults to 64 MiB (ceiling 1 GiB). Both permit zero. Filters run
+before literal-file admission. Failed opens consume attempts; binary, invalid
+UTF-8 and failed-read prefixes consume actual bytes. Cache hits cost no new
+source work. Existing cache and per-file ceilings still apply independently.
+Readers may consume one additional byte to detect aggregate overflow; this byte
+is included in `stats.source_bytes_read`. `stats.source_files_attempted` counts
+admitted open attempts. An incomplete file supplies no text or observed hash;
+previously completed evidence remains usable. Exhaustion reports `source_files`
+or `source_bytes`. Exact EOF at the byte ceiling succeeds unless another source
+is needed. These counters include service freshness and automatic index-maintenance reads.
+Change-detection hashing and extraction are separate reads and are both charged.
+Maintenance source exhaustion returns `IncompleteMaintenance`, and incomplete
+walks fail before inferring deletions. Cancellation checkpoints precede publication
+and metadata-only commits. Failed maintenance preserves the prior generation.
+A completed maintenance publication is not rolled back if subsequent freshness
+verification or retrieval exhausts the remaining request allowance.
+
+These controls are cooperative, not a hard wall-clock bound. One iterator advance
+may perform internal directory/ignore processing, and an in-flight filesystem
+operation, sort, line transformation or matcher call is not preempted. Index
+opening, snapshot materialization, an individual parser call and atomic publication
+are not preempted; broader phase and memory limits remain necessary.
+
+Both adapters prepare a native adjacency index with each generation. Edges are
+stored once in stable order; node adjacency contains integer positions. Bounded
+reads stop before cloning omitted entries, without materializing or sorting a
+whole high-degree neighborhood. This adds generation preparation/memory cost;
+query work does not rebuild the adjacency index. Core query expansion uses one
+visited set, so cycles cannot repeatedly expand an already visited node.
 
 ### 9.4 Determinism
 
@@ -941,7 +1914,7 @@ Consequences and their mitigations:
   which the graph does not hold — so it stays a scan, or gains a content index.
 - **Single writer.** `index`/`sync` hold `<store>/index.lock`; a second writer is
   refused by name. Readers never lock.
-- **Atomicity.** One `apply` per reconcile, manifest last (§6.4).
+- **Atomicity.** One coherent `publish` per reconcile (§6.4).
 
 ### 11.1 Delivery shapes — the in-process library is the target
 
@@ -992,7 +1965,7 @@ A resident host must meet five requirements:
 - **Fallback.** A one-shot client with no cold index walks for `files`/`text`,
   and for graph modes either reconciles locally or returns a clear "not indexed"
   answer. The capability is never unusable because an index is absent.
-- **Single writer, snapshot readers** (§6.6).
+- **Single writer and the explicit borrowed-snapshot/locking contract** (§6.6).
 - **A memory bound.** The path set is cheap; bodies are not. Prefer `mmap` over a
   heap copy, and cap any body/trigram cache.
 
@@ -1064,7 +2037,7 @@ noted by †):
 | `MAX_RESULTS` (files) | 100 / ceil 1 000 | `files` |
 | `MAX_RESULTS` (text) | 250 / ceil 2 000 | `text` |
 | `MAX_RESULTS` (graph/explore) | 50 / ceil 500 | `graph`, `explore` |
-| `MAX_MATCH_LINE` | 400 chars | one echoed match line |
+| `MAX_MATCH_LINE` | 400 UTF-8 bytes before ellipsis | one echoed match line |
 | `MAX_SIGNATURE_CHARS` | 200 chars | one stored signature |
 | `MAX_SNIPPET_LINES` | 10 (default 2) | `explore`/`graph` snippet |
 | `MAX_TOTAL_BYTES` | 65 536 | whole JSON payload |
@@ -1192,7 +2165,7 @@ Anchors from `nanus`, used by the token model:
 | Fact | Value |
 |---|---|
 | `read` default window | 2 000 lines (ceiling 20 000, ≤ 4 MiB) |
-| `grep` default / ceiling | 250 matches / 2 000; line cap 400 chars |
+| `grep` default / ceiling | 250 matches / 2 000; line cap 400 UTF-8 bytes before ellipsis |
 | `glob` default / ceiling | 100 / 1 000 |
 | Context budget | 64 000 estimated tokens (chars ÷ 4), drop-oldest |
 | Step budget | 512 |
@@ -1344,7 +2317,7 @@ developed; `nanus` depends on the library, not the other way round.
 
 ```json
 {
-  "schema_version": 2,
+  "schema_version": 4,
   "command": "search.graph.callers",
   "root": "/Users/ant/code/nanus",
   "query": { "target": "ToolRegistry::execute", "depth": 1, "limit": 50 },
@@ -1391,3 +2364,703 @@ developed; `nanus` depends on the library, not the other way round.
 - `nanus` — the target harness; its `glob`/`grep` semantics and tool contract live
   in `../nanus/crates/nanus-bundle/src/tools/` and
   `../nanus/crates/nanus-domain/src/tool.rs`.
+
+### Explicit task-prompt query policy
+
+Ranker revision 15 adds `RetrievalOptions.query_policy` (`verbatim`, the default,
+or opt-in `task`; CLI `explore --query-policy task`). For `Auto` and `Terms`, task
+policy removes repeated terminal procedural sentences from this exact vocabulary,
+with ASCII case-insensitive spelling and a final period:
+
+- `Cite the relevant source and explain the execution path.`
+- `Distinguish observed behavior from assumptions.`
+- `Propose regression tests; do not edit the repository.`
+- `Do not edit the repository.`
+- `Do not modify files.`
+- `Include file paths and line numbers.`
+
+A suffix must follow whitespace after a sentence-ending `.`, `?`, `!`, or a
+newline, and nonempty content must remain. No paraphrase inference, arbitrary
+stop-sentence removal or internal whitespace normalization occurs. A single pass
+tracks single/double quotes, matching-length backtick runs and backslash escapes; apostrophes inside
+words do not open quotes. An unfinished quote/code span protects the remaining
+input. This is conservative query protection, not a Markdown parser. Quoted
+literals are not extracted, decoded or rewritten; raw punctuation-sensitive
+matching remains the separate literal text route.
+
+Only ranked query terms change. Original input still governs inferred navigation
+and automatic channel selection; explicit navigation, phrase and near modes
+bypass cleanup. The original query is retained in `RetrievalPlan.query` and
+`omitted_boilerplate` records removed sentences in source order when explanation
+is requested. Input byte limits apply before processing, and remaining term
+limits retain their existing error behavior. No corpus-rarity term truncation or
+silent weakening of AND/minimum coverage is introduced. Verbatim remains default
+pending a controlled quality comparison of this optional policy.
+
+### Parser-owned documentation comment facts
+
+Parser revision 6 retains `Extraction.doc_comments` alongside symbols and
+references. Rust `///` (excluding `////`), `//!`, `/**` (excluding `/***` and
+`/**/`) and `/*!` are recognized only on syntax-tree comment nodes. JS/TS retain
+`/**` blocks under the same exclusions. Authored markers, UTF-8 and line endings
+remain in the original spans; strings and template literals are not scanned for
+comment-like substrings. No JSDoc tags, Markdown content or Rust doc attributes
+are interpreted by this initial fact extractor.
+
+Rust inner documentation refers to the nearest enclosing extracted declaration,
+or the file when no such declaration exists. Outer documentation considers only
+the next syntactic neighbor after comments and Rust outer attributes. A direct
+declaration or unambiguous export/variable declaration wrapper can supply an
+`owner_key`. Intervening statements, multiple sibling declarations, destructuring
+with multiple same-span symbols, and duplicate declaration keys remain unowned.
+`inner` distinguishes inner documentation from unassociated outer comments.
+Associations are file-local raw fact keys, not new graph edges.
+
+At most 8,192 documentation occurrences are retained per file. An actual extra
+eligible comment sets `doc_comments_truncated`; exact fill is complete. Merge
+orders facts by original byte span, deduplicates equal records and applies the
+same cap, preserving prior truncation. Legacy extractions decode with empty
+comment facts and false truncation. Shared extraction packs publish these fields
+with the existing source fingerprint and generation identity. Source-unit
+segmentation currently continues to index authored comments as ordinary code
+text; this raw-fact addition does not change the body ranking representation.
+
+### Documentation source regions and retrieval associations
+
+Source representation 8 / chunker policy 9 partition parser-recognized comment
+spans into `DocumentationComment` units. Original UTF-8 byte offsets are retained;
+retrieval display lines are normalized to the last covered line rather than the
+parser's potentially following-line end point. Long comments use the existing
+80-line / 8-line-overlap windows. Comments are partitioned out of ordinary body
+regions, not copied into declaration term fields.
+
+Each fragment carries the complete comment span, inner/outer style and optional
+`documented_symbol`. `owner` continues to mean physical lexical containment. A
+preceding outer comment can document a declaration without being owned by it;
+an inner comment may have both relationships. Associations resolve only within
+the same projected file. Stored validation rejects missing/foreign targets,
+impossible containment/order, inconsistent shared descriptors, overlapping
+comment descriptors and out-of-file spans.
+
+Ranker policy 16 groups body candidates by documented declaration when present,
+otherwise by lexical owner/file. Ranked evidence retains both relationships.
+Phrase/near verification still scans original file bytes across storage boundaries;
+a witness wholly inside a known comment can carry that comment's association.
+A witness spanning comments or unrelated code does not gain such an association.
+Live unparsed overlays carry no parser-owned documentation metadata.
+
+`SourceFileUnits.documentation_truncated` and coverage counter
+`source_documentation_truncated_files` report omitted or rejected comment
+metadata independently of source-unit truncation. Invalid input spans are omitted
+from documentation metadata while ordinary body text remains eligible. Existing
+source-unit limits can separately truncate body coverage. Old serialized facts
+and evidence default the new metadata to absent; representation drift triggers
+normal source-index refresh.
+
+Adjacent recognized documentation comments with the same inner/outer style and
+same documented declaration are grouped when only whitespace separates them.
+This preserves region-local all-term matching across Rust `///` lines. Raw parser
+facts remain individual comments. An intervening ordinary comment or statement,
+a different association, or a different style prevents grouping.
+
+### Manifest-owned package context
+
+Parser policy 7 and source representation 9 add native package-boundary context.
+The standard library registry reuses the existing JSON/TOML decoders through an
+optional `LanguageRegistry::package_manifest` port; core names no syntax decoder.
+Recognized files are exactly `Cargo.toml` and `package.json`. The native subset
+retains the authored package name, ecosystem and package/workspace/unavailable
+role. A Cargo `[workspace]` without `[package]` is not itself a package. A Node
+manifest can define an unnamed boundary. This is package-context discovery, not
+validation of every package-manager option or dependency/import resolution.
+
+Manifest syntax input is capped at 262,144 bytes and retained names at 512 bytes.
+Invalid syntax, unsupported name values or limits produce fixed unavailable
+metadata diagnostics while admitted original text remains searchable. Known
+manifest paths without available decoder/source facts are also barriers. No
+install, configuration execution or lookup outside the walked inclusion policy
+occurs. Ignored manifests are outside that policy.
+
+The walker records observed manifest paths before the source-size filter. The
+index manifest/header retains this boundary set; additions/removals participate
+in freshness checks even when a manifest body is oversized and unindexed. A
+nearest observed-but-unavailable boundary blocks outer inheritance. Partial walks
+cannot infer boundary removals. Rust selects Cargo boundaries; JS/TS selects Node
+boundaries. Other text, HTML and CSS select the nearest unique boundary across
+both families; a tie is explicit incomplete scope. Virtual Cargo workspaces stop
+package inheritance without inventing a package.
+
+`SourceFileUnits.package` and resolved indexed source-evidence identities retain manifest path,
+manifest hash, ecosystem and optional authored name. Different manifest paths are
+distinct even when names match. Units inherit package/file/language metadata from
+the source file rather than duplicating ancestor bodies. Source/evidence
+`package_scope_incomplete` and coverage `package_scope_incomplete_files` report
+observed ambiguous/unavailable scope. Live unparsed replacement evidence omits
+package association; indexed associations describe their selected generation.
+
+Package metadata is validated against the complete post-batch file universe,
+including a manifest's hash and declared role/name. Retained source facts cannot
+refer to a removed or changed manifest identity. Both adapters reject incoherent
+batches before visible mutation; lexical declaration-owner validation remains
+file-local. The projector currently rebinds admitted files from cached facts when
+any manifest changes or the observed boundary set changes. Narrow dependency
+invalidation remains future work. Old serialized fields default to absent, while
+policy/version drift triggers normal rebuilding.
+
+
+### Shared package identity in results
+
+Wire contract 4 and ranker policy 18 share repeated package identities before
+source-context allocation. Source/parser representation versions do not change.
+The withdrawn residual-fragment experiment used ranker 17; it is not production.
+
+`SourceEvidence.package` remains an optional inline identity for single-use
+packages and historical results. Repeated identities among selected seeds are
+stored once in `ResultContext.packages`; evidence instead carries `package_ref`,
+a result-local key such as `p0`. Full manifest path, content hash, ecosystem and
+authored name determine equality. Same names never imply the same package.
+Keys are assigned deterministically from sorted full identities, not source
+traversal order, and have no meaning outside their containing result.
+
+`SourceEvidence::package_identity(context)` resolves either form. It returns
+`None` for absent, dangling or contradictory inline/reference associations.
+Library-produced evidence never contains both forms. Empty tables and absent
+references are omitted; older inline evidence and contexts without a package
+table deserialize with default empty fields. Clients consuming wire 4 must
+resolve references through the accompanying context rather than treating a
+missing inline field as an absent package.
+
+Both library and CLI budget fitting prune unreferenced table entries after item
+removal. They retain the original keys for surviving references, even when only
+one member of a formerly shared group survives. Full identity bytes count toward
+the response cap once; reference bytes count on each evidence item. Table entries
+are allocated only for selected indexed evidence. Live unparsed replacements
+remain unassociated, and package-scope incompleteness remains independent.
+
+
+### Primary source overlap accounting
+
+Ranker policy 19 assigns a `(path, source hash, line)` to the first selected item
+that carries it. Later overlapping primary snippets retain only their uncovered
+contiguous runs: the first remains primary, and further runs use labeled source
+excerpts. Paths and versions never merge, and candidate identity, rank, retrieval
+facts and package associations are unchanged. A fully covered primary can be absent
+without removing its selected item.
+
+Pre-deduplication source eligibility is retained internally so such an item can
+still contribute distinct declaration, matched-region or relationship context.
+Eligibility removed by ordinary payload fitting stays removed; it is not mistaken
+for shared text. Existing excerpts participate in coverage and interval accounting,
+so the allocator cannot reintroduce duplicate primary lines or exceed the shared
+interval allowance. Omitted fragments have an explicit snippet-limit notice and
+are not marked as delivered. Exact final byte fitting still applies to the complete
+library result and CLI envelope. No wire or persisted-source revision changes.
+
+### Explore source captures across phases
+
+Public explore requests retain bounded raw source captures across freshness,
+automatic maintenance and evidence assembly. The request's work budget owns the
+captures and charges physical file opens/bytes only on first capture. The evidence
+cache separately accounts for bytes it materializes, including bytes captured by
+freshness. Cache records cannot exceed admitted open attempts, and retained raw
+bytes cannot exceed the source allowance; vectors and decoded text add bounded
+allocation overhead. This is ranker policy 20; wire 4 and source representation 9
+are unchanged.
+
+Reusing a capture checks size/mtime drift and fails incomplete verification on a
+change. A truncated capture cannot satisfy a larger later read. Cancellation and
+deadlines apply to cached reads. Missing, binary and invalid-encoding inputs are
+not silently promoted to valid text. Captures expire after the request; the next
+strict request verifies source afresh. This does not promise an atomic live-tree
+snapshot or detection of a concurrent writer that restores source metadata.
+
+
+### Initial source admission
+
+Ranker policy 21 checks selected-item metadata before final source reads. Oversized
+metadata is omitted under the existing ranked item cap without spending source-read
+allowance. Metadata-admitted items are also checked against the serialized growth
+of a minimum useful primary and a lower bound on mandatory response metadata plus
+the retained item prefix. Optional edges, source identities, package tables and
+prior primary text are excluded from that response floor. This makes the test
+conservative in the presence of deduplication and final trimming.
+
+A skipped primary is reported as byte truncation and does not become eligible for
+later context allocation. Known cached source identities can still be reported;
+unread source is not labeled verified. Final fitting continues to use exact encoded
+bytes. Candidate-generation and required freshness reads precede these guards.
+Wire 4 and source representation 9 remain unchanged.
+
+### Line proximity in source-window utility
+
+Ranker policy 22 adds bounded proximity to source-context utility. Let `n` be the
+number of distinct query terms in a candidate that have not already been delivered
+for that item, and `w` the shortest inclusive line span covering those terms within
+the candidate. Coverage contributes `160 * (1 + n)` integer units. If `n >= 2`,
+proximity contributes `floor(80 / w)` additional units; otherwise it contributes
+zero. The existing role/rank value multiplies this sum, which competes by marginal
+estimated bytes. Exact encoded bytes still govern admission.
+
+The proximity contribution is at most half one coverage unit, so an extra distinct
+term wins at equal cost and role/rank value. Already delivered term bits are excluded
+before span calculation. Repetition changes placement evidence, not term count.
+The calculation uses bounded original line coordinates and does not alter lexical
+candidate ranks, explicit phrase predicates, source boundaries or result fields.
+The controlled quality evaluation is recorded in the implementation ledger.
+
+### Request-local graph neighborhood reuse
+
+A query may reuse the incident adjacency prefix already admitted by its shared
+work budget. Relation and direction selection operate on that same prefix without
+another snapshot adjacency charge. A partial prefix retains the request's graph
+work truncation; reuse never asserts that omitted edges are absent. Cancellation
+and deadlines apply to cache hits. Retention is bounded by charged adjacency entries,
+empty neighborhoods need no retained key, and every new query clears the cache.
+Path-search work remains charged separately. Ranker policy 23 identifies this
+budget-sensitive change. Cache selection and cloning still consume CPU; adjacency
+counter savings alone are not latency or memory measurements.
+
+### Callable roots of qualified calls
+
+A local callable declaration must not let a dotted member call inherit a member
+from an unrelated outer namespace of the same name. Such unknown members retain
+their original occurrence and become unresolved with
+`lexical_member_target_unknown`. Known class/struct/enum/module declarations retain
+the supported qualification route; this does not infer arbitrary function-object
+properties. Rust `Type::member` remains distinct from value-level function names.
+Parser revision 8 invalidates cached facts from the prior declaration bypass.
+
+### Local JS/TS static class members
+
+Direct dotted calls rooted in a visible file-local class bind only to a unique
+static callable extracted under that class's key. The selected method retains
+its lexical extraction identity and occurrence resolution class. A missing,
+ambiguous, instance-only or accessor member cannot inherit a target from an outer
+same-named class. This does not infer inheritance or arbitrary property dataflow.
+
+Before class initialization, calls remain unresolved. Method parameter/body spans
+receive a deferred-execution exception; computed names, heritage and fields do
+not. Unmodeled initialization contexts are reported explicitly. The JS adapter
+also recognizes the grammar's `property` field alongside TS's `name`, preserving
+field-initializer references. Parser revision 9 invalidates prior extraction facts.
+
+### Authored Cargo target facts
+
+Source representation 10 adds optional `PackageManifest.cargo_targets`. Valid Cargo
+package boundaries retain explicit `[lib]`, `[[bin]]`, `[[example]]`, `[[test]]`
+and `[[bench]]` tables, optional authored name/path, `required-features`, package
+edition (including explicit `edition.workspace = true`) and explicit automatic
+search switches. Omitted settings stay unspecified. Paths retain their authored
+bytes; extraction does not read them, normalize them or expand them outside the
+workspace. Other manifest families and virtual workspaces have no target facts.
+
+The existing 256 KiB manifest cap applies before decoding. Target projection has
+additional bounds: 256 explicit targets, 64 features per target, 512 bytes per
+name/feature, 4096 bytes per path and 32 bytes per explicit edition. Empty strings,
+NUL and wrong field types make the entire target projection unavailable, with a
+fixed diagnostic and no partial data. The independently valid package boundary
+remains available. Persisted validation enforces these bounds, at most one library,
+mutually exclusive explicit/inherited edition and absence of partial unavailable
+metadata. Legacy missing target metadata remains readable; source-version drift
+requests refreshed facts under the existing policy reconciliation contract.
+
+These are raw authored facts, not Cargo semantic validation. No target discovery,
+default edition or target-path inference, inherited-edition resolution, active
+feature selection, build-script execution or module ownership follows from this
+increment. In particular, Rust import resolution still needs a target-owned module
+tree; merely retaining a custom `[lib].path` does not fix existing import edges.
+
+### Native Rust module-declaration paths
+
+Parser policy 11 separates `mod name;` declarations from generic import spellings
+using an explicit raw-fact tag, exact declaration spans and inline/external module
+attributes. Missing or ambiguous module projections cannot fall through to generic
+import guessing. Resolution
+uses the post-update Cargo manifest facts and walked paths. It recognizes explicit
+and conventional library/binary/example/test/bench roots and build-script roots;
+no Cargo command, script execution, dependency installation or extra source read
+occurs in production. Source representation 11 additionally retains explicit empty
+target arrays and the optional build-script setting, because omissions differ from
+those authored values. Old omitted fields remain readable; policy drift refreshes
+facts through the existing reconciliation mechanism.
+
+Root discovery is bounded by the walked files and manifest limits. Edition-2015
+automatic discovery defaults are per target family; explicit switches override
+those defaults. Empty arrays count as declared families. An unresolved inherited
+edition is used only where both supported edition rules agree. Conflicting names,
+unavailable manifests or unsupported root settings keep affected context unknown.
+The implementation does not validate every Cargo option or select active features.
+See the [Cargo target contract](https://doc.rust-lang.org/cargo/reference/cargo-targets.html)
+and [build-script setting](https://doc.rust-lang.org/cargo/reference/manifest.html#the-build-field).
+
+A native worklist starts at known roots. Following a plain module declaration
+adds the target file's stem directory (or the physical parent for `mod.rs`);
+following `#[path]` adds its physical parent. Inline ancestors extend or override
+the current directory according to the [Rust module rules](https://doc.rust-lang.org/reference/items/modules.html).
+Ordinary unescaped strings and raw strings are supported. Escaped strings,
+file-level inner path attributes, `cfg_attr`, unhandled attributes and
+block-local modules remain explicitly unresolved. Attribute uncertainty propagates
+through inline ancestors. Conditional `cfg` declarations are potential source
+relationships, not proof of an active build configuration.
+
+Each source file has at most two directory contexts. A visited worklist prevents
+inclusion cycles from growing traversal; it does not certify compiler-valid crates.
+A declaration resolves only when every reached context agrees on its target.
+Different targets, or success in only some contexts, remain ambiguous. Explicit
+physical-directory overrides can agree even where default child paths disagree.
+Both `child.rs` and `child/mod.rs` present is ambiguity, never first-file wins.
+Unreachable files have unknown module context rather than a filename-based guess.
+Without Cargo, only conventional `lib.rs`/`main.rs` files seed root traversal.
+
+Paths normalize only inside the workspace and resolve solely against walked paths;
+absolute paths, backslash paths and workspace escapes are not followed. Inline
+ancestry is capped at 256 declarations. The worklist has at most twice as many
+states as walked files; each external declaration is evaluated at most once per
+source file directory context. Unchanged source fact caches supply the syntax.
+
+Rust edits and changes to the walked file set conservatively rebind cached external
+module declarations, including previously unresolved
+consumers and newly created conflicting files. No extra parser work is needed for
+unchanged cached sources. Narrow module dependency invalidation remains work under
+recommendation 23. This increment resolves module declarations and their physical directory contexts.
+Anchored `use` paths, imported bindings, reexports, logical crate/module membership,
+visibility and qualified cross-module calls still require the logical module tree
+under 20/21. The old
+generic Rust specifier helper is not evidence of completion of those requirements.
+
+### Rust scope-key representation (parser revision 12)
+
+Rust extraction keys prepend the immediate parent key once; that key already
+contains the full ancestor chain. They must not prepend every ancestor's full
+key again. Qualified display names, duplicate declaration groups, parent links
+and reference ownership retain their existing semantics. Deep keys change, so
+parser revision 12 invalidates cached extraction facts. This removes exponential
+ancestor-prefix duplication; it does not claim linear total key storage or a
+bound on parser nesting.
+
+### Rust module lexical boundaries (parser revision 13)
+
+Unqualified call binding lookup checks the current Rust module, then stops rather
+than inheriting parent-module items. When no native binding is known, it records
+`rust_module_binding_unknown` and suppresses bare-name fallback. Local declarations
+remain eligible. Qualified path handling is unchanged. Imports, preludes and
+complete logical module resolution remain separate requirements; this boundary
+must not be treated as proof that an unresolved source call is invalid Rust.
+
+### Authored Rust visibility (parser revision 14)
+
+Rust extraction reads the grammar's `visibility_modifier` child. Explicit `pub`,
+`pub(crate)`, `pub(super)` and `pub(self)` populate the existing visibility enum;
+single-component `pub(in ...)` equivalents use the same syntax path kinds.
+Original modifier bytes are retained in `rust_visibility_modifier`. Arbitrary
+restricted paths and malformed modifiers are not promoted to public. Omitted
+visibility remains unspecified in these authored facts; effective/inherited
+visibility and access enforcement require the logical module model.
+
+### Structured Rust use-tree leaves (parser revision 15)
+
+Rust import extraction traverses syntax-tree groups instead of comma-splitting
+source. Each leaf stores a normalized target path plus optional `RustUseFact`
+metadata: local alias/name, glob status, type-only `self` import status and exact
+authored reexport visibility. Original leaf spelling/span and lexical scope remain
+attached to the reference. Grouped/trailing `self`, absolute roots, aliases and
+nested siblings preserve their paths. `as _` introduces no named local binding.
+Unsupported/error syntax produces one explicitly unresolved fact for the argument,
+without exposing partial guessed leaves. Empty groups introduce no binding.
+
+Legacy references omit `rust_use`; parser revision 15 refreshes raw facts. This
+representation does not itself resolve imports, glob exports, module identities
+or visibility. Those remain separate native resolution responsibilities.
+
+### Native anchored Rust paths (parser policy 16)
+
+The resolver traverses source-backed module member/interior links for `crate`,
+`self` and repeated leading `super` paths. Root context comes from native Cargo
+root discovery. Shared physical files retain all reachable roots; each context
+must produce a unique visible member and terminal targets must agree. Unknown,
+missing and ambiguous contexts cannot fall back to global-name lookup. Direct
+anchored use leaves target the source symbol with explicit-import provenance.
+
+Basic module-item public/crate/super/private visibility is checked at each segment.
+Arbitrary restricted visibility and ambiguous private ancestry remain unresolved.
+The context worklist admits at most 65,536 scope/root pairs before enqueueing;
+overflow disables anchored resolution explicitly. Paths admit at most 256
+components after the anchor. Syntax nodes normalize ordinary call paths while
+preserving raw spelling. Parser policy 16 forces projection refresh.
+
+Source/presence changes rebind cached anchored and structured-use consumers in
+addition to external-module declarations. Full lexical import/reexport binding,
+unanchored edition rules, general namespace/receiver semantics and narrower
+incremental dependency indexes remain separate requirements.
+
+### Lexical Rust import calls (parser policy 17)
+
+Named use leaves create source-bounded `rust_import` lexical bindings. Calls
+selected through those bindings retain original spelling, span and binding ordinal;
+expanded target paths enter native module resolution with explicit-import
+provenance. Module aliases support `alias::member`. Imports are visible throughout
+their lexical scope; inner bindings and value initialization rules still apply.
+Explicit type-only imports do not shadow value lookup, while namespace-qualified
+aliases can coexist with value names. Mixed namespace conflicts requiring unknown
+target kinds remain conservative. Parent-module imports do not leak into children.
+
+Unmodeled globs block unknown-name fallback. Added alias target/provenance text is
+limited to 8 MiB per file and each expanded target to 4,096 bytes, checked before
+allocation; excess retains an explicit unresolved reason. Parser policy 17
+refreshes cached facts. Unanchored imports, reexports, glob exports, general type
+namespace/receiver resolution and type-use binding remain separate work.
+
+### Native ESM export bindings (parser policy 18)
+
+JS/TS extraction retains a separate typed module surface in cached raw facts:
+local named/default/namespace imports, explicit export names and aliases,
+forwarding sources, star exports, type-only modifiers and original spans. An
+absent surface denotes legacy/unavailable facts; an incomplete surface cannot
+prove an imported target. Combining separate module extraction passes marks the
+surface incomplete instead of inventing a shared lexical scope.
+
+Import resolution traverses this authored export surface before selecting a
+symbol. Private same-named declarations are not import targets. Local imports
+can forward exports; explicit exports precede stars; stars exclude `default`.
+Cycles terminate, multiple paths to one defining symbol agree, and distinct
+star-export targets remain ambiguous. Existing lexical shadowing takes precedence.
+Direct namespace member calls and named/default imported calls use this lookup;
+type-only imports/exports cannot provide runtime call targets. Missing or
+unsupported bindings retain explicit unresolved reasons, with no global fallback.
+
+The extraction admits at most 4,096 import/export records and 8 MiB of their
+owned text per file. Imported reference expansion separately caps added text at
+8 MiB and target names at 4,096 bytes. Export declarations use sorted byte-range
+lookup; import normalization uses a local-name map. Each export lookup caps
+recursive depth at 64 and visits at 4,096. Exhaustion is unresolved rather than
+partial proof. Current module facts share cached extraction identities in the
+projector; they are not copied into every graph node.
+
+This is a static source subset, not a runtime loader or complete type checker.
+Anonymous default expressions, namespace values/reexports, escaped specifier
+strings, CommonJS binding semantics, package export conditions, tsconfig aliases,
+full type/value merging and framework script-region boundaries remain unmodeled.
+The existing relative-file candidate policy applies, including runtime extension
+substitution; it does not promise Node or TypeScript loader-mode parity.
+
+### Authored Node package maps (source representation 12)
+
+Package metadata retains optional native Node facts: module type, main, exports,
+imports, workspace patterns and dependency specifiers. Export/import targets
+preserve raw strings, explicit null blocks and unsupported conditional/array
+values. Absent/empty maps stay distinct. The 256 KiB manifest cap applies before
+projection; retained strings additionally cap at 4,096 entries, 4,096 bytes each
+and 256 KiB total. Control characters are unsupported. Unavailable projections contain only a fixed reason. The
+independent stored-fact validator checks limits, keys and ecosystem/role ownership.
+
+JS/TS module lookup supports exact package-name self-references through exports
+and exact package-private `#` imports. Nearest invalid/unavailable boundaries block
+outer inheritance. Main never bypasses the self-export map. Paths must be `./`
+package-relative, with no traversal, node_modules segment, encoded path or URL
+suffix; lookup uses only known files. Exact targets precede unique runtime/source
+extension substitutes (`js` to `ts`/`tsx`, `mjs` to `mts`, `cjs` to `cts`). Multiple
+substitutes remain ambiguous; no implicit extension/index search applies here.
+Reexport traversal uses the same lookup before checking the target's ESM surface.
+
+Package manifest edits rebind conservatively. File-set changes also revisit
+package-map consumers so unresolved default imports can become bound when their
+mapped target appears. This remains broader than the desired precise dependency
+index. Workspace selection, dependency versions, declared tsconfig aliases,
+patterns, runtime conditions, external import-map targets, CommonJS bindings and
+framework regions remain outside this increment. No Node runtime loader or
+experimental package-map API is invoked.
+
+### Configured store exclusion
+
+The library resolves the configured store path, including existing symlinks,
+when opening an index. Explicit relative `OpenOptions.store` paths remain
+relative to the process working directory; configuration-file store paths remain
+relative to the workspace. A store equal to or containing the source root is a
+configuration error. The store is excluded as an exact subtree from the
+shared walk policy. This exclusion applies to indexing, freshness, files, text,
+and body-source discovery, independently of hidden/ignore flags and replacement
+of default directory-name exclusions. Other directories with the same basename
+remain source. External stores do not exclude same-named source directories; explicit search
+scopes pointing to the external store are also excluded.
+
+The policy fingerprint includes excluded paths as OS-encoded bytes; coverage
+binds them through that fingerprint; `Index::policy` exposes the actual paths. A changed fingerprint causes reconciliation to
+rebuild the admitted source projection, removing previously indexed store files.
+The normalized path is fixed for the lifetime of the opened index; changing
+filesystem symlink targets concurrently with an operation is not supported.
+
+### Authored Node workspaces (source representation 13)
+
+`pnpm-workspace.yaml` is a Node `Workspace` manifest, distinct from a package.json
+package boundary. Its bounded native decoder supports explicit block-sequence
+membership or an empty array and simple unrelated scalar/flat-list/map settings;
+unsupported YAML invalidates the whole workspace projection. Manifest bytes and
+retained metadata keep their existing limits. Persisted roles are validated
+against the containing manifest filename.
+
+Nearest pnpm declarations precede package.json workspace fields. Without a pnpm
+file, nearest package.json workspace declarations are supported, except where an
+explicit pnpm manager makes that field non-authoritative. Literal path segments,
+whole-segment `*` and `**`, a leading `./`, and negative exclusions are supported;
+wildcards do not consume dot-prefixed segments. Unsupported pattern syntax is an
+explicit unresolved decision. The root package is included.
+
+A workspace package dependency requires an authored dependency entry using
+`workspace:*`, `workspace:^` or `workspace:~`, a unique admitted package name, an
+explicit target export map, and a valid ESM export binding. Unknown potential
+members prevent incomplete catalogs from claiming uniqueness. A shared one
+million-unit construction limit charges ancestor probes, pattern bytes and glob
+transitions; exhaustion makes workspace dependency bindings unavailable.
+
+Conditional maps may retain a distinct `InvariantPath` fact when every branch
+names the same path and every conditional object has a default, at depth at most
+16. Differing, missing-default, array, blocked-branch and invalid-key projections
+remain unsupported. This does not choose an execution environment or resolve
+installed dependencies. Source version 13 refreshes these facts; parser 18 is
+unchanged. Workspace edits participate in conservative manifest rebinding.
+
+Workspace override selectors are retained from pnpm workspace files and root
+package.json override/resolution settings. A selector that could affect the
+selected package prevents a resolved workspace binding; override targets are not
+interpreted. Unrelated simple selectors do not suppress the binding. Unsupported
+nested/complex override forms conservatively block affected or all workspace
+names. Override checks share the workspace-construction allowance. This avoids
+claiming a local call target when configuration may redirect that dependency.
+
+### Embedded script coordinates and binding-pattern expressions (parser 19)
+
+The language adapter library provides `embedded::script` for a caller-selected
+UTF-8 JS/TS byte range and a stable file-local domain. It translates symbol,
+reference, scope, binding, documentation and ESM spans to original coordinates,
+including lexical visibility bounds used during resolution. It namespaces all
+symbol keys and key references consistently while preserving authored names and
+module specifiers. Hoisted initialization sentinels remain zero. Checked arithmetic
+rejects invalid or unrepresentable coordinates; a containing `.tsx` filename cannot
+change the explicitly selected ordinary TypeScript grammar.
+
+This helper does not identify Svelte/Vue/Astro regions or register those extensions.
+Namespaced identity and `Extraction::merge` do not prove framework visibility:
+framework adapters must separately specify module/instance scope relationships,
+export surfaces, unresolved-name fallback, template relations and coverage.
+
+JS/TS destructured declarations use the same pattern-only identifier traversal as
+lexical scopes. Default-value expressions and computed property keys contribute
+references, not extra bound declarations; executable pattern expressions are walked
+once independently of the right-hand initializer. Parser version 19 invalidates
+cached extraction facts with the former behavior. Source representation stays 13;
+no production dependency or persisted field was added.
+
+
+### Raw TypeScript configuration facts (source representation 14)
+
+The default library registry projects policy-visible `.json` and `.jsonc` files
+into optional `TypeScriptConfig` facts within their authenticated source records.
+This is a candidate configuration projection, not project discovery: ordinary JSON
+files do not become projects, and named `extends` inputs are not opened outside
+walk policy. A source's path/hash remains the origin of all authored values.
+
+The native JSONC adapter handles a leading UTF-8 BOM, comments and trailing commas
+outside strings, retaining exact decoded values for `extends`, `compilerOptions`,
+`files`, `include`, `exclude` and `references`. Empty/null/absent fields and array
+order remain distinct. Wildcard path keys separately preserve first-property
+order; duplicate values replace without moving the key's first slot. Exact names
+are independent of pattern precedence. Other compiler-option values stay raw;
+configuration facts do not certify their compiler semantics. No compiler runs.
+
+Input is capped at 256 KiB before JSON decoding. Retained metadata is capped at
+4,096 values (including the wildcard-order list), depth 32, 4,096 bytes per string
+or key and 128 KiB total string/key bytes. Invalid syntax, a non-object root or an
+exceeded bound emits a fixed unavailable reason with no partial fields. Persisted
+validation independently rechecks these bounds, wildcard-key set consistency,
+source identity, path type and the representation floor. Legacy facts omitting
+the optional field remain readable; source policy 14 refreshes current indexes.
+Custom registries may leave the new optional projection port unsupported.
+
+Native project selection, path-alias resolution and build-output mapping remain
+subsequent integration work. A separate inheritance helper is described below. A resolver must validate supported
+option semantics, retain origin directories, account for unavailable/excluded
+parents, and invalidate affected bindings when configurations change. No such
+bindings are introduced merely by storing these facts. Evidence and compiler
+oracle scope are recorded in
+`research/results/native-implementation/typescript-config-facts/README.md`.
+
+
+### Native inheritance over selected TypeScript configuration facts
+
+`core::typescript::inherit` takes a canonical workspace-relative configuration path
+and one generation's source records. It performs no filesystem reads or default
+project selection. Explicit relative bases resolve from the declaring directory:
+try the authored file, then append `.json` if it is missing and does not already
+end in `.json`. Only indexed `.json`/`.jsonc` facts with a supported source version
+and valid metadata are admitted. Package-based and external inheritance are
+explicitly unavailable, as are missing or excluded parents.
+
+Bases merge in authored order, then local fields override. Compiler options merge
+by option; each option's value replaces as a whole, including the `paths` map and
+its wildcard order. Other retained fields replace as a whole. `references` is
+local to the selected config and is never traversed. `extends` is consumed.
+Relative values remain authored, accompanied by the declaring file for each
+option or membership field. Dependencies retain all visited source hashes.
+
+The helper validates the basic shapes of compiler options, membership lists,
+references and extends, but does not validate every compiler option or calculate
+project membership. It bounds a load to 64 distinct files, 32 active levels and
+32 direct bases; cycles return an explicit reason. Effective metadata retains the
+raw-fact limits and adds a 128 KiB total limit for origin/dependency keys and
+values. Errors expose no partially merged configuration. Results own immutable
+shared data; recomputation from a newer generation cannot alter an earlier result.
+
+No default alias bindings, automatic project discovery or config-triggered binding
+invalidation are implied by this API. Source/parser/ranker versions remain
+14/19/23. See `research/results/native-implementation/typescript-inheritance/README.md`
+for compiler comparisons, persistence checks and supported-scope limitations.
+
+
+### Native selected-configuration alias dispatch
+
+`core::typescript_aliases::Aliases` compiles paths/baseUrl from an effective config.
+Exact keys take precedence over wildcard keys. Wildcards choose the longest
+matching prefix; equal-prefix ties preserve authored property order. Only the
+selected key is attempted, in substitution order, stopping at the first loaded
+target. A matched key with no loaded target does not attempt baseUrl. No matching
+key may use baseUrl; a separate result variant records that route.
+
+The effective baseUrl resolves relative to its own declaring file and anchors
+paths substitutions when present. Otherwise substitutions use the paths map's
+origin directory. Relative specifiers remain for the ordinary module loader.
+The callback receives a normalized workspace-relative candidate and its original
+unexpanded substitution (`None` for baseUrl), preserving whether an extension was
+authored or introduced by wildcard expansion. It owns module-mode, extension,
+suffix and package-directory semantics. Callback errors stop dispatch.
+
+Compilation checks raw metadata validity, option/array shapes, one wildcard per
+key/substitution, origin/path bounds and workspace containment. At most 128
+substitutions are allowed per key; expanded paths and eligible specifiers are
+limited to 4,096 bytes. Trailing directory separators and empty-wildcard compiler
+behavior are retained. No filesystem access, automatic project discovery or
+binding publication occurs in this helper. Remaining compiler options must be
+interpreted by its caller. Source/parser/ranker versions remain 14/19/23.
+
+
+### Native modern TypeScript file loading
+
+`core::typescript_files` compiles file-probing options for a caller-selected
+bundler, Node16/NodeNext ESM or Node16/NodeNext CommonJS context. Source/runtime
+extension families, declarations, authored module suffixes and JSON/custom wrappers
+follow the tested TypeScript 6 resolution policy. A literal mapped extension may
+probe its exact suffixed file first; wildcard-introduced extensions use replacement
+order. ESM excludes implicit extensions and index-directory fallback.
+
+`Lookup` reads only a coherent generation's supplied admitted-file and package-boundary
+sets. It records distinct positive/negative paths plus boundary presence, and caps
+one resolution at 256 distinct probes across all alias substitutions. Paths cap at
+4,096 bytes; suffix lists at 32 entries of 128 bytes. Unsupported options, paths or
+exhausted budgets return reasons. Unmodeled package-directory entry rules fail
+before guessing index files; an unavailable manifest boundary is not an admitted
+source file. Callers must retain observations for future invalidation work.
+
+This helper does not discover projects, infer module mode, apply rootDirs, interpret
+package directory entry fields or publish alias bindings. Default resolution and
+source/parser/ranker versions remain unchanged (14/19/23) until integration. The
+selected-context compiler matrix and publication tests are recorded in
+`research/results/native-implementation/typescript-file-loading/README.md`.

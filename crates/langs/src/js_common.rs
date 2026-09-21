@@ -32,8 +32,6 @@ pub struct JsExtractor<'a> {
     pub extraction: Extraction,
     /// The lexical scope stack: `(prefix, fact_key)`.
     pub scope: Vec<(String, String)>,
-    /// Local import name to (module specifier, exported name).
-    pub imports: std::collections::BTreeMap<String, (String, String)>,
 }
 
 impl<'a> JsExtractor<'a> {
@@ -50,12 +48,7 @@ impl<'a> JsExtractor<'a> {
     }
 
     fn span(node: Node<'_>) -> Span {
-        Span::new(
-            crate::walk::line_of(node.start_position().row),
-            crate::walk::line_of(node.end_position().row),
-            crate::walk::line_of(node.start_byte()),
-            crate::walk::line_of(node.end_byte()),
-        )
+        crate::walk::span_of(node)
     }
 
     fn line(node: Node<'_>) -> u32 {
@@ -97,8 +90,6 @@ impl<'a> JsExtractor<'a> {
     }
 
     fn reference(&mut self, kind: EdgeKind, name: String, node: Node<'_>) {
-        let dynamic =
-            kind == EdgeKind::Calls && crate::walk::parameter_shadows(node, self.source, &name);
         let owner = if kind == EdgeKind::Calls {
             self.scope.iter().rev().find(|(_, key)| {
                 let local = key.rsplit('>').next().unwrap_or(key);
@@ -107,12 +98,15 @@ impl<'a> JsExtractor<'a> {
         } else {
             self.scope.last()
         };
-        let mut fact = if let Some((_, key)) = owner {
+        let fact = if let Some((_, key)) = owner {
             ReferenceFact::from_symbol(key.clone(), kind, name, Self::line(node))
         } else {
             ReferenceFact::file_level(kind, name, Self::line(node))
         };
-        fact.dynamic = dynamic;
+        let mut fact = fact.at(Self::span(node));
+        if kind == EdgeKind::Calls {
+            fact.raw_name = Some(fact.name.clone());
+        }
         self.extraction.references.push(fact);
     }
 
@@ -142,6 +136,19 @@ impl<'a> JsExtractor<'a> {
                     .child_by_field_name("name")
                     .map_or_else(String::new, |name| self.text(name).to_owned());
                 self.emit(node, NodeKind::Method, name, self.first_line(node));
+                let mut cursor = node.walk();
+                let modifiers: Vec<_> = node
+                    .children(&mut cursor)
+                    .map(|child| child.kind())
+                    .collect();
+                if modifiers.contains(&"static")
+                    && !modifiers.iter().any(|kind| matches!(*kind, "get" | "set"))
+                    && let Some(method) = self.extraction.symbols.last_mut()
+                {
+                    method
+                        .attributes
+                        .insert("static_callable".into(), "true".into());
+                }
                 self.walk_children(node);
                 self.scope.pop();
             }
@@ -184,6 +191,7 @@ impl<'a> JsExtractor<'a> {
             kind if kind == self.dialect.field_kind => {
                 let name = node
                     .child_by_field_name("name")
+                    .or_else(|| node.child_by_field_name("property"))
                     .map(|name| self.text(name).to_owned());
                 if let Some(name) = name {
                     self.emit(node, NodeKind::Field, name, self.first_line(node));
@@ -312,8 +320,10 @@ impl<'a> JsExtractor<'a> {
                     // A destructured declaration binds every identifier in the
                     // pattern: `const { store } = require(...)`.
                     if name_node.kind() != "identifier" {
-                        let mut pattern_names: Vec<String> = Vec::new();
-                        collect_pattern_names(name_node, self.source, &mut pattern_names);
+                        let pattern_names: Vec<_> = crate::scopes::pattern_names(name_node)
+                            .into_iter()
+                            .map(|name| self.text(name).to_owned())
+                            .collect();
                         let value = child.child_by_field_name("value");
                         let kind = if is_const {
                             NodeKind::Const
@@ -324,6 +334,9 @@ impl<'a> JsExtractor<'a> {
                             self.emit(child, kind, pattern_name, self.first_line(child));
                             self.scope.pop();
                         }
+                        // Computed keys and default values execute expressions;
+                        // their identifiers are not additional declarations.
+                        self.walk_node(name_node);
                         if let Some(value) = value {
                             self.walk_node(value);
                         }
@@ -366,46 +379,84 @@ impl<'a> JsExtractor<'a> {
         let specifier = self.string_text(source);
         let Some(specifier) = specifier else { return };
         // The module edge itself: file -> file.
-        self.reference(EdgeKind::Imports, specifier.clone(), node);
-        // Capture binding identity, including aliases. Apply after walking
-        // the file so imports also work below the referencing declaration.
-        let mut stack = vec![node];
-        while let Some(child) = stack.pop() {
-            if child.kind() == "import_specifier" {
-                if let Some(name) = child.child_by_field_name("name") {
-                    let alias = child.child_by_field_name("alias").unwrap_or(name);
-                    self.imports.insert(
-                        self.text(alias).to_owned(),
-                        (specifier.clone(), self.text(name).to_owned()),
-                    );
-                    self.extraction.references.push(
-                        ReferenceFact::file_level(
-                            EdgeKind::Imports,
-                            self.text(name),
-                            Self::line(node),
-                        )
-                        .via_import(specifier.clone()),
-                    );
-                }
-                continue;
-            }
-            for i in 0..child.named_child_count() {
-                if let Some(n) = child.named_child(u32::try_from(i).unwrap_or(u32::MAX)) {
-                    stack.push(n);
-                }
-            }
-        }
+        self.reference(EdgeKind::Imports, specifier, node);
+        // Binding leaves are collected once by the native module-fact pass.
     }
 
     /// Attach explicit import provenance before workspace resolution.
     pub fn bind_imports(&mut self) {
+        let Some(module) = &self.extraction.js_module else {
+            return;
+        };
+        let mut bindings = std::collections::BTreeMap::new();
+        for import in &module.imports {
+            bindings
+                .entry(import.local.as_str())
+                .and_modify(|binding| *binding = None)
+                .or_insert(Some(import));
+        }
+        let mut added_bytes = 0usize;
         for fact in &mut self.extraction.references {
-            if fact.kind != EdgeKind::Imports
-                && !fact.dynamic
-                && let Some((specifier, exported)) = self.imports.get(&fact.name)
+            if fact.kind == EdgeKind::Imports
+                || fact.dynamic
+                || fact.lexical_target.is_some()
+                || fact.via_import.is_some()
             {
-                fact.via_import = Some(specifier.clone());
-                fact.name.clone_from(exported);
+                continue;
+            }
+            if !module.complete {
+                fact.dynamic = true;
+                fact.unresolved_reason = Some("js_module_surface_incomplete".into());
+                continue;
+            }
+            let base = fact
+                .name
+                .split(['.', '[', '?'])
+                .next()
+                .unwrap_or(&fact.name);
+            let Some(binding) = bindings.get(base) else {
+                continue;
+            };
+            let reason = if let Some(import) = binding {
+                if import.type_only && fact.kind == EdgeKind::Calls {
+                    fact.dynamic = true;
+                    fact.unresolved_reason = Some("js_type_only_import".into());
+                    continue;
+                }
+                let target = if import.imported == "*" {
+                    fact.name
+                        .strip_prefix(import.local.as_str())
+                        .and_then(|name| name.strip_prefix('.'))
+                        .filter(|name| {
+                            !name.is_empty()
+                                && name
+                                    .chars()
+                                    .all(|c| c.is_alphanumeric() || c == '_' || c == '$')
+                        })
+                } else if fact.name == import.local {
+                    Some(import.imported.as_str())
+                } else {
+                    None
+                };
+                if let Some(target) = target {
+                    let cost = import.source.len().saturating_add(target.len());
+                    if target.len() > 4096 || added_bytes.saturating_add(cost) > 8 * 1024 * 1024 {
+                        Some("js_import_binding_limit")
+                    } else {
+                        added_bytes = added_bytes.saturating_add(cost);
+                        fact.via_import = Some(import.source.clone());
+                        fact.name = target.to_owned();
+                        None
+                    }
+                } else {
+                    Some("js_import_member_unmodeled")
+                }
+            } else {
+                Some("js_import_binding_ambiguous")
+            };
+            if let Some(reason) = reason {
+                fact.dynamic = true;
+                fact.unresolved_reason = Some(reason.into());
             }
         }
     }
@@ -413,44 +464,10 @@ impl<'a> JsExtractor<'a> {
     fn export(&mut self, node: Node<'_>) {
         // `export { a, b }`, `export { a } from "./x"`, `export default X`,
         // `export <declaration>`.
-        if let Some(clause) = node.child_by_field_name("export_clause") {
-            let names = export_names(clause, self.source);
-            for name in names {
-                self.reference(EdgeKind::Exports, name, node);
-            }
-        }
         if let Some(declaration) = node.child_by_field_name("declaration") {
-            let exported = match declaration.kind() {
-                "function_declaration"
-                | "generator_function_declaration"
-                | "class_declaration"
-                | "abstract_class_declaration"
-                | "interface_declaration"
-                | "type_alias_declaration"
-                | "enum_declaration" => declaration_name(declaration, self.source),
-                "lexical_declaration" | "variable_declaration" => {
-                    let mut names: Vec<String> = Vec::new();
-                    let mut cursor = declaration.walk();
-                    if cursor.goto_first_child() {
-                        loop {
-                            if cursor.node().kind() == "variable_declarator"
-                                && let Some(name) = cursor.node().child_by_field_name("name")
-                            {
-                                names.push(self.text(name).to_owned());
-                            }
-                            if !cursor.goto_next_sibling() {
-                                break;
-                            }
-                        }
-                    }
-                    names.into_iter().next()
-                }
-                _ => None,
-            };
-            if let Some(name) = exported {
-                self.reference(EdgeKind::Exports, name, node);
-            }
             self.walk_node(declaration);
+        } else if let Some(value) = node.child_by_field_name("value") {
+            self.walk_node(value);
         }
         if let Some(source) = node.child_by_field_name("source")
             && let Some(specifier) = self.string_text(source)
@@ -530,106 +547,18 @@ impl<'a> JsExtractor<'a> {
     }
 
     fn string_text(&self, node: Node<'_>) -> Option<String> {
-        let mut stack = vec![node];
-        while let Some(current) = stack.pop() {
-            if current.kind() == "string_fragment" {
-                return Some(self.text(current).to_owned());
-            }
-            let mut cursor = current.walk();
-            if cursor.goto_first_child() {
-                loop {
-                    stack.push(cursor.node());
-                    if !cursor.goto_next_sibling() {
-                        break;
-                    }
-                }
-            }
-        }
-        None
+        crate::js_modules::name(node, self.source)
     }
-}
-
-/// The declared name of an exportable declaration (the identifier after the
-/// keyword; the grammar names no field on several of them).
-fn declaration_name<'a>(declaration: Node<'a>, source: &'a str) -> Option<String> {
-    (0..declaration.child_count())
-        .map(|i| declaration.child(i))
-        .find(|child| child.is_some_and(|c| matches!(c.kind(), "identifier" | "type_identifier")))
-        .flatten()
-        .map(|name| text_of(name, source).to_owned())
-}
-
-/// The bound names inside a destructuring pattern.
-fn collect_pattern_names(pattern: Node<'_>, source: &str, out: &mut Vec<String>) {
-    let mut stack = vec![pattern];
-    while let Some(current) = stack.pop() {
-        match current.kind() {
-            "shorthand_property_identifier_pattern" | "identifier" => {
-                out.push(text_of(current, source).to_owned());
-            }
-            _ => {
-                let mut cursor = current.walk();
-                if cursor.goto_first_child() {
-                    loop {
-                        stack.push(cursor.node());
-                        if !cursor.goto_next_sibling() {
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-/// The exported names of an export clause, using the *source* name
-/// (`{ a as b }` exports `a`).
-fn export_names(clause: Node<'_>, source: &str) -> Vec<String> {
-    let mut names = Vec::new();
-    let mut stack = vec![clause];
-    while let Some(current) = stack.pop() {
-        if current.kind() == "export_specifier" {
-            if let Some(name) = current.child_by_field_name("name") {
-                names.push(text_of(name, source).to_owned());
-            }
-        } else {
-            let mut cursor = current.walk();
-            if cursor.goto_first_child() {
-                loop {
-                    stack.push(cursor.node());
-                    if !cursor.goto_next_sibling() {
-                        break;
-                    }
-                }
-            }
-        }
-    }
-    names
-}
-
-fn text_of<'a>(node: Node<'_>, source: &'a str) -> &'a str {
-    source
-        .get(node.start_byte()..node.end_byte())
-        .unwrap_or_default()
 }
 
 fn first_string(node: Node<'_>, source: &str) -> Option<String> {
-    let mut stack = vec![node];
-    while let Some(current) = stack.pop() {
-        if current.kind() == "string_fragment" {
-            return Some(text_of(current, source).to_owned());
-        }
-        let mut cursor = current.walk();
-        if cursor.goto_first_child() {
-            loop {
-                stack.push(cursor.node());
-                if !cursor.goto_next_sibling() {
-                    break;
-                }
-            }
-        }
-    }
-    None
+    let mut cursor = node.walk();
+    let first = node
+        .named_children(&mut cursor)
+        .find(|child| child.kind() != "comment")?;
+    (first.kind() == "string")
+        .then(|| crate::js_modules::name(first, source))
+        .flatten()
 }
 
 /// Exposes the visibility helper to the dialect wrappers; TS/JS has none, so

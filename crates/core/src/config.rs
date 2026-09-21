@@ -48,9 +48,16 @@ pub fn default_extensions() -> BTreeMap<String, Language> {
 /// How the tree is walked and which files are extracted (`SPEC.md` §6.1).
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct WalkPolicy {
+    /// Maximum admitted files; clamped to the library hard ceiling.
+    pub max_files: usize,
+    /// Maximum entries yielded by the policy-constrained walker.
+    pub max_walk_entries: usize,
     /// Directory names never walked. User values replace the defaults only
     /// when `replace_defaults` is set (`SPEC.md` §12).
     pub excludes: Vec<String>,
+    /// Absolute subtrees excluded independently of hidden and ignore flags.
+    /// Hosts use this for index storage; paths must be normalized like the walk root.
+    pub excluded_paths: Vec<std::path::PathBuf>,
     /// Whether `include_hidden` applies; hidden entries are skipped otherwise.
     pub include_hidden: bool,
     /// Whether `.gitignore`, `.ignore`, and git excludes are honoured. The
@@ -69,7 +76,10 @@ pub struct WalkPolicy {
 impl Default for WalkPolicy {
     fn default() -> Self {
         Self {
+            max_files: graph_search_types::limits::MAX_FILES,
+            max_walk_entries: graph_search_types::limits::MAX_WALK_ENTRIES,
             excludes: DEFAULT_EXCLUDES.iter().map(|s| (*s).to_owned()).collect(),
+            excluded_paths: Vec::new(),
             include_hidden: false,
             respect_ignore: true,
             max_file_bytes: graph_search_types::limits::MAX_FILE_BYTES,
@@ -86,6 +96,23 @@ impl Default for WalkPolicy {
 }
 
 impl WalkPolicy {
+    /// Fingerprint of all inclusion and extraction policy settings.
+    #[must_use]
+    pub fn fingerprint(&self) -> String {
+        crate::hash::content_hash(
+            serde_json::json!({
+                "hidden":self.include_hidden, "ignore":self.respect_ignore,
+                "excludes":self.excludes, "max_file_bytes":self.max_file_bytes,
+                "excluded_paths": self.excluded_paths.iter()
+                    .map(|path| path.as_os_str().as_encoded_bytes()).collect::<Vec<_>>(),
+                "max_files":self.max_files, "max_entries":self.max_walk_entries,
+                "languages":self.languages, "extensions":self.extensions,
+            })
+            .to_string()
+            .as_bytes(),
+        )
+    }
+
     /// Whether `path` names an always-excluded directory.
     #[must_use]
     pub fn is_excluded(&self, path: &std::path::Path) -> bool {

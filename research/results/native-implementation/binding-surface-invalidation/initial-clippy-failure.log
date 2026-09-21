@@ -1,0 +1,32 @@
+    Checking graph-search-core v0.1.0 (/Volumes/Delorean/code/graph-search/crates/core)
+error: item in documentation is missing backticks
+ --> crates/core/src/binding_surface.rs:3:48
+  |
+3 | //! Keep this comparison aligned with resolve, js_modules and rust_modules/paths.
+  |                                                ^^^^^^^^^^
+  |
+  = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#doc_markdown
+  = note: `-D clippy::doc-markdown` implied by `-D warnings`
+  = help: to override `-D warnings` add `#[allow(clippy::doc_markdown)]`
+help: try
+  |
+3 - //! Keep this comparison aligned with resolve, js_modules and rust_modules/paths.
+3 + //! Keep this comparison aligned with resolve, `js_modules` and rust_modules/paths.
+  |
+
+error: item in documentation is missing backticks
+ --> crates/core/src/binding_surface.rs:3:63
+  |
+3 | //! Keep this comparison aligned with resolve, js_modules and rust_modules/paths.
+  |                                                               ^^^^^^^^^^^^^^^^^^
+  |
+  = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#doc_markdown
+help: try
+  |
+3 - //! Keep this comparison aligned with resolve, js_modules and rust_modules/paths.
+3 + //! Keep this comparison aligned with resolve, js_modules and `rust_modules/paths`.
+  |
+
+error: could not compile `graph-search-core` (lib) due to 2 previous errors
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `graph-search-core` (lib test) due to 2 previous errors

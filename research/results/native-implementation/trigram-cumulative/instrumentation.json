@@ -1,0 +1,10 @@
+{
+  "temporary_source": "/var/folders/ft/6fdqp3c914xfdlk47w5cblzc0000gn/T/graph-search-trigram-control-tfn8mb24",
+  "search_insert_before": "        if !work.source_file()? {",
+  "search_insertion": "        if !research_admits(&entry.rel) { continue; }\n",
+  "search_append": "\nstd::thread_local! {\n    static RESEARCH_ADMISSION: std::cell::RefCell<Option<std::collections::BTreeSet<String>>> = const { std::cell::RefCell::new(None) };\n}\n/// Disposable probe-only admission control, absent from production sources.\npub fn research_admission(paths: Option<&[String]>) {\n    RESEARCH_ADMISSION.with(|current| *current.borrow_mut() = paths.map(|paths| paths.iter().cloned().collect()));\n}\nfn research_admits(path: &str) -> bool {\n    RESEARCH_ADMISSION.with(|current| current.borrow().as_ref().is_none_or(|paths| paths.contains(path)))\n}\n",
+  "probe_before": "fn configure_admission(_paths: Option<&[String]>) -> bool {\n    false\n}",
+  "probe_after": "fn configure_admission(paths: Option<&[String]>) -> bool {\n    graph_search_core::text_search::research_admission(paths);\n    true\n}",
+  "instrumented_search_sha256": "c79fc40cf62cb261e29c4cc693c0c723774704425af58df02c6c893d5b1ddb03",
+  "instrumented_probe_sha256": "ebe278361befd02d178b8f42705d381d0449e0a55abaeff3563a317cc624df56"
+}

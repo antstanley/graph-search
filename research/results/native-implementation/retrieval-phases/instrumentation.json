@@ -1,0 +1,76 @@
+{
+  "phases": {
+    "crates/graph-search/src/service.rs": [
+      [
+        "explore",
+        "service"
+      ],
+      [
+        "freshness",
+        "freshness"
+      ],
+      [
+        "context",
+        "service_context"
+      ]
+    ],
+    "crates/core/src/query.rs": [
+      [
+        "explore_with_context",
+        "query"
+      ],
+      [
+        "seed",
+        "seed"
+      ],
+      [
+        "connect",
+        "connect"
+      ]
+    ],
+    "crates/core/src/body.rs": [
+      [
+        "collect_scores",
+        "body_postings"
+      ],
+      [
+        "rank",
+        "body_topk"
+      ]
+    ],
+    "crates/core/src/lexical.rs": [
+      [
+        "accumulate_inner",
+        "metadata_postings"
+      ],
+      [
+        "accumulate_all_inner",
+        "metadata_postings"
+      ]
+    ],
+    "crates/core/src/metadata.rs": [
+      [
+        "search_top_with_policy",
+        "metadata_retrieval"
+      ]
+    ],
+    "crates/core/src/evidence.rs": [
+      [
+        "extend_prepared",
+        "evidence"
+      ]
+    ]
+  },
+  "timer": "//! Disposable research-only inclusive phase recorder.\nuse std::{cell::RefCell, time::Instant};\nthread_local! { static EVENTS: RefCell<Vec<(&'static str, u128)>> = const { RefCell::new(Vec::new()) }; }\npub struct Timer { label: &'static str, start: Instant }\nimpl Timer {\n    pub fn new(label: &'static str) -> Self { Self { label, start: Instant::now() } }\n}\nimpl Drop for Timer {\n    fn drop(&mut self) {\n        let ns = self.start.elapsed().as_nanos();\n        EVENTS.with(|events| {\n            let mut events = events.borrow_mut();\n            events.push((self.label, ns));\n            if self.label == \"service\" {\n                for (label, duration) in events.drain(..) {\n                    eprintln!(\"GS_PHASE\\t{label}\\t{duration}\");\n                }\n            }\n        });\n    }\n}\n",
+  "modified_sha256": {
+    "crates/graph-search/src/service.rs": "db8e80c50297bb422fadd19435cc2201818bc4f33281cd863f746e59349c6552",
+    "crates/core/src/query.rs": "bacfae3bd47935223ee5fb5d778032464e45c0654f4f6730e68a78a0df5a063a",
+    "crates/core/src/body.rs": "b7c0f5463fb3fb8d04564c9f4707f741cc6fec8b431f26150f75e54b5d87843d",
+    "crates/core/src/lexical.rs": "5c54a4d78775f4f99bd7dfc4745405dbe6244b9c92bf6ff03de8600a3b0c9329",
+    "crates/core/src/metadata.rs": "c3e116dd96e80f370cf5135c8ccf21de8c6814d637cd57c0098f1591d6f5f9d8",
+    "crates/core/src/evidence.rs": "04fa68d22f1383262c1ef1107bc7f6c0660906968bcb4cc7cb3bb32f9b470552",
+    "crates/core/src/lib.rs": "b7c6398f46201c7173ce9ef9cfdb73d40d89275ebaa146a3b04284695e0565e9",
+    "crates/core/src/research_profile.rs": "25071d7ccbe57efbcb761e0ff6035b1500a4c63d066770ec2af3ce484c629098"
+  },
+  "temporary_root": "/var/folders/ft/6fdqp3c914xfdlk47w5cblzc0000gn/T/graph-search-retrieval-phases-nii1hh92"
+}

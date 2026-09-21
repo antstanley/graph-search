@@ -1,0 +1,22 @@
+   Compiling graph-search v0.1.0 (/Volumes/Delorean/code/graph-search/crates/graph-search)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 6.86s
+     Running tests/scopes.rs (target/debug/deps/scopes-c62a40e7d4e32ef0)
+
+running 1 test
+test local_callable_shadow_cannot_inherit_an_outer_class_member ... FAILED
+
+failures:
+
+---- local_callable_shadow_cannot_inherit_an_outer_class_member stdout ----
+
+thread 'local_callable_shadow_cannot_inherit_an_outer_class_member' (81734331) panicked at crates/graph-search/tests/scopes.rs:405:13:
+js/declared: [EdgeHit { from: "sym:calls.js#function:declared", kind: Calls, to: Some("sym:calls.js#method:Api.send"), to_name: "Api.send", path: Some("calls.js"), line: Some(2), resolved: true, occurrence_count: Some(1) }]
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    local_callable_shadow_cannot_inherit_an_outer_class_member
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 6 filtered out; finished in 0.07s
+
+error: test failed, to rerun pass `-p graph-search --test scopes`

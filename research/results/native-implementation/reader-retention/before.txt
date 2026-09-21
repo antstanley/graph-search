@@ -1,0 +1,20 @@
+   Compiling graph-search-core v0.1.0 (/Volumes/Delorean/code/graph-search/crates/core)
+   Compiling graph-search-engine v0.1.0 (/Volumes/Delorean/code/graph-search/crates/engine)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 25.05s
+     Running unittests src/lib.rs (target/debug/deps/graph_search_engine-d7dc19d11ff0312c)
+
+running 1 test
+
+thread 'store::publication_tests::retained_readers_keep_lazy_facts_until_their_generation_is_released' (82243947) panicked at crates/engine/src/store.rs:1006:30:
+called `Result::unwrap()` on an `Err` value: Store("No such file or directory (os error 2)")
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test store::publication_tests::retained_readers_keep_lazy_facts_until_their_generation_is_released ... FAILED
+
+failures:
+
+failures:
+    store::publication_tests::retained_readers_keep_lazy_facts_until_their_generation_is_released
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 30 filtered out; finished in 0.12s
+
+error: test failed, to rerun pass `-p graph-search-engine --lib`

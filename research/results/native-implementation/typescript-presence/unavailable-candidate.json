@@ -1,0 +1,28 @@
+{
+  "binary_sha256": "80bf3bed916d0af6d9a4e66aa1075ec97ff8ca788f0e25f5e4669d861e2899ec",
+  "compiler_sha256": "569177652966bd528c319171c7dd22860dbf72bde116cbc4f644f1d02bb12e39",
+  "scope": "Native lookup refuses an oversized preferred TypeScript candidate instead of choosing JavaScript. The compiler target verifies priority; refusal is not positive target equivalence. Default bindings remain unintegrated.",
+  "native": {
+    "probes": [
+      {
+        "availability": "unavailable",
+        "package_boundary": false,
+        "path": "src/entry.ts",
+        "present": false
+      }
+    ],
+    "query": {
+      "config": "tsconfig.json",
+      "mode": "bundler",
+      "specifier": "@/entry.js"
+    },
+    "result": {
+      "error": "ts_module_target_unavailable"
+    }
+  },
+  "compiler": {
+    "version": "6.0.3",
+    "target": "<fixture>/src/entry.ts"
+  },
+  "required_next_step": "Persist namespace observations with project-aware binding dependencies before publishing default alias bindings."
+}

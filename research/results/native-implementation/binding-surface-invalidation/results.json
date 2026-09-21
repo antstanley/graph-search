@@ -1,0 +1,692 @@
+{
+  "memory": {
+    "after_identical_target_replacement": {
+      "incoming": [
+        {
+          "from": "sym:caller.js#function:caller",
+          "id": "(sym:caller.js#function:caller) -[calls]-> (sym:leaf.js#function:leaf)",
+          "kind": "calls",
+          "line": 2,
+          "path": "caller.js",
+          "resolved": true,
+          "to": "sym:leaf.js#function:leaf",
+          "to_name": "leaf"
+        }
+      ],
+      "occurrences": [
+        {
+          "path": "caller.js",
+          "record": {
+            "binding": null,
+            "extent": "expression",
+            "id": "occ:a9b35cd0e55348822858929a2e0de424e475d9b5ddb996df43d30ee79b1269fc",
+            "kind": "calls",
+            "line": 2,
+            "name": "leaf",
+            "ordinal": 1,
+            "owner": "sym:caller.js#function:caller",
+            "raw_name": "leaf",
+            "reason": null,
+            "resolution": "explicit_import",
+            "scope": 2,
+            "span": {
+              "end_byte": 72,
+              "end_line": 2,
+              "start_byte": 66,
+              "start_line": 2
+            },
+            "target": "sym:leaf.js#function:leaf",
+            "target_name": "leaf"
+          }
+        },
+        {
+          "path": "caller.js",
+          "record": {
+            "binding": null,
+            "extent": "enclosing_syntax",
+            "id": "occ:516022451763c676a8defe9f1990d1a7fbe20df8ee47419925ce751f44018750",
+            "kind": "imports",
+            "line": 1,
+            "name": "leaf",
+            "ordinal": 2,
+            "owner": "file:caller.js",
+            "raw_name": "leaf",
+            "reason": null,
+            "resolution": "explicit_import",
+            "scope": null,
+            "span": {
+              "end_byte": 12,
+              "end_line": 1,
+              "start_byte": 8,
+              "start_line": 1
+            },
+            "target": "sym:leaf.js#function:leaf",
+            "target_name": "leaf"
+          }
+        },
+        {
+          "path": "leaf.js",
+          "record": {
+            "binding": null,
+            "extent": "enclosing_syntax",
+            "id": "occ:d808aea078a25497e0c5d21a8a1a7ebe0d635ba17260c845d2e36906ae4ef592",
+            "kind": "exports",
+            "line": 1,
+            "name": "leaf",
+            "ordinal": 0,
+            "owner": "file:leaf.js",
+            "raw_name": null,
+            "reason": null,
+            "resolution": "same_file",
+            "scope": null,
+            "span": {
+              "end_byte": 36,
+              "end_line": 1,
+              "start_byte": 7,
+              "start_line": 1
+            },
+            "target": "sym:leaf.js#function:leaf",
+            "target_name": "leaf"
+          }
+        }
+      ],
+      "target": {
+        "attributes": {
+          "lexical_key": "function:leaf"
+        },
+        "bytes": null,
+        "content_hash": null,
+        "id": "sym:leaf.js#function:leaf",
+        "is_async": false,
+        "kind": "function",
+        "language": null,
+        "lines": null,
+        "name": "leaf",
+        "parent": null,
+        "parser_version": null,
+        "path": "leaf.js",
+        "qualified_name": "leaf",
+        "signature": "function leaf() { return 1; }",
+        "span": {
+          "end_byte": 36,
+          "end_line": 1,
+          "start_byte": 7,
+          "start_line": 1
+        },
+        "visibility": null
+      }
+    },
+    "before": {
+      "incoming": [
+        {
+          "from": "sym:caller.js#function:caller",
+          "id": "(sym:caller.js#function:caller) -[calls]-> (sym:leaf.js#function:leaf)",
+          "kind": "calls",
+          "line": 2,
+          "path": "caller.js",
+          "resolved": true,
+          "to": "sym:leaf.js#function:leaf",
+          "to_name": "leaf"
+        }
+      ],
+      "occurrences": [
+        {
+          "path": "caller.js",
+          "record": {
+            "binding": null,
+            "extent": "expression",
+            "id": "occ:a9b35cd0e55348822858929a2e0de424e475d9b5ddb996df43d30ee79b1269fc",
+            "kind": "calls",
+            "line": 2,
+            "name": "leaf",
+            "ordinal": 1,
+            "owner": "sym:caller.js#function:caller",
+            "raw_name": "leaf",
+            "reason": null,
+            "resolution": "explicit_import",
+            "scope": 2,
+            "span": {
+              "end_byte": 72,
+              "end_line": 2,
+              "start_byte": 66,
+              "start_line": 2
+            },
+            "target": "sym:leaf.js#function:leaf",
+            "target_name": "leaf"
+          }
+        },
+        {
+          "path": "caller.js",
+          "record": {
+            "binding": null,
+            "extent": "enclosing_syntax",
+            "id": "occ:516022451763c676a8defe9f1990d1a7fbe20df8ee47419925ce751f44018750",
+            "kind": "imports",
+            "line": 1,
+            "name": "leaf",
+            "ordinal": 2,
+            "owner": "file:caller.js",
+            "raw_name": "leaf",
+            "reason": null,
+            "resolution": "explicit_import",
+            "scope": null,
+            "span": {
+              "end_byte": 12,
+              "end_line": 1,
+              "start_byte": 8,
+              "start_line": 1
+            },
+            "target": "sym:leaf.js#function:leaf",
+            "target_name": "leaf"
+          }
+        },
+        {
+          "path": "leaf.js",
+          "record": {
+            "binding": null,
+            "extent": "enclosing_syntax",
+            "id": "occ:d808aea078a25497e0c5d21a8a1a7ebe0d635ba17260c845d2e36906ae4ef592",
+            "kind": "exports",
+            "line": 1,
+            "name": "leaf",
+            "ordinal": 0,
+            "owner": "file:leaf.js",
+            "raw_name": null,
+            "reason": null,
+            "resolution": "same_file",
+            "scope": null,
+            "span": {
+              "end_byte": 36,
+              "end_line": 1,
+              "start_byte": 7,
+              "start_line": 1
+            },
+            "target": "sym:leaf.js#function:leaf",
+            "target_name": "leaf"
+          }
+        }
+      ],
+      "target": {
+        "attributes": {
+          "lexical_key": "function:leaf"
+        },
+        "bytes": null,
+        "content_hash": null,
+        "id": "sym:leaf.js#function:leaf",
+        "is_async": false,
+        "kind": "function",
+        "language": null,
+        "lines": null,
+        "name": "leaf",
+        "parent": null,
+        "parser_version": null,
+        "path": "leaf.js",
+        "qualified_name": "leaf",
+        "signature": "function leaf() { return 1; }",
+        "span": {
+          "end_byte": 36,
+          "end_line": 1,
+          "start_byte": 7,
+          "start_line": 1
+        },
+        "visibility": null
+      }
+    },
+    "outcome": {
+      "edges_upserted": 2,
+      "files_touched": 1,
+      "nodes_deleted": 0,
+      "nodes_upserted": 2
+    },
+    "target": "sym:leaf.js#function:leaf"
+  },
+  "persistent": {
+    "after_identical_target_replacement": {
+      "incoming": [
+        {
+          "from": "sym:caller.js#function:caller",
+          "id": "(sym:caller.js#function:caller) -[calls]-> (sym:leaf.js#function:leaf)",
+          "kind": "calls",
+          "line": 2,
+          "path": "caller.js",
+          "resolved": true,
+          "to": "sym:leaf.js#function:leaf",
+          "to_name": "leaf"
+        }
+      ],
+      "occurrences": [
+        {
+          "path": "caller.js",
+          "record": {
+            "binding": null,
+            "extent": "expression",
+            "id": "occ:a9b35cd0e55348822858929a2e0de424e475d9b5ddb996df43d30ee79b1269fc",
+            "kind": "calls",
+            "line": 2,
+            "name": "leaf",
+            "ordinal": 1,
+            "owner": "sym:caller.js#function:caller",
+            "raw_name": "leaf",
+            "reason": null,
+            "resolution": "explicit_import",
+            "scope": 2,
+            "span": {
+              "end_byte": 72,
+              "end_line": 2,
+              "start_byte": 66,
+              "start_line": 2
+            },
+            "target": "sym:leaf.js#function:leaf",
+            "target_name": "leaf"
+          }
+        },
+        {
+          "path": "caller.js",
+          "record": {
+            "binding": null,
+            "extent": "enclosing_syntax",
+            "id": "occ:516022451763c676a8defe9f1990d1a7fbe20df8ee47419925ce751f44018750",
+            "kind": "imports",
+            "line": 1,
+            "name": "leaf",
+            "ordinal": 2,
+            "owner": "file:caller.js",
+            "raw_name": "leaf",
+            "reason": null,
+            "resolution": "explicit_import",
+            "scope": null,
+            "span": {
+              "end_byte": 12,
+              "end_line": 1,
+              "start_byte": 8,
+              "start_line": 1
+            },
+            "target": "sym:leaf.js#function:leaf",
+            "target_name": "leaf"
+          }
+        },
+        {
+          "path": "leaf.js",
+          "record": {
+            "binding": null,
+            "extent": "enclosing_syntax",
+            "id": "occ:d808aea078a25497e0c5d21a8a1a7ebe0d635ba17260c845d2e36906ae4ef592",
+            "kind": "exports",
+            "line": 1,
+            "name": "leaf",
+            "ordinal": 0,
+            "owner": "file:leaf.js",
+            "raw_name": null,
+            "reason": null,
+            "resolution": "same_file",
+            "scope": null,
+            "span": {
+              "end_byte": 36,
+              "end_line": 1,
+              "start_byte": 7,
+              "start_line": 1
+            },
+            "target": "sym:leaf.js#function:leaf",
+            "target_name": "leaf"
+          }
+        }
+      ],
+      "target": {
+        "attributes": {
+          "lexical_key": "function:leaf"
+        },
+        "bytes": null,
+        "content_hash": null,
+        "id": "sym:leaf.js#function:leaf",
+        "is_async": false,
+        "kind": "function",
+        "language": null,
+        "lines": null,
+        "name": "leaf",
+        "parent": null,
+        "parser_version": null,
+        "path": "leaf.js",
+        "qualified_name": "leaf",
+        "signature": "function leaf() { return 1; }",
+        "span": {
+          "end_byte": 36,
+          "end_line": 1,
+          "start_byte": 7,
+          "start_line": 1
+        },
+        "visibility": null
+      }
+    },
+    "after_reopen": {
+      "incoming": [
+        {
+          "from": "sym:caller.js#function:caller",
+          "id": "(sym:caller.js#function:caller) -[calls]-> (sym:leaf.js#function:leaf)",
+          "kind": "calls",
+          "line": 2,
+          "path": "caller.js",
+          "resolved": true,
+          "to": "sym:leaf.js#function:leaf",
+          "to_name": "leaf"
+        }
+      ],
+      "occurrences": [
+        {
+          "path": "caller.js",
+          "record": {
+            "binding": null,
+            "extent": "expression",
+            "id": "occ:a9b35cd0e55348822858929a2e0de424e475d9b5ddb996df43d30ee79b1269fc",
+            "kind": "calls",
+            "line": 2,
+            "name": "leaf",
+            "ordinal": 1,
+            "owner": "sym:caller.js#function:caller",
+            "raw_name": "leaf",
+            "reason": null,
+            "resolution": "explicit_import",
+            "scope": 2,
+            "span": {
+              "end_byte": 72,
+              "end_line": 2,
+              "start_byte": 66,
+              "start_line": 2
+            },
+            "target": "sym:leaf.js#function:leaf",
+            "target_name": "leaf"
+          }
+        },
+        {
+          "path": "caller.js",
+          "record": {
+            "binding": null,
+            "extent": "enclosing_syntax",
+            "id": "occ:516022451763c676a8defe9f1990d1a7fbe20df8ee47419925ce751f44018750",
+            "kind": "imports",
+            "line": 1,
+            "name": "leaf",
+            "ordinal": 2,
+            "owner": "file:caller.js",
+            "raw_name": "leaf",
+            "reason": null,
+            "resolution": "explicit_import",
+            "scope": null,
+            "span": {
+              "end_byte": 12,
+              "end_line": 1,
+              "start_byte": 8,
+              "start_line": 1
+            },
+            "target": "sym:leaf.js#function:leaf",
+            "target_name": "leaf"
+          }
+        },
+        {
+          "path": "leaf.js",
+          "record": {
+            "binding": null,
+            "extent": "enclosing_syntax",
+            "id": "occ:d808aea078a25497e0c5d21a8a1a7ebe0d635ba17260c845d2e36906ae4ef592",
+            "kind": "exports",
+            "line": 1,
+            "name": "leaf",
+            "ordinal": 0,
+            "owner": "file:leaf.js",
+            "raw_name": null,
+            "reason": null,
+            "resolution": "same_file",
+            "scope": null,
+            "span": {
+              "end_byte": 36,
+              "end_line": 1,
+              "start_byte": 7,
+              "start_line": 1
+            },
+            "target": "sym:leaf.js#function:leaf",
+            "target_name": "leaf"
+          }
+        }
+      ],
+      "target": {
+        "attributes": {
+          "lexical_key": "function:leaf"
+        },
+        "bytes": null,
+        "content_hash": null,
+        "id": "sym:leaf.js#function:leaf",
+        "is_async": false,
+        "kind": "function",
+        "language": null,
+        "lines": null,
+        "name": "leaf",
+        "parent": null,
+        "parser_version": null,
+        "path": "leaf.js",
+        "qualified_name": "leaf",
+        "signature": "function leaf() { return 1; }",
+        "span": {
+          "end_byte": 36,
+          "end_line": 1,
+          "start_byte": 7,
+          "start_line": 1
+        },
+        "visibility": null
+      }
+    },
+    "before": {
+      "incoming": [
+        {
+          "from": "sym:caller.js#function:caller",
+          "id": "(sym:caller.js#function:caller) -[calls]-> (sym:leaf.js#function:leaf)",
+          "kind": "calls",
+          "line": 2,
+          "path": "caller.js",
+          "resolved": true,
+          "to": "sym:leaf.js#function:leaf",
+          "to_name": "leaf"
+        }
+      ],
+      "occurrences": [
+        {
+          "path": "caller.js",
+          "record": {
+            "binding": null,
+            "extent": "expression",
+            "id": "occ:a9b35cd0e55348822858929a2e0de424e475d9b5ddb996df43d30ee79b1269fc",
+            "kind": "calls",
+            "line": 2,
+            "name": "leaf",
+            "ordinal": 1,
+            "owner": "sym:caller.js#function:caller",
+            "raw_name": "leaf",
+            "reason": null,
+            "resolution": "explicit_import",
+            "scope": 2,
+            "span": {
+              "end_byte": 72,
+              "end_line": 2,
+              "start_byte": 66,
+              "start_line": 2
+            },
+            "target": "sym:leaf.js#function:leaf",
+            "target_name": "leaf"
+          }
+        },
+        {
+          "path": "caller.js",
+          "record": {
+            "binding": null,
+            "extent": "enclosing_syntax",
+            "id": "occ:516022451763c676a8defe9f1990d1a7fbe20df8ee47419925ce751f44018750",
+            "kind": "imports",
+            "line": 1,
+            "name": "leaf",
+            "ordinal": 2,
+            "owner": "file:caller.js",
+            "raw_name": "leaf",
+            "reason": null,
+            "resolution": "explicit_import",
+            "scope": null,
+            "span": {
+              "end_byte": 12,
+              "end_line": 1,
+              "start_byte": 8,
+              "start_line": 1
+            },
+            "target": "sym:leaf.js#function:leaf",
+            "target_name": "leaf"
+          }
+        },
+        {
+          "path": "leaf.js",
+          "record": {
+            "binding": null,
+            "extent": "enclosing_syntax",
+            "id": "occ:d808aea078a25497e0c5d21a8a1a7ebe0d635ba17260c845d2e36906ae4ef592",
+            "kind": "exports",
+            "line": 1,
+            "name": "leaf",
+            "ordinal": 0,
+            "owner": "file:leaf.js",
+            "raw_name": null,
+            "reason": null,
+            "resolution": "same_file",
+            "scope": null,
+            "span": {
+              "end_byte": 36,
+              "end_line": 1,
+              "start_byte": 7,
+              "start_line": 1
+            },
+            "target": "sym:leaf.js#function:leaf",
+            "target_name": "leaf"
+          }
+        }
+      ],
+      "target": {
+        "attributes": {
+          "lexical_key": "function:leaf"
+        },
+        "bytes": null,
+        "content_hash": null,
+        "id": "sym:leaf.js#function:leaf",
+        "is_async": false,
+        "kind": "function",
+        "language": null,
+        "lines": null,
+        "name": "leaf",
+        "parent": null,
+        "parser_version": null,
+        "path": "leaf.js",
+        "qualified_name": "leaf",
+        "signature": "function leaf() { return 1; }",
+        "span": {
+          "end_byte": 36,
+          "end_line": 1,
+          "start_byte": 7,
+          "start_line": 1
+        },
+        "visibility": null
+      }
+    },
+    "outcome": {
+      "edges_upserted": 2,
+      "files_touched": 1,
+      "nodes_deleted": 0,
+      "nodes_upserted": 2
+    },
+    "target": "sym:leaf.js#function:leaf"
+  },
+  "repair_chains": [
+    {
+      "adapter": "memory",
+      "calls": 1,
+      "changed_sources": [
+        "n0.js"
+      ],
+      "files": 2,
+      "matches_clean_rebuild": true,
+      "reported_modified": [
+        "n0.js"
+      ],
+      "upserted": [
+        "n0.js"
+      ]
+    },
+    {
+      "adapter": "grafeo_reopened",
+      "calls": 1,
+      "changed_sources": [
+        "n0.js"
+      ],
+      "files": 2,
+      "matches_clean_rebuild": true,
+      "reported_modified": [
+        "n0.js"
+      ],
+      "upserted": [
+        "n0.js"
+      ]
+    },
+    {
+      "adapter": "memory",
+      "calls": 7,
+      "changed_sources": [
+        "n0.js"
+      ],
+      "files": 8,
+      "matches_clean_rebuild": true,
+      "reported_modified": [
+        "n0.js"
+      ],
+      "upserted": [
+        "n0.js"
+      ]
+    },
+    {
+      "adapter": "grafeo_reopened",
+      "calls": 7,
+      "changed_sources": [
+        "n0.js"
+      ],
+      "files": 8,
+      "matches_clean_rebuild": true,
+      "reported_modified": [
+        "n0.js"
+      ],
+      "upserted": [
+        "n0.js"
+      ]
+    },
+    {
+      "adapter": "memory",
+      "calls": 31,
+      "changed_sources": [
+        "n0.js"
+      ],
+      "files": 32,
+      "matches_clean_rebuild": true,
+      "reported_modified": [
+        "n0.js"
+      ],
+      "upserted": [
+        "n0.js"
+      ]
+    },
+    {
+      "adapter": "grafeo_reopened",
+      "calls": 31,
+      "changed_sources": [
+        "n0.js"
+      ],
+      "files": 32,
+      "matches_clean_rebuild": true,
+      "reported_modified": [
+        "n0.js"
+      ],
+      "upserted": [
+        "n0.js"
+      ]
+    }
+  ]
+}

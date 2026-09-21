@@ -8,21 +8,29 @@
 #![warn(missing_docs)]
 
 pub mod batch;
+pub mod context;
+pub mod coverage;
 pub mod envelope;
 pub mod extraction;
 pub mod id;
+pub mod js_module;
 pub mod kind;
 pub mod limits;
 pub mod manifest;
 pub mod node;
+pub mod occurrence;
+pub mod package;
 pub mod query;
 pub mod result;
+pub mod retrieval;
+pub mod source;
+pub mod typescript;
 
 pub use batch::{ApplyOutcome, FileProjection, QuarantineRecord, WriteBatch};
 pub use envelope::Envelope;
 pub use id::{EdgeId, NodeId};
 pub use kind::{Direction, EdgeKind, Language, NodeKind, Visibility};
-pub use limits::{MAX_HOPS_CEILING, PARSER_VERSION, SCHEMA_VERSION};
+pub use limits::{MAX_HOPS_CEILING, PARSER_VERSION, RESULT_SCHEMA_VERSION, SCHEMA_VERSION};
 pub use manifest::{FileEntry, Manifest, Rename};
 pub use node::{Edge, Node, Span};
 pub use query::{
@@ -30,9 +38,10 @@ pub use query::{
     TextQuery, TraversalQuery,
 };
 pub use result::{
-    Approximation, DepthCount, EdgeHit, ExploreItem, ExploreResult, FileHit, FilesResult,
-    GraphResult, ImpactResult, ImpactSummary, IndexStatus, Snippet, Staleness, Stats, StoreCounts,
-    SymbolHit, SyncReport, TextHit, TextResult, Truncation, TruncationKind,
+    Approximation, DepthCount, EdgeHit, ExcerptRole, ExploreItem, ExploreResult, FileHit,
+    FilesResult, GraphResult, ImpactResult, ImpactSummary, IndexStatus, Snippet, SourceExcerpt,
+    Staleness, Stats, StoreCounts, SymbolHit, SyncReport, TextHit, TextResult, Truncation,
+    TruncationKind,
 };
 
 /// A node or edge paired with a relevance score.
@@ -65,3 +74,8 @@ pub struct Subgraph {
     /// The edges among them.
     pub edges: Vec<Edge>,
 }
+
+pub use retrieval::{
+    AnalysisMode, ExploreMode, FieldNormalization, GraphContext, QueryPolicy, RankingStrategy,
+    RetrievalEvidence, RetrievalOptions, RetrievalPlan, RetrievalRoute, TermMatch,
+};

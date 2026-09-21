@@ -1,0 +1,24 @@
+   Compiling graph-search v0.1.0 (/Volumes/Delorean/code/graph-search/crates/graph-search)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 6.98s
+     Running tests/rust_modules.rs (target/debug/deps/rust_modules-bfc3d79cb07fc4aa)
+
+running 1 test
+test anchored_paths_follow_the_current_crate_and_module_tree ... FAILED
+
+failures:
+
+---- anchored_paths_follow_the_current_crate_and_module_tree stdout ----
+
+thread 'anchored_paths_follow_the_current_crate_and_module_tree' (82127954) panicked at crates/graph-search/tests/rust_modules.rs:386:9:
+assertion `left == right` failed: ReferenceOccurrence { id: "occ:11f5527c6440def20e4f24b49c228a4416076b44e77a40957db2a2c684350ecc", owner: NodeId("sym:a/src/child.rs#function:caller"), kind: Calls, span: Some(Span { start_line: 1, end_line: 1, start_byte: 32, end_byte: 45 }), line: 1, extent: Expression, raw_name: Some("crate::send"), name: "crate::send", ordinal: 0, target: None, target_name: "crate::send", resolution: Unresolved, reason: Some("qualified_target_missing_or_ambiguous"), scope: Some(4), binding: None }
+  left: None
+ right: Some("sym:a/src/lib.rs#function:send")
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    anchored_paths_follow_the_current_crate_and_module_tree
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 6 filtered out; finished in 0.08s
+
+error: test failed, to rerun pass `-p graph-search --test rust_modules`

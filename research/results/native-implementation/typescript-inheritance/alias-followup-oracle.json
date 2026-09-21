@@ -1,0 +1,78 @@
+{
+  "compiler_version": "6.0.3",
+  "compiler_sha256": "569177652966bd528c319171c7dd22860dbf72bde116cbc4f644f1d02bb12e39",
+  "scope": "Compiler-only observations for subsequent native alias implementation; not native resolution evidence.",
+  "cases": [
+    {
+      "name": "explicit-substitution-file-before-extension-substitution",
+      "module": "@/x",
+      "options": {
+        "paths": {
+          "@/*": [
+            "/src/*.js"
+          ]
+        },
+        "pathsBasePath": "/"
+      },
+      "files": [
+        "/src/x.js",
+        "/src/x.ts"
+      ],
+      "expected": "/src/x.js",
+      "actual": "/src/x.js"
+    },
+    {
+      "name": "matched-path-miss-suppresses-baseurl-probe",
+      "module": "@/x",
+      "options": {
+        "paths": {
+          "@/*": [
+            "/missing/*"
+          ]
+        },
+        "baseUrl": "/base"
+      },
+      "files": [
+        "/base/@/x.ts"
+      ],
+      "expected": null,
+      "actual": null
+    },
+    {
+      "name": "unmatched-path-allows-baseurl-probe",
+      "module": "@/x",
+      "options": {
+        "paths": {
+          "other/*": [
+            "/missing/*"
+          ]
+        },
+        "baseUrl": "/base"
+      },
+      "files": [
+        "/base/@/x.ts"
+      ],
+      "expected": "/base/@/x.ts",
+      "actual": "/base/@/x.ts"
+    },
+    {
+      "name": "empty-wildcard-keeps-literal-star-in-substitution",
+      "module": "a",
+      "options": {
+        "paths": {
+          "a*": [
+            "/src/*"
+          ]
+        },
+        "pathsBasePath": "/"
+      },
+      "files": [
+        "/src/*.ts",
+        "/src/.ts",
+        "/src/index.ts"
+      ],
+      "expected": "/src/*.ts",
+      "actual": "/src/*.ts"
+    }
+  ]
+}
