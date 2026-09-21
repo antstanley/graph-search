@@ -1,6 +1,10 @@
 # graph-search
 
-**Status: v1 implemented (milestones M1–M5). The task-based [evaluation suite](evaluation/README.md) is available; controlled model trials for §16 remain pending. Accuracy research and targeted fixes are documented in [`research/README.md`](research/README.md).**
+**Status (21 September 2026): v1 and the native search improvements through
+recommendation 23 have landed on `main`. Work is paused at that requested boundary.
+The research ledger has 27 of 30 recommendations closed, including explicit
+deferral decisions; three remain open. Controlled model task-success trials
+remain pending.**
 
 An experiment in a single, context-efficient search capability for code and
 context: one surface for finding **files**, **text**, and **symbols and their
@@ -24,7 +28,7 @@ evaluation measures (shape 3, [`SPEC.md`](SPEC.md) §11.1). The `graph-search`
 binary is a thin client over the library: just enough to drive the experiment
 through `bash` before any integration.
 
-## What it will do
+## What it does
 
 - Index a workspace with **tree-sitter** for Rust, TypeScript/JavaScript, and
   HTML/CSS; store the resulting graph in an embedded **Grafeo** database.
@@ -39,6 +43,76 @@ through `bash` before any integration.
   explicit omissions and source identities for retained text hits.
 - Bound status and sync/index JSON reports while preserving exact totals; large
   path/detail lists report omissions, and required sync metadata is checked before publication.
+
+## Current implementation and evidence
+
+The native improvements add:
+
+- **Retrieval:** an inverted lexical index and generation-cached lookup structures;
+  identifier-aware analysis, prefix lookup, phrase/proximity verification, and
+  searchable bodies, comments, configuration and structured Markdown.
+- **Planning and context:** explicit navigation intent, separate candidate and
+  context selection, snippet deduplication, shared package identities, source-read
+  reuse, and bounded evidence-driven graph expansion.
+- **Graph correctness:** reference occurrences separate from adjacency,
+  scope-aware binding, and bounded native Rust/JS/TS module and import resolution.
+- **Integrity and reliability:** indexed-byte source identities, verified excerpts,
+  freshness and coverage reporting, execution-time budgets, coherent generation
+  publication under write failures, and independently versioned representations.
+- **Incremental indexing:** generation-owned dependency records, selective loading
+  of affected extraction facts, and explicit retention of unchanged records.
+  Body-only edits avoid loading unrelated raw facts; whole-generation graph and
+  retrieval-index work remains.
+
+These changes use the existing Rust/parser/storage stack and add no third-party
+components. See the [implementation ledger](research/IMPLEMENTATION.md) for
+requirement-level evidence and the
+[recommendation 23 audit](research/results/native-implementation/selective-reconciliation/RECOMMENDATION-23-AUDIT.md)
+for the completed incremental-indexing scope.
+
+The final recommendation-23 validation passed **470 tests in 34 suites**, strict
+workspace/probe Clippy, and **48/48 release-mode incremental-versus-rebuild/reopen
+comparisons**. In the 64-file synthetic workload, a body edit requested zero
+unchanged raw facts and took 188.70 ms versus 244.70 ms for reindexing; no-op sync
+took 0.63 ms versus 160.51 ms. These are three-trial warm medians, not production
+latency guarantees. Rename did not improve over reindexing.
+[Workload matrix and limitations](research/results/native-implementation/selective-reconciliation/MATRIX.md).
+
+A separate paired experiment removed duplicate freshness inspection, preserving
+618 compared responses after generation/elapsed normalization and improving
+median task-query times by **14.89–26.45%** across nanus, blogwright and whatsurvey.
+[Results](research/results/native-implementation/request-inspection/README.md).
+
+### Comparison with CodeGraph
+
+The recorded direct comparison predates the final implementation. Across 34
+source-validated tasks with equal call/response budgets, graph-search returned
+all required files for **19 tasks versus CodeGraph's 14**, and all required source
+regions for **6 versus 5**. Results varied by repository: CodeGraph won on the
+small four-task blogwright sample. Graph-search had lower measured trial latency,
+but its resident-library execution was compared with subprocess-based CodeGraph
+execution. This is not an isolated algorithm-speed comparison.
+
+Later development experiments show further graph-search improvements, but there
+is no fresh head-to-head establishing the final version's overall superiority.
+These trials measure retrieved evidence, not successful debugging or model answers.
+[Comparison, denominators and methodology](research/09-native-search-review.md#b-external-repository-evidence-trials).
+
+### Remaining work
+
+- **12 — Source-context selection:** complete richer multi-region and adaptive
+  evidence selection and its quality gates.
+- **21 — Packages, imports and framework regions:** broaden the implemented native
+  subsets and validate their remaining semantic coverage.
+- **30 — Evaluation as the release gate:** complete independent quality acceptance
+  and controlled model task-success evaluation.
+
+Closed conditional recommendations include decisions to defer regex, live trigram
+routing, block pruning, compression, large segment infrastructure and neural
+retrieval. They are not shipped capabilities. Retrieval experiments retain
+per-task regressions; universal accuracy improvement is not established.
+[Conditional decisions](research/CONDITIONAL-DECISIONS.md) and
+[evaluation suite](evaluation/README.md).
 
 ## Non-goals (v1)
 
@@ -141,10 +215,12 @@ so local variables and parameters do not invent calls to unrelated functions.
 The native research implementation and remaining acceptance gates are tracked in
 [`research/IMPLEMENTATION.md`](research/IMPLEMENTATION.md).
 
-After editing files, `graph-search sync` parses changed files and rebinds affected
-callers using persisted extraction facts. Queries reconcile lazily and report
-staleness (`SPEC.md` §6.5). Schema 2 rebuilds older indexes on the next reconcile.
-See the [retrieval and incremental-sync results](research/07-lexical-and-incremental.md).
+After editing files, `graph-search sync` parses changed files and uses compact
+dependency records to select affected unchanged facts for rebinding. Unaffected
+records are retained during generation publication. Queries reconcile lazily and
+report staleness (`SPEC.md` §6.5); incompatible representation/policy identities
+require rebuilding. See the current
+[selective reconciliation results](research/results/native-implementation/selective-reconciliation/README.md).
 
 ## Documentation
 
