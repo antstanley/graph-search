@@ -1,0 +1,293 @@
+{
+  "experiment": "independent-evaluation",
+  "date": "2026-09-22",
+  "evaluator": "independent external agent (nanus session)",
+  "subject": "graph-search release binary, black-box trial on the nanus repository",
+  "artifacts": {
+    "document": "research/10-independent-evaluation.md",
+    "stores": "/tmp (not committed); repository checkouts unmodified"
+  },
+  "environment": {
+    "os": "macOS (Darwin)",
+    "rustc": "1.98.1",
+    "profile": "release (lto=thin)",
+    "load_average_during_run": [
+      3.23,
+      4.74,
+      3.73
+    ],
+    "binary_version_string": "0.1.0"
+  },
+  "revisions": [
+    {
+      "rev": "A",
+      "commit": "4dd6af6",
+      "schema_version": 1,
+      "parser_version": 1,
+      "tests_passed": 65,
+      "store_bytes": 18874368,
+      "nanus_files_walked": 185,
+      "index_ms_debug": 2625,
+      "edges": {
+        "contains": 5684,
+        "imports": 1669,
+        "exports": 5,
+        "calls": 12656,
+        "implements": 136,
+        "type_uses": 2343
+      },
+      "nodes": {
+        "file": 185,
+        "module": 183,
+        "function": 2132,
+        "method": 1272,
+        "struct": 251,
+        "enum": 80,
+        "trait": 18,
+        "impl": 356,
+        "type_alias": 44,
+        "const": 175,
+        "static": 12,
+        "field": 784,
+        "variant": 384
+      }
+    },
+    {
+      "rev": "B",
+      "commit": "47808b1",
+      "schema_version": 2,
+      "parser_version": 2,
+      "tests_passed": 95,
+      "store_bytes": 18874368,
+      "notes": "reconcile edge-loss defect fixed; explore ranking improved; schema 2"
+    },
+    {
+      "rev": "C",
+      "commit": "81a5d02",
+      "schema_version": 3,
+      "parser_version": 20,
+      "tests_passed": 564,
+      "tests_failed": 0,
+      "store_bytes": 57671680,
+      "nanus_files_walked": 188,
+      "index_ms_release": 2011,
+      "edges": {
+        "contains": 6147,
+        "imports": 1740,
+        "exports": 5,
+        "calls": 18404,
+        "implements": 140,
+        "type_uses": 2590
+      },
+      "nodes": {
+        "file": 188,
+        "module": 189,
+        "function": 2287,
+        "method": 1395,
+        "struct": 270,
+        "enum": 84,
+        "trait": 18,
+        "impl": 369,
+        "type_alias": 44,
+        "const": 190,
+        "static": 12,
+        "field": 883,
+        "variant": 413
+      },
+      "files_by_language": {
+        "rust": 128,
+        "type_script": 4,
+        "java_script": 1,
+        "unknown": 55
+      }
+    }
+  ],
+  "correctness": {
+    "defect_found": {
+      "rev": "A",
+      "summary": "incremental reconcile dropped incoming edges from unchanged files when the edited file was an edge target; index still reported stale=false",
+      "root_cause_file": "crates/engine/src/store.rs::apply",
+      "repro_before": {
+        "fresh_index_callers_alpha_edges": 1,
+        "after_editing_callee": 0,
+        "after_full_reindex": 1
+      },
+      "status_in_later_revs": "fixed and independently verified in B and C"
+    },
+    "repro_after_C": {
+      "fresh": 1,
+      "edit_callee": 1,
+      "search": 1,
+      "edit_again": 1,
+      "sync": 1
+    }
+  },
+  "retrieval": {
+    "nl_query_example": {
+      "query": "how does a tool call get dispatched and approved",
+      "A_top": [
+        "apps/website/src/pages/[...slug].md.ts:GET",
+        "SecretBackend::get"
+      ],
+      "C_top": [
+        "Held::is_approved",
+        "tests::an_unnamed_tool_call_is_dropped_rather_than_dispatched",
+        "ToolRegistry::execute"
+      ]
+    },
+    "split_name_examples_C": {
+      "tool registry handle": [
+        "ToolRegistryProvider::registry",
+        "ToolRegistryHandle",
+        "AgentRunner::tools"
+      ],
+      "search query literal": [
+        "SearchQuery",
+        "impl SearchQuery",
+        "InputBuffer::search_query"
+      ],
+      "where is the context budget enforced": [
+        "AgentConfig::with_context_budget",
+        "default_context_budget",
+        "NanusConfig::context_budget"
+      ]
+    },
+    "test_noise_top8_fraction": "0-2 of 8 across probes"
+  },
+  "graph_accuracy_C": {
+    "callers_AgentRunner::run_step": {
+      "edges": 1,
+      "works": true
+    },
+    "impact_AgentRunner::run_tools": {
+      "depth1": 1,
+      "depth2": 1,
+      "works": true
+    },
+    "callers_port_failure": {
+      "edges": 2,
+      "works": true
+    },
+    "refs_type_edges": {
+      "ToolOutcome": 2,
+      "AgentConfig": 2,
+      "ToolSchema": 1,
+      "SearchQuery": 0,
+      "ToolDefinition": 0,
+      "ToolCall": "ambiguous"
+    },
+    "callers_ToolRegistry::execute": {
+      "edges": 0,
+      "gap": "receiver variable"
+    },
+    "callers_ToolRegistryHandle::borrow": {
+      "edges": 0,
+      "gap": "receiver variable"
+    },
+    "impact_on_type": {
+      "ToolRegistry": 0,
+      "SearchQuery": 0,
+      "ToolSchema": 0,
+      "ToolOutcome": 0,
+      "gap": "impact follows Calls+References, not TypeUses"
+    },
+    "deps_cross_crate_imports": "unresolved"
+  },
+  "contract_and_context": {
+    "schema_version_series": [
+      1,
+      2,
+      3
+    ],
+    "explore_bytes": {
+      "A": 5667,
+      "C": 17538,
+      "ratio": 3.1,
+      "query": "tool call dispatch approval"
+    },
+    "text_bytes": {
+      "A": 12508,
+      "C": 12351,
+      "query": "ToolRegistry --include '*.rs'"
+    },
+    "impact_result_shape": "object {by_depth, top}, differs from array results envelope"
+  },
+  "performance_release": {
+    "startup_ms": 5,
+    "one_file_store_status_ms": 5,
+    "A_B": {
+      "index_s": 1.7,
+      "status_s": 0.19,
+      "query_s": "0.10-0.19",
+      "noop_sync_s": 0.1,
+      "store_bytes": 18874368
+    },
+    "C": {
+      "index_s": 2.011,
+      "status_s": 0.99,
+      "symbol_s": 0.99,
+      "explore_s": 1.0,
+      "impact_s": 1.01,
+      "noop_sync_s": 1.0,
+      "store_bytes": 57671680
+    },
+    "C_store_breakdown": {
+      "occurrences.json": 14700000,
+      "graph.grafeo": 4145106,
+      "dangling.jsonl": 4419592,
+      "dependencies.json": 1269274,
+      "manifest.json": 58505
+    },
+    "interpretation": "~1s per invocation is store open, scaling with store size"
+  },
+  "gaps": [
+    "receiver-variable method calls do not bind (callers/refs 0)",
+    "impact ignores type_uses (type-level blast radius empty)",
+    "type refs uneven (SearchQuery/ToolDefinition 0)",
+    "explore payload ~3x larger than before and larger than text",
+    "per-invocation store open ~1s on a 188-file repo",
+    "explore still ranks tests:: symbols",
+    "cross-crate imports unresolved"
+  ],
+  "recommendations": [
+    {
+      "priority": "P0",
+      "item": "lazy-load occurrences/dangling/dependencies sidecars so metadata queries do not read them"
+    },
+    {
+      "priority": "P0",
+      "item": "restore explore compactness (node+snippet+impact default; excerpts/evidence behind a flag)"
+    },
+    {
+      "priority": "P1",
+      "item": "include type_uses in the impact cone"
+    },
+    {
+      "priority": "P1",
+      "item": "scope/receiver-aware binding for x.method()"
+    },
+    {
+      "priority": "P1",
+      "item": "de-rank tests:: symbols in explore"
+    },
+    {
+      "priority": "P2",
+      "item": "resolve cross-crate import targets"
+    },
+    {
+      "priority": "P2",
+      "item": "make type-refs coverage predictable or report it"
+    }
+  ],
+  "threats_to_validity": [
+    "single machine under load; timings indicative",
+    "one repository (nanus)",
+    "no LLM-agent trial",
+    "evaluator-chosen queries, not held out",
+    "time-bound to repository state 2026-09-22, HEAD 81a5d02"
+  ],
+  "verdict": {
+    "verdict": "LIKELY_IMPROVED_WITH_OPEN_REGRESSION",
+    "confidence": "medium"
+  }
+}
