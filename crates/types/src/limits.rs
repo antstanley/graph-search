@@ -101,7 +101,7 @@ pub const RANKER_VERSION: u32 = 23;
 /// Source-owned reference and binding representation.
 pub const OCCURRENCE_VERSION: u32 = 1;
 /// Source retrieval serialization revision, independent of parser and chunker policy.
-pub const SOURCE_INDEX_VERSION: u32 = 14;
+pub const SOURCE_INDEX_VERSION: u32 = 15;
 /// Maximum authored links retained per original Markdown block.
 pub const MAX_MARKDOWN_LINKS: usize = 256;
 /// Maximum distinct authored links retained across one source file.
@@ -120,14 +120,14 @@ pub const EXPLORE_DEFAULT_K: u32 = 8;
 
 /// Bumps when the projection vocabulary or extraction changes, invalidating
 /// every stored projection.
-pub const SCHEMA_VERSION: u32 = 2;
+pub const SCHEMA_VERSION: u32 = 3;
 
 /// Wire result schema, independent of stored projection format.
 pub const RESULT_SCHEMA_VERSION: u32 = 4;
 
 /// Bumps when extractor behaviour changes in a way that alters output for an
 /// unchanged file.
-pub const PARSER_VERSION: u32 = 19;
+pub const PARSER_VERSION: u32 = 20;
 
 /// Default independent ceiling on edges delivered by one graph/explore query.
 pub const RETURNED_EDGES_DEFAULT: usize = 1000;
@@ -146,6 +146,10 @@ pub const MAX_QUERY_TERMS: usize = 128;
 
 /// Maximum separately retained parser documentation-comment occurrences per file.
 pub const MAX_DOC_COMMENTS_PER_FILE: usize = 8_192;
+/// Maximum recognized framework script regions retained for one file.
+pub const MAX_EMBEDDED_REGIONS_PER_FILE: usize = 64;
+/// Maximum authored bytes inspected while scanning one framework region.
+pub const MAX_EMBEDDED_REGION_BYTES: usize = 4_194_304;
 
 /// Maximum manifest bytes passed to the existing syntax decoders.
 pub const MAX_PACKAGE_MANIFEST_BYTES: usize = 262_144;

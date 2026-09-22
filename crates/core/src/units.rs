@@ -39,10 +39,15 @@ pub struct DocumentationInput<'a> {
     pub comments: &'a [graph_search_types::source::DocumentationComment],
     /// Whether metadata extraction omitted eligible comments.
     pub truncated: bool,
+    /// Recognized framework script regions, extracted or explicitly omitted.
+    pub embedded: &'a [graph_search_types::extraction::EmbeddedRegionFact],
+    /// Whether the framework region scan reached an adapter bound.
+    pub embedded_truncated: bool,
 }
 
 /// Builds source regions with validated parser-owned documentation metadata.
 #[must_use]
+#[allow(clippy::too_many_lines)] // one pass over ordered block boundaries
 pub fn extract_documented(
     path: &str,
     text: &str,
@@ -53,6 +58,16 @@ pub fn extract_documented(
 ) -> SourceFileUnits {
     let mut result = SourceFileUnits {
         documentation_truncated: documentation.truncated,
+        embedded_regions: u32::try_from(documentation.embedded.len()).unwrap_or(u32::MAX),
+        embedded_unextracted_regions: u32::try_from(
+            documentation
+                .embedded
+                .iter()
+                .filter(|fact| !fact.extracted)
+                .count(),
+        )
+        .unwrap_or(u32::MAX),
+        embedded_truncated: documentation.embedded_truncated,
         source_hash: hash.into(),
         version: graph_search_types::limits::SOURCE_INDEX_VERSION,
         ..SourceFileUnits::default()
@@ -506,6 +521,10 @@ pub(crate) fn coverage_from<'a>(
     coverage.source_unit_truncated_files = 0;
     coverage.source_link_truncated_files = 0;
     coverage.source_documentation_truncated_files = 0;
+    coverage.source_framework_region_files = 0;
+    coverage.source_framework_regions = 0;
+    coverage.source_framework_unextracted_regions = 0;
+    coverage.source_framework_truncated_files = 0;
     for file in files {
         coverage.package_scope_incomplete_files = coverage
             .package_scope_incomplete_files
@@ -519,6 +538,18 @@ pub(crate) fn coverage_from<'a>(
                 .saturating_add(u64::from(
                     file.units.iter().any(|unit| unit.links_truncated),
                 ));
+        coverage.source_framework_region_files = coverage
+            .source_framework_region_files
+            .saturating_add(u64::from(file.embedded_regions > 0));
+        coverage.source_framework_regions = coverage
+            .source_framework_regions
+            .saturating_add(u64::from(file.embedded_regions));
+        coverage.source_framework_unextracted_regions = coverage
+            .source_framework_unextracted_regions
+            .saturating_add(u64::from(file.embedded_unextracted_regions));
+        coverage.source_framework_truncated_files = coverage
+            .source_framework_truncated_files
+            .saturating_add(u64::from(file.embedded_truncated));
         coverage.source_indexed_files = coverage.source_indexed_files.saturating_add(1);
         coverage.source_units = coverage
             .source_units
@@ -607,6 +638,7 @@ pub fn validate<'a>(
         })
         || source.version == 0
         || source.version > graph_search_types::limits::SOURCE_INDEX_VERSION
+        || source.embedded_unextracted_regions > source.embedded_regions
         || source.units.iter().any(|unit| {
             unit.owner.as_ref().is_some_and(|id| {
                 lookup(id).is_none_or(|owner| {
@@ -745,6 +777,7 @@ mod tests {
             DocumentationInput {
                 comments: &[malformed],
                 truncated: false,
+                ..DocumentationInput::default()
             },
         );
         assert!(fallback.documentation_truncated);
@@ -773,6 +806,7 @@ mod tests {
                     inner: false,
                 }],
                 truncated: false,
+                ..DocumentationInput::default()
             },
         );
         assert!(empty.documentation_truncated);
@@ -820,6 +854,7 @@ mod tests {
             DocumentationInput {
                 comments: &[document],
                 truncated: true,
+                ..DocumentationInput::default()
             },
         );
         let lookup = |id: &NodeId| (id == &symbol.id).then_some(&symbol);

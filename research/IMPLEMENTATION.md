@@ -24,7 +24,7 @@ Scope: implement the recommendations in [the review](09-native-search-review.md)
 - [x] 18. Add prefix lookup before fuzzy matching — P2
 - [x] 19. Preserve reference occurrences separately from graph adjacency — P1
 - [x] 20. Make resolution scope-aware before increasing its reach — P1
-- [ ] 21. Model packages, imports, and framework regions natively — P1/P2
+- [x] 21. Model packages, imports, and framework regions natively — P1/P2 (declared native subset; template/JSX/DI edges and condition loaders explicitly unresolved)
 - [x] 22. Make graph expansion evidence-driven and avoid repeated traversal — P1/P2
 - [x] 23. Reduce incremental invalidation and separate facts from the hot manifest — P1/P2
 - [x] 24. Version policy, representations, and publication independently — P1
@@ -46,6 +46,27 @@ Scope: implement the recommendations in [the review](09-native-search-review.md)
 - [ ] Push and verify remote commit.
 
 ## Completed increments
+
+### Recommendation 21 complete: framework regions, default TypeScript aliases, Rust reexports
+
+Native Svelte/Vue/Astro adapters now extract declared script regions through the
+offset-translating embedded-script bridge and publish parser-coverage facts for
+unmodeled dialects. A generation-owned TypeScript project selector resolves the
+nearest admitted `tsconfig.json`/`jsconfig.json`, applies bounded inheritance and
+`paths`/`baseUrl` before package maps in supported bundler/Node16 modes, and
+leaves unsupported modes unresolved. Rust `pub use` leaves are published as
+module-owned exports and followed through `as` aliases and chains with a 16-hop
+bound; private uses publish nothing. The [clause-by-clause
+audit](RECOMMENDATION-21-AUDIT.md) records the declared subset and remaining
+template/JSX/DI/conditional-loader limits.
+
+Validation: 564 Rust tests across 50 suite reports pass
+(`cargo test --workspace --locked`), strict workspace/all-target Clippy passes,
+and `cargo fmt --all --check` passes. Dependency manifests and lockfiles are
+unchanged; parser/source/schema are 20/15/3. Evidence:
+[framework regions](results/native-implementation/framework-regions/README.md),
+[TypeScript aliases](results/native-implementation/typescript-aliases/README.md)
+and [Rust reexports](results/native-implementation/rust-reexports/README.md).
 
 ### Recommendation 23 complete: selective reconciliation and explicit retention
 
@@ -70,11 +91,10 @@ because the OS profiler's sysctl request was denied; no memory gain is claimed.
 [workload matrix](results/native-implementation/selective-reconciliation/MATRIX.md),
 [completion audit](results/native-implementation/selective-reconciliation/RECOMMENDATION-23-AUDIT.md).
 All 165 source/build/probe fingerprints match. Recommendation 23 is complete; the
-ledger is **27 checked / 3 open** (12, 21, 30). The user requested stopping here.
-No further recommendation work is undertaken. The user subsequently requested
-committing and pushing all completed work to main; that delivery is separate from
-the three remaining recommendations. Earlier increment notes retain their historical
-commit/push status.
+ledger was **27 checked / 3 open** (12, 21, 30) at that point. Recommendation 21 is
+now complete for its declared native subset, so the ledger is **28 checked / 2
+open** (12, 30). Earlier increment notes retain their historical commit/push
+status.
 
 
 ### Generation-owned native dependency records and cached repair selection

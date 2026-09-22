@@ -54,6 +54,7 @@ pub mod typescript;
 pub mod typescript_aliases;
 pub mod typescript_files;
 pub mod typescript_patterns;
+mod typescript_project;
 pub mod typescript_roots;
 pub mod units;
 pub mod walk;

@@ -13,6 +13,7 @@ mod class_bindings;
 pub mod css;
 mod doc_comments;
 pub mod embedded;
+pub mod framework;
 pub mod html;
 pub mod javascript;
 pub mod js_common;
@@ -24,6 +25,7 @@ pub mod typescript;
 pub mod walk;
 
 pub use css::CssExtractor;
+pub use framework::{AstroExtractor, SvelteExtractor, VueExtractor};
 pub use html::HtmlExtractor;
 pub use javascript::JavaScriptExtractor;
 pub use rust::RustExtractor;
@@ -39,5 +41,8 @@ pub fn all_extractors() -> Vec<Box<dyn graph_search_core::ports::LanguageExtract
         Box::new(JavaScriptExtractor),
         Box::new(HtmlExtractor),
         Box::new(CssExtractor),
+        Box::new(SvelteExtractor),
+        Box::new(VueExtractor),
+        Box::new(AstroExtractor),
     ]
 }

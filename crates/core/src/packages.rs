@@ -18,7 +18,11 @@ pub(crate) fn manifest_family(path: &str) -> Option<PackageEcosystem> {
 fn preferred_family(path: &str, language: Language) -> Option<PackageEcosystem> {
     manifest_family(path).or(match language {
         Language::Rust => Some(PackageEcosystem::Cargo),
-        Language::TypeScript | Language::JavaScript => Some(PackageEcosystem::Node),
+        Language::TypeScript
+        | Language::JavaScript
+        | Language::Svelte
+        | Language::Vue
+        | Language::Astro => Some(PackageEcosystem::Node),
         Language::Html | Language::Css | Language::Unknown => None,
     })
 }

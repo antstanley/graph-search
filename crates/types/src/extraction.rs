@@ -226,12 +226,39 @@ pub struct DocCommentFact {
     pub inner: bool,
 }
 
+/// One framework script region recognized inside a single-file component.
+///
+/// The region is the authored `<script>` element (or Astro frontmatter fence),
+/// not the extracted parser facts: `extracted` records whether the declared
+/// dialect was modeled. Unextracted regions are the visible parser-coverage gap.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct EmbeddedRegionFact {
+    /// Exact original source coordinates of the authored region.
+    pub span: Span,
+    /// Declared dialect: `script`, `module`, `setup`, `frontmatter`, or `template`.
+    pub kind: String,
+    /// Stable binding domain when the region was extracted.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub domain: Option<String>,
+    /// Whether the declared region was parsed and merged into this extraction.
+    pub extracted: bool,
+    /// Bounded reason when the region was recognized but not extracted.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub reason: Option<String>,
+}
+
 /// Everything one file yielded.
 #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Extraction {
     /// Authored ESM imports/exports; absent for other adapters or legacy facts.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub js_module: Option<crate::js_module::JsModule>,
+    /// Framework script regions recognized in this file, in source order.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub embedded: Vec<EmbeddedRegionFact>,
+    /// Whether the adapter omitted eligible framework region facts.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub embedded_truncated: bool,
     /// Parser-owned documentation comment occurrences, in source order.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub doc_comments: Vec<DocCommentFact>,
@@ -275,6 +302,17 @@ impl Extraction {
             reference.binding = reference.binding.map(|id| id.saturating_add(bindings));
         }
         self.doc_comments.extend(other.doc_comments);
+        self.embedded.extend(other.embedded);
+        self.embedded.sort_by(|a, b| {
+            (a.span.start_byte, a.span.end_byte, &a.kind, &a.domain).cmp(&(
+                b.span.start_byte,
+                b.span.end_byte,
+                &b.kind,
+                &b.domain,
+            ))
+        });
+        self.embedded.dedup();
+        self.embedded_truncated |= other.embedded_truncated;
         self.doc_comments.sort_by(|a, b| {
             (a.span.start_byte, a.span.end_byte, a.inner, &a.owner_key).cmp(&(
                 b.span.start_byte,

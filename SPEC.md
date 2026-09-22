@@ -64,7 +64,8 @@ situ with no harness change and a one-line rollback.
 6. **Machine-readable output.** A stable JSON envelope an agent can parse from
    `bash`.
 7. **Language coverage (first cut).** Rust, TypeScript, JavaScript (incl. JSX/
-   TSX), HTML, and CSS.
+   TSX), HTML, CSS, and the declared script regions of Svelte, Vue and Astro
+   single-file components.
 
 ## 2. Non-goals (v1)
 
@@ -2807,8 +2808,9 @@ target kinds remain conservative. Parent-module imports do not leak into childre
 Unmodeled globs block unknown-name fallback. Added alias target/provenance text is
 limited to 8 MiB per file and each expanded target to 4,096 bytes, checked before
 allocation; excess retains an explicit unresolved reason. Parser policy 17
-refreshes cached facts. Unanchored imports, reexports, glob exports, general type
-namespace/receiver resolution and type-use binding remain separate work.
+refreshes cached facts. Unanchored imports, glob exports, general type
+namespace/receiver resolution and type-use binding remain separate work; public
+`use` reexports are modeled separately (see "Native Rust public reexports").
 
 ### Native ESM export bindings (parser policy 18)
 
@@ -2838,10 +2840,12 @@ projector; they are not copied into every graph node.
 
 This is a static source subset, not a runtime loader or complete type checker.
 Anonymous default expressions, namespace values/reexports, escaped specifier
-strings, CommonJS binding semantics, package export conditions, tsconfig aliases,
-full type/value merging and framework script-region boundaries remain unmodeled.
-The existing relative-file candidate policy applies, including runtime extension
-substitution; it does not promise Node or TypeScript loader-mode parity.
+strings, CommonJS binding semantics, package export conditions, full type/value
+merging and framework template relations remain unmodeled. Named relative imports
+may resolve through a selected `tsconfig.json`/`jsconfig.json` (see "Native default
+TypeScript project selection"); the existing relative-file candidate policy
+applies, including runtime extension substitution, and does not itself promise
+Node or TypeScript loader-mode parity.
 
 ### Authored Node package maps (source representation 12)
 
@@ -2865,10 +2869,10 @@ Reexport traversal uses the same lookup before checking the target's ESM surface
 Package manifest edits rebind conservatively. File-set changes also revisit
 package-map consumers so unresolved default imports can become bound when their
 mapped target appears. This remains broader than the desired precise dependency
-index. Workspace selection, dependency versions, declared tsconfig aliases,
-patterns, runtime conditions, external import-map targets, CommonJS bindings and
-framework regions remain outside this increment. No Node runtime loader or
-experimental package-map API is invoked.
+index. Workspace selection, dependency versions, runtime conditions, external
+import-map targets, CommonJS bindings and framework template regions remain
+outside this increment. No Node runtime loader or experimental package-map API is
+invoked.
 
 ### Configured store exclusion
 
@@ -2938,10 +2942,11 @@ module specifiers. Hoisted initialization sentinels remain zero. Checked arithme
 rejects invalid or unrepresentable coordinates; a containing `.tsx` filename cannot
 change the explicitly selected ordinary TypeScript grammar.
 
-This helper does not identify Svelte/Vue/Astro regions or register those extensions.
-Namespaced identity and `Extraction::merge` do not prove framework visibility:
-framework adapters must separately specify module/instance scope relationships,
-export surfaces, unresolved-name fallback, template relations and coverage.
+This helper does not itself identify Svelte/Vue/Astro regions: the registered
+framework adapters do (see "Native framework script regions"). Namespaced identity
+and `Extraction::merge` still do not prove framework visibility: module/instance
+scope relationships are declared per dialect, but template relations are not
+modeled and multi-region files retain an explicit incomplete ESM surface.
 
 JS/TS destructured declarations use the same pattern-only identifier traversal as
 lexical scopes. Default-value expressions and computed property keys contribute
@@ -3064,3 +3069,91 @@ package directory entry fields or publish alias bindings. Default resolution and
 source/parser/ranker versions remain unchanged (14/19/23) until integration. The
 selected-context compiler matrix and publication tests are recorded in
 `research/results/native-implementation/typescript-file-loading/README.md`.
+
+### Native default TypeScript project selection
+
+`core::typescript_project` is the first default integration of the configuration,
+alias and file-loading helpers. For every generation it selects the nearest
+admitted `tsconfig.json`/`jsconfig.json` whose directory contains an importing
+file, resolves that configuration's bounded `extends` chain from the same source
+records, and compiles its `paths`/`baseUrl` aliases with the selected module mode.
+
+Only two modes are supported: `moduleResolution: "bundler"` and
+`moduleResolution: "node16"|"nodenext"` (ESM, or CommonJS when the authored
+`module` is `commonjs`). A configuration with `classic`, absent, `node10`, or any
+other resolution mode is skipped rather than approximated. More than 32 admitted
+configurations in one generation also disables selection explicitly. Failure to
+inherit, compile aliases, or compile loader options leaves ordinary relative and
+package resolution unchanged; it never guesses a target.
+
+Bare specifiers consult declared aliases before package maps, in compiler order:
+an exact `paths` key or longest-prefix wildcard key, then `baseUrl` when no key
+matched. Relative specifiers are left to the ordinary relative-path policy. The
+file loader probes only admitted paths; an unadmitted directory candidate makes
+the lookup unmodeled, so resolution falls through instead of inventing an index
+file. Package-directory entry rules keep their existing explicit-unavailable
+behavior.
+
+Alias resolution uses the existing bounded probe budget and does not persist new
+dependency records yet. A changed or removed configuration conservatively rebinds
+every JS-family consumer in the generation (including Svelte/Vue/Astro script
+consumers) from cached facts; unrelated languages retain narrower invalidation.
+That is broader than a precise alias-dependency index and is recorded as such.
+Source/parser versions are 15/20; the ranker is unchanged. The compiler-comparison
+and counterfactual evidence is recorded in
+`research/results/native-implementation/typescript-aliases/README.md`.
+
+### Native framework script regions (parser 20)
+
+`graph-search-langs` registers Svelte (`.svelte`), Vue (`.vue`) and Astro
+(`.astro`) adapters. They recognize declared script regions with a bounded,
+dependency-free scanner and reuse the coordinate-preserving `embedded::script`
+bridge for extraction:
+
+- Svelte: top-level `<script>` elements. `context="module"` selects the `module`
+  domain; otherwise the `instance` domain. `lang="ts"|"typescript"` selects
+  TypeScript, `js`/`javascript` or absence selects JavaScript.
+- Vue: `<script setup>` selects the `setup` domain; a plain `<script>` selects
+  `default`. Language selection matches Svelte.
+- Astro: an unindented leading `---` fence selects the TypeScript `frontmatter`
+  domain; declared `<script>` elements select the `script` domain.
+
+Tag and attribute names are ASCII case-insensitive. Quoted attribute values may
+contain `>`; `<script` inside an authored HTML comment is not a region. A region
+with an unsupported `lang`, an unsupported Svelte `context`, a malformed start
+tag, an exhausted attribute bound, or no closing tag is recorded with a bounded
+reason instead of being silently dropped. A region that fails to parse marks only
+itself; other regions of the file still contribute facts.
+
+Each recognized region is persisted as an `EmbeddedRegionFact` in the extraction
+(span, kind, domain, extracted flag, reason) and the file's source record keeps
+`embedded_regions`, `embedded_unextracted_regions` and `embedded_truncated`.
+Coverage exposes `source_framework_region_files`, `source_framework_regions`,
+`source_framework_unextracted_regions` and `source_framework_truncated_files`, so
+an unmodeled dialect is visible to a caller instead of looking like an empty file.
+Markup outside declared regions remains ordinary body text and stays searchable.
+Template expressions, component tags, framework events, routes and injection
+edges are not modeled; this adapter is not a template engine. Multi-region files
+merge domains through `Extraction::merge`, which marks a shared ESM surface
+incomplete rather than claiming one module identity. Source representation is 15
+and parser policy is 20; no new dependency was added.
+
+### Native Rust public reexports (parser policy 20)
+
+A `pub use` leaf whose target is anchored (`crate::`, `self::`, `super::`) and
+whose local name is known is also emitted as an `Export` symbol owned by the
+republishing module. The authored target path and type-only flag are retained as
+attributes; the exact visibility modifier is preserved. Private `use`
+declarations, `use ... as _`, globs and unanchored targets publish no reexport.
+Namespaced identities keep the republishing module's qualified name, so the
+symbol participates in normal module-member lookup.
+
+Anchored path resolution follows a selected reexport node from the republishing
+module's own scope, so `pub use` chains work (`pub use crate::a::X as Y;` then
+`pub use crate::Y;`). Visibility of both the reexport and its target is checked
+with the existing module rules. Traversal is bounded at 16 hops and a cycle or
+exhausted bound is unresolved, never a guess. Glob reexports keep their explicit
+`rust_glob_exports_unavailable` reason. Reexport symbols are ordinary graph
+nodes, so unchanged generation consumers do not need raw extraction facts
+re-hydrated. The counterfactual and chained fixtures are recorded in
+`research/results/native-implementation/rust-reexports/README.md`.

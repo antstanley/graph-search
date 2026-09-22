@@ -42,6 +42,9 @@ pub fn default_extensions() -> BTreeMap<String, Language> {
         (String::from(".html"), Language::Html),
         (String::from(".htm"), Language::Html),
         (String::from(".css"), Language::Css),
+        (String::from(".svelte"), Language::Svelte),
+        (String::from(".vue"), Language::Vue),
+        (String::from(".astro"), Language::Astro),
     ])
 }
 
@@ -89,6 +92,9 @@ impl Default for WalkPolicy {
                 Language::JavaScript,
                 Language::Html,
                 Language::Css,
+                Language::Svelte,
+                Language::Vue,
+                Language::Astro,
             ],
             extensions: default_extensions(),
         }

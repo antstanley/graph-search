@@ -32,6 +32,12 @@ pub enum Dispatch<T> {
 }
 
 impl Aliases {
+    /// Whether this configuration declared neither `paths` nor `baseUrl`.
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.base_url.is_none() && self.paths.is_empty()
+    }
+
     /// Compile origin-aware paths/baseUrl settings without accessing source files.
     /// Other compiler settings are interpreted by the caller's module loader.
     ///

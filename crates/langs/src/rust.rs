@@ -377,9 +377,67 @@ impl Extractor<'_> {
             return;
         };
         let visibility = visibility_modifier(node).map(|n| self.text(n).to_owned());
-        self.extraction
-            .references
-            .extend(crate::rust_use::extract(arg, self.source, visibility));
+        let facts = crate::rust_use::extract(arg, self.source, visibility);
+        for fact in &facts {
+            self.reexport(fact, node);
+        }
+        self.extraction.references.extend(facts);
+    }
+
+    /// A public `use` republishes its target under a module-visible name. The
+    /// fact is recorded as an export node so graph readers can follow it without
+    /// re-hydrating unrelated raw extraction records.
+    fn reexport(&mut self, fact: &ReferenceFact, node: Node<'_>) {
+        let Some(import) = &fact.rust_use else {
+            return;
+        };
+        if import.glob || import.local_name.is_none() {
+            return;
+        }
+        let Some(visibility) = import.visibility.as_deref() else {
+            return;
+        };
+        if !visibility.trim_start().starts_with("pub") || visibility.contains("self") {
+            return;
+        }
+        let anchored = ["crate::", "self::", "super::"]
+            .iter()
+            .any(|prefix| fact.name.starts_with(prefix));
+        if !anchored {
+            return;
+        }
+        let local = import.local_name.clone().unwrap_or_default();
+        let (key, qualified) = self.qualify(&local, NodeKind::Export);
+        let mut symbol = SymbolFact::new(
+            key,
+            NodeKind::Export,
+            local,
+            qualified,
+            fact.span.unwrap_or_else(|| Self::span(node)),
+        )
+        .with_signature(self.text(node).trim().chars().take(120).collect::<String>());
+        if let Some(parent) = self.scope.last().map(|scope| scope.key.clone()) {
+            symbol = symbol.with_parent(parent);
+        }
+        symbol
+            .attributes
+            .insert("rust_reexport".into(), fact.name.clone());
+        symbol.attributes.insert(
+            "rust_visibility_modifier".into(),
+            visibility.trim().to_owned(),
+        );
+        if import.type_only {
+            symbol
+                .attributes
+                .insert("rust_reexport_type_only".into(), "true".into());
+        }
+        symbol.visibility = match visibility.trim() {
+            "pub" => Some(Visibility::Public),
+            "pub(crate)" => Some(Visibility::Crate),
+            "pub(super)" => Some(Visibility::Super),
+            _ => None,
+        };
+        self.extraction.symbols.push(symbol);
     }
 
     fn call(&mut self, node: Node<'_>) {

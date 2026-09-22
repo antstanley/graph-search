@@ -183,3 +183,16 @@ retained: [requirement audit and accounting boundaries](results/native-implement
 - [Native modern TypeScript file loading](results/native-implementation/typescript-file-loading/README.md):
   extension/suffix/index lookup, ESM distinctions and negative probes over published
   facts; selected-context compiler comparisons and mutation parity.
+
+- [Recommendation 21 acceptance](RECOMMENDATION-21-AUDIT.md): clause-by-clause map
+  of native packages/imports/framework regions, including the declared subset and
+  the template/conditional-loader limits.
+- [Native framework script regions](results/native-implementation/framework-regions/README.md):
+  Svelte/Vue/Astro declared `<script>` (and Astro frontmatter) extraction through
+  offset-translating JS/TS adapters, persisted region facts and coverage counters.
+- [Native default TypeScript project selection](results/native-implementation/typescript-aliases/README.md):
+  nearest `tsconfig`/`jsconfig`, bounded inheritance, `paths`/`baseUrl` before
+  package maps, supported bundler/Node16 modes and conservative config invalidation.
+- [Native Rust public reexports](results/native-implementation/rust-reexports/README.md):
+  `pub use` export nodes, `as` aliases and bounded chains, with a private-`use`
+  counterfactual.

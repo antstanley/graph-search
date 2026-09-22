@@ -22,6 +22,15 @@ pub enum Language {
     Html,
     /// CSS (`.css`).
     Css,
+    /// A Svelte single-file component (`.svelte`). Only declared `<script>`
+    /// regions are extracted; template markup is not modeled as references.
+    Svelte,
+    /// A Vue single-file component (`.vue`). Only declared `<script>` regions
+    /// are extracted; template markup is not modeled as references.
+    Vue,
+    /// An Astro component (`.astro`). The frontmatter fence and declared
+    /// `<script>` regions are extracted; template markup is not modeled.
+    Astro,
     /// A file no enabled extractor claims. Its `file` node is still indexed so
     /// a glob can be answered from the index (`SPEC.md` §6.2).
     Unknown,
@@ -37,6 +46,9 @@ impl Language {
             Self::JavaScript => "javascript",
             Self::Html => "html",
             Self::Css => "css",
+            Self::Svelte => "svelte",
+            Self::Vue => "vue",
+            Self::Astro => "astro",
             Self::Unknown => "unknown",
         }
     }
@@ -50,6 +62,9 @@ impl Language {
             "javascript" | "js" | "jsx" => Some(Self::JavaScript),
             "html" | "htm" => Some(Self::Html),
             "css" => Some(Self::Css),
+            "svelte" => Some(Self::Svelte),
+            "vue" => Some(Self::Vue),
+            "astro" => Some(Self::Astro),
             "unknown" => Some(Self::Unknown),
             _ => None,
         }

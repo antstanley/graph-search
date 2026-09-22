@@ -1,9 +1,12 @@
 //! Anchored Rust paths over physical module scopes, retaining shared contexts.
 use crate::rust_modules::Catalog;
-use graph_search_types::extraction::ReferenceFact;
+use graph_search_types::extraction::{ReferenceFact, RustUseFact};
 use graph_search_types::kind::Visibility;
 use graph_search_types::{Node, NodeId, NodeKind, Span};
 use std::collections::{BTreeMap, BTreeSet, VecDeque};
+
+/// Maximum `pub use` hops followed for one anchored path.
+const MAX_REEXPORT_DEPTH: usize = 16;
 
 #[derive(Clone, Debug, Default)]
 pub(crate) struct Paths {
@@ -129,6 +132,20 @@ impl Paths {
         path: &str,
         symbols: &BTreeMap<NodeId, Node>,
     ) -> Result<NodeId, &'static str> {
+        self.resolve_at(fact, path, symbols, 0)
+    }
+
+    #[allow(clippy::too_many_lines)] // one path walk with explicit bounds
+    fn resolve_at(
+        &self,
+        fact: &ReferenceFact,
+        path: &str,
+        symbols: &BTreeMap<NodeId, Node>,
+        depth: usize,
+    ) -> Result<NodeId, &'static str> {
+        if depth >= MAX_REEXPORT_DEPTH {
+            return Err("rust_reexport_depth_limit");
+        }
         if self.incomplete {
             return Err("rust_module_context_limit");
         }
@@ -199,6 +216,20 @@ impl Paths {
                     return Err("rust_path_member_missing_or_ambiguous");
                 };
                 self.visible(node, scope, &origin)?;
+                if let Some(target) = node.attribute("rust_reexport") {
+                    let resolved = self.follow_reexport(target, node, fact, symbols, depth)?;
+                    if terminal {
+                        next.insert(resolved);
+                    } else {
+                        next.insert(
+                            self.interiors
+                                .get(&resolved)
+                                .ok_or("rust_module_interior_missing")?
+                                .clone()?,
+                        );
+                    }
+                    continue;
+                }
                 if terminal {
                     next.insert(node.id.clone());
                 } else {
@@ -213,6 +244,33 @@ impl Paths {
             scopes = next;
         }
         unique(scopes)
+    }
+
+    /// Resolves a `pub use` target from the republishing module's own scope.
+    fn follow_reexport(
+        &self,
+        target: &str,
+        node: &Node,
+        fact: &ReferenceFact,
+        symbols: &BTreeMap<NodeId, Node>,
+        depth: usize,
+    ) -> Result<NodeId, &'static str> {
+        let mut synthetic = fact.clone();
+        target.clone_into(&mut synthetic.name);
+        synthetic.span = node.span;
+        synthetic.rust_use = Some(RustUseFact {
+            type_only: node.attribute("rust_reexport_type_only") == Some("true"),
+            local_name: None,
+            glob: false,
+            visibility: None,
+        });
+        synthetic.via_import = None;
+        synthetic.from_key = None;
+        synthetic.lexical_target = None;
+        synthetic.raw_name = None;
+        synthetic.dynamic = false;
+        synthetic.unresolved_reason = None;
+        self.resolve_at(&synthetic, &node.path, symbols, depth.saturating_add(1))
     }
 
     fn origin(&self, path: &str, span: Option<Span>) -> NodeId {

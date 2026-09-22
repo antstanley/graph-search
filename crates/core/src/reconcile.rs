@@ -347,6 +347,8 @@ impl<'a> Projector<'a> {
 
         table.prepare_rust_modules(&known_files, package_boundaries);
         table.prepare_node_packages(package_boundaries);
+        let config_sources = self.config_sources(store, &changed_paths, &removed, &pending)?;
+        table.prepare_typescript_projects(&config_sources);
         if let Some(index) = store.dependency_index()? {
             table.prepare_js_surfaces(
                 index
@@ -549,6 +551,52 @@ impl<'a> Projector<'a> {
         Ok(report)
     }
 
+    /// Slim projections of admitted configuration records: identity, version and
+    /// raw authored fields only, exactly what native inheritance reads.
+    fn config_sources(
+        &self,
+        store: &dyn GraphStore,
+        changed_paths: &BTreeSet<String>,
+        removed: &[String],
+        pending: &[Pending],
+    ) -> Result<BTreeMap<String, graph_search_types::source::SourceFileUnits>> {
+        let snapshot = store.snapshot()?;
+        let mut sources = BTreeMap::new();
+        for (path, source) in snapshot.source_files() {
+            self.check_work()?;
+            if changed_paths.contains(path) || removed.iter().any(|removed| removed == path) {
+                continue;
+            }
+            if source.typescript_config.is_some() {
+                sources.insert(
+                    path.clone(),
+                    graph_search_types::source::SourceFileUnits {
+                        typescript_config: source.typescript_config.clone(),
+                        source_hash: source.source_hash.clone(),
+                        version: source.version,
+                        ..graph_search_types::source::SourceFileUnits::default()
+                    },
+                );
+            }
+        }
+        for item in pending {
+            if let Some(source) = &item.projection.source
+                && source.typescript_config.is_some()
+            {
+                sources.insert(
+                    item.entry.rel.clone(),
+                    graph_search_types::source::SourceFileUnits {
+                        typescript_config: source.typescript_config.clone(),
+                        source_hash: source.source_hash.clone(),
+                        version: source.version,
+                        ..graph_search_types::source::SourceFileUnits::default()
+                    },
+                );
+            }
+        }
+        Ok(sources)
+    }
+
     fn annotate_packages(
         &self,
         store: &dyn GraphStore,
@@ -633,6 +681,28 @@ impl<'a> Projector<'a> {
                     }
                 }
             }
+            // A declared project configuration can change any consumer's alias
+            // resolution. Until alias dependencies are persisted, conservatively
+            // rebind JS-family consumers from cached facts.
+            if changed
+                .iter()
+                .any(|path| crate::typescript_project::is_project_config(path))
+            {
+                changed.extend(
+                    previous
+                        .entries
+                        .keys()
+                        .filter(|path| new_files.contains(*path))
+                        .filter(|path| {
+                            files
+                                .get(path.as_str())
+                                .and_then(|node| node.language)
+                                .or_else(|| self.policy.language_for(Path::new(path)))
+                                .is_some_and(crate::resolve::js_family)
+                        })
+                        .cloned(),
+                );
+            }
             index.repair_paths(changed, &names, &new_files, boundary_changed, || {
                 self.check_work()
             })?
@@ -680,6 +750,25 @@ impl<'a> Projector<'a> {
                     .any(|path| crate::packages::manifest_family(path).is_some())
             {
                 dirty.extend(new_files.iter().cloned());
+            }
+            // Declared project configuration can change any JS-family consumer's
+            // alias resolution. Rebind those consumers from cached facts.
+            if dirty
+                .iter()
+                .any(|path| crate::typescript_project::is_project_config(path))
+            {
+                dirty.extend(
+                    new_files
+                        .iter()
+                        .filter(|path| {
+                            files
+                                .get(path.as_str())
+                                .and_then(|node| node.language)
+                                .or_else(|| self.policy.language_for(Path::new(path)))
+                                .is_some_and(crate::resolve::js_family)
+                        })
+                        .cloned(),
+                );
             }
             // Every external module declaration can depend on a newly created file,
             // target-root role or conflicting path. Rebind these consumers from
@@ -948,6 +1037,14 @@ impl<'a> Projector<'a> {
                     inner: fact.inner,
                 })
                 .collect();
+            let embedded = pending
+                .extraction
+                .as_ref()
+                .map_or(&[][..], |facts| facts.embedded.as_slice());
+            let embedded_truncated = pending
+                .extraction
+                .as_ref()
+                .is_some_and(|facts| facts.embedded_truncated);
             pending.projection.source = Some(crate::units::extract_documented(
                 &entry.rel,
                 text,
@@ -960,6 +1057,8 @@ impl<'a> Projector<'a> {
                         .extraction
                         .as_ref()
                         .is_some_and(|facts| facts.doc_comments_truncated),
+                    embedded,
+                    embedded_truncated,
                 },
             ));
             if let Some(source) = pending.projection.source.as_mut() {

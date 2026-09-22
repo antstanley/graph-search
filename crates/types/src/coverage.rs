@@ -25,6 +25,18 @@ pub struct Coverage {
     /// Files with incomplete parser-owned documentation metadata.
     #[serde(default, skip_serializing_if = "is_zero")]
     pub source_documentation_truncated_files: u64,
+    /// Files with at least one recognized framework script region.
+    #[serde(default, skip_serializing_if = "is_zero")]
+    pub source_framework_region_files: u64,
+    /// Recognized framework script regions across indexed source files.
+    #[serde(default, skip_serializing_if = "is_zero")]
+    pub source_framework_regions: u64,
+    /// Recognized framework regions omitted because their dialect is unmodeled.
+    #[serde(default, skip_serializing_if = "is_zero")]
+    pub source_framework_unextracted_regions: u64,
+    /// Framework files whose region scan reached an adapter bound.
+    #[serde(default, skip_serializing_if = "is_zero")]
+    pub source_framework_truncated_files: u64,
     /// Inclusion policy summary and fingerprint of its complete configuration.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub policy: Option<SourcePolicy>,

@@ -164,6 +164,7 @@ pub struct SourceUnit {
 }
 
 /// Persisted retrieval facts for one source version, without a duplicate source blob.
+#[allow(clippy::struct_excessive_bools)] // independent persisted coverage flags
 #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct SourceFileUnits {
     /// Raw candidate JSON/JSONC configuration facts; presence does not select a project.
@@ -187,8 +188,22 @@ pub struct SourceFileUnits {
     /// Documentation metadata is partial; original body text remains eligible.
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]
     pub documentation_truncated: bool,
+    /// Recognized framework script regions retained for this file.
+    #[serde(default, skip_serializing_if = "is_zero")]
+    pub embedded_regions: u32,
+    /// Recognized framework regions the anchored adapter did not extract.
+    #[serde(default, skip_serializing_if = "is_zero")]
+    pub embedded_unextracted_regions: u32,
+    /// Whether the framework region scan reached an adapter bound.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub embedded_truncated: bool,
     /// Regions in source order.
     pub units: Vec<SourceUnit>,
+}
+
+#[allow(clippy::trivially_copy_pass_by_ref)] // serde predicate signature
+fn is_zero(value: &u32) -> bool {
+    *value == 0
 }
 
 /// Source coordinates supporting a retrieved graph entity or file.

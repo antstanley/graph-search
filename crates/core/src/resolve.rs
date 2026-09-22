@@ -11,6 +11,20 @@ use graph_search_types::node::Node;
 use graph_search_types::{Edge, NodeId};
 use std::collections::{BTreeMap, BTreeSet};
 
+/// Whether a language consumes JavaScript/TypeScript module surfaces, including
+/// the script regions of native framework components.
+#[must_use]
+pub fn js_family(language: Language) -> bool {
+    matches!(
+        language,
+        Language::JavaScript
+            | Language::TypeScript
+            | Language::Svelte
+            | Language::Vue
+            | Language::Astro
+    )
+}
+
 /// Whether a node kind can be the target of an edge kind, for the
 /// global-unique rule. Other rules admit anything that matches by name.
 #[must_use]
@@ -72,6 +86,8 @@ pub struct SymbolTable {
     pub exports_by_file: BTreeMap<String, BTreeMap<String, NodeId>>,
     /// Every symbol node, by id.
     pub symbols: BTreeMap<NodeId, Node>,
+    /// Nearest selected TypeScript projects for declared path aliases.
+    ts_projects: crate::typescript_project::Projects,
 }
 
 impl SymbolTable {
@@ -102,15 +118,29 @@ impl SymbolTable {
             .map(|(path, module)| (path.to_owned(), module.clone()))
             .collect();
     }
-    /// Resolve a JS/TS module from relative paths or authored package maps.
+    /// Resolve a JS/TS module from declared aliases, relative paths or package maps.
+    /// Declared `paths`/`baseUrl` are attempted first for bare specifiers, in
+    /// compiler order; an unmatched project leaves package resolution unchanged.
     pub(crate) fn js_specifier(
         &self,
         from: &str,
         specifier: &str,
         known: &BTreeSet<String>,
     ) -> Result<String, &'static str> {
+        if let Some(target) = self.ts_projects.resolve(from, specifier, known) {
+            return Ok(target);
+        }
         self.node_packages.resolve(from, specifier, known)
     }
+    /// Select the nearest admitted configuration for each file and compile its
+    /// declared `paths`/`baseUrl` aliases. Unsupported configurations are skipped.
+    pub fn prepare_typescript_projects(
+        &mut self,
+        sources: &BTreeMap<String, graph_search_types::source::SourceFileUnits>,
+    ) {
+        self.ts_projects = crate::typescript_project::Projects::build(sources);
+    }
+
     /// Prepare authored Node package boundaries after all file nodes are populated.
     pub fn prepare_node_packages(&mut self, boundaries: &BTreeSet<String>) {
         self.node_packages = crate::node_packages::Packages::build(&self.files, boundaries);
@@ -244,7 +274,11 @@ pub fn resolve_specifier(
     }
     let candidates: Vec<String> = match language {
         Language::Rust => rust_candidates(from_path, specifier),
-        Language::TypeScript | Language::JavaScript => js_candidates(from_path, specifier),
+        Language::TypeScript
+        | Language::JavaScript
+        | Language::Svelte
+        | Language::Vue
+        | Language::Astro => js_candidates(from_path, specifier),
         Language::Css | Language::Html => vec![relative(from_path, specifier)],
         Language::Unknown => vec![],
     };
@@ -497,7 +531,7 @@ pub fn resolve_reference(
 
     // File-level import statements become file->file (or file->module) edges.
     if fact.kind == EdgeKind::Imports && fact.from_key.is_none() && fact.via_import.is_none() {
-        let target = if matches!(language, Language::JavaScript | Language::TypeScript) {
+        let target = if js_family(language) {
             table.js_specifier(from_path, &fact.name, known_files)
         } else {
             resolve_specifier(from_path, &fact.name, known_files, language)
@@ -522,7 +556,7 @@ pub fn resolve_reference(
     // Explicit import provenance is authoritative. Failure to resolve the
     // module must not fall through to an unrelated workspace name.
     if let Some(specifier) = &fact.via_import {
-        if matches!(language, Language::JavaScript | Language::TypeScript) {
+        if js_family(language) {
             let target = match table.js_specifier(from_path, specifier, known_files) {
                 Ok(target) => target,
                 Err(reason) => return dangling(fact.name.clone(), reason),
