@@ -135,6 +135,18 @@ pub enum QueryPolicy {
     Task,
 }
 
+/// How test-owned code ranks in discovery (`SPEC.md` § Test-owned symbols).
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum TestRanking {
+    /// Non-exact test-owned hits follow every other hit, unless the query
+    /// itself asks about tests; they still fill slots nothing else takes.
+    #[default]
+    Defer,
+    /// Test-owned hits rank like any other, for ablations.
+    Neutral,
+}
+
 /// Structured policy, independent of the original query string.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(default)]
@@ -161,6 +173,8 @@ pub struct RetrievalOptions {
     pub exact_fast_path: bool,
     /// First-pass entities per file; zero disables file diversification.
     pub per_file: u16,
+    /// How test-owned symbols and files rank.
+    pub tests: TestRanking,
     /// Include the original query, executed routes and per-channel ranks.
     pub explain: bool,
 }
@@ -178,6 +192,7 @@ impl Default for RetrievalOptions {
             near_window: 8,
             exact_fast_path: false,
             per_file: 0,
+            tests: TestRanking::Defer,
             explain: false,
         }
     }

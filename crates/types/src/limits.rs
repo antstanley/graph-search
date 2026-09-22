@@ -138,8 +138,9 @@ pub const RESULT_SCHEMA_VERSION: u32 = 4;
 /// unknown, and Python files take `pyproject.toml` package context.
 /// v25: Rust `pub use` of an edition-2018 path (a module in scope or another
 /// crate) is a reexport symbol, not only `crate::`/`self::`/`super::` targets.
-/// v26: Rust fields and callables record their declared types, and method
-/// calls record how their receiver's type is stated.
+/// v26: Rust fields and callables record their declared types, method calls
+/// record how their receiver's type is stated, and test-only items are marked
+/// `test_owned`.
 pub const PARSER_VERSION: u32 = 26;
 
 /// Default independent ceiling on edges delivered by one graph/explore query.

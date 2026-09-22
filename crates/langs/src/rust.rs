@@ -45,6 +45,7 @@ impl LanguageExtractor for RustExtractor {
             call_facts: HashMap::new(),
             locals: Vec::new(),
             declared_types: Vec::new(),
+            test_depth: 0,
         };
         extractor.walk_node(tree.root_node());
         let (root_path, root_unsupported) = module_path(tree.root_node(), file.text);
@@ -88,6 +89,8 @@ struct Extractor<'a> {
     /// Declared field and return types to record once imports are expanded:
     /// `(symbol ordinal, attribute, type)`.
     declared_types: Vec<(usize, &'static str, DeclaredType)>,
+    /// Enclosing items compiled only for tests (`#[cfg(test)]`, `#[test]`).
+    test_depth: usize,
 }
 
 /// A declared type recorded on a symbol for receiver typing.
@@ -362,6 +365,19 @@ impl Extractor<'_> {
     // ------------------------------------------------------------------
 
     fn walk_node(&mut self, node: Node<'_>) {
+        // Everything inside a `#[cfg(test)]` item or a `#[test]` function is
+        // test-owned (`SPEC.md` § Test-owned symbols).
+        let test = node.kind().ends_with("_item") && test_attribute(node, self.source);
+        if test {
+            self.test_depth = self.test_depth.saturating_add(1);
+        }
+        self.walk_item(node);
+        if test {
+            self.test_depth = self.test_depth.saturating_sub(1);
+        }
+    }
+
+    fn walk_item(&mut self, node: Node<'_>) {
         match node.kind() {
             "function_item" | "function_signature_item" => self.function(node),
             "struct_item" => self.item(node, NodeKind::Struct, "struct"),
@@ -453,6 +469,9 @@ impl Extractor<'_> {
         }
         if let Some(parent) = parent {
             fact = fact.with_parent(parent);
+        }
+        if self.test_depth > 0 {
+            fact = fact.with_attribute("test_owned", "true");
         }
         self.extraction.symbols.push(fact);
     }
@@ -985,6 +1004,43 @@ fn impl_type_path(type_text: &str) -> String {
         .to_owned()
 }
 
+/// Whether an item's outer attributes compile it only for tests:
+/// `#[cfg(test)]` (alone or in `all(..)`/`any(..)`, never under `not(..)`) or a
+/// test harness attribute (`#[test]`, `#[tokio::test]`).
+fn test_attribute(node: Node<'_>, source: &str) -> bool {
+    let mut previous = node.prev_named_sibling();
+    while let Some(attribute) = previous {
+        match attribute.kind() {
+            "line_comment" | "block_comment" => {}
+            "attribute_item" => {
+                let text: String = crate::walk::text(attribute, source)
+                    .chars()
+                    .filter(|ch| !ch.is_whitespace())
+                    .collect();
+                let body = text
+                    .strip_prefix("#[")
+                    .and_then(|text| text.strip_suffix(']'))
+                    .unwrap_or_default();
+                let path = body.split('(').next().unwrap_or_default();
+                if path.rsplit("::").next() == Some("test") {
+                    return true;
+                }
+                if path == "cfg"
+                    && !body.contains("not(")
+                    && body
+                        .split(|ch: char| !ch.is_alphanumeric() && ch != '_')
+                        .any(|word| word == "test")
+                {
+                    return true;
+                }
+            }
+            _ => break,
+        }
+        previous = attribute.prev_named_sibling();
+    }
+    false
+}
+
 fn module_path(node: Node<'_>, source: &str) -> (Option<String>, bool) {
     let mut attributes = Vec::new();
     let mut previous = node.prev_named_sibling();
@@ -1093,6 +1149,22 @@ mod tests {
         RustExtractor
             .extract(&file)
             .unwrap_or_else(|e| panic!("extract: {e}"))
+    }
+
+    #[test]
+    fn test_only_items_mark_their_symbols_test_owned() {
+        let facts = extract(
+            "pub fn live() {}\n#[cfg(test)]\nmod checks {\n    fn helper() {}\n    struct Fixture;\n}\n#[tokio::test]\nasync fn runs() {}\n#[cfg(not(test))]\nfn release_only() {}\n#[cfg(all(test, unix))]\nfn unix_case() {}\n",
+        );
+        let owned: Vec<&str> = facts
+            .symbols
+            .iter()
+            .filter(|symbol| {
+                symbol.attributes.get("test_owned").map(String::as_str) == Some("true")
+            })
+            .map(|symbol| symbol.name.as_str())
+            .collect();
+        assert_eq!(owned, ["checks", "helper", "Fixture", "runs", "unix_case"]);
     }
 
     #[test]

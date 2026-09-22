@@ -1425,6 +1425,7 @@ graph-search search explore <query> [--k 8] [--hops 1] [--context-lines 2]
                                     [--graph-context semantic|none|calls|imports|types]
                                     [--analysis split|identifiers]
                                     [--all-terms | --min-terms N] [--per-file N]
+                                    [--tests defer|neutral]
                                     [--exact-fast-path] [--explain]
 ```
 
@@ -1549,7 +1550,9 @@ component membership does not certify completeness beyond that admitted graph.
    Fusion combines ranks with reciprocal rank (constant 60) and an exact-name
    priority tier. File diversity is disabled by default after controlled tests;
    a positive `per_file` makes a soft first pass, with exact-name exemptions,
-   then fills remaining slots from deferred entities.
+   then fills remaining slots from deferred entities. Before that pass,
+   test-owned hits (§ Test-owned symbols) follow every other hit unless the
+   query names them; `--tests neutral` ranks them like any other.
 
    `RetrievalOptions` preserves the original query separately from mode, ranking,
    minimum term coverage and diversification. `Any` is OR discovery; `All` and
@@ -3351,6 +3354,35 @@ step that cannot be proven falls back to the ordinary rules, which keep the call
 unresolved; trait dispatch through generics is not modeled. A receiver call's
 dependency record includes its member and the fields and types it reaches
 through, so an edit to a declared field or return type elsewhere rebinds it.
+
+### Test-owned symbols (parser policy 26)
+
+A symbol or file is test-owned when its adapter marks it (Rust: every item in a
+`#[cfg(test)]` item or module, including under `all(..)`/`any(..)` but never
+`not(..)`, and every `#[test]`/`#[*::test]` function), when its qualified name
+has a `tests` module segment, or when its path has a `tests`, `test`,
+`__tests__` or `spec` directory, or a file name word `test`, `tests` or
+`__tests__` (`tests.rs`, `test_io.py`, `view.test.ts`, `tests_support.rs`), or a
+`spec` word beside another (`view.spec.ts`, not `spec.rs`).
+
+Ranked discovery (`TestRanking::Defer`, the default) moves test-owned hits behind
+every other hit, keeping each group's order; they still fill slots nothing else
+takes, so a test is demoted, never dropped. Three cases keep a test's rank: an
+exact name (the 2.0 tier); a query that spells every content word of the test's
+qualified name outside `tests` modules (`log one step` for
+`tests::log_one_step`, but not `search` for `UnusedFs::search`); and a query
+that asks about tests (`test`, `tests`, `testing`, `spec`, `specs`, `fixture`,
+`fixtures`, `mock`, `mocks`). `TestRanking::Neutral` (`--tests neutral`) is the
+ablation.
+
+On the frozen doc-07 query sets (exact, split, held-out and natural, three
+repositories), deferral loses no hit and gains five; on the release-gate
+evidence protocol (56 source-valid tasks) required files rise from 36 to 38,
+complete regions from 13 to 16 and mean region coverage from 0.404 to 0.457.
+The `nanus` evaluation probes carry no test-owned result in their top eight.
+Deferring every non-exact test hit was measured first and rejected: `nanus`
+split targets are mostly test functions, and their recall fell from 29/30 to
+7/30.
 
 Rust `type_uses` now descend into generic arguments (`Vec<Foo>` uses `Foo`);
 the adapter had read a field name the grammar does not define. A `pub use` target
