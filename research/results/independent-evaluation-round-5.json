@@ -1,0 +1,128 @@
+{
+  "experiment": "independent-evaluation-round-5",
+  "date": "2026-09-22",
+  "evaluator": "independent external agent (nanus session)",
+  "revision": {
+    "commit": "65a5160",
+    "title": "Storage format 9: lazily loaded store",
+    "schema_version": 3,
+    "parser_version": 23,
+    "requires_rebuild": true,
+    "migration": "none"
+  },
+  "method_note": "all prior stores deleted; fresh format-9 index",
+  "gate": {
+    "tests_passed": 582,
+    "tests_failed": 0,
+    "clippy": "clean"
+  },
+  "p0_1_resolved": true,
+  "one_shot_latency_s": {
+    "status": [
+      0.007,
+      0.007,
+      0.007
+    ],
+    "text": [
+      0.014,
+      0.014,
+      0.014
+    ],
+    "noop_sync": [
+      0.007,
+      0.007,
+      0.007
+    ],
+    "symbol": [
+      0.126,
+      0.133,
+      0.123
+    ],
+    "callers": [
+      0.175,
+      0.17,
+      0.172
+    ],
+    "impact": [
+      0.168,
+      0.179,
+      0.169
+    ],
+    "explore": [
+      0.318,
+      0.304,
+      0.309
+    ]
+  },
+  "index": {
+    "index_s": 1.822,
+    "store_bytes": 12582912
+  },
+  "prev_round": {
+    "status_s": 0.525,
+    "per_call_s": 0.52,
+    "store_bytes": 11534336
+  },
+  "lazy_contract_verified": {
+    "corrupt_graph": {
+      "status_exit": 0,
+      "symbol_exit": 1,
+      "message": "store error: generation checksum mismatch: graph.grafeo"
+    },
+    "missing_occurrence_sidecar": {
+      "status_exit": 0,
+      "refs_exit": 1,
+      "explore_exit": 1,
+      "message": "No such file or directory (os error 2)",
+      "nit": "message does not name the missing artifact"
+    }
+  },
+  "graph_identical_to_round_4": true,
+  "still_fixed": {
+    "impact_ToolSchema": [
+      [
+        1,
+        25
+      ],
+      [
+        2,
+        47
+      ]
+    ],
+    "refs_SearchQuery": 5,
+    "refs_ToolDefinition": 9,
+    "callers_AgentRunner::run_step": 1,
+    "explore_default_bytes": 8055,
+    "text_bytes": 12351,
+    "dangling_multiline_names": 0
+  },
+  "still_open": {
+    "P1.2_receiver_calls": {
+      "ToolRegistry::execute": 0,
+      "ToolRegistryHandle::borrow": 0
+    },
+    "P1.1_test_noise": "2/8",
+    "P2.6_cross_crate_imports": {
+      "unresolved_lines": 20
+    }
+  },
+  "unchanged_good": {
+    "honesty_channel": {
+      "callees_run_tools": {
+        "edges": 30,
+        "resolved": 3,
+        "unresolved": 27
+      }
+    },
+    "parity": true,
+    "reconcile_defect_still_fixed": {
+      "fresh": 1,
+      "edit_callee": 1,
+      "sync": 1
+    }
+  },
+  "verdict": {
+    "verdict": "P0_RESOLVED_READY_FOR_SECTION_16_6_MEASUREMENT",
+    "confidence": "high"
+  }
+}
