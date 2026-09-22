@@ -99,7 +99,11 @@ impl MetadataIndex {
         Self::build(nodes, Some(self))
     }
 
+    #[allow(clippy::too_many_lines)] // one pass over ordered documents
     fn build(mut nodes: Vec<Node>, previous: Option<&Self>) -> Self {
+        // Reexport members resolve module paths but are not competing search
+        // results; excluding them keeps candidate ranking on real definitions.
+        nodes.retain(|node| node.attribute("rust_reexport").is_none());
         nodes.sort_by(|a, b| {
             a.path
                 .cmp(&b.path)

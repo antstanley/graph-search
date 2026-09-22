@@ -251,6 +251,11 @@ fn symbol_boundaries(text: &str, symbols: &[Node]) -> BoundaryEvents {
     boundaries.entry(0).or_default();
     boundaries.entry(text.len()).or_default();
     for (i, node) in symbols.iter().enumerate() {
+        // A reexport member is a resolution alias, not an authored declaration;
+        // it must not partition source regions.
+        if node.attribute("rust_reexport").is_some() {
+            continue;
+        }
         let Some(span) = node.span else {
             continue;
         };

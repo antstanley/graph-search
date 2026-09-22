@@ -176,6 +176,12 @@ impl SymbolTable {
             }
             return;
         }
+        // A `pub use` reexport is a module member for anchored path resolution, not
+        // a competing definition: it must not enter name-based retrieval or fallback.
+        if node.attribute("rust_reexport").is_some() {
+            self.symbols.insert(node.id.clone(), node.clone());
+            return;
+        }
         let name = node.name.clone().unwrap_or_default();
         let qualified = node.qualified_name.clone().unwrap_or_else(|| name.clone());
         self.by_name
