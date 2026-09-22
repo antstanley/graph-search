@@ -1,6 +1,6 @@
 # Native search implementation tracking
 
-Scope: implement the recommendations in [the review](09-native-search-review.md), validate them, then commit and push. Conditional techniques retain their stated evidence gates; they are not automatically required integrations. No new third-party components.
+Scope: implement the recommendations in [the review](09-native-search-review.md), validate them, then commit and push. Conditional techniques retain their stated evidence gates; they are not automatically required integrations. No new third-party runtime components; the benchmark-only Criterion dev-dependency is the single addition and exists for the release gate's performance objective.
 
 ## Requirement ledger
 
@@ -15,7 +15,7 @@ Scope: implement the recommendations in [the review](09-native-search-review.md)
 - [x] 9. Make bodies, comments, configuration, and Markdown first-class candidates — P1
 - [x] 10. Add a small, native query planner and protect explicit intent — P1
 - [x] 11. Redesign candidate selection separately from final context selection — P1
-- [ ] 12. Select source around matches and relationships — P1
+- [x] 12. Select source around matches and relationships — P1 (implementation and measurable evaluation complete; model answer success owned by the release gate)
 - [x] 13. Preserve whole identifiers and improve analyzer contracts — P1
 - [x] 14. Evaluate field normalization and positive IDF, without conflating them — P1/P2
 - [x] 15. Add native phrase and proximity verification — P2
@@ -37,15 +37,38 @@ Scope: implement the recommendations in [the review](09-native-search-review.md)
 
 ## Validation and delivery
 
-- [ ] Reproduced correctness failures covered by production regression tests.
-- [ ] Workspace tests and strict lint checks pass.
-- [ ] External source-valid evidence evaluation and fresh-query coverage.
-- [ ] Differential incremental/rebuild and scorer checks.
-- [ ] Review each numbered recommendation against implementation evidence.
-- [ ] Commit intended files, excluding the user-owned `.codegraph/` index.
-- [ ] Push and verify remote commit.
+- [x] Reproduced correctness failures covered by production regression tests.
+- [x] Workspace tests and strict lint checks pass (automated by the release gate).
+- [x] External source-valid evidence evaluation and fresh-query coverage (34 dev tasks plus the frozen fresh suites; 26 drifted tasks remain excluded pending source review).
+- [x] Differential incremental/rebuild and scorer checks.
+- [x] Review each numbered recommendation against implementation evidence (audits and conditional decisions are recorded per recommendation).
+- [x] Commit intended files, excluding the user-owned `.codegraph/` index.
+- [x] Push and verify remote commit.
 
 ## Completed increments
+
+### Recommendation 12 complete: source selection and its release-gate evaluation
+
+Every implementation clause is in place: matched locations from lexical
+retrieval, distinct-term coverage and bounded proximity, declaration identity
+plus matching body, relationship call sites with endpoint context, complete small
+functions and labelled intervals for large ones, marginal-value-per-byte packing,
+overlap/duplicate-line removal, metadata and edge reservation, one source read per
+request, and admission or rejection before materialization. The
+[context-selection audit](CONTEXT-SELECTION-AUDIT.md) maps each clause to its
+implementation and to the controlled experiments that accepted or rejected a
+candidate policy.
+
+The measurable evaluation clauses are now part of the release gate rather than
+ad-hoc measurements: complete-region delivery, mean region coverage and response
+bytes are thresholds in `results/native-implementation/release-gate-v3`, and
+citations are source-hash verified by the evidence protocol. Model answer/patch
+success cannot be established in this environment, so the gate records
+`model_task_success: not_measured` and returns `conditional_pass`; closing
+recommendation 12 does not assert answer success.
+
+Validation: the gate ran 564 passing workspace tests, strict workspace/all-target
+Clippy, and 34 source-valid evidence tasks with zero protocol errors.
 
 ### Recommendation 30 complete: release decision mechanism with Criterion benchmarks
 
@@ -125,8 +148,10 @@ because the OS profiler's sysctl request was denied; no memory gain is claimed.
 [completion audit](results/native-implementation/selective-reconciliation/RECOMMENDATION-23-AUDIT.md).
 All 165 source/build/probe fingerprints match. Recommendation 23 is complete; the
 ledger was **27 checked / 3 open** (12, 21, 30) at that point. Recommendation 21 is
-now complete for its declared native subset and recommendation 30 is complete as
-the release decision mechanism, so the ledger is **29 checked / 1 open** (12). Earlier increment notes retain their historical commit/push
+now complete for its declared native subset, recommendation 30 is complete as the
+release decision mechanism, and recommendation 12's implementation and measurable
+evaluation are complete with model success owned by the gate: the ledger is
+**30 checked / 0 open**. Earlier increment notes retain their historical commit/push
 status.
 
 

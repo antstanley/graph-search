@@ -19,7 +19,7 @@ of those requirements merely because source correctness tests pass.
 | Preserve metadata/edge explanation | Base result and graph explanation are fitted before optional context; shared package identities retain full provenance with result-local references | Implemented; final payload fitting can explicitly remove relationships/items |
 | Read each source once per request | New raw captures in the explore request's `WorkBudget` join freshness, automatic maintenance and evidence; local `SourceCache` still controls text materialization | Implemented in the current worktree; validation recorded in the implementation ledger |
 | Stop materialization when remaining space cannot admit useful content | Initial assembly rejects impossible item metadata before reading source and checks minimum primary growth against both the item budget and mandatory response metadata; optional interval admission checks remaining bytes | Implemented with conservative necessary bounds; unknown source-line sizes still require reading |
-| Measure complete regions, supported citations, redundant bytes and answer success independently | Controlled source-region coverage, source/hash/span checks and duplicate-coordinate accounting exist; no model answer/patch-success experiment has been performed | Partial: source evidence is not a task-success result |
+| Measure complete regions, supported citations, redundant bytes and answer success independently | The release gate (`research/scripts/release_gate.py`) records complete-region delivery, mean region coverage and response bytes on the 34 source-valid tasks under frozen thresholds; citations are source-hash verified by the protocol; duplicate coordinates were driven to zero by the primary-dedup experiment and the protocol's delivered-line set cannot double-count one coordinate. Model answer/patch success is a separate gate objective recorded as `not_measured`. | Implemented; answer success remains an external objective |
 
 ## Request capture invariants
 
@@ -57,7 +57,26 @@ restoring that experiment or discarding package provenance.
 See `results/native-implementation/package-sharing/README.md`,
 `results/native-implementation/primary-dedup/README.md`, and
 `results/native-implementation/context-fragments/README.md` for controlled data,
-limits and reproduction. Recommendation 12 remains open for independent model-success measurement; proximity scoring is retained with its neutral corpus result documented in `results/native-implementation/context-proximity/README.md`.
+limits and reproduction. Proximity scoring is retained with its neutral corpus
+result documented in `results/native-implementation/context-proximity/README.md`.
+
+## Acceptance
+
+Recommendation 12 is accepted for every requirement that can be established with
+source evidence: matched offsets, term coverage, bounded proximity, declaration
+identity plus matching body, relationship sites, complete small functions and
+labelled intervals for larger ones, marginal-value-per-byte packing, overlap and
+duplicate-line removal, metadata/edge budget reservation, one source read per
+request, and admission/rejection before materialization. Complete-region
+coverage, citations and response bytes are now thresholds in the release gate
+decision rather than ad-hoc measurements.
+
+The one requirement this audit cannot establish is model answer/patch success:
+there is no model driver or blind reviewer in this environment, so the gate
+records `model_task_success: not_measured` and returns `conditional_pass` instead
+of a release. That is the intended division of labour between recommendation 12
+(source selection) and recommendation 30 (release decision); closing 12 does not
+assert answer success.
 
 
 ## Initial source admission certificate

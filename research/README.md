@@ -207,3 +207,8 @@ retained: [requirement audit and accounting boundaries](results/native-implement
 - [Gate calibration](results/native-implementation/release-gate-v1/README.md):
   the failed pre-calibration run and the measured `a0cbf7d` baseline used to
   re-freeze the accuracy thresholds.
+
+- [Recommendation 12 acceptance](CONTEXT-SELECTION-AUDIT.md): every source
+  selection clause is mapped to implementation and to the controlled experiments,
+  with complete-region coverage, citations and response bytes now part of the
+  release gate; model answer success stays an external objective.
