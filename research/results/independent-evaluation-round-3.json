@@ -1,0 +1,157 @@
+{
+  "experiment": "independent-evaluation-round-3",
+  "date": "2026-09-22",
+  "evaluator": "independent external agent (nanus session)",
+  "revision": {
+    "commit": "6d57de6",
+    "schema_version": 3,
+    "parser_version": 23,
+    "response_commits": [
+      "74cec3f",
+      "6d57de6"
+    ]
+  },
+  "gate": {
+    "tests_passed": 575,
+    "tests_failed": 0,
+    "clippy": "clean"
+  },
+  "nanus_graph": {
+    "edges": {
+      "contains": 6147,
+      "imports": 1740,
+      "exports": 5,
+      "calls": 18328,
+      "implements": 140,
+      "type_uses": 4885
+    },
+    "prev_round_type_uses": 2590,
+    "prev_round_calls": 18404
+  },
+  "verified_fixes": {
+    "impact_traverses_type_uses": {
+      "ToolRegistry": [
+        {
+          "depth": 1,
+          "total": 3
+        },
+        {
+          "depth": 2,
+          "total": 7
+        }
+      ],
+      "SearchQuery": [
+        {
+          "depth": 1,
+          "total": 5
+        },
+        {
+          "depth": 2,
+          "total": 0
+        }
+      ],
+      "ToolSchema": [
+        {
+          "depth": 1,
+          "total": 25
+        },
+        {
+          "depth": 2,
+          "total": 47
+        }
+      ],
+      "ToolOutcome": [
+        {
+          "depth": 1,
+          "total": 8
+        },
+        {
+          "depth": 2,
+          "total": 10
+        }
+      ],
+      "confirmed": true
+    },
+    "type_refs": {
+      "SearchQuery": {
+        "before": 0,
+        "after": 5
+      },
+      "ToolDefinition": {
+        "before": 0,
+        "after": 9
+      },
+      "ToolOutcome": {
+        "before": 2,
+        "after": 8
+      },
+      "AgentConfig": {
+        "before": 2,
+        "after": 9
+      },
+      "all_resolved": true,
+      "confirmed": true
+    },
+    "compact_explore_default": {
+      "explore_default_bytes": 8053,
+      "explore_full_bytes": 17555,
+      "text_bytes": 12352,
+      "prev_explore_default_bytes": 17540,
+      "smaller_than_text": true,
+      "confirmed": true
+    },
+    "dangling_names_canonicalised": {
+      "multiline_names": 0,
+      "example": "(0..calls.len()).filter",
+      "confirmed": true
+    },
+    "generic_type_param_regression": {
+      "fixture": "struct T; struct Real; fn generic<T>(arg:T)->T{arg} fn concrete(arg:Real)->Real{arg}",
+      "refs_T_edges": 0,
+      "refs_Real_edges": 1,
+      "confirmed": true
+    }
+  },
+  "still_open": {
+    "P0.1_store_open": {
+      "per_call_s": {
+        "status": 0.95,
+        "symbol": 0.952,
+        "impact": 0.947,
+        "explore": 0.953,
+        "sync": 0.948
+      },
+      "store_bytes": 59768832,
+      "note": "confirmed+attributed by response doc 12 section 3; staged lazy-load plan section 5.1"
+    },
+    "P1.2_receiver_calls": {
+      "callers_ToolRegistry::execute": 0,
+      "callers_ToolRegistryHandle::borrow": 0
+    },
+    "P1.1_test_noise": {
+      "nl_query_top8_tests": "2/8"
+    },
+    "P2.6_cross_crate_imports": {
+      "unresolved_import_lines": 20
+    }
+  },
+  "unchanged_good": {
+    "honesty_channel": {
+      "callees_run_tools": {
+        "edges": 30,
+        "resolved": 3,
+        "unresolved": 27
+      }
+    },
+    "parity": true,
+    "reconcile_defect_still_fixed": {
+      "fresh": 1,
+      "edit_callee": 1,
+      "sync": 1
+    }
+  },
+  "verdict": {
+    "verdict": "ACCURACY_FINDINGS_RESOLVED_P0_STORE_OPEN_OPEN",
+    "confidence": "medium"
+  }
+}
