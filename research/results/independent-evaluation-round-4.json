@@ -1,0 +1,90 @@
+{
+  "experiment": "independent-evaluation-round-4",
+  "date": "2026-09-22",
+  "evaluator": "independent external agent (nanus session)",
+  "revision": {
+    "commit": "10d07e3",
+    "title": "Storage format 8: compact source records, compressed packs, BLAKE3",
+    "schema_version": 3,
+    "parser_version": 23,
+    "requires_rebuild": true,
+    "migration": "none"
+  },
+  "method_note": "all previous stores deleted; fresh format-8 index",
+  "gate": {
+    "tests_passed": 579,
+    "tests_failed": 0,
+    "clippy": "clean"
+  },
+  "perf": {
+    "index_s": 1.737,
+    "status_s": 0.525,
+    "symbol_s": 0.522,
+    "text_s": 0.529,
+    "impact_s": 0.524,
+    "explore_s": 0.532,
+    "noop_sync_s": 0.522,
+    "store_bytes": 11534336,
+    "sidecars": {
+      "graph.grafeo": 4287303,
+      "occurrences.json.zst": 2333657,
+      "dangling.jsonl.zst": 289432,
+      "dependencies.json.zst": 196242,
+      "manifest.json": 58506
+    },
+    "prev_round": {
+      "index_s": 2.45,
+      "per_call_s": 0.95,
+      "store_bytes": 59768832
+    }
+  },
+  "graph_identical_to_round_3": true,
+  "still_fixed": {
+    "impact_ToolSchema": [
+      [
+        1,
+        25
+      ],
+      [
+        2,
+        47
+      ]
+    ],
+    "refs_SearchQuery": 5,
+    "refs_ToolDefinition": 9,
+    "callers_AgentRunner::run_step": 1,
+    "explore_default_bytes": 8053,
+    "text_bytes": 12351,
+    "dangling_multiline_names": 0
+  },
+  "still_open": {
+    "P0.1_store_open_per_call_s": 0.52,
+    "P1.2_receiver_calls": {
+      "ToolRegistry::execute": 0,
+      "ToolRegistryHandle::borrow": 0
+    },
+    "P1.1_test_noise": "2/8",
+    "P2.6_cross_crate_imports": {
+      "unresolved_lines": 20
+    }
+  },
+  "unchanged_good": {
+    "honesty_channel": {
+      "callees_run_tools": {
+        "edges": 30,
+        "resolved": 3,
+        "unresolved": 27
+      }
+    },
+    "parity": true,
+    "reconcile_defect_still_fixed": {
+      "fresh": 1,
+      "edit_callee": 1,
+      "sync": 1
+    }
+  },
+  "verdict": {
+    "verdict": "STORAGE_GAINS_CONFIRMED_P0_STORE_OPEN_STILL_OPEN",
+    "confidence": "medium"
+  }
+}
