@@ -700,3 +700,102 @@ fn import_alias_edits_and_target_removal_match_rebuilds_after_reopen() {
         assert_eq!(facts(&index), incremental);
     }
 }
+
+#[test]
+fn workspace_crate_paths_reexports_and_associated_items_resolve_across_crates() {
+    let root = tempfile::tempdir().unwrap();
+    for (path, source) in [
+        (
+            "Cargo.toml",
+            "[workspace]\nmembers=['dom','app']\n[workspace.package]\nedition='2024'\n",
+        ),
+        (
+            "dom/Cargo.toml",
+            "[package]\nname='my-dom'\nedition.workspace=true\n",
+        ),
+        // An edition-2018 reexport (`pub use tool::…`) publishes the item.
+        (
+            "dom/src/lib.rs",
+            "pub mod tool;\npub use tool::{Registry, Outcome};\npub(crate) fn hidden() {}\n",
+        ),
+        (
+            "dom/src/tool.rs",
+            "pub struct Registry;\nimpl Registry {\n    pub fn new() -> Self { Registry }\n    fn secret() {}\n}\npub enum Outcome { Done(u8) }\n",
+        ),
+        // An explicit `[[bin]]` with an inherited edition still has a known
+        // root; a path-free `cfg_attr` does not hide its modules.
+        (
+            "app/Cargo.toml",
+            "[package]\nname='app'\nedition.workspace=true\n[[bin]]\nname='app'\npath='src/main.rs'\n",
+        ),
+        (
+            "app/src/main.rs",
+            "#![cfg_attr(test, allow(dead_code))]\nmod run;\nfn main() { run::go(); }\n",
+        ),
+        (
+            "app/src/run.rs",
+            "use my_dom::Registry;\nuse my_dom::tool::Outcome;\nuse serde::Value;\npub fn go() {\n    let _ = Registry::new();\n    let _ = Outcome::Done(1);\n    my_dom::hidden();\n    Registry::secret();\n}\n",
+        ),
+    ] {
+        write(root.path(), path, source);
+    }
+    let index = open(root.path());
+    index.reindex().unwrap();
+    let all = facts(&index);
+    let record = |kind: EdgeKind, name: &str| {
+        let matches: Vec<_> = all["app/src/run.rs"]
+            .records
+            .iter()
+            .filter(|r| r.kind == kind && r.name == name)
+            .collect();
+        assert_eq!(matches.len(), 1, "{name}: {:?}", all["app/src/run.rs"]);
+        matches[0].clone()
+    };
+    let resolved = |kind: EdgeKind, name: &str, expected: &str| {
+        let fact = record(kind, name);
+        assert_eq!(
+            fact.target.as_ref().map(graph_search_types::NodeId::as_str),
+            Some(expected),
+            "{fact:?}"
+        );
+    };
+    let dangling = |kind: EdgeKind, name: &str, reason: &str| {
+        let fact = record(kind, name);
+        assert!(fact.target.is_none(), "{fact:?}");
+        assert_eq!(fact.reason.as_deref(), Some(reason), "{fact:?}");
+    };
+    resolved(
+        EdgeKind::Imports,
+        "my_dom::Registry",
+        "sym:dom/src/tool.rs#struct:Registry",
+    );
+    resolved(
+        EdgeKind::Imports,
+        "my_dom::tool::Outcome",
+        "sym:dom/src/tool.rs#enum:Outcome",
+    );
+    // A crate outside the workspace has no target to invent.
+    dangling(
+        EdgeKind::Imports,
+        "serde::Value",
+        "rust_import_path_unanchored",
+    );
+    // Associated functions and variant constructors bind through the import.
+    resolved(
+        EdgeKind::Calls,
+        "my_dom::Registry::new",
+        "sym:dom/src/tool.rs#method:Registry::new",
+    );
+    resolved(
+        EdgeKind::Calls,
+        "my_dom::tool::Outcome::Done",
+        "sym:dom/src/tool.rs#variant:Outcome::Done",
+    );
+    // Another crate sees only `pub` items.
+    dangling(EdgeKind::Calls, "my_dom::hidden", "rust_path_not_visible");
+    dangling(
+        EdgeKind::Calls,
+        "my_dom::Registry::secret",
+        "rust_associated_member_missing",
+    );
+}

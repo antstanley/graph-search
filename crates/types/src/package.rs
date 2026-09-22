@@ -123,6 +123,11 @@ pub struct CargoTargetMetadata {
     /// Fixed diagnostic if the entire target projection is unavailable.
     /// Unavailable projections contain no partial target/settings data.
     pub unavailable_reason: Option<String>,
+    /// A workspace root's `[workspace.package] edition`, which members that
+    /// declare `edition.workspace = true` inherit. The only field a virtual
+    /// workspace manifest carries.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub workspace_edition: Option<String>,
 }
 
 /// An authored package-map target without selecting runtime conditions.

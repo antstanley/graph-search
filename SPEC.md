@@ -3289,3 +3289,33 @@ layout) scopes Rust files to Cargo and Python files to the project; other text
 at that level is explicit incomplete scope. Source representation 16 admits the
 new ecosystem value in retained facts. uv/Hatch workspace tables, dependency
 lists, `src/` layout discovery and import-name mapping are not modeled.
+
+### Workspace crate paths and associated items (parser policy 25)
+
+A Rust path whose first segment is neither `crate`, `self` nor `super` resolves
+by the edition-2018 rules: a module declared in the origin scope is walked from
+the origin, and otherwise the segment may name a workspace library crate. Each
+Cargo package with a selected library root contributes its crate name (the
+`[lib]` name, else the package name with `-` as `_`); two packages claiming one
+name are `rust_crate_name_ambiguous`. Dependency tables are not consulted, so a
+renamed dependency (`package = …`) stays unresolved. A crate outside the
+workspace (`std`, `serde`) keeps `rust_import_path_unanchored`. Crossing a crate
+boundary admits only `pub` items; `pub(crate)` and private items are
+`rust_path_not_visible`. A qualified reference spelled through a workspace crate
+(`other::item()`) enters the same resolver when every segment is an identifier.
+
+`pub use` of such a path (`pub use tool::{A, B}`, `pub use other::C`) publishes a
+reexport symbol like an anchored one; only a global `::` path publishes none.
+`Type::member`, where the penultimate segment names exactly one struct, enum,
+trait or type alias (directly or through a reexport) and no module, binds the
+associated item or variant qualified `Type::member` in the type's crate. When
+the crate declares several same-named types, the type's own file breaks the tie;
+across crates only `pub` associated items and variants are visible. A missing
+member is `rust_associated_member_missing`.
+
+A member declaring `edition.workspace = true` inherits the nearest enclosing
+workspace root's `[workspace.package] edition` for target auto-discovery, which
+a virtual workspace manifest now records. A `cfg_attr` whose payload cannot
+apply `path`, and `macro_use`, `rustfmt`, `no_std`, `no_implicit_prelude`,
+`recursion_limit` and `feature` attributes, no longer make module paths
+unavailable.

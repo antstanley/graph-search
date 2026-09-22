@@ -683,7 +683,15 @@ pub fn resolve_reference(
             || fact.via_import.is_some()
             || fact.name.starts_with("crate::")
             || fact.name.starts_with("self::")
-            || fact.name.starts_with("super::"))
+            || fact.name.starts_with("super::")
+            // `other_crate::item` names a workspace crate's member directly.
+            || fact.name.split_once("::").is_some_and(|(first, _)| {
+                table.rust_paths.is_crate(first)
+                    && fact.name.split("::").all(|segment| {
+                        !segment.is_empty()
+                            && segment.chars().all(|c| c.is_alphanumeric() || c == '_')
+                    })
+            }))
     {
         return match table.rust_paths.resolve(fact, from_path, &table.symbols) {
             Ok(id) => Resolution {

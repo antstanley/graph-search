@@ -136,7 +136,9 @@ pub const RESULT_SCHEMA_VERSION: u32 = 4;
 /// dangling names are bounded and hash-disambiguated to keep edge identities 1:1.
 /// v24: Python `.py`/`.pyi`/`.pyw` files are extracted instead of indexed as
 /// unknown, and Python files take `pyproject.toml` package context.
-pub const PARSER_VERSION: u32 = 24;
+/// v25: Rust `pub use` of an edition-2018 path (a module in scope or another
+/// crate) is a reexport symbol, not only `crate::`/`self::`/`super::` targets.
+pub const PARSER_VERSION: u32 = 25;
 
 /// Default independent ceiling on edges delivered by one graph/explore query.
 pub const RETURNED_EDGES_DEFAULT: usize = 1000;

@@ -409,10 +409,10 @@ impl Extractor<'_> {
         if !visibility.trim_start().starts_with("pub") || visibility.contains("self") {
             return;
         }
-        let anchored = ["crate::", "self::", "super::"]
-            .iter()
-            .any(|prefix| fact.name.starts_with(prefix));
-        if !anchored {
+        // An edition-2018 target (`pub use tool::X`, `pub use other_crate::Y`)
+        // resolves natively like an anchored one; only a global `::` path
+        // names no workspace scope.
+        if fact.name.starts_with("::") {
             return;
         }
         let local = import.local_name.clone().unwrap_or_default();
@@ -656,9 +656,31 @@ fn module_path(node: Node<'_>, source: &str) -> (Option<String>, bool) {
                 unsupported = true;
             }
             path = value;
+        } else if name == "cfg_attr" {
+            // A conditional attribute can only move a module when it may apply
+            // `path`; any other payload leaves the module's file where it is.
+            if text
+                .split(|ch: char| !ch.is_alphanumeric() && ch != '_')
+                .any(|word| word == "path")
+            {
+                unsupported = true;
+            }
         } else if !matches!(
             name,
-            "cfg" | "doc" | "allow" | "warn" | "deny" | "forbid" | "expect" | "deprecated"
+            "cfg"
+                | "doc"
+                | "allow"
+                | "warn"
+                | "deny"
+                | "forbid"
+                | "expect"
+                | "deprecated"
+                | "macro_use"
+                | "rustfmt"
+                | "no_std"
+                | "no_implicit_prelude"
+                | "recursion_limit"
+                | "feature"
         ) {
             unsupported = true;
         }
