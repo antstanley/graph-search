@@ -81,6 +81,10 @@ sha2 = "0.10"
 proptest = "1"
 tempfile = "3"
 
+# Benchmarks (dev-dependency only; never shipped in the workspace crates).
+# Docs: https://docs.rs/criterion/latest/criterion/
+criterion = { version = "0.8", default-features = false, features = ["cargo_bench_support"] }
+
 [workspace.lints.rust]
 # Mirrors nanus: no `unsafe` in this workspace's own crates. Dependencies (the
 # tree-sitter bindings, Grafeo) may use it internally; a lint on members is not a

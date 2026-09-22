@@ -1,0 +1,336 @@
+{
+  "decision": "conditional_pass",
+  "objectives": {
+    "candidate_and_evidence": {
+      "metrics": {
+        "complete_regions": 12,
+        "mean_region_coverage": 0.4869,
+        "mean_response_bytes": 37469.1,
+        "protocol_errors": 0,
+        "required_files": 28,
+        "tasks": 34
+      },
+      "status": "pass",
+      "thresholds": {
+        "complete_regions_min": 12,
+        "mean_region_coverage_min": 0.48,
+        "required_files_min": 28
+      }
+    },
+    "exact_matching_and_correctness": {
+      "lint": {
+        "seconds": 0.178,
+        "status": "pass"
+      },
+      "status": "pass",
+      "task_validation": {
+        "excluded": [
+          {
+            "id": "blogwright.pds-config.debug",
+            "reason": "source file missing: packages/pds/src/config.ts",
+            "repo": "blogwright"
+          },
+          {
+            "id": "blogwright.pds-config.change",
+            "reason": "source file missing: packages/pds/src/config.ts",
+            "repo": "blogwright"
+          },
+          {
+            "id": "blogwright.pds-secret.debug",
+            "reason": "source drift: blogwright.pds-secret.debug: packages/pds/src/secret.ts",
+            "repo": "blogwright"
+          },
+          {
+            "id": "blogwright.pds-secret.change",
+            "reason": "source drift: blogwright.pds-secret.change: packages/pds/src/secret.ts",
+            "repo": "blogwright"
+          },
+          {
+            "id": "blogwright.post-content.debug",
+            "reason": "source drift: blogwright.post-content.debug: packages/pds/src/content.ts",
+            "repo": "blogwright"
+          },
+          {
+            "id": "blogwright.post-content.change",
+            "reason": "source drift: blogwright.post-content.change: packages/pds/src/content.ts",
+            "repo": "blogwright"
+          },
+          {
+            "id": "blogwright.record-key.debug",
+            "reason": "source drift: blogwright.record-key.debug: packages/pds/src/rkey.ts",
+            "repo": "blogwright"
+          },
+          {
+            "id": "blogwright.record-key.change",
+            "reason": "source drift: blogwright.record-key.change: packages/pds/src/rkey.ts",
+            "repo": "blogwright"
+          },
+          {
+            "id": "blogwright.xrpc-pagination.debug",
+            "reason": "source drift: blogwright.xrpc-pagination.debug: packages/pds/src/xrpc.ts",
+            "repo": "blogwright"
+          },
+          {
+            "id": "blogwright.xrpc-pagination.change",
+            "reason": "source drift: blogwright.xrpc-pagination.change: packages/pds/src/xrpc.ts",
+            "repo": "blogwright"
+          },
+          {
+            "id": "blogwright.state-storage.debug",
+            "reason": "source drift: blogwright.state-storage.debug: packages/core/src/state.ts",
+            "repo": "blogwright"
+          },
+          {
+            "id": "blogwright.state-storage.change",
+            "reason": "source drift: blogwright.state-storage.change: packages/core/src/state.ts",
+            "repo": "blogwright"
+          },
+          {
+            "id": "blogwright.publication-sync.debug",
+            "reason": "source drift: blogwright.publication-sync.debug: packages/pds/src/sync.ts",
+            "repo": "blogwright"
+          },
+          {
+            "id": "blogwright.publication-sync.change",
+            "reason": "source drift: blogwright.publication-sync.change: packages/pds/src/sync.ts",
+            "repo": "blogwright"
+          },
+          {
+            "id": "blogwright.aws-credentials.debug",
+            "reason": "source drift: blogwright.aws-credentials.debug: packages/core/src/aws/credentials.ts",
+            "repo": "blogwright"
+          },
+          {
+            "id": "blogwright.aws-credentials.change",
+            "reason": "source drift: blogwright.aws-credentials.change: packages/core/src/aws/credentials.ts",
+            "repo": "blogwright"
+          },
+          {
+            "id": "whatsurvey.message-idempotency.debug",
+            "reason": "source drift: whatsurvey.message-idempotency.debug: workspaces/backend/src/core/db/idempotency.ts",
+            "repo": "whatsurvey"
+          },
+          {
+            "id": "whatsurvey.message-idempotency.change",
+            "reason": "source drift: whatsurvey.message-idempotency.change: workspaces/backend/src/core/db/idempotency.ts",
+            "repo": "whatsurvey"
+          },
+          {
+            "id": "nanus.parallel-tools.debug",
+            "reason": "source drift: nanus.parallel-tools.debug: crates/nanus-bundle/src/agent_loop.rs",
+            "repo": "nanus"
+          },
+          {
+            "id": "nanus.parallel-tools.change",
+            "reason": "source drift: nanus.parallel-tools.change: crates/nanus-bundle/src/agent_loop.rs",
+            "repo": "nanus"
+          },
+          {
+            "id": "nanus.approval-gate.debug",
+            "reason": "source drift: nanus.approval-gate.debug: crates/nanus-bundle/src/agent_loop.rs",
+            "repo": "nanus"
+          },
+          {
+            "id": "nanus.approval-gate.change",
+            "reason": "source drift: nanus.approval-gate.change: crates/nanus-bundle/src/agent_loop.rs",
+            "repo": "nanus"
+          },
+          {
+            "id": "whatsurvey.survey-transitions.debug",
+            "reason": "source drift: whatsurvey.survey-transitions.debug: workspaces/backend/src/core/survey/state-machine.ts",
+            "repo": "whatsurvey"
+          },
+          {
+            "id": "whatsurvey.survey-transitions.change",
+            "reason": "source drift: whatsurvey.survey-transitions.change: workspaces/backend/src/core/survey/state-machine.ts",
+            "repo": "whatsurvey"
+          },
+          {
+            "id": "whatsurvey.webhook-copy-ui.debug",
+            "reason": "source drift: whatsurvey.webhook-copy-ui.debug: workspaces/frontend/src/lib/components/WhatsAppConfigurations.svelte",
+            "repo": "whatsurvey"
+          },
+          {
+            "id": "whatsurvey.webhook-copy-ui.change",
+            "reason": "source drift: whatsurvey.webhook-copy-ui.change: workspaces/frontend/src/lib/components/WhatsAppConfigurations.svelte",
+            "repo": "whatsurvey"
+          }
+        ],
+        "source_valid_tasks": 34,
+        "status": "pass"
+      },
+      "tests": {
+        "failed": 0,
+        "passed": 564,
+        "seconds": 1199.594,
+        "status": "pass"
+      }
+    },
+    "model_task_success": {
+      "reason": "no model driver is available in this environment; the agent protocol requires an external model with equal budgets and blind grading",
+      "status": "not_measured"
+    },
+    "performance": {
+      "measurements": {
+        "build/cold_index": {
+          "criterion_median_ms": 682.1144,
+          "max_ms": 684.8731,
+          "mean_ms": 681.8726,
+          "min_ms": 678.8383,
+          "p50_ms": 682.2835,
+          "p95_ms": 684.8731,
+          "p99_ms": 684.8731,
+          "samples": 10
+        },
+        "explore/body_multiword": {
+          "criterion_median_ms": 5.7434,
+          "max_ms": 5.9255,
+          "mean_ms": 5.7515,
+          "min_ms": 5.7049,
+          "p50_ms": 5.7435,
+          "p95_ms": 5.8229,
+          "p99_ms": 5.9255,
+          "samples": 100
+        },
+        "explore/metadata_single_term": {
+          "criterion_median_ms": 1.9738,
+          "max_ms": 2.0097,
+          "mean_ms": 1.9762,
+          "min_ms": 1.9672,
+          "p50_ms": 1.9738,
+          "p95_ms": 1.9951,
+          "p99_ms": 2.0097,
+          "samples": 100
+        },
+        "explore/positional_route": {
+          "criterion_median_ms": 2.5668,
+          "max_ms": 2.6348,
+          "mean_ms": 2.5707,
+          "min_ms": 2.5584,
+          "p50_ms": 2.5668,
+          "p95_ms": 2.5855,
+          "p99_ms": 2.6348,
+          "samples": 100
+        },
+        "lookup/exact_symbol": {
+          "criterion_median_ms": 1.2179,
+          "max_ms": 1.2756,
+          "mean_ms": 1.2199,
+          "min_ms": 1.2119,
+          "p50_ms": 1.218,
+          "p95_ms": 1.2358,
+          "p99_ms": 1.2756,
+          "samples": 100
+        },
+        "lookup/references": {
+          "criterion_median_ms": 1.2252,
+          "max_ms": 1.3514,
+          "mean_ms": 1.2288,
+          "min_ms": 1.2169,
+          "p50_ms": 1.2252,
+          "p95_ms": 1.2483,
+          "p99_ms": 1.3514,
+          "samples": 100
+        },
+        "occurrences/by_name": {
+          "criterion_median_ms": 1.2261,
+          "max_ms": 1.2774,
+          "mean_ms": 1.2289,
+          "min_ms": 1.2209,
+          "p50_ms": 1.2261,
+          "p95_ms": 1.2461,
+          "p99_ms": 1.2774,
+          "samples": 100
+        },
+        "scan/files_glob": {
+          "criterion_median_ms": 1.2975,
+          "max_ms": 1.337,
+          "mean_ms": 1.2992,
+          "min_ms": 1.2889,
+          "p50_ms": 1.2975,
+          "p95_ms": 1.3121,
+          "p99_ms": 1.337,
+          "samples": 100
+        },
+        "scan/filtered_explore": {
+          "criterion_median_ms": 5.422,
+          "max_ms": 5.6044,
+          "mean_ms": 5.4307,
+          "min_ms": 5.3983,
+          "p50_ms": 5.4221,
+          "p95_ms": 5.5118,
+          "p99_ms": 5.6044,
+          "samples": 100
+        },
+        "scan/text_literal": {
+          "criterion_median_ms": 6.5694,
+          "max_ms": 6.8181,
+          "mean_ms": 6.5774,
+          "min_ms": 6.5479,
+          "p50_ms": 6.5695,
+          "p95_ms": 6.632,
+          "p99_ms": 6.8181,
+          "samples": 100
+        },
+        "sync/one_file_edit": {
+          "criterion_median_ms": 468.4402,
+          "max_ms": 481.2825,
+          "mean_ms": 468.9813,
+          "min_ms": 464.3342,
+          "p50_ms": 468.5517,
+          "p95_ms": 481.2825,
+          "p99_ms": 481.2825,
+          "samples": 20
+        }
+      },
+      "missing": [],
+      "status": "pass",
+      "thresholds_p95_ms": {
+        "build/cold_index": 8000.0,
+        "explore/body_multiword": 250.0,
+        "explore/metadata_single_term": 100.0,
+        "explore/positional_route": 250.0,
+        "lookup/exact_symbol": 50.0,
+        "lookup/references": 50.0,
+        "occurrences/by_name": 100.0,
+        "scan/files_glob": 200.0,
+        "scan/filtered_explore": 250.0,
+        "scan/text_literal": 500.0,
+        "sync/one_file_edit": 4000.0
+      },
+      "violations": []
+    },
+    "resource_envelope": {
+      "probe": {
+        "index_bytes": 57716495,
+        "indexed_files": 188,
+        "note": "resident set size is one process sample after setup, not a peak",
+        "repository": "nanus",
+        "resident_kib": 453408,
+        "setup_ms": 1715
+      },
+      "status": "reported"
+    }
+  },
+  "protocol": "release-gate-v1",
+  "reasons": [],
+  "thresholds": {
+    "baseline_tolerance": 2.0,
+    "complete_regions_min": 12,
+    "mean_region_coverage_min": 0.48,
+    "performance_p95_ms": {
+      "build/cold_index": 8000.0,
+      "explore/body_multiword": 250.0,
+      "explore/metadata_single_term": 100.0,
+      "explore/positional_route": 250.0,
+      "lookup/exact_symbol": 50.0,
+      "lookup/references": 50.0,
+      "occurrences/by_name": 100.0,
+      "scan/files_glob": 200.0,
+      "scan/filtered_explore": 250.0,
+      "scan/text_literal": 500.0,
+      "sync/one_file_edit": 4000.0
+    },
+    "required_files_min": 28
+  }
+}

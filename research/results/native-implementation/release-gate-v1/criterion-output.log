@@ -1,0 +1,110 @@
+build/cold_index        time:   [680.98 ms 684.98 ms 690.32 ms]
+Found 2 outliers among 10 measurements (20.00%)
+  1 (10.00%) low mild
+  1 (10.00%) high severe
+
+sync/one_file_edit      time:   [466.12 ms 467.82 ms 469.88 ms]
+Found 3 outliers among 20 measurements (15.00%)
+  2 (10.00%) low mild
+  1 (5.00%) high severe
+
+lookup/exact_symbol     time:   [1.2206 ms 1.2219 ms 1.2234 ms]
+Found 9 outliers among 100 measurements (9.00%)
+  3 (3.00%) high mild
+  6 (6.00%) high severe
+lookup/references       time:   [1.2228 ms 1.2256 ms 1.2295 ms]
+Found 6 outliers among 100 measurements (6.00%)
+  3 (3.00%) high mild
+  3 (3.00%) high severe
+
+explore/body_multiword  time:   [5.7324 ms 5.7404 ms 5.7506 ms]
+Found 9 outliers among 100 measurements (9.00%)
+  5 (5.00%) high mild
+  4 (4.00%) high severe
+explore/metadata_single_term
+                        time:   [1.9825 ms 1.9889 ms 1.9980 ms]
+Found 13 outliers among 100 measurements (13.00%)
+  5 (5.00%) high mild
+  8 (8.00%) high severe
+explore/positional_route
+                        time:   [2.5740 ms 2.5770 ms 2.5804 ms]
+Found 9 outliers among 100 measurements (9.00%)
+  6 (6.00%) high mild
+  3 (3.00%) high severe
+
+occurrences/by_name     time:   [1.2269 ms 1.2283 ms 1.2299 ms]
+Found 7 outliers among 100 measurements (7.00%)
+  5 (5.00%) high mild
+  2 (2.00%) high severe
+
+scan/text_literal       time:   [6.5492 ms 6.5884 ms 6.6411 ms]
+Found 13 outliers among 100 measurements (13.00%)
+  3 (3.00%) high mild
+  10 (10.00%) high severe
+scan/files_glob         time:   [1.3001 ms 1.3016 ms 1.3033 ms]
+Found 6 outliers among 100 measurements (6.00%)
+  3 (3.00%) high mild
+  3 (3.00%) high severe
+scan/filtered_explore   time:   [5.4208 ms 5.4269 ms 5.4341 ms]
+Found 13 outliers among 100 measurements (13.00%)
+  6 (6.00%) high mild
+  7 (7.00%) high severe
+
+    Finished `bench` profile [optimized] target(s) in 0.32s
+     Running benches/search.rs (target/release/deps/search-87cd14f5248524c7)
+Benchmarking build/cold_index
+Benchmarking build/cold_index: Warming up for 3.0000 s
+
+Warning: Unable to complete 10 samples in 5.0s. You may wish to increase target time to 7.0s.
+Benchmarking build/cold_index: Collecting 10 samples in estimated 6.9616 s (10 iterations)
+Benchmarking build/cold_index: Analyzing
+Benchmarking sync/one_file_edit
+Benchmarking sync/one_file_edit: Warming up for 3.0000 s
+
+Warning: Unable to complete 20 samples in 5.0s. You may wish to increase target time to 9.3s, or reduce sample count to 10.
+Benchmarking sync/one_file_edit: Collecting 20 samples in estimated 9.3191 s (20 iterations)
+Benchmarking sync/one_file_edit: Analyzing
+Benchmarking lookup/exact_symbol
+Benchmarking lookup/exact_symbol: Warming up for 3.0000 s
+
+Warning: Unable to complete 100 samples in 5.0s. You may wish to increase target time to 6.2s, enable flat sampling, or reduce sample count to 60.
+Benchmarking lookup/exact_symbol: Collecting 100 samples in estimated 6.2050 s (5050 iterations)
+Benchmarking lookup/exact_symbol: Analyzing
+Benchmarking lookup/references
+Benchmarking lookup/references: Warming up for 3.0000 s
+
+Warning: Unable to complete 100 samples in 5.0s. You may wish to increase target time to 6.2s, enable flat sampling, or reduce sample count to 60.
+Benchmarking lookup/references: Collecting 100 samples in estimated 6.2074 s (5050 iterations)
+Benchmarking lookup/references: Analyzing
+Benchmarking explore/body_multiword
+Benchmarking explore/body_multiword: Warming up for 3.0000 s
+Benchmarking explore/body_multiword: Collecting 100 samples in estimated 5.1705 s (900 iterations)
+Benchmarking explore/body_multiword: Analyzing
+Benchmarking explore/metadata_single_term
+Benchmarking explore/metadata_single_term: Warming up for 3.0000 s
+Benchmarking explore/metadata_single_term: Collecting 100 samples in estimated 5.1605 s (2600 iterations)
+Benchmarking explore/metadata_single_term: Analyzing
+Benchmarking explore/positional_route
+Benchmarking explore/positional_route: Warming up for 3.0000 s
+Benchmarking explore/positional_route: Collecting 100 samples in estimated 5.1614 s (2000 iterations)
+Benchmarking explore/positional_route: Analyzing
+Benchmarking occurrences/by_name
+Benchmarking occurrences/by_name: Warming up for 3.0000 s
+
+Warning: Unable to complete 100 samples in 5.0s. You may wish to increase target time to 6.2s, enable flat sampling, or reduce sample count to 60.
+Benchmarking occurrences/by_name: Collecting 100 samples in estimated 6.1921 s (5050 iterations)
+Benchmarking occurrences/by_name: Analyzing
+Benchmarking scan/text_literal
+Benchmarking scan/text_literal: Warming up for 3.0000 s
+Benchmarking scan/text_literal: Collecting 100 samples in estimated 5.2449 s (800 iterations)
+Benchmarking scan/text_literal: Analyzing
+Benchmarking scan/files_glob
+Benchmarking scan/files_glob: Warming up for 3.0000 s
+
+Warning: Unable to complete 100 samples in 5.0s. You may wish to increase target time to 6.6s, enable flat sampling, or reduce sample count to 60.
+Benchmarking scan/files_glob: Collecting 100 samples in estimated 6.5839 s (5050 iterations)
+Benchmarking scan/files_glob: Analyzing
+Benchmarking scan/filtered_explore
+Benchmarking scan/filtered_explore: Warming up for 3.0000 s
+Benchmarking scan/filtered_explore: Collecting 100 samples in estimated 5.4312 s (1000 iterations)
+Benchmarking scan/filtered_explore: Analyzing

@@ -196,3 +196,14 @@ retained: [requirement audit and accounting boundaries](results/native-implement
 - [Native Rust public reexports](results/native-implementation/rust-reexports/README.md):
   `pub use` export nodes, `as` aliases and bounded chains, with a private-`use`
   counterfactual.
+
+- [Recommendation 30 acceptance](RECOMMENDATION-30-AUDIT.md): the release gate
+  turns correctness, evidence, performance and resource objectives into a
+  machine-readable decision, and refuses a full release while model task success
+  is unmeasured.
+- [Release gate decision](results/native-implementation/release-gate-v3/README.md):
+  Criterion benchmarks (cold build, sync, lookups, explore routes, scans) with
+  p50/p95/p99, the 34-task evidence metrics and the resident/index probe.
+- [Gate calibration](results/native-implementation/release-gate-v1/README.md):
+  the failed pre-calibration run and the measured `a0cbf7d` baseline used to
+  re-freeze the accuracy thresholds.

@@ -33,7 +33,7 @@ Scope: implement the recommendations in [the review](09-native-search-review.md)
 - [x] 27. Compress only after measuring index composition — P2/conditional (composition and two candidates measured; retain native vectors)
 - [x] 28. Use generations and compact deltas before building a large segment system — P2 (native deltas and reader lifetimes validated; larger segments deferred)
 - [x] 29. Keep neural and agentic retrieval conditional — later (deferred; no model component added)
-- [ ] 30. Turn the evaluation suite into the release decision mechanism — P1
+- [x] 30. Turn the evaluation suite into the release decision mechanism — P1 (decision record; model-success objective remains external/unmeasured)
 
 ## Validation and delivery
 
@@ -46,6 +46,39 @@ Scope: implement the recommendations in [the review](09-native-search-review.md)
 - [ ] Push and verify remote commit.
 
 ## Completed increments
+
+### Recommendation 30 complete: release decision mechanism with Criterion benchmarks
+
+`research/scripts/release_gate.py` runs workspace tests, strict Clippy, task-label
+validation, the evidence-v1 protocol on source-valid tasks, the new Criterion
+benchmark suite and a real index/resident probe, then applies predeclared
+thresholds and writes `release-decision.json` plus `RELEASE-GATE.md`. Objectives
+stay separate: exact-matching correctness, candidate/evidence metrics,
+performance p50/p95/p99, resource envelope, and model task success.
+
+The first run correctly failed on a stale coverage threshold; the actual
+pre-increment baseline was measured from commit `a0cbf7d` (28 required files,
+12 complete regions, 0.4862 mean coverage) and the thresholds were re-frozen
+against that calibration rather than loosened. The current decision is
+**conditional_pass**: everything measured passes, and the model task-success
+objective is `not_measured` because no model driver or blind reviewer exists in
+this environment, so a full release claim is refused.
+
+Criterion (dev-dependency only, https://docs.rs/criterion/latest/criterion/) adds
+11 benchmarks covering cold index build, one-file sync, exact/reference lookup,
+metadata/body/positional explore, occurrence lookup, live literal/file scans and
+filtered explore. On the generated 200-file corpus, p95 values are 717 ms cold
+build, 475 ms sync, and 1.3–8.2 ms for lookups/scans/explores; the nanus resource
+probe reports 57,716,498 index bytes and a 450,000 KiB resident sample.
+
+Validation: the gate ran 564 passing workspace tests and strict workspace/all-target
+Clippy; the accuracy arm covers 34 source-valid tasks with zero protocol errors and
+unchanged sibling source snapshots. 26 drifted tasks remain excluded pending
+explicit source review. Full clause mapping: [audit](RECOMMENDATION-30-AUDIT.md);
+[decision record](results/native-implementation/release-gate-v3/README.md);
+[calibration and the failed pre-calibration run](results/native-implementation/release-gate-v1/README.md).
+The only added dependency is the benchmark-only Criterion crate; production
+dependencies are unchanged.
 
 ### Recommendation 21 complete: framework regions, default TypeScript aliases, Rust reexports
 
@@ -92,8 +125,8 @@ because the OS profiler's sysctl request was denied; no memory gain is claimed.
 [completion audit](results/native-implementation/selective-reconciliation/RECOMMENDATION-23-AUDIT.md).
 All 165 source/build/probe fingerprints match. Recommendation 23 is complete; the
 ledger was **27 checked / 3 open** (12, 21, 30) at that point. Recommendation 21 is
-now complete for its declared native subset, so the ledger is **28 checked / 2
-open** (12, 30). Earlier increment notes retain their historical commit/push
+now complete for its declared native subset and recommendation 30 is complete as
+the release decision mechanism, so the ledger is **29 checked / 1 open** (12). Earlier increment notes retain their historical commit/push
 status.
 
 
