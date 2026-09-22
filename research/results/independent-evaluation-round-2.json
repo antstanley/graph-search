@@ -1,0 +1,180 @@
+{
+  "experiment": "independent-evaluation-round-2",
+  "date": "2026-09-22",
+  "evaluator": "independent external agent (nanus session)",
+  "revision": {
+    "commit": "0f6ec02",
+    "summary": "Fix seven correctness findings from a semi-formal engine review",
+    "schema_version": 3,
+    "parser_version": 21,
+    "chunker_version": 10
+  },
+  "previous_revision": {
+    "commit": "81a5d02",
+    "document": "research/10-independent-evaluation.md"
+  },
+  "gate": {
+    "tests_passed": 568,
+    "tests_failed": 0,
+    "clippy": "clean",
+    "binary_sha256_prefix": "f35732843384d5fe"
+  },
+  "verified_fixes": {
+    "rust_cross_impl_generic_self_method": {
+      "fixture": "pub struct Foo<T>{pub v:T} impl<T> Foo<T>{pub fn outer(&self){self.inner();}} impl<A> Foo<A>{pub fn inner(&self){}}",
+      "symbol_exposed_as": "Foo::inner",
+      "callers_inner": [
+        "Foo::outer",
+        "Foo::inner"
+      ],
+      "edge": {
+        "from": "Foo::outer",
+        "to": "Foo::inner",
+        "resolved": true
+      },
+      "confirmed": true
+    },
+    "typescript_this_method": {
+      "fixture": "class C { a(){ this.b(); } b(){ return 1; } }",
+      "callers_b": [
+        "C.a",
+        "C.b"
+      ],
+      "edge": {
+        "from": "C.a",
+        "to": "C.b",
+        "resolved": true
+      },
+      "confirmed": true
+    }
+  },
+  "nanus_graph": {
+    "files_walked": 188,
+    "parser_version": 21,
+    "schema_version": 3,
+    "nodes": {
+      "file": 188,
+      "module": 189,
+      "function": 2287,
+      "method": 1395,
+      "struct": 270,
+      "enum": 84,
+      "trait": 18,
+      "impl": 369,
+      "type_alias": 44,
+      "const": 190,
+      "static": 12,
+      "field": 883,
+      "variant": 413
+    },
+    "edges": {
+      "contains": 6147,
+      "imports": 1740,
+      "exports": 5,
+      "calls": 18404,
+      "implements": 140,
+      "type_uses": 2590
+    },
+    "identical_to_round_1": true
+  },
+  "performance_release": {
+    "index_s": 2.423,
+    "status_s": 0.936,
+    "symbol_s": 0.948,
+    "text_s": 0.951,
+    "callers_s": 0.945,
+    "impact_s": 0.944,
+    "explore_s": 0.956,
+    "noop_sync_s": 0.963,
+    "store_bytes": 57671680,
+    "sidecars": {
+      "occurrences.json": 14085943,
+      "dangling.jsonl": 4416996,
+      "graph.grafeo": 4144552,
+      "dependencies.json": 1268556,
+      "manifest.json": 58506,
+      "source-units.json": 40207,
+      "extractions.json": 40072
+    }
+  },
+  "payload": {
+    "explore_bytes": 17540,
+    "text_bytes": 12352,
+    "explore_item_fields": [
+      "excerpts",
+      "evidence",
+      "node",
+      "snippet",
+      "impact"
+    ],
+    "explore_larger_than_text": true
+  },
+  "explore_quality": {
+    "where is the context budget enforced": {
+      "top": [
+        "AgentConfig::with_context_budget",
+        "default_context_budget",
+        "NanusConfig::context_budget"
+      ],
+      "test_noise": "0/8"
+    },
+    "tool registry handle": {
+      "top": [
+        "ToolRegistryProvider::registry",
+        "ToolRegistryHandle",
+        "AgentRunner::tools"
+      ],
+      "test_noise": "1/8"
+    },
+    "how does a tool call get dispatched and approved": {
+      "top": [
+        "Held::is_approved",
+        "tests::an_unnamed_tool_call_is_dropped_rather_than_dispatched",
+        "ToolRegistry::execute"
+      ],
+      "test_noise": "2/8"
+    }
+  },
+  "gaps_unchanged": {
+    "callers_ToolRegistry::execute": 0,
+    "callers_ToolRegistryHandle::borrow": 0,
+    "impact_on_types": {
+      "ToolRegistry": 0,
+      "SearchQuery": 0,
+      "ToolSchema": 0,
+      "ToolOutcome": 0,
+      "cause": "impact traverses Calls+References, not TypeUses"
+    },
+    "refs": {
+      "ToolOutcome": 2,
+      "AgentConfig": 2,
+      "ToolSchema": 1,
+      "SearchQuery": 0,
+      "ToolDefinition": 0
+    },
+    "deps_unresolved_import_lines": 20,
+    "callees_run_tools": {
+      "edges": 31,
+      "resolved": 3,
+      "unresolved": 28
+    }
+  },
+  "new_observation": "unresolved callee to_name values can be raw multi-line expressions (method chains), bloating output and text rendering; canonicalise to a single-line outermost segment",
+  "parity": {
+    "files_top_level_rs": "No files found.",
+    "text_empty": "No matches found.",
+    "files_cap_notice": "(more than 100 matches; narrow the pattern to see the rest)"
+  },
+  "reconcile_defect_round_1": {
+    "still_fixed": true,
+    "probe": {
+      "fresh": 1,
+      "after_callee_edit": 1,
+      "after_sync": 1
+    }
+  },
+  "verdict": {
+    "verdict": "CORRECTNESS_FIXES_CONFIRMED_REGRESSIONS_OPEN",
+    "confidence": "medium"
+  }
+}
