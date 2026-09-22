@@ -66,7 +66,7 @@ pub struct Node {
     pub bytes: Option<u64>,
     /// File line count; files only.
     pub lines: Option<u32>,
-    /// File content hash (hex SHA-256); files only.
+    /// File content hash (hex BLAKE3); files only.
     pub content_hash: Option<String>,
     /// The `parser_version` that produced this file node; files only.
     pub parser_version: Option<u32>,

@@ -10,8 +10,10 @@
 #![forbid(unsafe_code)]
 #![warn(missing_docs)]
 
+mod compress;
 mod generation;
 mod manifest_records;
+mod record_codec;
 pub mod sidecar;
 mod source_records;
 pub mod store;

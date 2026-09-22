@@ -133,8 +133,8 @@ fn a_legacy_generation_rebuilds_source_facts_before_automatic_queries() {
     pointer["files"]
         .as_object_mut()
         .unwrap()
-        .remove("dependencies.json");
-    std::fs::remove_file(generation.join("dependencies.json")).unwrap();
+        .remove("dependencies.json.zst");
+    std::fs::remove_file(generation.join("dependencies.json.zst")).unwrap();
     pointer["files"]
         .as_object_mut()
         .unwrap()

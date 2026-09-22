@@ -1,0 +1,15 @@
+== Where a cold GrafeoStore::open spends its time (warm page cache, median of 3)
+  TOTAL GrafeoStore::open (read-only)                           7230.7 ms
+  read CURRENT-listed artifacts                                   11.4 ms
+  SHA-256 CURRENT-listed artifacts                               106.3 ms
+  sidecar::load_sources (read + 2x SHA-256 + JSON decode)       3006.4 ms
+    of which: read source packs                                   64.0 ms
+    of which: SHA-256 packs                                      811.4 ms
+    of which: SHA-256 records (again)                            815.8 ms
+    of which: JSON decode records                               1402.6 ms
+    (alternative) BLAKE3 packs                                   165.2 ms
+  BodyIndex::new (derived postings)                             2722.2 ms
+  sidecar::load_occurrences (JSON)                                35.4 ms
+  OccurrenceIndex::new                                            24.5 ms
+  sidecar::load_dangling (JSON lines)                             17.6 ms
+

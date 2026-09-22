@@ -74,8 +74,12 @@ thiserror = "2"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
 
-# Content hashing for the reconcile manifest.
-sha2 = "0.10"
+# Content hashing for the reconcile manifest and generation integrity (SIMD,
+# runtime-dispatched on x86 and AArch64).
+blake3 = "1"
+
+# Pack compression (engine only): one zstd frame per immutable record pack.
+zstd = { version = "0.13", default-features = false }
 
 # Dev.
 proptest = "1"

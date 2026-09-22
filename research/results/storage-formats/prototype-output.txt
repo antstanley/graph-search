@@ -1,0 +1,72 @@
+== Where a cold GrafeoStore::open spends its time (warm page cache, median of 3)
+  TOTAL GrafeoStore::open (read-only)                           1817.3 ms
+  read CURRENT-listed artifacts                                    1.6 ms
+  content-hash CURRENT-listed artifacts                            5.8 ms
+  sidecar::load_sources (read + verify + decode)                 488.3 ms
+    (hash) SHA-256, sha2 0.10 software path                      806.7 ms
+    (hash) SHA-256, sha2 0.11 (ARMv8 SHA2 instructions)          131.0 ms
+    (hash) BLAKE3 (NEON here; SSE4.1/AVX2/AVX-512 on x86)        156.4 ms
+  BodyIndex::new (derived postings)                              737.1 ms
+  sidecar::load_occurrences                                       46.0 ms
+  OccurrenceIndex::new                                            24.7 ms
+  sidecar::load_dangling                                          16.9 ms
+
+== Serialisation formats (encode/decode all items, median of 3)
+  source-records json (current)                 280.55 MB  enc    312.8 ms  dec   1415.0 ms  ok
+  source-records msgpack (named)                215.10 MB  enc    316.3 ms  dec   1018.7 ms  ok
+  source-records postcard                       187.30 MB  enc    250.7 ms  dec      0.0 ms  decode failed: Found an Option discriminant that wasn't 0 or 1
+  source-records bincode2 (serde)               203.57 MB  enc    163.8 ms  dec      0.0 ms  decode failed: UnexpectedVariant { type_name: "Option<T>", allowed: Range { min: 0, max: 1 }, found: 64 }
+  source-records json + zstd-3                   45.37 MB  enc    793.6 ms  dec   1507.3 ms  ok
+  source-records json + lz4                      99.79 MB  enc    627.5 ms  dec   1453.2 ms  ok
+  source-records msgpack + zstd-3                44.14 MB  enc    642.3 ms  dec   1162.8 ms  ok
+  source-records msgpack + lz4                   90.98 MB  enc    440.7 ms  dec   1095.2 ms  ok
+  source-records GSR1 (production codec)         68.67 MB  enc    356.3 ms  dec    491.0 ms  ok
+  source-records GSR1 + zstd-3                   32.21 MB  enc    547.0 ms  dec    615.9 ms  ok
+  source-records GSR1 + lz4                      45.37 MB  enc    404.1 ms  dec    548.7 ms  ok
+  source-records rkyv mirror (zero-copy)        327.91 MB  enc    335.9 ms  validate+walk   74.1 ms (20403852 lines)  owned-deser   392.9 ms
+  source-records json + zstd-3 per 8MiB pack      24.47 MB  enc    311.1 ms  dec    121.3 ms  ok (bytes only)
+  source-records json + zstd-9 per 8MiB pack      18.89 MB  enc   1201.8 ms  dec    107.2 ms  ok (bytes only)
+  source-records GSR1 + zstd-3 per 8MiB pack      13.63 MB  enc    118.0 ms  dec     42.4 ms  ok (bytes only)
+  source-records GSR1 + zstd-9 per 8MiB pack      12.50 MB  enc    406.0 ms  dec     39.4 ms  ok (bytes only)
+  occurrences    json (current)                  21.26 MB  enc     17.3 ms  dec     32.7 ms  ok
+  occurrences    msgpack (named)                 18.23 MB  enc     10.8 ms  dec     20.9 ms  ok
+  occurrences    postcard                        11.32 MB  enc      4.2 ms  dec     10.5 ms  ok
+  occurrences    bincode2 (serde)                11.40 MB  enc      4.4 ms  dec      8.8 ms  ok
+  occurrences    json + zstd-3                    3.19 MB  enc     50.0 ms  dec     44.5 ms  ok
+  occurrences    json + lz4                       5.33 MB  enc     37.9 ms  dec     36.6 ms  ok
+  occurrences    msgpack + zstd-3                 3.14 MB  enc     39.4 ms  dec     32.7 ms  ok
+  occurrences    msgpack + lz4                    5.24 MB  enc     28.7 ms  dec     25.3 ms  ok
+  dangling       json (current)                   9.53 MB  enc      6.9 ms  dec     11.4 ms  ok
+  dangling       msgpack (named)                  8.57 MB  enc      3.6 ms  dec      7.5 ms  ok
+  dangling       postcard                         7.20 MB  enc      1.9 ms  dec      4.9 ms  ok
+  dangling       bincode2 (serde)                 7.20 MB  enc      1.9 ms  dec      3.9 ms  ok
+  dangling       json + zstd-3                    0.53 MB  enc     13.7 ms  dec     15.4 ms  ok
+  dangling       json + lz4                       0.83 MB  enc     11.8 ms  dec     13.3 ms  ok
+  dangling       msgpack + zstd-3                 0.66 MB  enc     11.5 ms  dec     12.0 ms  ok
+  dangling       msgpack + lz4                    0.91 MB  enc      9.0 ms  dec      9.1 ms  ok
+  manifest+facts json (current)                  20.89 MB  enc     20.3 ms  dec     38.8 ms  ok
+  manifest+facts msgpack (named)                 16.74 MB  enc     13.4 ms  dec     25.4 ms  ok
+  manifest+facts postcard                         7.86 MB  enc      6.0 ms  dec      0.0 ms  decode failed: Found a bool that wasn't 0 or 1
+  manifest+facts bincode2 (serde)                 8.04 MB  enc      5.7 ms  dec      0.0 ms  decode failed: InvalidBooleanValue(10)
+  manifest+facts json + zstd-3                    2.27 MB  enc     49.2 ms  dec     51.1 ms  ok
+  manifest+facts json + lz4                       3.66 MB  enc     40.7 ms  dec     45.0 ms  ok
+  manifest+facts msgpack + zstd-3                 2.04 MB  enc     35.7 ms  dec     35.2 ms  ok
+  manifest+facts msgpack + lz4                    3.43 MB  enc     32.2 ms  dec     29.8 ms  ok
+  dependencies   json (current)                   3.22 MB  enc      3.0 ms  dec      8.2 ms  ok
+  dependencies   msgpack (named)                  2.88 MB  enc      1.6 ms  dec      6.1 ms  ok
+  dependencies   postcard                         2.38 MB  enc      1.1 ms  dec      5.4 ms  ok
+  dependencies   bincode2 (serde)                 2.38 MB  enc      1.0 ms  dec      4.8 ms  ok
+  dependencies   json + zstd-3                    0.41 MB  enc      7.4 ms  dec      9.4 ms  ok
+  dependencies   json + lz4                       0.68 MB  enc      6.0 ms  dec      8.8 ms  ok
+  dependencies   msgpack + zstd-3                 0.44 MB  enc      6.2 ms  dec      7.6 ms  ok
+  dependencies   msgpack + lz4                    0.70 MB  enc      4.6 ms  dec      6.8 ms  ok
+
+== Storage engines (GSR1 record bytes; fsync durability on every commit)
+  packs   GSR1  disk    69.37 MB  bulk    168.1 ms  update-1    18.0 ms  read-all    14.7 ms  read-50   1.86 ms
+  sqlite  GSR1  disk    70.77 MB  bulk    402.1 ms  update-1    13.3 ms  read-all    17.7 ms  read-50   0.87 ms
+  redb    GSR1  disk   101.33 MB  bulk    137.7 ms  update-1    26.7 ms  read-all    45.2 ms  read-50  12.98 ms
+  packs   json  disk   282.27 MB  bulk    662.2 ms  update-1    31.2 ms  read-all    60.9 ms  read-50   2.73 ms
+  sqlite  json  disk   284.18 MB  bulk   1625.6 ms  update-1    18.8 ms  read-all    63.2 ms  read-50   2.00 ms
+  redb    json  disk   672.15 MB  bulk    664.9 ms  update-1    25.2 ms  read-all    79.1 ms  read-50  14.04 ms
+
+wrote /Users/ant/code/graph-search/research/results/storage-formats/prototype-results.json

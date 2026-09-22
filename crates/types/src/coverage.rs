@@ -98,6 +98,6 @@ pub struct SourcePolicy {
     pub excludes: Vec<String>,
     /// Per-file source size ceiling.
     pub max_file_bytes: u64,
-    /// SHA-256 of the complete policy, including extensions, languages and caps.
+    /// BLAKE3 of the complete policy, including extensions, languages and caps.
     pub fingerprint: String,
 }

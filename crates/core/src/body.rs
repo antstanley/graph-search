@@ -3,7 +3,18 @@
 
 use crate::{Result, metadata::CompiledFilters, work::WorkBudget};
 use graph_search_types::{Language, source::SourceFileUnits};
-use std::collections::{BTreeMap, BTreeSet};
+use std::borrow::Cow;
+use std::collections::{BTreeMap, BTreeSet, HashMap};
+
+/// `str::to_lowercase`, borrowing when that would be the identity (ASCII with
+/// no uppercase letters); non-ASCII always takes the full Unicode mapping.
+fn lowercase(spelling: &str) -> Cow<'_, str> {
+    if spelling.is_ascii() && !spelling.bytes().any(|b| b.is_ascii_uppercase()) {
+        Cow::Borrowed(spelling)
+    } else {
+        Cow::Owned(spelling.to_lowercase())
+    }
+}
 
 /// Maximum scored regions retained for one owner before byte-budget assembly.
 pub const MAX_REGIONS_PER_OWNER: usize = 4;
@@ -78,7 +89,8 @@ pub struct BodyIndex {
     identifiers: Option<Box<Self>>,
     files: Vec<String>,
     documents: Vec<Document>,
-    postings: BTreeMap<String, Vec<Posting>>,
+    /// Exact-term lookup only (never ordered iteration), so a hash map.
+    postings: HashMap<String, Vec<Posting>>,
     average_length: f32,
 }
 
@@ -94,21 +106,26 @@ impl BodyIndex {
     fn build(files: &BTreeMap<String, SourceFileUnits>, whole: bool) -> Self {
         let mut index = Self::default();
         let mut total = 0usize;
-        let mut entities = BTreeMap::new();
+        // Entities are (file, owner) pairs numbered in first-seen order. Files are
+        // visited once each, so a per-file owner map with a global counter yields
+        // the same numbering without cloning the path for every region.
+        let mut entity_count = 0usize;
         for (path, source) in files {
             let file = index.files.len();
             index.files.push(path.clone());
+            let mut entities = BTreeMap::new();
             for (unit, region) in source.units.iter().enumerate() {
-                let mut identifiers: BTreeMap<String, Vec<u32>> = BTreeMap::new();
+                // Per lowercased identifier: total occurrences and earliest line.
+                // Equivalent to merging and sorting the spellings' line lists,
+                // without allocating them: a posting keeps only these two values.
+                let mut identifiers: BTreeMap<Cow<'_, str>, (usize, Option<u32>)> = BTreeMap::new();
                 if whole {
                     for (spelling, lines) in &region.identifiers {
-                        identifiers
-                            .entry(spelling.to_lowercase())
-                            .or_default()
-                            .extend(lines);
-                    }
-                    for lines in identifiers.values_mut() {
-                        lines.sort_unstable();
+                        let entry = identifiers.entry(lowercase(spelling)).or_insert((0, None));
+                        entry.0 = entry.0.saturating_add(lines.len());
+                        if let Some(&low) = lines.iter().min() {
+                            entry.1 = Some(entry.1.map_or(low, |line| line.min(low)));
+                        }
                     }
                 }
                 let length = region
@@ -116,29 +133,21 @@ impl BodyIndex {
                     .values()
                     .map(Vec::len)
                     .sum::<usize>()
-                    .max(identifiers.values().map(Vec::len).sum());
-                let mut terms = region.terms.clone();
-                for (term, lines) in identifiers {
-                    let previous = terms.entry(term).or_default();
-                    if lines.len() > previous.len() {
-                        *previous = lines;
-                    }
-                }
+                    .max(identifiers.values().map(|(count, _)| *count).sum());
                 if length == 0 {
                     continue;
                 }
                 let document = index.documents.len();
-                let next = entities.len();
-                let entity = *entities
-                    .entry((
-                        path.clone(),
-                        region
-                            .documentation
-                            .as_ref()
-                            .and_then(|doc| doc.documented_symbol.clone())
-                            .or_else(|| region.owner.clone()),
-                    ))
-                    .or_insert(next);
+                let owner = region
+                    .documentation
+                    .as_ref()
+                    .and_then(|doc| doc.documented_symbol.as_ref())
+                    .or(region.owner.as_ref());
+                let entity = *entities.entry(owner).or_insert_with(|| {
+                    let next = entity_count;
+                    entity_count = entity_count.saturating_add(1);
+                    next
+                });
                 index.documents.push(Document {
                     file,
                     entity,
@@ -148,23 +157,51 @@ impl BodyIndex {
                     end_line: region.span.end_line,
                 });
                 total = total.saturating_add(length);
-                for (term, lines) in &terms {
-                    if let Some(&line) = lines.first() {
-                        index
-                            .postings
-                            .entry(term.clone())
-                            .or_default()
-                            .push(Posting {
-                                document,
-                                frequency: lines.len(),
-                                line,
-                            });
+                // Merge-join of two maps in the same byte order. A merged identifier
+                // replaces a term only when it occurs more often.
+                let mut merged = identifiers.iter().peekable();
+                for (term, lines) in &region.terms {
+                    while let Some((spelling, &(count, first))) =
+                        merged.next_if(|(spelling, _)| spelling.as_ref() < term.as_str())
+                    {
+                        index.add_posting(spelling, document, count, first);
                     }
+                    let (frequency, first) =
+                        match merged.next_if(|(spelling, _)| spelling.as_ref() == term.as_str()) {
+                            Some((_, &(count, first))) if count > lines.len() => (count, first),
+                            _ => (lines.len(), lines.first().copied()),
+                        };
+                    index.add_posting(term, document, frequency, first);
+                }
+                for (spelling, &(count, first)) in merged {
+                    index.add_posting(spelling, document, count, first);
                 }
             }
         }
         index.average_length = (total as f32 / index.documents.len().max(1) as f32).max(1.0);
         index
+    }
+
+    /// Appends one document's posting; clones the term only for a new list.
+    fn add_posting(&mut self, term: &str, document: usize, frequency: usize, first: Option<u32>) {
+        let Some(line) = first else {
+            return;
+        };
+        let posting = Posting {
+            document,
+            frequency,
+            line,
+        };
+        if let Some(list) = self.postings.get_mut(term) {
+            list.push(posting);
+        } else {
+            // Capacity 4 is what the first `push` onto an empty Vec allocates. A
+            // capacity-1 start reallocates on the second posting; that churn
+            // raised peak RSS of a full index by ~200 MB at equal heap size.
+            let mut list = Vec::with_capacity(4);
+            list.push(posting);
+            self.postings.insert(term.to_owned(), list);
+        }
     }
 
     fn idf(&self, frequency: usize) -> f32 {

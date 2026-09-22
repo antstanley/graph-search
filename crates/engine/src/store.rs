@@ -513,6 +513,7 @@ impl GrafeoStore {
             self.inject("after_extraction_persist")?;
             let bytes = serde_json::to_vec(&self.dependencies)
                 .map_err(|error| Error::Store(error.to_string()))?;
+            let bytes = crate::compress::deflate(&bytes).map_err(store_io)?;
             generation::replace(&dir.join(generation::DEPENDENCIES), &bytes).map_err(store_io)?;
             self.inject("after_dependencies_persist")?;
             sidecar::prepare_manifest(dir, &manifest.header()).map_err(store_io)?;
@@ -1212,9 +1213,12 @@ mod publication_tests {
         let mut pack = Vec::new();
         let records = index["records"].as_object_mut().unwrap();
         for (path, record) in records.iter_mut() {
-            let old = std::fs::read(
-                dir.join("extraction-records")
-                    .join(record["pack"].as_str().unwrap()),
+            let old = crate::compress::inflate_pack(
+                &std::fs::read(
+                    dir.join("extraction-records")
+                        .join(record["pack"].as_str().unwrap()),
+                )
+                .unwrap(),
             )
             .unwrap();
             let start = usize::try_from(record["offset"].as_u64().unwrap()).unwrap();
@@ -1232,6 +1236,7 @@ mod publication_tests {
             record["hash"] = graph_search_core::hash::content_hash(bytes).into();
             pack.extend_from_slice(bytes);
         }
+        let pack = crate::compress::deflate(&pack).unwrap();
         let hash = graph_search_core::hash::content_hash(&pack);
         for record in records.values_mut() {
             record["pack"] = hash.clone().into();
@@ -1412,45 +1417,6 @@ mod publication_tests {
         drop(store);
         let reopened = GrafeoStore::open(root.path(), &StoreOptions::default()).unwrap();
         assert_eq!(reopened.manifest_header().unwrap(), current);
-    }
-
-    #[test]
-    fn format_five_embedded_manifest_migrates_without_losing_raw_facts() {
-        let root = tempfile::tempdir().unwrap();
-        let mut store = GrafeoStore::open(root.path(), &StoreOptions::default()).unwrap();
-        store.publish(fixture_batch()).unwrap();
-        let before = state(&store);
-        sidecar::save_manifest(&store.data_dir, before.2.as_ref().unwrap()).unwrap();
-        std::fs::remove_file(store.data_dir.join(crate::manifest_records::FILE)).unwrap();
-        let pointer_path = root.path().join(generation::CURRENT);
-        let mut pointer: serde_json::Value =
-            serde_json::from_slice(&std::fs::read(&pointer_path).unwrap()).unwrap();
-        std::fs::remove_file(store.data_dir.join(generation::DEPENDENCIES)).unwrap();
-        pointer["files"]
-            .as_object_mut()
-            .unwrap()
-            .remove(generation::DEPENDENCIES);
-        pointer["format"] = serde_json::json!(5);
-        pointer["files"]
-            .as_object_mut()
-            .unwrap()
-            .remove(crate::manifest_records::FILE);
-        pointer["files"][sidecar::MANIFEST_FILE] =
-            serde_json::json!(graph_search_core::hash::content_hash(
-                &std::fs::read(store.data_dir.join(sidecar::MANIFEST_FILE)).unwrap()
-            ));
-        std::fs::write(&pointer_path, serde_json::to_vec(&pointer).unwrap()).unwrap();
-        drop(store);
-        let mut legacy = GrafeoStore::open(root.path(), &StoreOptions::default()).unwrap();
-        assert_eq!(state(&legacy), before);
-        legacy.publish(fixture_batch()).unwrap();
-        assert_eq!(state(&legacy), before);
-        assert!(legacy.extraction_records.is_some());
-        drop(legacy);
-        assert_eq!(
-            state(&GrafeoStore::open(root.path(), &StoreOptions::default()).unwrap()),
-            before
-        );
     }
 
     #[test]

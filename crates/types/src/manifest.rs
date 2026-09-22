@@ -14,7 +14,7 @@ pub struct FileEntry {
     pub size: u64,
     /// Modification time in nanoseconds since the epoch.
     pub mtime_ns: u64,
-    /// Hex SHA-256 of the content.
+    /// Hex BLAKE3 of the content.
     pub content_hash: String,
     /// The `parser_version` that produced the stored projection.
     pub parser_version: u32,

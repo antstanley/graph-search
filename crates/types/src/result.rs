@@ -302,7 +302,7 @@ pub struct ImpactSummary {
 /// A bounded source excerpt (`SPEC.md` §9.3).
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Snippet {
-    /// SHA-256 of the original file bytes from which these lines were read.
+    /// BLAKE3 of the original file bytes from which these lines were read.
     #[serde(default)]
     pub source_hash: String,
     /// The 1-based line of the first line in `lines`.

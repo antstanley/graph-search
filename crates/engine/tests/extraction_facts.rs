@@ -138,50 +138,19 @@ fn dependency_records_are_pinned_and_authenticated_with_the_generation() {
         .path()
         .join("generations")
         .join(pointer["id"].as_str().unwrap());
-    let path = dir.join("dependencies.json");
-    let original = std::fs::read(&path).unwrap();
+    let path = dir.join("dependencies.json.zst");
+    let original = zstd::decode_all(std::fs::read(&path).unwrap().as_slice()).unwrap();
     std::fs::write(&path, b"corrupt").unwrap();
     assert!(GrafeoStore::open(directory.path(), &options).is_err());
     // Even a rehashed artifact must match the authenticated manifest header.
     let mut malformed: serde_json::Value = serde_json::from_slice(&original).unwrap();
     malformed["records"]["src/a.rs"]["header"]["content_hash"] = "foreign".into();
-    let bytes = serde_json::to_vec(&malformed).unwrap();
+    let bytes = zstd::bulk::compress(&serde_json::to_vec(&malformed).unwrap(), 3).unwrap();
     std::fs::write(&path, &bytes).unwrap();
-    pointer["files"]["dependencies.json"] = graph_search_core::hash::content_hash(&bytes).into();
+    pointer["files"]["dependencies.json.zst"] =
+        graph_search_core::hash::content_hash(&bytes).into();
     std::fs::write(&pointer_path, serde_json::to_vec(&pointer).unwrap()).unwrap();
     assert!(GrafeoStore::open(directory.path(), &options).is_err());
     // Old readers retain the admitted record set, independent of later artifacts.
     assert_eq!(reader.dependency_index().unwrap(), Some(&first));
-}
-
-#[test]
-fn format_six_uses_fallback_and_next_publication_adds_dependencies() {
-    let directory = tempfile::tempdir().unwrap();
-    let options = StoreOptions::default();
-    let mut writer = GrafeoStore::open(directory.path(), &options).unwrap();
-    writer.publish(fixture("first")).unwrap();
-    let pointer_path = directory.path().join("CURRENT");
-    let mut pointer: serde_json::Value =
-        serde_json::from_slice(&std::fs::read(&pointer_path).unwrap()).unwrap();
-    let dir = directory
-        .path()
-        .join("generations")
-        .join(pointer["id"].as_str().unwrap());
-    pointer["format"] = 6.into();
-    pointer["files"]
-        .as_object_mut()
-        .unwrap()
-        .remove("dependencies.json");
-    std::fs::remove_file(dir.join("dependencies.json")).unwrap();
-    std::fs::write(&pointer_path, serde_json::to_vec(&pointer).unwrap()).unwrap();
-    drop(writer);
-    let mut legacy = GrafeoStore::open(directory.path(), &options).unwrap();
-    assert!(legacy.dependency_index().unwrap().is_none());
-    legacy.publish(fixture("second")).unwrap();
-    assert!(legacy.dependency_index().unwrap().is_some());
-    let reopened = GrafeoStore::open(directory.path(), &options).unwrap();
-    assert_eq!(
-        legacy.dependency_index().unwrap(),
-        reopened.dependency_index().unwrap()
-    );
 }

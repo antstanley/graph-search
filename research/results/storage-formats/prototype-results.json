@@ -1,0 +1,470 @@
+{
+  "corpus": {
+    "generation": "g-18d7bce6d03304f0-2fc5-0",
+    "source_records": 2521,
+    "source_units": 73854
+  },
+  "open_phases_ms": {
+    "  (hash) BLAKE3 (NEON here; SSE4.1/AVX2/AVX-512 on x86)": 156.40141699999998,
+    "  (hash) SHA-256, sha2 0.10 software path": 806.6940000000001,
+    "  (hash) SHA-256, sha2 0.11 (ARMv8 SHA2 instructions)": 130.96129200000001,
+    "BodyIndex::new (derived postings)": 737.09825,
+    "OccurrenceIndex::new": 24.696042000000002,
+    "TOTAL GrafeoStore::open (read-only)": 1817.29225,
+    "content-hash CURRENT-listed artifacts": 5.751583999999999,
+    "read CURRENT-listed artifacts": 1.5782909999999999,
+    "sidecar::load_dangling": 16.939375,
+    "sidecar::load_occurrences": 46.042667,
+    "sidecar::load_sources (read + verify + decode)": 488.326459
+  },
+  "formats": [
+    {
+      "artifact": "source-records",
+      "format": "json (current)",
+      "bytes": 280552501,
+      "encode_ms": 312.786875,
+      "decode_ms": 1415.049333,
+      "roundtrip": "ok"
+    },
+    {
+      "artifact": "source-records",
+      "format": "msgpack (named)",
+      "bytes": 215103506,
+      "encode_ms": 316.333083,
+      "decode_ms": 1018.651875,
+      "roundtrip": "ok"
+    },
+    {
+      "artifact": "source-records",
+      "format": "postcard",
+      "bytes": 187304634,
+      "encode_ms": 250.701916,
+      "decode_ms": 0.000042,
+      "roundtrip": "decode failed: Found an Option discriminant that wasn't 0 or 1"
+    },
+    {
+      "artifact": "source-records",
+      "format": "bincode2 (serde)",
+      "bytes": 203565309,
+      "encode_ms": 163.770916,
+      "decode_ms": 0.000458,
+      "roundtrip": "decode failed: UnexpectedVariant { type_name: \"Option<T>\", allowed: Range { min: 0, max: 1 }, found: 64 }"
+    },
+    {
+      "artifact": "source-records",
+      "format": "json + zstd-3",
+      "bytes": 45369124,
+      "encode_ms": 793.619042,
+      "decode_ms": 1507.289917,
+      "roundtrip": "ok"
+    },
+    {
+      "artifact": "source-records",
+      "format": "json + lz4",
+      "bytes": 99790748,
+      "encode_ms": 627.478875,
+      "decode_ms": 1453.199333,
+      "roundtrip": "ok"
+    },
+    {
+      "artifact": "source-records",
+      "format": "msgpack + zstd-3",
+      "bytes": 44135784,
+      "encode_ms": 642.258584,
+      "decode_ms": 1162.753959,
+      "roundtrip": "ok"
+    },
+    {
+      "artifact": "source-records",
+      "format": "msgpack + lz4",
+      "bytes": 90978728,
+      "encode_ms": 440.689125,
+      "decode_ms": 1095.163875,
+      "roundtrip": "ok"
+    },
+    {
+      "artifact": "source-records",
+      "format": "GSR1 (production codec)",
+      "bytes": 68670044,
+      "encode_ms": 356.329958,
+      "decode_ms": 491.01533400000005,
+      "roundtrip": "ok"
+    },
+    {
+      "artifact": "source-records",
+      "format": "GSR1 + zstd-3",
+      "bytes": 32212467,
+      "encode_ms": 547.0237089999999,
+      "decode_ms": 615.947667,
+      "roundtrip": "ok"
+    },
+    {
+      "artifact": "source-records",
+      "format": "GSR1 + lz4",
+      "bytes": 45370342,
+      "encode_ms": 404.100042,
+      "decode_ms": 548.719375,
+      "roundtrip": "ok"
+    },
+    {
+      "artifact": "source-records",
+      "format": "rkyv mirror: validate + walk (zero-copy)",
+      "bytes": 327913480,
+      "encode_ms": 335.85141699999997,
+      "decode_ms": 74.129209,
+      "roundtrip": "n/a (mirror type; no owned conversion)"
+    },
+    {
+      "artifact": "source-records",
+      "format": "rkyv mirror: owned deserialize",
+      "bytes": 327913480,
+      "encode_ms": 335.85141699999997,
+      "decode_ms": 392.947084,
+      "roundtrip": "n/a (mirror type)"
+    },
+    {
+      "artifact": "source-records",
+      "format": "json + zstd-3 per 8MiB pack",
+      "bytes": 24469413,
+      "encode_ms": 311.099042,
+      "decode_ms": 121.3495,
+      "roundtrip": "ok (decompress only; excludes record decode)"
+    },
+    {
+      "artifact": "source-records",
+      "format": "json + zstd-9 per 8MiB pack",
+      "bytes": 18888868,
+      "encode_ms": 1201.8020000000001,
+      "decode_ms": 107.206333,
+      "roundtrip": "ok (decompress only; excludes record decode)"
+    },
+    {
+      "artifact": "source-records",
+      "format": "GSR1 + zstd-3 per 8MiB pack",
+      "bytes": 13625765,
+      "encode_ms": 118.01637500000001,
+      "decode_ms": 42.422416999999996,
+      "roundtrip": "ok (decompress only; excludes record decode)"
+    },
+    {
+      "artifact": "source-records",
+      "format": "GSR1 + zstd-9 per 8MiB pack",
+      "bytes": 12503969,
+      "encode_ms": 406.014333,
+      "decode_ms": 39.400666,
+      "roundtrip": "ok (decompress only; excludes record decode)"
+    },
+    {
+      "artifact": "occurrences",
+      "format": "json (current)",
+      "bytes": 21264684,
+      "encode_ms": 17.335209,
+      "decode_ms": 32.717875,
+      "roundtrip": "ok"
+    },
+    {
+      "artifact": "occurrences",
+      "format": "msgpack (named)",
+      "bytes": 18232309,
+      "encode_ms": 10.750957999999999,
+      "decode_ms": 20.949042000000002,
+      "roundtrip": "ok"
+    },
+    {
+      "artifact": "occurrences",
+      "format": "postcard",
+      "bytes": 11316491,
+      "encode_ms": 4.200833,
+      "decode_ms": 10.509041999999999,
+      "roundtrip": "ok"
+    },
+    {
+      "artifact": "occurrences",
+      "format": "bincode2 (serde)",
+      "bytes": 11397546,
+      "encode_ms": 4.3532079999999995,
+      "decode_ms": 8.768917,
+      "roundtrip": "ok"
+    },
+    {
+      "artifact": "occurrences",
+      "format": "json + zstd-3",
+      "bytes": 3191966,
+      "encode_ms": 49.99525,
+      "decode_ms": 44.502709,
+      "roundtrip": "ok"
+    },
+    {
+      "artifact": "occurrences",
+      "format": "json + lz4",
+      "bytes": 5334049,
+      "encode_ms": 37.915957999999996,
+      "decode_ms": 36.614292,
+      "roundtrip": "ok"
+    },
+    {
+      "artifact": "occurrences",
+      "format": "msgpack + zstd-3",
+      "bytes": 3144501,
+      "encode_ms": 39.350875,
+      "decode_ms": 32.651291,
+      "roundtrip": "ok"
+    },
+    {
+      "artifact": "occurrences",
+      "format": "msgpack + lz4",
+      "bytes": 5235367,
+      "encode_ms": 28.730208,
+      "decode_ms": 25.252667,
+      "roundtrip": "ok"
+    },
+    {
+      "artifact": "dangling",
+      "format": "json (current)",
+      "bytes": 9534990,
+      "encode_ms": 6.90125,
+      "decode_ms": 11.3965,
+      "roundtrip": "ok"
+    },
+    {
+      "artifact": "dangling",
+      "format": "msgpack (named)",
+      "bytes": 8574879,
+      "encode_ms": 3.586333,
+      "decode_ms": 7.472792,
+      "roundtrip": "ok"
+    },
+    {
+      "artifact": "dangling",
+      "format": "postcard",
+      "bytes": 7203014,
+      "encode_ms": 1.869167,
+      "decode_ms": 4.901916,
+      "roundtrip": "ok"
+    },
+    {
+      "artifact": "dangling",
+      "format": "bincode2 (serde)",
+      "bytes": 7198873,
+      "encode_ms": 1.925292,
+      "decode_ms": 3.9121249999999996,
+      "roundtrip": "ok"
+    },
+    {
+      "artifact": "dangling",
+      "format": "json + zstd-3",
+      "bytes": 525766,
+      "encode_ms": 13.673166,
+      "decode_ms": 15.3655,
+      "roundtrip": "ok"
+    },
+    {
+      "artifact": "dangling",
+      "format": "json + lz4",
+      "bytes": 834457,
+      "encode_ms": 11.849749999999998,
+      "decode_ms": 13.336416999999999,
+      "roundtrip": "ok"
+    },
+    {
+      "artifact": "dangling",
+      "format": "msgpack + zstd-3",
+      "bytes": 657324,
+      "encode_ms": 11.503333,
+      "decode_ms": 12.008166000000001,
+      "roundtrip": "ok"
+    },
+    {
+      "artifact": "dangling",
+      "format": "msgpack + lz4",
+      "bytes": 905630,
+      "encode_ms": 8.980500000000001,
+      "decode_ms": 9.125665999999999,
+      "roundtrip": "ok"
+    },
+    {
+      "artifact": "manifest+facts",
+      "format": "json (current)",
+      "bytes": 20887992,
+      "encode_ms": 20.334625,
+      "decode_ms": 38.79125,
+      "roundtrip": "ok"
+    },
+    {
+      "artifact": "manifest+facts",
+      "format": "msgpack (named)",
+      "bytes": 16741408,
+      "encode_ms": 13.42725,
+      "decode_ms": 25.414334,
+      "roundtrip": "ok"
+    },
+    {
+      "artifact": "manifest+facts",
+      "format": "postcard",
+      "bytes": 7863792,
+      "encode_ms": 6.026833,
+      "decode_ms": 0.000917,
+      "roundtrip": "decode failed: Found a bool that wasn't 0 or 1"
+    },
+    {
+      "artifact": "manifest+facts",
+      "format": "bincode2 (serde)",
+      "bytes": 8041336,
+      "encode_ms": 5.714625,
+      "decode_ms": 0.0011250000000000001,
+      "roundtrip": "decode failed: InvalidBooleanValue(10)"
+    },
+    {
+      "artifact": "manifest+facts",
+      "format": "json + zstd-3",
+      "bytes": 2274590,
+      "encode_ms": 49.205,
+      "decode_ms": 51.057541,
+      "roundtrip": "ok"
+    },
+    {
+      "artifact": "manifest+facts",
+      "format": "json + lz4",
+      "bytes": 3658669,
+      "encode_ms": 40.673792,
+      "decode_ms": 44.982542,
+      "roundtrip": "ok"
+    },
+    {
+      "artifact": "manifest+facts",
+      "format": "msgpack + zstd-3",
+      "bytes": 2044996,
+      "encode_ms": 35.661458,
+      "decode_ms": 35.232416,
+      "roundtrip": "ok"
+    },
+    {
+      "artifact": "manifest+facts",
+      "format": "msgpack + lz4",
+      "bytes": 3430124,
+      "encode_ms": 32.168209000000004,
+      "decode_ms": 29.821,
+      "roundtrip": "ok"
+    },
+    {
+      "artifact": "dependencies",
+      "format": "json (current)",
+      "bytes": 3215683,
+      "encode_ms": 2.9700830000000003,
+      "decode_ms": 8.188667,
+      "roundtrip": "ok"
+    },
+    {
+      "artifact": "dependencies",
+      "format": "msgpack (named)",
+      "bytes": 2883566,
+      "encode_ms": 1.59375,
+      "decode_ms": 6.140333,
+      "roundtrip": "ok"
+    },
+    {
+      "artifact": "dependencies",
+      "format": "postcard",
+      "bytes": 2382946,
+      "encode_ms": 1.078833,
+      "decode_ms": 5.427041,
+      "roundtrip": "ok"
+    },
+    {
+      "artifact": "dependencies",
+      "format": "bincode2 (serde)",
+      "bytes": 2384357,
+      "encode_ms": 1.029584,
+      "decode_ms": 4.829125,
+      "roundtrip": "ok"
+    },
+    {
+      "artifact": "dependencies",
+      "format": "json + zstd-3",
+      "bytes": 405208,
+      "encode_ms": 7.43425,
+      "decode_ms": 9.370208,
+      "roundtrip": "ok"
+    },
+    {
+      "artifact": "dependencies",
+      "format": "json + lz4",
+      "bytes": 676707,
+      "encode_ms": 5.951291,
+      "decode_ms": 8.759958,
+      "roundtrip": "ok"
+    },
+    {
+      "artifact": "dependencies",
+      "format": "msgpack + zstd-3",
+      "bytes": 438863,
+      "encode_ms": 6.17125,
+      "decode_ms": 7.6289169999999995,
+      "roundtrip": "ok"
+    },
+    {
+      "artifact": "dependencies",
+      "format": "msgpack + lz4",
+      "bytes": 699966,
+      "encode_ms": 4.5995,
+      "decode_ms": 6.837583,
+      "roundtrip": "ok"
+    }
+  ],
+  "engines": [
+    {
+      "engine": "packs",
+      "payload": "GSR1",
+      "disk_bytes": 69374284,
+      "bulk_write_ms": 168.104292,
+      "update_one_ms": 17.999167,
+      "read_all_ms": 14.749208999999999,
+      "read_50_ms": 1.858708
+    },
+    {
+      "engine": "sqlite",
+      "payload": "GSR1",
+      "disk_bytes": 70774784,
+      "bulk_write_ms": 402.149084,
+      "update_one_ms": 13.324208,
+      "read_all_ms": 17.668792,
+      "read_50_ms": 0.873792
+    },
+    {
+      "engine": "redb",
+      "payload": "GSR1",
+      "disk_bytes": 101330944,
+      "bulk_write_ms": 137.697292,
+      "update_one_ms": 26.701083,
+      "read_all_ms": 45.204625,
+      "read_50_ms": 12.984833
+    },
+    {
+      "engine": "packs",
+      "payload": "json",
+      "disk_bytes": 282273530,
+      "bulk_write_ms": 662.171125,
+      "update_one_ms": 31.153208000000003,
+      "read_all_ms": 60.933959,
+      "read_50_ms": 2.7285
+    },
+    {
+      "engine": "sqlite",
+      "payload": "json",
+      "disk_bytes": 284180480,
+      "bulk_write_ms": 1625.571667,
+      "update_one_ms": 18.782542,
+      "read_all_ms": 63.245542,
+      "read_50_ms": 2.002667
+    },
+    {
+      "engine": "redb",
+      "payload": "json",
+      "disk_bytes": 672149504,
+      "bulk_write_ms": 664.9485000000001,
+      "update_one_ms": 25.229417,
+      "read_all_ms": 79.122875,
+      "read_50_ms": 14.037291
+    }
+  ]
+}

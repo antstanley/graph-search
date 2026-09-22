@@ -836,10 +836,17 @@ Reconciliation calls `GraphStore::publish` with one `WriteBatch`. The Grafeo
 adapter prepares a complete replacement graph in isolation, saves it with the
 manifest, dangling references, native source facts and reference occurrences under `generations/<id>/`, then publishes a
 small `CURRENT` descriptor by atomic rename. The descriptor records storage
-format 7 and SHA-256 fingerprints of every committed top-level artifact. Readers validate
+format 8 and BLAKE3 fingerprints of every committed top-level artifact. Readers validate
 it on open and open the graph read-only. A missing or corrupt committed artifact
-is an error, never a silently empty index. Legacy stores are readable and migrate
-on the first successful publication.
+is an error, never a silently empty index. Generations written before format 8
+carry SHA-256 fingerprints and fail verification; they are rebuilt, not migrated
+(deleting the store directory is always a safe rebuild).
+
+All content hashes, both file fingerprints in the manifest and artifact, pack and
+record fingerprints, are lowercase hex BLAKE3 (256-bit). BLAKE3 is fast through
+portable SIMD with runtime dispatch (NEON on AArch64, SSE4.1/AVX2/AVX-512 on x86)
+rather than dedicated SHA instructions, which some deployment CPUs lack. One-shot
+open verifies every committed byte, so hash throughput is query latency.
 
 Preparation applies the old projection and the update before constructing derived
 retrieval indexes. Intermediate mutation reads only the graph, ID maps and owned
@@ -847,19 +854,34 @@ facts; it does not query those indexes. The final indexes are built before
 persistence or exposure of the replacement store. Publication borrows the batch's
 manifest instead of cloning its raw extraction cache.
 
-Source facts use a version-2 per-file index in `source-units.json`. Each entry
-contains a pack SHA-256, record SHA-256, byte offset and nonzero length. Immutable
-packs under `source-records/` contain concatenated original serialized records;
-records never straddle packs. New packs target 8 MiB; a single larger record gets
-its own pack. This is a buffering target, not a maximum serialized-record size.
+Source facts use a version-3 per-file index in `source-units.json`. Each entry
+contains a pack fingerprint, record fingerprint, byte offset and nonzero length.
+Each immutable pack under `source-records/` is one zstd frame (level 3, with its
+content size) of concatenated records; offsets and lengths address the inflated
+bytes, and the pack fingerprint covers the compressed file, so corruption is
+detected before inflation. Inflation is bounded by the declared content size and
+a 1 GiB ceiling. Records never straddle packs. New packs target 8 MiB of record
+bytes; a single larger record gets its own pack. This is a buffering target, not
+a maximum record size.
+
+Version-3 records use each fact type's native encoding. Source facts use `GSR1`
+(`crates/engine/src/record_codec.rs`): a per-record sorted, front-coded dictionary
+of terms, identifiers and owners; posting maps as ascending dictionary-id deltas
+with delta-coded line lists in LEB128 varints; the source hash as 32 raw bytes;
+and JSON only for rare Markdown, documentation and package fields. Decoding
+rejects truncation, trailing bytes, out-of-range ids, unsorted dictionaries and
+counts larger than the remaining record. Extraction records stay JSON inside the
+same compressed packs. A dictionary per record, not per generation, keeps records
+independently hashed, reusable across generations and selectively readable.
 The index transitively commits pack and record bytes. Open checks pack hashes,
 record hashes, checked slice bounds and non-overlap; identical references may
 share an exact range. Hash names accept only 64 lowercase hexadecimal characters.
 Generation selection passes the authenticated, decoded source descriptor directly
 to the loader. Each referenced pack is loaded and verified once before the store
 is exposed; replacing the descriptor on disk cannot redirect this handoff.
-Generation formats 1–5, legacy whole-map facts and version-1 individual records
-remain readable. Packed source indexes require generation format 5 or later. Source representation
+Version-1 and version-2 indexes (uncompressed JSON records) remain decodable by the
+pack reader, but publication never reuses their records; a version-3 index requires
+generation format 8. Source representation
 and chunker revisions are independent of this layout.
 
 Publication uses its cached, validated record index for reuse. Surviving source
@@ -874,7 +896,8 @@ deduplicated. Repacking and removal preserve original per-file facts, and deleti
 older generations unlinks their references without deleting current packs.
 The pack directory is synced before committing its index and CURRENT.
 
-Generation format 7 additionally commits `dependencies.json` whenever it commits a
+Generation format 7 additionally commits the dependency index (since format 8,
+`dependencies.json.zst`: one zstd frame of its JSON) whenever it commits a
 manifest. This compact version-1 index contains per-file header identities, raw
 non-dynamic reference names (including unresolved references), defined/exported
 names, authored module surfaces and specifiers, binding-surface fingerprints,
@@ -912,8 +935,9 @@ fingerprints fail hydration rather than silently becoming empty caches.
 `GraphStore::extraction_facts(paths)` returns only requested cached facts; missing
 records and unknown paths are omitted, while present empty extractions remain present.
 MemoryStore selects shared facts directly. Grafeo uses the pinned verified descriptor
-to look up requested paths, groups by pack and exact byte slice, seeks only to those
-slices, and verifies each selected record hash before decoding. Duplicate slices
+to look up requested paths, groups by pack and exact byte slice, inflates each
+pack holding a requested record (one bounded zstd frame; a frame has no random
+access), and verifies each selected record hash before decoding. Duplicate slices
 share one data read. Unselected records are not decoded and unrelated packs are not
 opened. This authenticates returned records, not unselected bytes that may have
 changed after open; full hydration still verifies whole packs. Selected records must
@@ -963,7 +987,8 @@ handle refuses reads and writes until reopen. Reopen follows the complete
 published descriptor; it does not combine artifacts from different generations.
 Orphan prepared directories are invisible. Reclamation retains the current and
 previous generation plus every generation leased by a live store handle. A
-reader pins the existing mandatory `dangling.jsonl` sidecar with a shared OS
+reader pins the existing mandatory dangling-reference sidecar
+(`dangling.jsonl.zst`: one zstd frame of JSON lines since format 8) with a shared OS
 file lock before validating/loading its generation; no reader-side file creation
 or write permission is required. Publication pins the newly prepared store before
 changing CURRENT. The lease lasts through lazy extraction reads and closes after
@@ -1168,7 +1193,8 @@ scope/type system: package visibility, reexports, dynamic mutation, receiver
 types and unsupported grammar constructs retain their existing approximation.
 
 Reference occurrence representation 1 additionally persists each raw reference
-in a checksummed `occurrences.json` artifact owned by its source file and hash.
+in a checksummed `occurrences.json.zst` artifact (one zstd frame of JSON) owned by
+its source file and hash.
 Occurrence identity encodes the original file, hash, owner, relationship kind,
 name/spelling, raw-reference ordinal, line and optional byte/line span. It excludes
 the selected target and binding reason, so rebinding unchanged source preserves
@@ -1673,7 +1699,7 @@ rendering prints the same messages.
   paths withheld by read budgets and reports `source_bytes` or `source_file_bytes`
   truncations even when those paths never become selected results.
   Snippet lines preserve source spelling without inserting ellipses; each snippet
-  carries the SHA-256 of the original file bytes. The complete serialized result,
+  carries the BLAKE3 of the original file bytes. The complete serialized result,
   including provenance, must fit the requested output budget.
 - Byte coordinates are zero-based half-open UTF-8 ranges; display lines are
   one-based. Parser revision 4 invalidates older Rust and JS/TS offsets.

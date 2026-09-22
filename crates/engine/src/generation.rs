@@ -8,8 +8,9 @@ use std::sync::atomic::{AtomicU64, Ordering};
 
 pub(crate) const CURRENT: &str = "CURRENT";
 pub(crate) const GRAPH: &str = "graph.grafeo";
-const FORMAT: u32 = 7;
-pub(crate) const DEPENDENCIES: &str = "dependencies.json";
+const FORMAT: u32 = 8;
+/// One zstd frame of the JSON dependency index.
+pub(crate) const DEPENDENCIES: &str = "dependencies.json.zst";
 static SERIAL: AtomicU64 = AtomicU64::new(0);
 
 #[derive(Serialize, Deserialize)]
@@ -130,7 +131,8 @@ fn select(root: &Path, bytes: &[u8]) -> io::Result<Selected> {
                     .map_err(io::Error::other)?,
             );
         } else if name == DEPENDENCIES {
-            dependencies = serde_json::from_slice(&bytes).map_err(io::Error::other)?;
+            dependencies = serde_json::from_slice(&crate::compress::inflate_sidecar(&bytes)?)
+                .map_err(io::Error::other)?;
         } else if name == crate::manifest_records::FILE {
             extraction_bytes = Some(bytes);
         }

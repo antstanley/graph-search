@@ -17,8 +17,8 @@ use std::path::Path;
 /// The manifest file name inside the store directory.
 pub const MANIFEST_FILE: &str = "manifest.json";
 
-/// The dangling-reference sidecar file name.
-pub const DANGLING_FILE: &str = "dangling.jsonl";
+/// The dangling-reference sidecar file name: one zstd frame of JSON lines.
+pub const DANGLING_FILE: &str = "dangling.jsonl.zst";
 
 /// One sidecar record.
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -75,8 +75,9 @@ pub(crate) fn prepare_manifest(store_dir: &Path, manifest: &Manifest) -> std::io
 /// When the sidecar exists but cannot be parsed.
 pub fn load_dangling(store_dir: &Path) -> std::io::Result<Vec<Edge>> {
     let path = store_dir.join(DANGLING_FILE);
-    let text = match std::fs::read_to_string(&path) {
-        Ok(text) => text,
+    let text = match std::fs::read(&path) {
+        Ok(bytes) => String::from_utf8(crate::compress::inflate_sidecar(&bytes)?)
+            .map_err(|error| std::io::Error::new(std::io::ErrorKind::InvalidData, error))?,
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(Vec::new()),
         Err(error) => return Err(error),
     };
@@ -131,10 +132,7 @@ pub fn save_dangling(
 /// the directory before publishing CURRENT.
 pub(crate) fn prepare_dangling(store_dir: &Path, edges: &[Edge]) -> std::io::Result<()> {
     std::fs::create_dir_all(store_dir)?;
-    let target = store_dir.join(DANGLING_FILE);
-    let tmp = store_dir.join(format!("{DANGLING_FILE}.tmp"));
-    let file = std::fs::File::create(&tmp)?;
-    let mut writer = std::io::BufWriter::new(file);
+    let mut writer = Vec::new();
     for edge in edges {
         let record = DanglingRecord {
             from: edge.from.to_string(),
@@ -146,17 +144,17 @@ pub(crate) fn prepare_dangling(store_dir: &Path, edges: &[Edge]) -> std::io::Res
         serde_json::to_writer(&mut writer, &record).map_err(|error| {
             std::io::Error::new(std::io::ErrorKind::InvalidData, error.to_string())
         })?;
-        writer.write_all(b"\n")?;
+        writer.push(b'\n');
     }
-    writer.flush()?;
-    writer.get_ref().sync_all()?;
-    std::fs::rename(&tmp, &target)
+    let bytes = crate::compress::deflate(&writer)?;
+    crate::generation::replace(&store_dir.join(DANGLING_FILE), &bytes)
 }
 
 /// Source retrieval facts published and checksummed with the graph generation.
 pub const SOURCE_FILE: &str = "source-units.json";
-/// Source-owned references, stored separately from aggregate adjacency.
-pub const OCCURRENCE_FILE: &str = "occurrences.json";
+/// Source-owned references, stored separately from aggregate adjacency: one
+/// zstd frame of JSON.
+pub const OCCURRENCE_FILE: &str = "occurrences.json.zst";
 
 /// Reads source occurrences; missing legacy artifacts have unknown occurrence coverage.
 /// # Errors
@@ -173,7 +171,8 @@ pub fn load_occurrences(
         }
         Err(error) => return Err(error),
     };
-    serde_json::from_slice(&bytes).map_err(std::io::Error::other)
+    serde_json::from_slice(&crate::compress::inflate_sidecar(&bytes)?)
+        .map_err(std::io::Error::other)
 }
 
 /// Publishes and syncs occurrences inside an unpublished generation.
@@ -184,7 +183,10 @@ pub fn save_occurrences(
     files: &std::collections::BTreeMap<String, graph_search_types::occurrence::OccurrenceFile>,
 ) -> std::io::Result<()> {
     let bytes = serde_json::to_vec(files).map_err(std::io::Error::other)?;
-    crate::generation::replace(&dir.join(OCCURRENCE_FILE), &bytes)
+    crate::generation::replace(
+        &dir.join(OCCURRENCE_FILE),
+        &crate::compress::deflate(&bytes)?,
+    )
 }
 
 /// Reads native source facts. Missing legacy sidecars have no source coverage.

@@ -1,0 +1,287 @@
+   Compiling graph-search-core v0.1.0 (/Users/ant/code/graph-search/crates/core)
+   Compiling graph-search-engine v0.1.0 (/Users/ant/code/graph-search/crates/engine)
+   Compiling graph-search-langs v0.1.0 (/Users/ant/code/graph-search/crates/langs)
+   Compiling graph-search v0.1.0 (/Users/ant/code/graph-search/crates/graph-search)
+    Finished `bench` profile [optimized] target(s) in 48.80s
+     Running benches/storage.rs (target/release/deps/storage-3ee2dd0088916df9)
+storage: published store occupies 3313919 bytes (3236KiB)
+Benchmarking storage_publish/reindex_full
+Benchmarking storage_publish/reindex_full: Warming up for 3.0000 s
+
+Warning: Unable to complete 10 samples in 5.0s. You may wish to increase target time to 5.0s.
+Benchmarking storage_publish/reindex_full: Collecting 10 samples in estimated 5.0161 s (10 iterations)
+Benchmarking storage_publish/reindex_full: Analyzing
+storage_publish/reindex_full
+                        time:   [491.94 ms 493.24 ms 494.70 ms]
+                        change: [−28.070% −26.684% −25.812%] (p = 0.00 < 0.05)
+                        Performance has improved.
+Found 2 outliers among 10 measurements (20.00%)
+  1 (10.00%) low mild
+  1 (10.00%) high mild
+
+Benchmarking storage_open/published_read_only
+Benchmarking storage_open/published_read_only: Warming up for 3.0000 s
+Benchmarking storage_open/published_read_only: Collecting 20 samples in estimated 6.7668 s (40 iterations)
+Benchmarking storage_open/published_read_only: Analyzing
+storage_open/published_read_only
+                        time:   [169.65 ms 170.43 ms 171.50 ms]
+                        change: [−52.369% −52.062% −51.705%] (p = 0.00 < 0.05)
+                        Performance has improved.
+Found 3 outliers among 20 measurements (15.00%)
+  2 (10.00%) high mild
+  1 (5.00%) high severe
+Benchmarking storage_open/open_then_symbol
+Benchmarking storage_open/open_then_symbol: Warming up for 3.0000 s
+Benchmarking storage_open/open_then_symbol: Collecting 20 samples in estimated 6.8553 s (40 iterations)
+Benchmarking storage_open/open_then_symbol: Analyzing
+storage_open/open_then_symbol
+                        time:   [170.66 ms 171.05 ms 171.64 ms]
+                        change: [−52.144% −52.017% −51.795%] (p = 0.00 < 0.05)
+                        Performance has improved.
+Found 1 outliers among 20 measurements (5.00%)
+  1 (5.00%) high severe
+Benchmarking storage_open/open_then_explore
+Benchmarking storage_open/open_then_explore: Warming up for 3.0000 s
+Benchmarking storage_open/open_then_explore: Collecting 20 samples in estimated 6.9511 s (40 iterations)
+Benchmarking storage_open/open_then_explore: Analyzing
+storage_open/open_then_explore
+                        time:   [173.63 ms 173.87 ms 174.12 ms]
+                        change: [−51.663% −51.578% −51.496%] (p = 0.00 < 0.05)
+                        Performance has improved.
+Benchmarking storage_open/open_then_text
+Benchmarking storage_open/open_then_text: Warming up for 3.0000 s
+Benchmarking storage_open/open_then_text: Collecting 20 samples in estimated 7.0732 s (40 iterations)
+Benchmarking storage_open/open_then_text: Analyzing
+storage_open/open_then_text
+                        time:   [175.73 ms 176.02 ms 176.33 ms]
+                        change: [−51.431% −51.267% −51.137%] (p = 0.00 < 0.05)
+                        Performance has improved.
+Found 1 outliers among 20 measurements (5.00%)
+  1 (5.00%) high mild
+
+Benchmarking storage_sync/noop
+Benchmarking storage_sync/noop: Warming up for 3.0000 s
+Benchmarking storage_sync/noop: Collecting 10 samples in estimated 5.0209 s (5775 iterations)
+Benchmarking storage_sync/noop: Analyzing
+storage_sync/noop       time:   [865.71 µs 873.72 µs 881.58 µs]
+                        change: [−1.3377% −0.2451% +0.7311%] (p = 0.68 > 0.05)
+                        No change in performance detected.
+Benchmarking storage_sync/rust_body_edit
+Benchmarking storage_sync/rust_body_edit: Warming up for 3.0000 s
+Benchmarking storage_sync/rust_body_edit: Collecting 10 samples in estimated 6.3100 s (20 iterations)
+Benchmarking storage_sync/rust_body_edit: Analyzing
+storage_sync/rust_body_edit
+                        time:   [314.92 ms 316.21 ms 317.80 ms]
+                        change: [−28.093% −27.575% −27.060%] (p = 0.00 < 0.05)
+                        Performance has improved.
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) high mild
+Benchmarking storage_sync/json_edit
+Benchmarking storage_sync/json_edit: Warming up for 3.0000 s
+Benchmarking storage_sync/json_edit: Collecting 10 samples in estimated 6.2986 s (20 iterations)
+Benchmarking storage_sync/json_edit: Analyzing
+storage_sync/json_edit  time:   [319.20 ms 320.05 ms 320.82 ms]
+                        change: [−27.329% −26.995% −26.654%] (p = 0.00 < 0.05)
+                        Performance has improved.
+
+   Compiling graph-search v0.1.0 (/Users/ant/code/graph-search/crates/graph-search)
+    Finished `bench` profile [optimized] target(s) in 22.35s
+     Running benches/search.rs (target/release/deps/search-83c53224078cc846)
+Benchmarking build/cold_index
+Benchmarking build/cold_index: Warming up for 3.0000 s
+
+Warning: Unable to complete 10 samples in 5.0s. You may wish to increase target time to 6.0s.
+Benchmarking build/cold_index: Collecting 10 samples in estimated 5.9611 s (10 iterations)
+Benchmarking build/cold_index: Analyzing
+build/cold_index        time:   [583.56 ms 585.10 ms 586.59 ms]
+                        change: [−25.625% −24.977% −24.369%] (p = 0.00 < 0.05)
+                        Performance has improved.
+
+Benchmarking sync/one_file_edit
+Benchmarking sync/one_file_edit: Warming up for 3.0000 s
+
+Warning: Unable to complete 20 samples in 5.0s. You may wish to increase target time to 8.3s, or reduce sample count to 10.
+Benchmarking sync/one_file_edit: Collecting 20 samples in estimated 8.3056 s (20 iterations)
+Benchmarking sync/one_file_edit: Analyzing
+sync/one_file_edit      time:   [415.59 ms 417.97 ms 421.55 ms]
+                        change: [−27.999% −25.813% −23.788%] (p = 0.00 < 0.05)
+                        Performance has improved.
+Found 1 outliers among 20 measurements (5.00%)
+  1 (5.00%) high severe
+
+Benchmarking lookup/exact_symbol
+Benchmarking lookup/exact_symbol: Warming up for 3.0000 s
+
+Warning: Unable to complete 100 samples in 5.0s. You may wish to increase target time to 7.1s, enable flat sampling, or reduce sample count to 50.
+Benchmarking lookup/exact_symbol: Collecting 100 samples in estimated 7.0574 s (5050 iterations)
+Benchmarking lookup/exact_symbol: Analyzing
+lookup/exact_symbol     time:   [1.3870 ms 1.3916 ms 1.3973 ms]
+                        change: [−2.5615% −1.3548% −0.3134%] (p = 0.02 < 0.05)
+                        Change within noise threshold.
+Found 9 outliers among 100 measurements (9.00%)
+  7 (7.00%) high mild
+  2 (2.00%) high severe
+Benchmarking lookup/references
+Benchmarking lookup/references: Warming up for 3.0000 s
+
+Warning: Unable to complete 100 samples in 5.0s. You may wish to increase target time to 7.4s, enable flat sampling, or reduce sample count to 50.
+Benchmarking lookup/references: Collecting 100 samples in estimated 7.4220 s (5050 iterations)
+Benchmarking lookup/references: Analyzing
+lookup/references       time:   [1.3964 ms 1.4017 ms 1.4078 ms]
+                        change: [−2.4698% −1.2457% −0.1434%] (p = 0.04 < 0.05)
+                        Change within noise threshold.
+Found 3 outliers among 100 measurements (3.00%)
+  3 (3.00%) high mild
+
+Benchmarking explore/body_multiword
+Benchmarking explore/body_multiword: Warming up for 3.0000 s
+Benchmarking explore/body_multiword: Collecting 100 samples in estimated 5.1697 s (800 iterations)
+Benchmarking explore/body_multiword: Analyzing
+explore/body_multiword  time:   [6.4658 ms 6.4943 ms 6.5266 ms]
+                        change: [−0.7721% −0.2221% +0.3538%] (p = 0.46 > 0.05)
+                        No change in performance detected.
+Found 6 outliers among 100 measurements (6.00%)
+  4 (4.00%) high mild
+  2 (2.00%) high severe
+Benchmarking explore/metadata_single_term
+Benchmarking explore/metadata_single_term: Warming up for 3.0000 s
+Benchmarking explore/metadata_single_term: Collecting 100 samples in estimated 5.2114 s (2300 iterations)
+Benchmarking explore/metadata_single_term: Analyzing
+explore/metadata_single_term
+                        time:   [2.2500 ms 2.2651 ms 2.2861 ms]
+                        change: [−0.8448% −0.0316% +0.8489%] (p = 0.95 > 0.05)
+                        No change in performance detected.
+Found 12 outliers among 100 measurements (12.00%)
+  7 (7.00%) high mild
+  5 (5.00%) high severe
+Benchmarking explore/positional_route
+Benchmarking explore/positional_route: Warming up for 3.0000 s
+Benchmarking explore/positional_route: Collecting 100 samples in estimated 5.0399 s (1700 iterations)
+Benchmarking explore/positional_route: Analyzing
+explore/positional_route
+                        time:   [2.9166 ms 2.9251 ms 2.9345 ms]
+                        change: [−4.9983% −3.3132% −1.8058%] (p = 0.00 < 0.05)
+                        Performance has improved.
+Found 9 outliers among 100 measurements (9.00%)
+  6 (6.00%) high mild
+  3 (3.00%) high severe
+
+Benchmarking occurrences/by_name
+Benchmarking occurrences/by_name: Warming up for 3.0000 s
+
+Warning: Unable to complete 100 samples in 5.0s. You may wish to increase target time to 7.2s, enable flat sampling, or reduce sample count to 50.
+Benchmarking occurrences/by_name: Collecting 100 samples in estimated 7.1665 s (5050 iterations)
+Benchmarking occurrences/by_name: Analyzing
+occurrences/by_name     time:   [1.3957 ms 1.3992 ms 1.4033 ms]
+                        change: [−0.6454% −0.0395% +0.4769%] (p = 0.89 > 0.05)
+                        No change in performance detected.
+Found 6 outliers among 100 measurements (6.00%)
+  4 (4.00%) high mild
+  2 (2.00%) high severe
+
+Benchmarking scan/text_literal
+Benchmarking scan/text_literal: Warming up for 3.0000 s
+Benchmarking scan/text_literal: Collecting 100 samples in estimated 5.3736 s (700 iterations)
+Benchmarking scan/text_literal: Analyzing
+scan/text_literal       time:   [7.5296 ms 7.5747 ms 7.6281 ms]
+                        change: [−2.2231% −0.8188% +0.4710%] (p = 0.25 > 0.05)
+                        No change in performance detected.
+Found 10 outliers among 100 measurements (10.00%)
+  3 (3.00%) high mild
+  7 (7.00%) high severe
+Benchmarking scan/files_glob
+Benchmarking scan/files_glob: Warming up for 3.0000 s
+
+Warning: Unable to complete 100 samples in 5.0s. You may wish to increase target time to 7.5s, enable flat sampling, or reduce sample count to 50.
+Benchmarking scan/files_glob: Collecting 100 samples in estimated 7.4893 s (5050 iterations)
+Benchmarking scan/files_glob: Analyzing
+scan/files_glob         time:   [1.4809 ms 1.4840 ms 1.4875 ms]
+                        change: [−1.5990% −0.7037% +0.0671%] (p = 0.11 > 0.05)
+                        No change in performance detected.
+Found 4 outliers among 100 measurements (4.00%)
+  3 (3.00%) high mild
+  1 (1.00%) high severe
+Benchmarking scan/filtered_explore
+Benchmarking scan/filtered_explore: Warming up for 3.0000 s
+Benchmarking scan/filtered_explore: Collecting 100 samples in estimated 5.0934 s (800 iterations)
+Benchmarking scan/filtered_explore: Analyzing
+scan/filtered_explore   time:   [6.3392 ms 6.3911 ms 6.4570 ms]
+                        change: [−0.8699% +0.3311% +1.4690%] (p = 0.60 > 0.05)
+                        No change in performance detected.
+Found 9 outliers among 100 measurements (9.00%)
+  4 (4.00%) high mild
+  5 (5.00%) high severe
+
+   Compiling graph-search v0.1.0 (/Users/ant/code/graph-search/crates/graph-search)
+    Finished `bench` profile [optimized] target(s) in 23.06s
+     Running benches/evaluation.rs (target/release/deps/evaluation-9e970f795529c6eb)
+Benchmarking open/published_store
+Benchmarking open/published_store: Warming up for 3.0000 s
+Benchmarking open/published_store: Collecting 20 samples in estimated 6.0066 s (100 iterations)
+Benchmarking open/published_store: Analyzing
+open/published_store    time:   [59.854 ms 59.925 ms 60.007 ms]
+                        change: [−29.352% −28.671% −28.150%] (p = 0.00 < 0.05)
+                        Performance has improved.
+Found 3 outliers among 20 measurements (15.00%)
+  2 (10.00%) high mild
+  1 (5.00%) high severe
+
+Benchmarking graph/refs_type
+Benchmarking graph/refs_type: Warming up for 3.0000 s
+
+Warning: Unable to complete 100 samples in 5.0s. You may wish to increase target time to 5.4s, enable flat sampling, or reduce sample count to 60.
+Benchmarking graph/refs_type: Collecting 100 samples in estimated 5.4022 s (5050 iterations)
+Benchmarking graph/refs_type: Analyzing
+graph/refs_type         time:   [1.0658 ms 1.0681 ms 1.0706 ms]
+                        change: [−2.3794% −1.7353% −1.1895%] (p = 0.00 < 0.05)
+                        Performance has improved.
+Found 8 outliers among 100 measurements (8.00%)
+  5 (5.00%) high mild
+  3 (3.00%) high severe
+Benchmarking graph/impact_type
+Benchmarking graph/impact_type: Warming up for 3.0000 s
+
+Warning: Unable to complete 100 samples in 5.0s. You may wish to increase target time to 5.4s, enable flat sampling, or reduce sample count to 60.
+Benchmarking graph/impact_type: Collecting 100 samples in estimated 5.3741 s (5050 iterations)
+Benchmarking graph/impact_type: Analyzing
+graph/impact_type       time:   [1.0640 ms 1.0668 ms 1.0698 ms]
+                        change: [−1.3855% −0.8884% −0.4196%] (p = 0.00 < 0.05)
+                        Change within noise threshold.
+Found 10 outliers among 100 measurements (10.00%)
+  8 (8.00%) high mild
+  2 (2.00%) high severe
+
+Benchmarking payload/explore_compact/5793B
+Benchmarking payload/explore_compact/5793B: Warming up for 3.0000 s
+Benchmarking payload/explore_compact/5793B: Collecting 100 samples in estimated 5.0992 s (2000 iterations)
+Benchmarking payload/explore_compact/5793B: Analyzing
+payload/explore_compact/5793B
+                        time:   [2.5430 ms 2.5496 ms 2.5575 ms]
+                        change: [−2.9536% −2.1412% −1.4302%] (p = 0.00 < 0.05)
+                        Performance has improved.
+Found 9 outliers among 100 measurements (9.00%)
+  5 (5.00%) high mild
+  4 (4.00%) high severe
+Benchmarking payload/explore_full/8810B
+Benchmarking payload/explore_full/8810B: Warming up for 3.0000 s
+Benchmarking payload/explore_full/8810B: Collecting 100 samples in estimated 5.2214 s (2000 iterations)
+Benchmarking payload/explore_full/8810B: Analyzing
+payload/explore_full/8810B
+                        time:   [2.6103 ms 2.6204 ms 2.6320 ms]
+                        change: [−1.9279% −1.3504% −0.7653%] (p = 0.00 < 0.05)
+                        Change within noise threshold.
+Found 12 outliers among 100 measurements (12.00%)
+  6 (6.00%) high mild
+  6 (6.00%) high severe
+Benchmarking payload/text_search/1387B
+Benchmarking payload/text_search/1387B: Warming up for 3.0000 s
+Benchmarking payload/text_search/1387B: Collecting 100 samples in estimated 5.0175 s (1000 iterations)
+Benchmarking payload/text_search/1387B: Analyzing
+payload/text_search/1387B
+                        time:   [5.0018 ms 5.0190 ms 5.0402 ms]
+                        change: [−6.7046% −5.5920% −4.5582%] (p = 0.00 < 0.05)
+                        Performance has improved.
+Found 10 outliers among 100 measurements (10.00%)
+  4 (4.00%) high mild
+  6 (6.00%) high severe
+

@@ -65,7 +65,8 @@ The native improvements add:
   retrieval-index work remains.
 
 These changes use the existing Rust/parser/storage stack and add no third-party
-components. See the [implementation ledger](research/IMPLEMENTATION.md) for
+components. The later storage-format work (below) adds two: `blake3` for hashing
+and `zstd` for pack and sidecar compression. See the [implementation ledger](research/IMPLEMENTATION.md) for
 requirement-level evidence and the
 [recommendation 23 audit](research/results/native-implementation/selective-reconciliation/RECOMMENDATION-23-AUDIT.md)
 for the completed incremental-indexing scope.
@@ -82,6 +83,16 @@ A separate paired experiment removed duplicate freshness inspection, preserving
 618 compared responses after generation/elapsed normalization and improving
 median task-query times by **14.89–26.45%** across nanus, blogwright and whatsurvey.
 [Results](research/results/native-implementation/request-inspection/README.md).
+
+### Storage format
+
+Generation format 8 stores source facts as a compact binary record codec (`GSR1`)
+inside zstd-compressed packs, compresses the large JSON sidecars, and hashes with
+BLAKE3. On this repository the index fell from 316 MB to 25 MB, one-shot CLI
+queries from about 7.0 s to 2.1 s, and a full index from about 13 s to 9 s, with
+identical query results. The criterion suites (`search`, `evaluation` and the new
+`storage` bench) show no regressions. Older indexes must be rebuilt.
+[Investigation, measurements and alternatives](research/results/storage-formats/README.md).
 
 ### Comparison with CodeGraph
 

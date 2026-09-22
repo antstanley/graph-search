@@ -1,6 +1,7 @@
 //! Immutable, content-addressed source packs with independently hashed file records.
 //! CURRENT commits the index, which transitively commits pack and record bytes.
 
+use crate::record_codec::{DecodeRecord, EncodeRecord};
 use graph_search_types::source::SourceFileUnits;
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use std::{
@@ -99,14 +100,14 @@ fn decode_index(bytes: &[u8]) -> io::Result<Stored> {
 
 impl Index {
     fn validate(&self) -> io::Result<()> {
-        if !(1..=2).contains(&self.format)
+        if !(1..=NATIVE_FORMAT).contains(&self.format)
             || self.records.values().any(|reference| {
                 !valid_hash(reference.pack())
                     || !valid_hash(reference.hash())
                     || match reference {
                         Reference::Single(_) => self.format != 1,
                         Reference::Packed(record) => {
-                            self.format != 2
+                            self.format < 2
                                 || record.len == 0
                                 || record.offset.checked_add(record.len).is_none()
                         }
@@ -121,7 +122,7 @@ impl Index {
     pub(crate) fn decode_packed(bytes: &[u8]) -> io::Result<Self> {
         let index: Self = serde_json::from_slice(bytes).map_err(io::Error::other)?;
         index.validate()?;
-        if index.format != 2 {
+        if index.format < 2 {
             return Err(io::Error::other("packed records required"));
         }
         Ok(index)
@@ -131,46 +132,52 @@ impl Index {
         self.records.keys().map(String::as_str)
     }
 
-    pub(crate) fn matches<T: Serialize>(&self, path: &str, record: &T) -> io::Result<bool> {
+    pub(crate) fn matches<T: EncodeRecord>(&self, path: &str, record: &T) -> io::Result<bool> {
         let Some(reference) = self.records.get(path) else {
             return Ok(false);
         };
-        let bytes = serde_json::to_vec(record).map_err(io::Error::other)?;
+        if self.format < NATIVE_FORMAT {
+            return Ok(false);
+        }
+        let mut bytes = Vec::new();
+        record.encode_record(&mut bytes)?;
         Ok(graph_search_core::hash::content_hash(&bytes) == reference.hash())
     }
 
     /// Verify committed bytes without eagerly deserializing cold record values.
     pub(crate) fn verify(&self, dir: &Path, layout: Layout) -> io::Result<()> {
         for (hash, group) in groups(self) {
-            let bytes = read_pack(&dir.join(layout.directory), hash)?;
-            validate_ranges(&bytes, &group)?;
+            let pack = read_pack(&dir.join(layout.directory), hash, self.format)?;
+            validate_ranges(pack.bytes(), &group)?;
         }
         Ok(())
     }
 
-    pub(crate) fn load<T: DeserializeOwned>(
+    pub(crate) fn load<T: DecodeRecord + DeserializeOwned>(
         &self,
         dir: &Path,
         layout: Layout,
     ) -> io::Result<BTreeMap<String, T>> {
-        Self::load_groups(dir, layout, true, groups(self))
+        Self::load_groups(dir, layout, self.format, true, groups(self))
     }
 
     /// Caller must hold an immutable index already verified against all record
     /// bytes, or constructed by the writer from new/verified records. A matching
     /// complete pack hash then preserves every previously verified record slice.
-    pub(crate) fn load_verified<T: DeserializeOwned>(
+    pub(crate) fn load_verified<T: DecodeRecord + DeserializeOwned>(
         &self,
         dir: &Path,
         layout: Layout,
     ) -> io::Result<BTreeMap<String, T>> {
-        Self::load_groups(dir, layout, false, groups(self))
+        Self::load_groups(dir, layout, self.format, false, groups(self))
     }
 
     /// Same verified-descriptor precondition as `load_verified`. Only requested
-    /// records are decoded. Read only their byte ranges and verify each record
-    /// hash; packs without selected records are not opened.
-    pub(crate) fn load_selected_verified<T: DeserializeOwned>(
+    /// records are decoded and each record hash is verified; packs without
+    /// selected records are not opened. Uncompressed (format 1-2) packs are read
+    /// by byte range; a compressed pack is inflated whole (at most one ~8 MiB
+    /// frame) because a zstd frame has no random access.
+    pub(crate) fn load_selected_verified<T: DecodeRecord + DeserializeOwned>(
         &self,
         dir: &Path,
         layout: Layout,
@@ -191,31 +198,39 @@ impl Index {
             if !std::fs::symlink_metadata(&path)?.file_type().is_file() {
                 return Err(io::Error::other("source pack is not a regular file"));
             }
-            let mut file = std::fs::File::open(path)?;
-            let len = usize::try_from(file.metadata()?.len()).map_err(io::Error::other)?;
-            files.extend(read_selected_group(&mut file, len, group)?);
+            if self.format >= NATIVE_FORMAT {
+                let bytes = crate::compress::inflate_pack(&std::fs::read(path)?)?;
+                let len = bytes.len();
+                let mut cursor = io::Cursor::new(bytes);
+                files.extend(read_selected_group(&mut cursor, len, self.format, group)?);
+            } else {
+                let mut file = std::fs::File::open(path)?;
+                let len = usize::try_from(file.metadata()?.len()).map_err(io::Error::other)?;
+                files.extend(read_selected_group(&mut file, len, self.format, group)?);
+            }
         }
         Ok(files)
     }
 
-    fn load_groups<T: DeserializeOwned>(
+    fn load_groups<T: DecodeRecord + DeserializeOwned>(
         dir: &Path,
         layout: Layout,
+        format: u32,
         verify_records: bool,
         grouped: BTreeMap<&str, Group<'_>>,
     ) -> io::Result<BTreeMap<String, T>> {
         let mut files = BTreeMap::new();
         for (hash, group) in grouped {
-            let bytes = read_pack(&dir.join(layout.directory), hash)?;
+            let pack = read_pack(&dir.join(layout.directory), hash, format)?;
+            let bytes = pack.bytes();
             if verify_records {
-                validate_ranges(&bytes, &group)?;
+                validate_ranges(bytes, &group)?;
             } else {
                 ranges(bytes.len(), &group)?;
             }
             for (path, reference) in group {
                 let (start, end) = reference.range(bytes.len())?;
-                let record =
-                    serde_json::from_slice(&bytes[start..end]).map_err(io::Error::other)?;
+                let record = decode(format, bytes.get(start..end).unwrap_or_default())?;
                 files.insert(path.clone(), record);
             }
         }
@@ -225,9 +240,10 @@ impl Index {
 
 /// The verified descriptor commits each record hash independently of the pack
 /// hash. Unselected bytes need not be read to authenticate a returned record.
-fn read_selected_group<T: DeserializeOwned>(
+fn read_selected_group<T: DecodeRecord + DeserializeOwned>(
     reader: &mut (impl io::Read + io::Seek),
     pack_len: usize,
+    format: u32,
     group: Group<'_>,
 ) -> io::Result<BTreeMap<String, T>> {
     ranges(pack_len, &group)?;
@@ -250,13 +266,22 @@ fn read_selected_group<T: DeserializeOwned>(
             return Err(io::Error::other("source record checksum mismatch"));
         }
         for path in paths {
-            files.insert(
-                path.clone(),
-                serde_json::from_slice(&bytes).map_err(io::Error::other)?,
-            );
+            files.insert(path.clone(), decode(format, &bytes)?);
         }
     }
     Ok(files)
+}
+
+/// Index format whose records use each fact type's native [`EncodeRecord`]
+/// encoding. Formats 1 and 2 hold JSON records.
+pub(crate) const NATIVE_FORMAT: u32 = 3;
+
+fn decode<T: DecodeRecord + DeserializeOwned>(format: u32, bytes: &[u8]) -> io::Result<T> {
+    if format >= NATIVE_FORMAT {
+        T::decode_record(bytes)
+    } else {
+        serde_json::from_slice(bytes).map_err(io::Error::other)
+    }
 }
 
 fn valid_hash(hash: &str) -> bool {
@@ -266,16 +291,46 @@ fn valid_hash(hash: &str) -> bool {
             .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
 }
 
-fn read_pack(dir: &Path, hash: &str) -> io::Result<Vec<u8>> {
+/// Committed pack file bytes plus, for native packs, the inflated records.
+/// Pack names hash the file bytes, so corruption is caught before inflation.
+struct Pack {
+    file: Vec<u8>,
+    inflated: Option<Vec<u8>>,
+}
+
+impl Pack {
+    /// Concatenated record bytes; record offsets index into this.
+    fn bytes(&self) -> &[u8] {
+        self.inflated.as_deref().unwrap_or(&self.file)
+    }
+}
+
+/// Inflated size of a native pack from its frame header alone, so size-based
+/// compaction policy keeps meaning record bytes rather than compressed bytes.
+fn raw_len(path: &Path) -> io::Result<u64> {
+    use io::Read as _;
+    let mut header = Vec::with_capacity(18);
+    std::fs::File::open(path)?
+        .take(18)
+        .read_to_end(&mut header)?;
+    crate::compress::frame_size(&header)
+}
+
+fn read_pack(dir: &Path, hash: &str, format: u32) -> io::Result<Pack> {
     let path = dir.join(hash);
     if !std::fs::symlink_metadata(&path)?.file_type().is_file() {
         return Err(io::Error::other("source pack is not a regular file"));
     }
-    let bytes = std::fs::read(path)?;
-    if graph_search_core::hash::content_hash(&bytes) != hash {
+    let file = std::fs::read(path)?;
+    if graph_search_core::hash::content_hash(&file) != hash {
         return Err(io::Error::other("source pack checksum mismatch"));
     }
-    Ok(bytes)
+    let inflated = if format >= NATIVE_FORMAT {
+        Some(crate::compress::inflate_pack(&file)?)
+    } else {
+        None
+    };
+    Ok(Pack { file, inflated })
 }
 
 type Group<'a> = Vec<(&'a String, &'a Reference)>;
@@ -342,7 +397,11 @@ pub(crate) struct Prepared(Stored);
 pub(crate) fn prepare(bytes: &[u8], generation_format: u32) -> io::Result<Prepared> {
     let stored = decode_index(bytes)?;
     if let Stored::Index(index) = &stored {
-        let minimum = if index.format == 1 { 4 } else { 5 };
+        let minimum = match index.format {
+            1 => 4,
+            2 => 5,
+            _ => 8,
+        };
         if generation_format < minimum {
             return Err(io::Error::other(
                 "source records require a newer generation format",
@@ -412,11 +471,11 @@ impl<'a> Writer<'a> {
             .insert(reference.hash().to_owned(), reference.clone());
         self.records.insert(path.to_owned(), reference.clone());
     }
-    fn add<T: Serialize>(&mut self, path: &str, record: &T) -> io::Result<()> {
-        // Serialize directly into the pack buffer. Only a boundary-crossing
+    fn add<T: EncodeRecord>(&mut self, path: &str, record: &T) -> io::Result<()> {
+        // Encode directly into the pack buffer. Only a boundary-crossing
         // record needs a separate allocation while the preceding pack is flushed.
         let start = self.bytes.len();
-        serde_json::to_writer(&mut self.bytes, record).map_err(io::Error::other)?;
+        record.encode_record(&mut self.bytes)?;
         self.finish_record(path, start)
     }
 
@@ -463,9 +522,10 @@ impl<'a> Writer<'a> {
         if self.bytes.is_empty() {
             return Ok(());
         }
-        let pack = graph_search_core::hash::content_hash(&self.bytes);
+        let file = crate::compress::deflate(&self.bytes)?;
+        let pack = graph_search_core::hash::content_hash(&file);
         if self.written.insert(pack.clone()) {
-            crate::generation::replace(&self.directory.join(&pack), &self.bytes)?;
+            crate::generation::replace(&self.directory.join(&pack), &file)?;
         }
         for (hash, pending) in std::mem::take(&mut self.pending) {
             let reference = Reference::Packed(Packed {
@@ -524,7 +584,7 @@ pub(crate) fn save_cached(
 }
 
 /// Shared immutable pack writer. Reuse eligibility belongs to each fact type.
-pub(crate) fn save_records<T: Serialize>(
+pub(crate) fn save_records<T: EncodeRecord>(
     dir: &Path,
     layout: Layout,
     files: &BTreeMap<String, T>,
@@ -546,7 +606,7 @@ pub(crate) fn save_records<T: Serialize>(
 /// `retained` is an explicit identity-validated set with no in-memory payloads.
 /// Repacking copies authenticated record bytes and does not deserialize them.
 #[allow(clippy::too_many_arguments)]
-pub(crate) fn save_records_retaining<T: Serialize>(
+pub(crate) fn save_records_retaining<T: EncodeRecord>(
     dir: &Path,
     layout: Layout,
     files: &BTreeMap<String, T>,
@@ -564,6 +624,11 @@ pub(crate) fn save_records_retaining<T: Serialize>(
     std::fs::create_dir(&directory)?;
     let mut writer = Writer::new(&directory);
     let mut reusable: BTreeMap<&str, Group<'_>> = BTreeMap::new();
+    // Older JSON-record generations are rebuilt, never mixed into a native index.
+    let old_index = old_index.filter(|index| index.format >= NATIVE_FORMAT);
+    if !retained.is_empty() && old_index.is_none() {
+        return Err(io::Error::other("retained records require a native index"));
+    }
     if let Some(index) = old_index {
         for (path, reference) in &index.records {
             if retained.contains(path)
@@ -582,15 +647,14 @@ pub(crate) fn save_records_retaining<T: Serialize>(
     }
     let mut small = 0usize;
     for hash in reusable.keys() {
-        if std::fs::symlink_metadata(previous.join(layout.directory).join(hash))?.len()
-            < SMALL_PACK_BYTES
-        {
+        if raw_len(&previous.join(layout.directory).join(hash))? < SMALL_PACK_BYTES {
             small = small.saturating_add(1);
         }
     }
     let mut copied = BTreeSet::new();
     for (hash, group) in reusable {
-        let bytes = read_pack(&previous.join(layout.directory), hash)?;
+        let pack = read_pack(&previous.join(layout.directory), hash, NATIVE_FORMAT)?;
+        let bytes = pack.bytes();
         let live = live_bytes(bytes.len(), &group)?;
         let packed = group
             .iter()
@@ -599,13 +663,17 @@ pub(crate) fn save_records_retaining<T: Serialize>(
         if !packed || compact_small || live < minimum_live(bytes.len()) {
             for (path, reference) in group {
                 let (start, end) = reference.range(bytes.len())?;
-                writer.add_encoded(path, &bytes[start..end])?;
+                writer.add_encoded(path, bytes.get(start..end).unwrap_or_default())?;
                 copied.insert(path.clone());
             }
             continue;
         }
         let target = directory.join(hash);
-        link_or_copy(&previous.join(layout.directory).join(hash), &target, &bytes)?;
+        link_or_copy(
+            &previous.join(layout.directory).join(hash),
+            &target,
+            &pack.file,
+        )?;
         writer.written.insert(hash.to_owned());
         for (path, reference) in group {
             writer.retain(path, reference);
@@ -619,7 +687,7 @@ pub(crate) fn save_records_retaining<T: Serialize>(
     writer.flush()?;
     crate::generation::sync_dir(&directory)?;
     let index = Index {
-        format: 2,
+        format: NATIVE_FORMAT,
         records: writer.records,
     };
     let bytes = serde_json::to_vec(&index).map_err(io::Error::other)?;
@@ -688,12 +756,15 @@ mod tests {
         writer.add("b", &"x".repeat(4096)).unwrap();
         writer.flush().unwrap();
         let index = Index {
-            format: 2,
+            format: NATIVE_FORMAT,
             records: writer.records,
         };
         index.verify(root.path(), SOURCE_LAYOUT).unwrap();
         assert_eq!(index.records["a"].pack(), index.records["b"].pack());
-        let bytes = read_pack(&directory, index.records["a"].pack()).unwrap();
+        let bytes = read_pack(&directory, index.records["a"].pack(), NATIVE_FORMAT)
+            .unwrap()
+            .bytes()
+            .to_vec();
         let pack_len = bytes.len();
         assert_eq!(pack_len, 4108);
         let mut reader = Counted {
@@ -707,7 +778,7 @@ mod tests {
             ]
         };
         let facts: BTreeMap<String, String> =
-            read_selected_group(&mut reader, pack_len, group()).unwrap();
+            read_selected_group(&mut reader, pack_len, NATIVE_FORMAT, group()).unwrap();
         assert_eq!(
             facts,
             BTreeMap::from([
@@ -722,10 +793,14 @@ mod tests {
         let (cold, _) = index.records["b"].range(pack_len).unwrap();
         reader.cursor.get_mut()[cold] = b'!';
         reader.read = 0;
-        assert!(read_selected_group::<String>(&mut reader, pack_len, group()).is_ok());
+        assert!(
+            read_selected_group::<String>(&mut reader, pack_len, NATIVE_FORMAT, group()).is_ok()
+        );
         assert_eq!(reader.read, 10);
         reader.cursor.get_mut()[0] = b'!';
-        assert!(read_selected_group::<String>(&mut reader, pack_len, group()).is_err());
+        assert!(
+            read_selected_group::<String>(&mut reader, pack_len, NATIVE_FORMAT, group()).is_err()
+        );
     }
 
     #[test]
@@ -740,7 +815,7 @@ mod tests {
         writer.add("b", &record("b")).unwrap();
         writer.flush().unwrap();
         let index = Index {
-            format: 2,
+            format: NATIVE_FORMAT,
             records: writer.records,
         };
         index.verify(root.path(), SOURCE_LAYOUT).unwrap();
@@ -836,8 +911,8 @@ mod tests {
         assert_eq!(load(&first).unwrap(), old);
         std::fs::remove_dir_all(&first).unwrap();
         assert_eq!(load(&second).unwrap(), new);
-        verify(&second, 5).unwrap();
-        assert!(verify(&second, 4).is_err());
+        verify(&second, 8).unwrap();
+        assert!(verify(&second, 7).is_err());
     }
 
     #[test]
@@ -951,14 +1026,14 @@ mod tests {
         let index =
             save_cached(root.path(), &files, root.path(), &Files::new(), None, None).unwrap();
         let descriptor = std::fs::read(root.path().join(crate::sidecar::SOURCE_FILE)).unwrap();
-        let prepared = prepare(&descriptor, 5).unwrap();
+        let prepared = prepare(&descriptor, 8).unwrap();
         std::fs::write(
             root.path().join(crate::sidecar::SOURCE_FILE),
             b"invalid replacement",
         )
         .unwrap();
         assert_eq!(load_prepared(root.path(), prepared).unwrap().0, files);
-        let prepared = prepare(&descriptor, 5).unwrap();
+        let prepared = prepare(&descriptor, 8).unwrap();
         std::fs::write(
             root.path()
                 .join(DIRECTORY)
@@ -1023,7 +1098,7 @@ mod tests {
         assert_eq!(load(singles.path()).unwrap(), files);
         let upgraded = tempfile::tempdir().unwrap();
         let index = save(upgraded.path(), &files, singles.path(), &files);
-        assert_eq!(index.format, 2);
+        assert_eq!(index.format, NATIVE_FORMAT);
         assert_eq!(load(upgraded.path()).unwrap(), files);
     }
 
@@ -1047,15 +1122,16 @@ mod tests {
         writer.flush().unwrap();
         assert!(writer.bytes.is_empty());
         let index = Index {
-            format: 2,
+            format: NATIVE_FORMAT,
             records: writer.records,
         };
         assert_eq!(groups(&index).len(), 2);
         assert_eq!(index.records["a"], index.records["duplicate"]);
         assert_eq!(index.records["a"], index.records["a-copy"]);
         for (hash, group) in groups(&index) {
-            let bytes = read_pack(&root.path().join(DIRECTORY), hash).unwrap();
-            assert_eq!(validate_ranges(&bytes, &group).unwrap(), bytes.len());
+            let pack = read_pack(&root.path().join(DIRECTORY), hash, NATIVE_FORMAT).unwrap();
+            let bytes = pack.bytes();
+            assert_eq!(validate_ranges(bytes, &group).unwrap(), bytes.len());
         }
         write_index(root.path(), &index);
         assert_eq!(load(root.path()).unwrap(), files);
@@ -1092,8 +1168,9 @@ mod tests {
             let groups = groups(&index);
             assert!(groups.len() <= 2);
             for (hash, group) in groups {
-                let bytes = read_pack(&next.join(DIRECTORY), hash).unwrap();
-                let live = validate_ranges(&bytes, &group).unwrap();
+                let pack = read_pack(&next.join(DIRECTORY), hash, NATIVE_FORMAT).unwrap();
+                let bytes = pack.bytes();
+                let live = validate_ranges(bytes, &group).unwrap();
                 assert!(live.saturating_mul(4) >= bytes.len().saturating_mul(3));
             }
             std::fs::remove_dir_all(&previous).unwrap();
