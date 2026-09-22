@@ -232,11 +232,35 @@ impl Catalog {
                         PackageRole::Unavailable => (None, true),
                     };
                 }
-                [] => directory = dir.parent(),
+                [] => {
+                    // A pnpm workspace root (`pnpm-workspace.yaml`) with no sibling
+                    // `package.json` is still a hard boundary: files beneath it do
+                    // not belong to any ancestor package. Only Node resolution stops
+                    // here; a Rust file keeps ascending to its Cargo owner.
+                    if preferred.is_none_or(|family| family == PackageEcosystem::Node)
+                        && let Some(incomplete) = self.pnpm_boundary(dir)
+                    {
+                        return (None, incomplete);
+                    }
+                    directory = dir.parent();
+                }
                 _ => return (None, true),
             }
         }
         (None, false)
+    }
+
+    /// A `pnpm-workspace.yaml` marks a workspace root even without a sibling
+    /// `package.json`. Returns `Some(incomplete)` when `dir` is such a boundary;
+    /// `incomplete` is `true` only when the marker's own metadata is unavailable.
+    fn pnpm_boundary(&self, dir: &Path) -> Option<bool> {
+        let candidate = dir
+            .join("pnpm-workspace.yaml")
+            .to_string_lossy()
+            .replace('\\', "/");
+        let (_, definition) = self.manifests.get(&candidate)?;
+        (definition.ecosystem == PackageEcosystem::Node)
+            .then_some(!matches!(definition.role, PackageRole::Workspace))
     }
 
     pub(crate) fn annotate(&self, file: &mut Node, source: Option<&mut SourceFileUnits>) {
@@ -460,6 +484,61 @@ mod result_tests {
         assert_eq!(
             legacy.package_identity(&ResultContext::default()),
             legacy.package.as_ref()
+        );
+    }
+}
+
+#[cfg(test)]
+mod pnpm_boundary_tests {
+    #![allow(clippy::unwrap_used)]
+    use super::*;
+
+    fn manifest(role: PackageRole, name: Option<&str>) -> (String, PackageManifest) {
+        (
+            "hash".into(),
+            PackageManifest {
+                node: None,
+                cargo_targets: None,
+                ecosystem: PackageEcosystem::Node,
+                role,
+                name: name.map(Into::into),
+                unavailable_reason: None,
+            },
+        )
+    }
+
+    #[test]
+    fn pnpm_workspace_yaml_bounds_the_nearest_package_walk() {
+        // An outer package, a nested pnpm workspace root with no sibling
+        // `package.json`, and a sub-package beneath it.
+        let catalog = Catalog {
+            manifests: BTreeMap::from([
+                ("package.json".into(), manifest(PackageRole::Package, Some("workspace-tools"))),
+                ("subproject/pnpm-workspace.yaml".into(), manifest(PackageRole::Workspace, None)),
+                (
+                    "subproject/packages/foo/package.json".into(),
+                    manifest(PackageRole::Package, Some("foo")),
+                ),
+            ]),
+        };
+        // A file under the pnpm root (not in a sub-package) must NOT be attributed
+        // to the outer package: the workspace boundary stops the walk.
+        assert_eq!(
+            catalog.context("subproject/tools/build.ts", Language::TypeScript),
+            (None, false)
+        );
+        // A file inside a sub-package still resolves to that package.
+        let (foo, incomplete) =
+            catalog.context("subproject/packages/foo/index.ts", Language::TypeScript);
+        assert!(!incomplete);
+        assert_eq!(foo.unwrap().name.as_deref(), Some("foo"));
+        // A file under the outer root still resolves to the outer package.
+        let (outer, _) = catalog.context("app.ts", Language::TypeScript);
+        assert_eq!(outer.unwrap().name.as_deref(), Some("workspace-tools"));
+        // A Rust file ignores the pnpm (Node) boundary entirely.
+        assert_eq!(
+            catalog.context("subproject/tools/build.rs", Language::Rust),
+            (None, false)
         );
     }
 }

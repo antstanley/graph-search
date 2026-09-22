@@ -94,7 +94,8 @@ pub const ANALYZER_VERSION: u32 = 2;
 pub const ANALYZER_UNICODE_VERSION: (u8, u8, u8) = std::char::UNICODE_VERSION;
 
 /// Native source region boundary/window policy, independent of its serialized fields.
-pub const CHUNKER_VERSION: u32 = 9;
+/// v10: `pub use` reexport members no longer partition source regions.
+pub const CHUNKER_VERSION: u32 = 10;
 /// Metadata/body scoring, automatic routing and context-selection policy revision.
 /// Query-time only: changing this does not invalidate persisted extraction facts.
 pub const RANKER_VERSION: u32 = 23;
@@ -127,7 +128,9 @@ pub const RESULT_SCHEMA_VERSION: u32 = 4;
 
 /// Bumps when extractor behaviour changes in a way that alters output for an
 /// unchanged file.
-pub const PARSER_VERSION: u32 = 20;
+/// v21: JS/TS `this.method()` calls resolve to the enclosing class member, and
+/// `pub use` reexport members are kept out of name-based resolution/fallback.
+pub const PARSER_VERSION: u32 = 21;
 
 /// Default independent ceiling on edges delivered by one graph/explore query.
 pub const RETURNED_EDGES_DEFAULT: usize = 1000;

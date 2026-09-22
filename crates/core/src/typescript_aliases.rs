@@ -156,10 +156,17 @@ impl Aliases {
         };
         if let Some((pattern, matched)) = selected {
             for substitution in &self.paths[pattern] {
-                let expanded = matched.filter(|text| !text.is_empty()).map_or_else(
-                    || substitution.clone(),
-                    |text| substitution.replacen('*', text, 1),
-                );
+                // Compiler dispatch (`tryLoadModuleUsingPaths`):
+                // `matchedStar ? replaceFirstStar(subst, matchedStar) : subst`.
+                // An empty wildcard capture is falsy there, so the substitution
+                // is tried literally — its `*` stays and cannot load a file. The
+                // key still counts as matched (no baseUrl fallback). Expanding
+                // `*` to "" instead would try `src/` and invent a directory-index
+                // resolution the compiler never makes.
+                let expanded = match matched.filter(|text| !text.is_empty()) {
+                    Some(text) => substitution.replacen('*', text, 1),
+                    None => substitution.clone(),
+                };
                 let candidate = join(&self.paths_base, &expanded)?;
                 if let Some(target) = load(&candidate, Some(substitution))? {
                     return Ok(Dispatch::Paths {
@@ -377,7 +384,20 @@ mod tests {
             &["a*", "é*終"],
         ))
         .unwrap();
-        assert_eq!(attempts(&aliases, "a").1, vec![("src/*".into(), true)]);
+        // An empty wildcard capture is falsy in the compiler
+        // (`matchedStar ? replaceFirstStar(subst, matchedStar) : subst`), so the
+        // substitution is tried literally: `src/*`, which loads nothing. It must
+        // NOT become `src/` — that would resolve `src/index.ts`, an edge tsc
+        // never produces. The key still matched, so baseUrl is not consulted.
+        let (dispatch, calls) = attempts(&aliases, "a");
+        assert_eq!(calls, vec![("src/*".into(), true)]);
+        assert_eq!(
+            dispatch,
+            Dispatch::Paths {
+                pattern: "a*".into(),
+                target: None
+            }
+        );
         assert_eq!(attempts(&aliases, "é中終").1, vec![("src/中".into(), true)]);
         assert_eq!(
             attempts(&aliases, ".bare").1,

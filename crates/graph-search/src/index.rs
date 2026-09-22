@@ -160,7 +160,10 @@ impl Index {
         }
         let store = graph_search_engine::GrafeoStore::open(
             &store_dir,
-            &graph_search_engine::StoreOptions::default(),
+            &graph_search_engine::StoreOptions {
+                read_only: options.read_only,
+                ..graph_search_engine::StoreOptions::default()
+            },
         )
         .map_err(Error::Core)?;
         Ok(Self {

@@ -90,6 +90,14 @@ impl<'a> JsExtractor<'a> {
     }
 
     fn reference(&mut self, kind: EdgeKind, name: String, node: Node<'_>) {
+        self.reference_raw(kind, name, None, node);
+    }
+
+    /// Like [`Self::reference`], but records an explicit raw (source-spelled)
+    /// name when the resolved `name` was rewritten from what the source wrote
+    /// (e.g. `this.method` → `Class.method`). Preserving the original spelling
+    /// keeps the lexical-binding pass seeing the real receiver.
+    fn reference_raw(&mut self, kind: EdgeKind, name: String, raw: Option<String>, node: Node<'_>) {
         let owner = if kind == EdgeKind::Calls {
             self.scope.iter().rev().find(|(_, key)| {
                 let local = key.rsplit('>').next().unwrap_or(key);
@@ -105,9 +113,56 @@ impl<'a> JsExtractor<'a> {
         };
         let mut fact = fact.at(Self::span(node));
         if kind == EdgeKind::Calls {
-            fact.raw_name = Some(fact.name.clone());
+            fact.raw_name = Some(raw.unwrap_or_else(|| fact.name.clone()));
         }
         self.extraction.references.push(fact);
+    }
+
+    /// If `callee` is `this.<member>` written directly inside a class method,
+    /// returns the enclosing class's qualified member name (`Class.member`), so
+    /// the resolver can match it against the method's qualified name — mirroring
+    /// the Rust `self.method()` rewrite. Arrow functions and blocks are
+    /// transparent (they keep the lexical `this`), but a regular `function`
+    /// expression between the call and the class rebinds `this`, so the walk
+    /// refuses to guess through one.
+    fn this_member_target(&self, callee: &str) -> Option<String> {
+        let member = callee.strip_prefix("this.")?;
+        if member.is_empty()
+            || !member
+                .chars()
+                .all(|c| c.is_alphanumeric() || c == '_' || c == '$')
+        {
+            return None;
+        }
+        for (index, (qualified, key)) in self.scope.iter().enumerate().rev() {
+            let local = key.rsplit('>').next().unwrap_or(key);
+            if local.starts_with("function:") {
+                return None;
+            }
+            if local.starts_with("method:") {
+                // Only a method written directly in a class body shares the
+                // class's `this`. An object-literal method (`{ run() {} }`), or
+                // one nested under a field initializer or another method,
+                // rebinds `this` to its own receiver, so the walk stops there.
+                let parent_is_class = index
+                    .checked_sub(1)
+                    .and_then(|parent| self.scope.get(parent))
+                    .is_some_and(|(_, parent_key)| {
+                        parent_key
+                            .rsplit('>')
+                            .next()
+                            .unwrap_or(parent_key)
+                            .starts_with("class:")
+                    });
+                if !parent_is_class {
+                    return None;
+                }
+            }
+            if local.starts_with("class:") {
+                return Some(format!("{qualified}.{member}"));
+            }
+        }
+        None
     }
 
     // ------------------------------------------------------------------
@@ -487,7 +542,11 @@ impl<'a> JsExtractor<'a> {
                     self.reference(EdgeKind::Imports, first, node);
                 }
             } else if !callee.is_empty() {
-                self.reference(EdgeKind::Calls, callee, node);
+                if let Some(target) = self.this_member_target(&callee) {
+                    self.reference_raw(EdgeKind::Calls, target, Some(callee), node);
+                } else {
+                    self.reference(EdgeKind::Calls, callee, node);
+                }
             }
         }
         if let Some(function) = node.child_by_field_name("function") {

@@ -10,6 +10,19 @@ impl LexicalIndex {
     /// Only new/changed documents are analyzed; unchanged posting lists are shared.
     pub(crate) fn updated(&self, nodes: &[Node], reuse: &[Option<usize>]) -> Self {
         debug_assert_eq!(nodes.len(), reuse.len());
+        // `reuse` must be an injective partial map: each old ordinal claimed by at
+        // most one new document. A duplicate claim would leave the losing document
+        // with a recorded length but no postings — a silent per-document search
+        // gap. The sole caller (`metadata::updated`) enforces this with a claimed
+        // set; assert it so a future caller cannot violate it unnoticed.
+        #[cfg(debug_assertions)]
+        {
+            let mut seen = std::collections::BTreeSet::new();
+            debug_assert!(
+                reuse.iter().flatten().all(|&old| seen.insert(old)),
+                "reuse must claim each old ordinal at most once"
+            );
+        }
         let mut old_to_new = vec![None; self.lengths.len()];
         let mut changed = Vec::new();
         let mut changed_ordinals = Vec::new();

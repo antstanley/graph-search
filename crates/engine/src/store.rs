@@ -32,6 +32,11 @@ pub struct StoreOptions {
     /// Open an in-memory database instead of a file-backed one (tests and
     /// throwaway reads).
     pub in_memory: bool,
+    /// The caller only intends to read. Before any generation is published
+    /// there is nothing to attach to, so a read-only open must not create or
+    /// take a writable on-disk database; it exposes an empty in-memory store
+    /// instead (`SPEC.md` §6.6).
+    pub read_only: bool,
 }
 
 /// The id maps plus dangling edges, shared between the store and its
@@ -87,6 +92,11 @@ impl GrafeoStore {
             generation::current(store_dir).map_err(|error| Error::Store(error.to_string()))?
         };
         let published = selected.is_some();
+        // A read-only caller on a not-yet-published store has nothing on disk to
+        // attach to: expose an empty in-memory store rather than creating or
+        // locking a writable database (`SPEC.md` §6.6). Real in-memory opens are
+        // unaffected.
+        let in_memory = options.in_memory || (options.read_only && !published);
         let (data_dir, prepared_source, manifest_header, extraction_records, dependencies, lease) =
             match selected {
                 Some(selected) => (
@@ -100,7 +110,7 @@ impl GrafeoStore {
                 None => (
                     store_dir.to_path_buf(),
                     None,
-                    if options.in_memory {
+                    if in_memory {
                         None
                     } else {
                         sidecar::load_manifest(store_dir)
@@ -113,7 +123,7 @@ impl GrafeoStore {
                     None,
                 ),
             };
-        let db = if options.in_memory {
+        let db = if in_memory {
             GrafeoDB::new_in_memory()
         } else if published {
             // Published generations are immutable, including across readers.
@@ -154,13 +164,13 @@ impl GrafeoStore {
             crash: false,
         };
         store.rebuild_maps()?;
-        let dangling = if options.in_memory {
+        let dangling = if in_memory {
             Vec::new()
         } else {
             sidecar::load_dangling(&data_dir).map_err(|error| Error::Store(error.to_string()))?
         };
         store.maps.write().map_err(|_| poisoned())?.dangling = dangling;
-        if !options.in_memory {
+        if !in_memory {
             (store.sources, store.source_records) = match prepared_source {
                 Some(source) => crate::source_records::load_prepared(&data_dir, source),
                 None if published => Ok((BTreeMap::new(), None)),
@@ -378,7 +388,13 @@ impl GrafeoStore {
     ) -> Result<ApplyOutcome> {
         self.ensure_available()?;
         // No fallible work mutates the currently visible store.
-        let mut prepared = Self::open(Path::new(""), &StoreOptions { in_memory: true })?;
+        let mut prepared = Self::open(
+            Path::new(""),
+            &StoreOptions {
+                in_memory: true,
+                ..StoreOptions::default()
+            },
+        )?;
         prepared.apply_prepared(&self.complete_projection()?)?;
         #[cfg(test)]
         {

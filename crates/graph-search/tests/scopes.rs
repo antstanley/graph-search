@@ -815,3 +815,120 @@ fn rust_use_leaf_facts_survive_packs_reopen_and_alias_edits() {
         );
     }
 }
+
+#[test]
+fn js_this_method_calls_resolve_to_the_enclosing_class_member() {
+    let root = tempfile::tempdir().unwrap();
+    std::fs::write(
+        root.path().join("widget.ts"),
+        "class Widget {\n  render() { return this.helper(); }\n  arrow() { return [1].map(() => this.helper()); }\n  rebound() { const cb = function() { return this.helper(); }; return cb(); }\n  helper() { return 1; }\n}\n",
+    )
+    .unwrap();
+    let index = Index::open(OpenOptions {
+        root: root.path().into(),
+        ..OpenOptions::default()
+    })
+    .unwrap();
+    index.reindex().unwrap();
+    let resolves_helper = |owner: &str| {
+        index
+            .search()
+            .callees(&TraversalQuery::new(owner, 1))
+            .unwrap()
+            .edges
+            .iter()
+            .any(|e| e.kind == EdgeKind::Calls && e.resolved && e.to_name == "Widget.helper")
+    };
+    // A direct `this.helper()` in a method resolves to the class member.
+    assert!(resolves_helper("render"));
+    // An arrow function keeps the lexical `this`, so it resolves too.
+    assert!(resolves_helper("arrow"));
+    // A regular `function` expression rebinds `this`; its `this.helper()` must
+    // not be attributed to `Widget` (it is owned by the inner function, and
+    // dangles there rather than inventing a `Widget.helper` edge).
+    let rebound = index
+        .search()
+        .callees(&TraversalQuery::new("rebound", 1))
+        .unwrap();
+    assert!(
+        rebound.edges.iter().all(|e| e.to_name != "Widget.helper"),
+        "{rebound:?}"
+    );
+}
+
+#[test]
+fn rust_self_calls_resolve_across_impl_blocks_with_differing_generics() {
+    let root = tempfile::tempdir().unwrap();
+    std::fs::write(
+        root.path().join("lib.rs"),
+        "struct Foo<T>(T);\nimpl<T> Foo<T> { fn a(&self) { self.b(); } }\nimpl<A> Foo<A> { fn b(&self) {} }\n",
+    )
+    .unwrap();
+    let index = Index::open(OpenOptions {
+        root: root.path().into(),
+        ..OpenOptions::default()
+    })
+    .unwrap();
+    index.reindex().unwrap();
+    let result = index
+        .search()
+        .callees(&TraversalQuery::new("a", 1))
+        .unwrap();
+    let calls: Vec<_> = result
+        .edges
+        .iter()
+        .filter(|e| e.kind == EdgeKind::Calls)
+        .collect();
+    assert_eq!(calls.len(), 1, "{result:?}");
+    assert!(calls[0].resolved, "{calls:?}");
+    // Generic arguments are normalized out of the method path, so the call
+    // resolves even though the two impl blocks spell the generic differently.
+    assert_eq!(calls[0].to_name, "Foo::b");
+}
+
+#[test]
+fn js_this_rewrite_stops_at_object_literal_methods_and_nested_functions() {
+    // Every `this.helper()` below spells the same raw name; only the ones whose
+    // `this` is lexically the class instance may be rewritten to `Widget.helper`.
+    let code = "class Widget {\n\
+         render() { return this.helper(); }\n\
+         arrow() { return [1].map(() => this.helper()); }\n\
+         field = () => this.helper();\n\
+         rebound() { const cb = function() { return this.helper(); }; return cb(); }\n\
+         literal() { const o = { run() { return this.helper(); } }; return o.run(); }\n\
+         init = { run() { return this.helper(); } };\n\
+         helper() { return 1; }\n\
+         }\n\
+         const loose = { run() { return this.helper(); } };\n";
+    for extractor in [
+        &JavaScriptExtractor as &dyn LanguageExtractor,
+        &TypeScriptExtractor,
+    ] {
+        let extraction = extractor
+            .extract(&SourceFile {
+                path: std::path::Path::new("widget.js"),
+                text: code,
+            })
+            .unwrap();
+        let mut names: Vec<_> = extraction
+            .references
+            .iter()
+            .filter(|r| r.kind == EdgeKind::Calls && r.raw_name.as_deref() == Some("this.helper"))
+            .map(|r| r.name.as_str())
+            .collect();
+        names.sort_unstable();
+        assert_eq!(
+            names,
+            [
+                "Widget.helper", // render
+                "Widget.helper", // arrow (lexical this)
+                "Widget.helper", // class field arrow (lexical this)
+                "this.helper",   // function expression rebinds this
+                "this.helper",   // object-literal method inside a method
+                "this.helper",   // object-literal method inside a field initializer
+                "this.helper",   // module-level object literal
+            ],
+            "{extraction:#?}"
+        );
+    }
+}

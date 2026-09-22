@@ -290,10 +290,13 @@ impl Extractor<'_> {
         );
         let (key, _) = self.qualify(&qualified, NodeKind::Impl);
         // Methods under the impl take the TYPE's path (`Type::method`), which
-        // is how callers spell them (`SPEC.md` §10.3).
+        // is how callers spell them (`SPEC.md` §10.3) — never `Type<T>::method`.
+        // Dropping the impl's generic arguments also lets `self.method()` resolve
+        // across impl blocks that spell those generics differently
+        // (`impl<T> Foo<T>` vs `impl<A> Foo<A>`).
         self.scope.push(Scope {
             key: key.clone(),
-            qualified: type_text,
+            qualified: impl_type_path(&type_text),
         });
         if let Some(body) = node.child_by_field_name("body") {
             self.walk_children(body);
@@ -533,6 +536,17 @@ fn visibility_modifier(node: Node<'_>) -> Option<Node<'_>> {
     let mut cursor = node.walk();
     node.named_children(&mut cursor)
         .find(|child| child.kind() == "visibility_modifier")
+}
+
+/// An impl type's path without its generic arguments: `Foo<T>` → `Foo`,
+/// `path::Foo<T>` → `path::Foo`, `Foo` → `Foo`. The base path is everything
+/// before the first `<`.
+fn impl_type_path(type_text: &str) -> String {
+    type_text
+        .split_once('<')
+        .map_or(type_text, |(base, _)| base)
+        .trim()
+        .to_owned()
 }
 
 fn module_path(node: Node<'_>, source: &str) -> (Option<String>, bool) {

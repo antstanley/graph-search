@@ -170,7 +170,14 @@ fn transient_native_engine_keeps_facts_available_for_selective_sync() {
     let registry = ListRegistry::new(graph_search_langs::all_extractors());
     let policy = WalkPolicy::default();
     let projector = Projector::new(&registry, &policy);
-    let mut store = GrafeoStore::open(Path::new(""), &StoreOptions { in_memory: true }).unwrap();
+    let mut store = GrafeoStore::open(
+        Path::new(""),
+        &StoreOptions {
+            in_memory: true,
+            ..StoreOptions::default()
+        },
+    )
+    .unwrap();
     projector.reindex(root.path(), &mut store).unwrap();
     std::fs::write(root.path().join("a.js"), "function a() { return 2; }").unwrap();
     projector.sync(root.path(), &mut store).unwrap();
