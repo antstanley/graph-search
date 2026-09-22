@@ -125,9 +125,26 @@ impl DependencyIndex {
                 }
                 for fact in &facts.references {
                     record.rust_sensitive |= fact.rust_use.is_some()
+                        || fact.receiver.is_some()
                         || ["crate::", "self::", "super::"]
                             .iter()
                             .any(|prefix| fact.name.starts_with(prefix));
+                    // A receiver call depends on its member and on the fields
+                    // its receiver is reached through, wherever they are declared.
+                    if let Some(receiver) = &fact.receiver {
+                        let raw = fact.raw_name.as_deref().unwrap_or(&fact.name);
+                        if let Some((_, member)) = raw.rsplit_once('.') {
+                            record.references.insert(
+                                member
+                                    .split("::")
+                                    .next()
+                                    .unwrap_or(member)
+                                    .trim()
+                                    .to_owned(),
+                            );
+                        }
+                        record.references.extend(receiver_names(receiver));
+                    }
                     if fact.dynamic {
                         continue;
                     }
@@ -373,6 +390,31 @@ impl DependencyIndex {
             }
         }
         Ok(changed)
+    }
+}
+
+/// The names a receiver description reaches through: its fields and the type
+/// `self` stands for.
+fn receiver_names(receiver: &graph_search_types::extraction::ReceiverType) -> Vec<String> {
+    use graph_search_types::extraction::ReceiverType;
+    match receiver {
+        ReceiverType::SelfType(owner) => {
+            vec![owner.rsplit("::").next().unwrap_or(owner).to_owned()]
+        }
+        ReceiverType::Field(inner, name) => {
+            let mut names = receiver_names(inner);
+            names.push(name.clone());
+            names
+        }
+        ReceiverType::Try(inner) => receiver_names(inner),
+        ReceiverType::Declared(value) => vec![
+            value
+                .rsplit([':', '>', '.'])
+                .next()
+                .unwrap_or(value)
+                .to_owned(),
+        ],
+        ReceiverType::Annotation(_) | ReceiverType::Return(_) => Vec::new(),
     }
 }
 

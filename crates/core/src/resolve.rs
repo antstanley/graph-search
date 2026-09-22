@@ -84,7 +84,7 @@ pub struct SymbolTable {
     /// Cargo manifest nodes retained separately from symbol-name lookup.
     files: BTreeMap<String, Node>,
     pub(crate) rust_roots: crate::rust_modules::Catalog,
-    rust_paths: crate::rust_paths::Paths,
+    pub(crate) rust_paths: crate::rust_paths::Paths,
     js_modules: crate::js_modules::Modules,
     node_packages: crate::node_packages::Packages,
     /// Bare name to symbol ids, workspace-wide.
@@ -595,13 +595,27 @@ fn canonical_dangling_name(name: &str) -> String {
 /// Resolves one reference against the table, by the §7.4 order:
 /// via-import, same-file, qualified, global-unique, else dangling.
 #[must_use]
-#[allow(clippy::too_many_lines)]
 pub fn resolve_reference(
     fact: &ReferenceFact,
     from_path: &str,
     table: &SymbolTable,
     known_files: &BTreeSet<String>,
     language: Language,
+) -> Resolution {
+    resolve_in(fact, from_path, table, known_files, language, None)
+}
+
+/// [`resolve_reference`] with the file's other references, so a Rust method
+/// call can bind through its receiver's inferred type.
+#[must_use]
+#[allow(clippy::too_many_lines)]
+pub(crate) fn resolve_in(
+    fact: &ReferenceFact,
+    from_path: &str,
+    table: &SymbolTable,
+    known_files: &BTreeSet<String>,
+    language: Language,
+    receivers: Option<&crate::rust_receivers::Receivers<'_>>,
 ) -> Resolution {
     use graph_search_types::occurrence::ResolutionClass;
     let dangling = |to_name: String, reason: &str| Resolution {
@@ -611,6 +625,23 @@ pub fn resolve_reference(
         to: None,
         to_name: canonical_dangling_name(&to_name),
     };
+
+    // `x.method()` whose receiver's static type is stated: `Type::method`.
+    if language == Language::Rust
+        && let (Some(receiver), Some(receivers)) = (&fact.receiver, receivers)
+        && let Some(method) = receivers.method(fact, receiver)
+    {
+        return Resolution {
+            class: ResolutionClass::Receiver,
+            reason: None,
+            fact: fact.clone(),
+            to: Some(method.id.clone()),
+            to_name: method
+                .qualified_name
+                .clone()
+                .unwrap_or_else(|| fact.name.clone()),
+        };
+    }
 
     if fact.dynamic {
         return dangling(
@@ -983,6 +1014,9 @@ pub fn project_references(
         complete: true,
         records: Vec::new(),
     };
+    let receivers = (language == Language::Rust).then(|| {
+        crate::rust_receivers::Receivers::new(&extraction.references, file_path, table, known_files)
+    });
     for (ordinal, fact) in extraction.references.iter().enumerate() {
         let from = fact
             .from_key
@@ -991,7 +1025,14 @@ pub fn project_references(
             .cloned()
             .unwrap_or_else(|| file_id.clone());
         let from = occurrence_owner(&from, fact, file_id, table);
-        let resolution = resolve_reference(fact, file_path, table, known_files, language);
+        let resolution = resolve_in(
+            fact,
+            file_path,
+            table,
+            known_files,
+            language,
+            receivers.as_ref(),
+        );
         let mut record = ReferenceOccurrence {
             id: String::new(),
             owner: from.clone(),

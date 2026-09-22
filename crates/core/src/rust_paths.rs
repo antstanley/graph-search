@@ -18,8 +18,12 @@ pub(crate) struct Paths {
     inline: BTreeMap<String, Vec<(Span, NodeId)>>,
     /// Workspace library crate roots by crate name (see [`Catalog::libraries`]).
     crates: BTreeMap<String, Result<NodeId, &'static str>>,
-    /// Associated items and variants by qualified name (`Type::member`).
+    /// Associated items, variants and fields by qualified name (`Type::member`).
     associated: BTreeMap<String, Vec<NodeId>>,
+    /// Types by qualified name, for `Self` and receiver typing.
+    types: BTreeMap<String, Vec<NodeId>>,
+    /// Symbols by file and lexical declaration key.
+    lexical: BTreeMap<(String, String), NodeId>,
     incomplete: bool,
 }
 
@@ -35,18 +39,7 @@ impl Paths {
                 .extension()
                 .is_some_and(|ext| ext == "rs")
         }) {
-            if matches!(
-                node.kind,
-                NodeKind::Method | NodeKind::Function | NodeKind::Const | NodeKind::Variant
-            ) && let Some(qualified) = &node.qualified_name
-                && qualified.contains("::")
-            {
-                result
-                    .associated
-                    .entry(qualified.clone())
-                    .or_default()
-                    .push(node.id.clone());
-            }
+            result.index_members(node);
             if node.attribute("rust_module_form") == Some("inline")
                 && let Some(span) = node.span
             {
@@ -109,6 +102,37 @@ impl Paths {
         }
         result.propagate(&children, 65_536);
         result
+    }
+
+    /// Indexes a symbol for `Type::member` paths and receiver typing.
+    fn index_members(&mut self, node: &Node) {
+        if matches!(
+            node.kind,
+            NodeKind::Method
+                | NodeKind::Function
+                | NodeKind::Const
+                | NodeKind::Variant
+                | NodeKind::Field
+        ) && let Some(qualified) = &node.qualified_name
+            && qualified.contains("::")
+        {
+            self.associated
+                .entry(qualified.clone())
+                .or_default()
+                .push(node.id.clone());
+        }
+        if is_type(node.kind)
+            && let Some(qualified) = &node.qualified_name
+        {
+            self.types
+                .entry(qualified.clone())
+                .or_default()
+                .push(node.id.clone());
+        }
+        if let Some(key) = node.attribute("lexical_key") {
+            self.lexical
+                .insert((node.path.clone(), key.to_owned()), node.id.clone());
+        }
     }
 
     fn propagate(&mut self, children: &BTreeMap<NodeId, Vec<NodeId>>, limit: usize) {
@@ -247,7 +271,9 @@ impl Paths {
                                     NodeKind::Module | NodeKind::Enum | NodeKind::Trait
                                 )
                         } else {
+                            // A reexport is followed to its target below.
                             crate::resolve::compatible(fact.kind, node.kind)
+                                || node.attribute("rust_reexport").is_some()
                         }
                     })
                     .collect();
@@ -299,12 +325,6 @@ impl Paths {
         symbols: &BTreeMap<NodeId, Node>,
         depth: usize,
     ) -> Option<Result<NodeId, &'static str>> {
-        let is_type = |kind| {
-            matches!(
-                kind,
-                NodeKind::Struct | NodeKind::Enum | NodeKind::Trait | NodeKind::TypeAlias
-            )
-        };
         let mut targets = BTreeSet::new();
         for scope in scopes {
             let candidates: Vec<&Node> = self
@@ -377,6 +397,7 @@ impl Paths {
             .filter_map(|id| symbols.get(id))
             .filter(|node| {
                 crate_of(&node.path).is_some_and(|roots| !roots.is_disjoint(type_roots))
+                    && node.kind != NodeKind::Field
                     && (fact.rust_use.is_some()
                         || node.kind == NodeKind::Variant
                         || crate::resolve::compatible(fact.kind, node.kind))
@@ -398,6 +419,92 @@ impl Paths {
             [] => Err("rust_associated_member_missing"),
             _ => Err("rust_associated_member_ambiguous"),
         }
+    }
+
+    /// The field (`field`) or callable member `member` of `ty`, reached from
+    /// `from_path`: an `impl` or field in `ty`'s crate, preferring `ty`'s own
+    /// file among same-named types; another crate sees only `pub` members.
+    pub(crate) fn member<'s>(
+        &self,
+        ty: &Node,
+        member: &str,
+        field: bool,
+        from_path: &str,
+        symbols: &'s BTreeMap<NodeId, Node>,
+    ) -> Result<&'s Node, &'static str> {
+        let qualified = format!(
+            "{}::{}",
+            ty.qualified_name
+                .as_deref()
+                .or(ty.name.as_deref())
+                .unwrap_or_default(),
+            identifier(member)
+        );
+        let crate_of = |path: &str| self.reachable.get(&NodeId::file(path));
+        let type_roots = crate_of(&ty.path).ok_or("rust_crate_context_unknown")?;
+        let foreign = crate_of(from_path).is_none_or(|roots| roots.is_disjoint(type_roots));
+        let candidates: Vec<&Node> = self
+            .associated
+            .get(&qualified)
+            .into_iter()
+            .flatten()
+            .filter_map(|id| symbols.get(id))
+            .filter(|node| {
+                crate_of(&node.path).is_some_and(|roots| !roots.is_disjoint(type_roots))
+                    && (node.kind == NodeKind::Field) == field
+                    && (field || matches!(node.kind, NodeKind::Method | NodeKind::Function))
+                    && (!foreign || node.visibility == Some(Visibility::Public))
+            })
+            .collect();
+        let candidates = if candidates.len() > 1 {
+            candidates
+                .into_iter()
+                .filter(|node| node.path == ty.path)
+                .collect()
+        } else {
+            candidates
+        };
+        match candidates.as_slice() {
+            [node] => Ok(node),
+            [] => Err("rust_receiver_member_missing"),
+            _ => Err("rust_receiver_member_ambiguous"),
+        }
+    }
+
+    /// The type qualified `qualified` in `near`'s crate, preferring `near`'s
+    /// own file.
+    pub(crate) fn type_named<'s>(
+        &self,
+        qualified: &str,
+        near: &str,
+        symbols: &'s BTreeMap<NodeId, Node>,
+    ) -> Option<&'s Node> {
+        let roots = self.reachable.get(&NodeId::file(near))?;
+        let candidates: Vec<&Node> = self
+            .types
+            .get(qualified)?
+            .iter()
+            .filter_map(|id| symbols.get(id))
+            .filter(|node| {
+                self.reachable
+                    .get(&NodeId::file(&node.path))
+                    .is_some_and(|other| !other.is_disjoint(roots))
+            })
+            .collect();
+        match candidates.as_slice() {
+            [node] => Some(node),
+            _ => candidates.into_iter().find(|node| node.path == near),
+        }
+    }
+
+    /// The symbol a same-file lexical declaration key names.
+    pub(crate) fn lexical<'s>(
+        &self,
+        path: &str,
+        key: &str,
+        symbols: &'s BTreeMap<NodeId, Node>,
+    ) -> Option<&'s Node> {
+        symbols.get(self.lexical.get(&(path.to_owned(), key.to_owned()))?)
     }
 
     /// Whether `name` is a module declared directly in `scope`, which an
@@ -515,6 +622,14 @@ impl Paths {
             scope = parent;
         }
     }
+}
+
+/// A nominal type a method can be called on.
+pub(crate) fn is_type(kind: NodeKind) -> bool {
+    matches!(
+        kind,
+        NodeKind::Struct | NodeKind::Enum | NodeKind::Trait | NodeKind::TypeAlias
+    )
 }
 
 fn identifier(name: &str) -> &str {

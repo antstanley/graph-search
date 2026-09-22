@@ -3319,3 +3319,39 @@ a virtual workspace manifest now records. A `cfg_attr` whose payload cannot
 apply `path`, and `macro_use`, `rustfmt`, `no_std`, `no_implicit_prelude`,
 `recursion_limit` and `feature` attributes, no longer make module paths
 unavailable.
+
+### Rust receiver types (parser policy 26)
+
+A method call `x.method()` binds to `Type::method` when the receiver's static
+type is stated in syntax; the occurrence's resolution class is `receiver`. The
+extractor records each field's declared type (`rust_type`) and each callable's
+declared return type (`rust_returns`), and the `Option`/`Result` success type of
+either (`…_fallible`). A declared type is named through the declaring file's own
+bindings: a declaration in the same module (`key:`), a `use` import expanded to
+its path or an anchored path (`path:`), or `self` for `Self`. References, `Box`,
+`Rc`, `Arc`, `Ref`, `RefMut`, `MutexGuard`, `RwLock` guards, `Cow`, `Pin` and
+`dyn`/`impl` trait objects are peeled, since a method call dereferences through
+them.
+
+A call records how its receiver's type is stated: `self` (the enclosing impl or
+trait), a typed parameter or `let` annotation, a struct literal, a field of
+another receiver, the declared return of whatever another call in the file
+resolves to (including `Type::new()` returning `Self`, and tuple-struct or
+variant constructors), `clone()`/`to_owned()` of another receiver, or the
+success type of `?`, `unwrap()` or `expect(..)`. Locals are block-scoped; every
+identifier bound by a closure parameter, `match` arm, `for` pattern, `if let`/
+`while let` or destructuring `let` shadows an outer local as untyped, so a
+stale type is never reused. Anything else leaves the receiver untyped.
+
+Resolution evaluates the description against the workspace: the member must be
+a method or function qualified `Type::member` in the type's crate, the type's own
+file breaking ties between same-named types, and another crate sees only `pub`
+members. Evaluation is memoized per file and bounded at 32 nested steps. Any
+step that cannot be proven falls back to the ordinary rules, which keep the call
+unresolved; trait dispatch through generics is not modeled. A receiver call's
+dependency record includes its member and the fields and types it reaches
+through, so an edit to a declared field or return type elsewhere rebinds it.
+
+Rust `type_uses` now descend into generic arguments (`Vec<Foo>` uses `Foo`);
+the adapter had read a field name the grammar does not define. A `pub use` target
+that is itself a reexport is followed at the terminal segment of any path.

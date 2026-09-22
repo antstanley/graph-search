@@ -6,10 +6,13 @@
 //! remaining path references. Every construct consumes its own subtree, so
 //! nothing is visited twice.
 
+use crate::rust_receivers::{self, Local};
 use graph_search_core::extraction::{Extraction, ReferenceFact, SymbolFact};
 use graph_search_core::ports::{LanguageExtractor, ParseError, SourceFile};
+use graph_search_types::extraction::ReceiverType;
 use graph_search_types::kind::{EdgeKind, NodeKind, Visibility};
 use graph_search_types::node::Span;
+use std::collections::HashMap;
 use std::path::Path;
 use tree_sitter::Node;
 
@@ -38,6 +41,10 @@ impl LanguageExtractor for RustExtractor {
             source: file.text,
             extraction: Extraction::default(),
             scope: Vec::new(),
+            type_facts: HashMap::new(),
+            call_facts: HashMap::new(),
+            locals: Vec::new(),
+            declared_types: Vec::new(),
         };
         extractor.walk_node(tree.root_node());
         let (root_path, root_unsupported) = module_path(tree.root_node(), file.text);
@@ -52,6 +59,7 @@ impl LanguageExtractor for RustExtractor {
             }
         }
         crate::scopes::enrich(tree.root_node(), file.text, &mut extractor.extraction);
+        extractor.attach_declared_types();
         crate::doc_comments::enrich(tree.root_node(), file.text, true, &mut extractor.extraction);
         Ok(extractor.extraction)
     }
@@ -71,6 +79,24 @@ struct Extractor<'a> {
     source: &'a str,
     extraction: Extraction,
     scope: Vec<Scope>,
+    /// `type_uses` ordinals by outermost type node id: `(name, ordinal)`.
+    type_facts: HashMap<usize, Vec<(String, usize)>>,
+    /// Call ordinals by call node id.
+    call_facts: HashMap<usize, usize>,
+    /// Local bindings of the function body being walked.
+    locals: Vec<Local>,
+    /// Declared field and return types to record once imports are expanded:
+    /// `(symbol ordinal, attribute, type)`.
+    declared_types: Vec<(usize, &'static str, DeclaredType)>,
+}
+
+/// A declared type recorded on a symbol for receiver typing.
+#[derive(Clone, Copy)]
+enum DeclaredType {
+    /// `Self`: the enclosing impl's type.
+    SelfType,
+    /// The type a `type_uses` reference (by ordinal) names.
+    Fact(usize),
 }
 
 impl Extractor<'_> {
@@ -140,6 +166,198 @@ impl Extractor<'_> {
     }
 
     // ------------------------------------------------------------------
+    // Receiver typing (`rust_receivers`)
+    // ------------------------------------------------------------------
+
+    /// The `type_uses` ordinal naming the core of `ty` (peeled), where `outer`
+    /// is the type node the references were recorded for.
+    fn type_fact(&self, outer: Node<'_>, ty: Node<'_>) -> Option<usize> {
+        self.receiver_context().type_fact(outer, ty)
+    }
+
+    /// The declared type of `ty` (as written under `outer`), and of its
+    /// `Option`/`Result` success type.
+    fn declared(&self, outer: Node<'_>, ty: Node<'_>) -> [Option<DeclaredType>; 2] {
+        let declared = |core: Node<'_>| {
+            if self.text(core) == "Self" {
+                Some(DeclaredType::SelfType)
+            } else {
+                self.type_fact(outer, core).map(DeclaredType::Fact)
+            }
+        };
+        [
+            declared(rust_receivers::peel(ty, self.source)),
+            rust_receivers::fallible(ty, self.source).and_then(declared),
+        ]
+    }
+
+    /// Records the declared type of the symbol at `symbol`.
+    fn declare(
+        &mut self,
+        symbol: usize,
+        attribute: [&'static str; 2],
+        outer: Node<'_>,
+        ty: Node<'_>,
+    ) {
+        for (attribute, declared) in attribute.into_iter().zip(self.declared(outer, ty)) {
+            if let Some(declared) = declared {
+                self.declared_types.push((symbol, attribute, declared));
+            }
+        }
+    }
+
+    /// Records declared types as attributes once scope analysis has expanded
+    /// each type reference through the file's imports: `key:` a same-file
+    /// declaration, `path:` a path resolvable from this file, `self` the impl
+    /// type.
+    fn attach_declared_types(&mut self) {
+        for (symbol, attribute, declared) in std::mem::take(&mut self.declared_types) {
+            let value = match declared {
+                DeclaredType::SelfType => Some("self".to_owned()),
+                DeclaredType::Fact(ordinal) => self
+                    .extraction
+                    .references
+                    .get(ordinal)
+                    .and_then(|fact| type_binding(&self.extraction, fact)),
+            };
+            if let (Some(value), Some(symbol)) = (value, self.extraction.symbols.get_mut(symbol)) {
+                symbol.attributes.insert(attribute.into(), value);
+            }
+        }
+        // A receiver's annotation names its type through the same bindings.
+        let declared: Vec<Option<String>> = self
+            .extraction
+            .references
+            .iter()
+            .map(|fact| type_binding(&self.extraction, fact))
+            .collect();
+        for fact in &mut self.extraction.references {
+            if let Some(receiver) = &mut fact.receiver {
+                rebind_annotations(receiver, &declared);
+            }
+        }
+    }
+
+    /// The type methods on `self` are qualified by: the enclosing `impl` (or
+    /// trait) path.
+    fn self_type(&self) -> Option<&str> {
+        self.scope
+            .iter()
+            .rev()
+            .find(|scope| {
+                let last = scope.key.rsplit('>').next().unwrap_or(&scope.key);
+                last.starts_with("impl:") || last.starts_with("trait:")
+            })
+            .map(|scope| scope.qualified.as_str())
+    }
+
+    fn receiver(&self, node: Node<'_>) -> Option<ReceiverType> {
+        self.receiver_context().receiver(node)
+    }
+
+    fn receiver_context(&self) -> rust_receivers::Context<'_> {
+        rust_receivers::Context {
+            source: self.source,
+            locals: &self.locals,
+            self_type: self.self_type(),
+            type_facts: &self.type_facts,
+            call_facts: &self.call_facts,
+        }
+    }
+
+    /// Untyped bindings: each identifier a pattern binds shadows any outer
+    /// local of that name from `from` to `until`.
+    fn shadow(&mut self, pattern: Node<'_>, from: usize, until: usize) {
+        for identifier in rust_receivers::pattern_identifiers(pattern) {
+            let name = self.text(identifier).to_owned();
+            self.locals.push(Local {
+                name,
+                from,
+                until,
+                plain: None,
+                fallible: None,
+            });
+        }
+    }
+
+    /// `let x: T = …` / `let x = expr;`: `x` is visible from the end of the
+    /// statement to the end of its block.
+    fn let_declaration(&mut self, node: Node<'_>) {
+        self.walk_children(node);
+        let Some(pattern) = node.child_by_field_name("pattern") else {
+            return;
+        };
+        let from = node.end_byte();
+        let until = node.parent().map_or(from, |parent| parent.end_byte());
+        if pattern.kind() != "identifier" {
+            self.shadow(pattern, from, until);
+            return;
+        }
+        let (plain, fallible) = if let Some(ty) = node.child_by_field_name("type") {
+            let [plain, fallible] = self.declared(ty, ty);
+            let typed = |declared: Option<DeclaredType>| match declared? {
+                DeclaredType::SelfType => {
+                    self.self_type().map(|ty| ReceiverType::SelfType(ty.into()))
+                }
+                DeclaredType::Fact(ordinal) => Some(ReceiverType::Annotation(ordinal)),
+            };
+            (typed(plain), typed(fallible))
+        } else if let Some(value) = node.child_by_field_name("value") {
+            let context = self.receiver_context();
+            (context.receiver(value), context.fallible(value))
+        } else {
+            (None, None)
+        };
+        self.locals.push(Local {
+            name: self.text(pattern).to_owned(),
+            from,
+            until,
+            plain,
+            fallible,
+        });
+    }
+
+    /// Typed parameters are locals of the function body.
+    fn parameters(&mut self, node: Node<'_>, body: Node<'_>) {
+        let Some(parameters) = node.child_by_field_name("parameters") else {
+            return;
+        };
+        let (from, until) = (body.start_byte(), body.end_byte());
+        let mut cursor = parameters.walk();
+        let parameters: Vec<Node<'_>> = parameters
+            .named_children(&mut cursor)
+            .filter(|parameter| parameter.kind() == "parameter")
+            .collect();
+        for parameter in parameters {
+            let (Some(pattern), Some(ty)) = (
+                parameter.child_by_field_name("pattern"),
+                parameter.child_by_field_name("type"),
+            ) else {
+                continue;
+            };
+            if pattern.kind() != "identifier" {
+                self.shadow(pattern, from, until);
+                continue;
+            }
+            let [plain, fallible] = self.declared(ty, ty);
+            let typed = |declared: Option<DeclaredType>| match declared? {
+                DeclaredType::SelfType => {
+                    self.self_type().map(|ty| ReceiverType::SelfType(ty.into()))
+                }
+                DeclaredType::Fact(ordinal) => Some(ReceiverType::Annotation(ordinal)),
+            };
+            let local = Local {
+                name: self.text(pattern).to_owned(),
+                from,
+                until,
+                plain: typed(plain),
+                fallible: typed(fallible),
+            };
+            self.locals.push(local);
+        }
+    }
+
+    // ------------------------------------------------------------------
     // The walk: every arm consumes its subtree
     // ------------------------------------------------------------------
 
@@ -159,6 +377,28 @@ impl Extractor<'_> {
             "enum_variant" => self.variant(node),
             "use_declaration" => self.use_declaration(node),
             "call_expression" => self.call(node),
+            "let_declaration" => self.let_declaration(node),
+            "closure_expression" => {
+                if let Some(parameters) = node.child_by_field_name("parameters") {
+                    self.shadow(parameters, node.start_byte(), node.end_byte());
+                }
+                self.walk_children(node);
+            }
+            "match_arm" | "for_expression" => {
+                if let Some(pattern) = node.child_by_field_name("pattern") {
+                    self.shadow(pattern, node.start_byte(), node.end_byte());
+                }
+                self.walk_children(node);
+            }
+            "let_condition" => {
+                if let Some(pattern) = node.child_by_field_name("pattern") {
+                    let until = node
+                        .parent()
+                        .map_or(node.end_byte(), |parent| parent.end_byte());
+                    self.shadow(pattern, node.start_byte(), until);
+                }
+                self.walk_children(node);
+            }
             // A bare type in position (`t: Thing`, `-> Thing`, `let x: Thing`)
             // is a use in its own right; the composite type kinds below consume
             // their subtrees, so this arm is the only one that sees a lone
@@ -253,6 +493,7 @@ impl Extractor<'_> {
         };
         let signature = self.first_line(node);
         self.emit(node, kind, name.clone(), signature);
+        let symbol = self.extraction.symbols.len().checked_sub(1);
         let (key, qualified) = self.qualify(&name, kind);
         self.scope.push(Scope {
             key: key.clone(),
@@ -260,8 +501,32 @@ impl Extractor<'_> {
             type_params: type_parameter_names(node, self.source),
         });
         // Parameters, return type, and the body — types become type uses,
-        // calls become call references, all attached to this item.
-        self.walk_children(node);
+        // calls become call references, all attached to this item. The body
+        // comes last, once its parameters are known locals.
+        let body = node.child_by_field_name("body");
+        let mut cursor = node.walk();
+        let heads: Vec<Node<'_>> = node
+            .named_children(&mut cursor)
+            .filter(|child| Some(*child) != body)
+            .collect();
+        for child in heads {
+            self.walk_node(child);
+        }
+        if let (Some(return_type), Some(symbol)) = (node.child_by_field_name("return_type"), symbol)
+        {
+            self.declare(
+                symbol,
+                ["rust_returns", "rust_returns_fallible"],
+                return_type,
+                return_type,
+            );
+        }
+        if let Some(body) = body {
+            let outer = std::mem::take(&mut self.locals);
+            self.parameters(node, body);
+            self.walk_node(body);
+            self.locals = outer;
+        }
         self.scope.pop();
     }
 
@@ -359,17 +624,29 @@ impl Extractor<'_> {
         };
         let name = self.text(name_node).to_owned();
         self.emit(node, NodeKind::Field, name, self.first_line(node));
+        let symbol = self.extraction.symbols.len().saturating_sub(1);
         if let Some(type_node) = node.child_by_field_name("type") {
             for name in type_names(type_node, self.source) {
                 if self.is_type_binder(&name) {
                     continue;
                 }
+                let ordinal = self.extraction.references.len();
+                self.type_facts
+                    .entry(type_node.id())
+                    .or_default()
+                    .push((name.clone(), ordinal));
                 self.extraction.references.push(self.reference_from(
                     EdgeKind::TypeUses,
                     name,
                     node,
                 ));
             }
+            self.declare(
+                symbol,
+                ["rust_type", "rust_type_fallible"],
+                type_node,
+                type_node,
+            );
         }
     }
 
@@ -466,11 +743,24 @@ impl Extractor<'_> {
             // `0()`, string literals: not name references.
             return;
         }
+        // The receiver may itself be a call (factory().run()); it is walked
+        // first so its facts can type this call's receiver.
+        self.walk_node(function);
+        let method = match function.kind() {
+            "generic_function" => function.child_by_field_name("function"),
+            _ => Some(function),
+        }
+        .filter(|method| method.kind() == "field_expression");
+        let receiver = method
+            .filter(|_| !callee.contains("::"))
+            .and_then(|method| method.child_by_field_name("value"))
+            .and_then(|value| self.receiver(value));
         let mut reference = self.reference_from(EdgeKind::Calls, callee, node);
         reference.raw_name = Some(self.text(function).trim().to_owned());
+        reference.receiver = receiver;
+        self.call_facts
+            .insert(node.id(), self.extraction.references.len());
         self.extraction.references.push(reference);
-        // The receiver may itself be a call (factory().run()).
-        self.walk_node(function);
         // Arguments can call too: walk the argument list.
         if let Some(args) = node.child_by_field_name("arguments") {
             self.walk_children(args);
@@ -492,11 +782,94 @@ impl Extractor<'_> {
             if self.is_type_binder(&name) {
                 continue;
             }
+            let ordinal = self.extraction.references.len();
+            self.type_facts
+                .entry(node.id())
+                .or_default()
+                .push((name.clone(), ordinal));
             self.extraction
                 .references
                 .push(self.reference_from(EdgeKind::TypeUses, name, node));
         }
     }
+}
+
+/// Replaces annotation ordinals with the type their binding names, where the
+/// file's bindings name one.
+fn rebind_annotations(receiver: &mut ReceiverType, declared: &[Option<String>]) {
+    match receiver {
+        ReceiverType::Annotation(ordinal) => {
+            if let Some(Some(value)) = declared.get(*ordinal) {
+                *receiver = ReceiverType::Declared(value.clone());
+            }
+        }
+        ReceiverType::Field(inner, _) | ReceiverType::Try(inner) => {
+            rebind_annotations(inner, declared);
+        }
+        _ => {}
+    }
+}
+
+/// What a `type_uses` reference names through this file's own bindings, as a
+/// declared-type value: `key:` a declaration in the same module, `path:` an
+/// imported (expanded) or anchored path. Rust modules do not inherit their
+/// parent's names, so lookup stops at a module; a glob import in the way makes
+/// the name unknown rather than guessed.
+fn type_binding(extraction: &Extraction, fact: &ReferenceFact) -> Option<String> {
+    if fact.kind != EdgeKind::TypeUses {
+        return None;
+    }
+    let name = fact.name.as_str();
+    let (base, rest) = match name.split_once("::") {
+        Some((base, rest)) => (base, Some(rest)),
+        None => (name, None),
+    };
+    if matches!(base, "crate" | "self" | "super") {
+        return Some(format!("path:{name}"));
+    }
+    let span = fact.span?;
+    let mut scope = fact.scope;
+    while let Some(id) = scope {
+        let binding = extraction
+            .bindings
+            .iter()
+            .filter(|binding| {
+                binding.scope == id
+                    && binding.name == base
+                    && binding.visible_from <= span.start_byte
+                    && matches!(binding.kind.as_str(), "rust_import" | "declaration")
+            })
+            .max_by_key(|binding| binding.visible_from);
+        if let Some(binding) = binding {
+            if binding.kind == "declaration" {
+                return rest
+                    .is_none()
+                    .then(|| binding.target_key.as_ref().map(|key| format!("key:{key}")))
+                    .flatten();
+            }
+            let import = extraction.references.iter().find(|reference| {
+                reference.span == Some(binding.span)
+                    && reference
+                        .rust_use
+                        .as_ref()
+                        .is_some_and(|import| import.local_name.as_deref() == Some(base))
+            })?;
+            return Some(match rest {
+                Some(rest) => format!("path:{}::{rest}", import.name),
+                None => format!("path:{}", import.name),
+            });
+        }
+        let globbed = extraction.references.iter().any(|reference| {
+            reference.scope == Some(id) && reference.rust_use.as_ref().is_some_and(|u| u.glob)
+        });
+        let scope_fact = extraction.scopes.get(id)?;
+        if globbed || scope_fact.kind == "module" {
+            return None;
+        }
+        scope = scope_fact.parent;
+    }
+    // Unbound, but spelled through another crate: resolvable as a path.
+    rest.is_some().then(|| format!("path:{name}"))
 }
 
 /// The concrete type names a type node refers to: `Vec<u8>` yields `Vec`,
@@ -560,7 +933,9 @@ fn type_names(node: Node<'_>, source: &str) -> Vec<String> {
                 if let Some(base) = current.child_by_field_name("type") {
                     names.push(text_of(base, source).to_owned());
                 }
-                if let Some(args) = current.child_by_field_name("arguments") {
+                // tree-sitter-rust names a generic's argument list
+                // `type_arguments`; `Vec<Foo>` uses `Foo` too.
+                if let Some(args) = current.child_by_field_name("type_arguments") {
                     stack.push(args);
                 }
             }
