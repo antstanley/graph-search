@@ -1336,7 +1336,11 @@ mod tests {
         assert!(long.len() <= MAX_DANGLING_NAME_BYTES, "{}", long.len());
         assert!(long.contains('…'));
         let truncated = canonical_dangling_name(&format!("{}\n  .tail", "y".repeat(200)));
-        assert!(truncated.len() <= MAX_DANGLING_NAME_BYTES, "{}", truncated.len());
+        assert!(
+            truncated.len() <= MAX_DANGLING_NAME_BYTES,
+            "{}",
+            truncated.len()
+        );
         assert!(truncated.contains('…'));
         // The canonical name is the dangling edge identity, so two distinct long
         // names that share a prefix past the bound must not collapse into one.
@@ -1426,8 +1430,9 @@ mod tests {
             "pkg/sub/__init__.py".to_owned(),
             "pkg/sub/deep.py".to_owned(),
         ]);
-        let resolve =
-            |from: &str, specifier: &str| resolve_specifier(from, specifier, &known, Language::Python);
+        let resolve = |from: &str, specifier: &str| {
+            resolve_specifier(from, specifier, &known, Language::Python)
+        };
         // Absolute dotted paths.
         assert_eq!(resolve("app.py", "pkg.mod").as_deref(), Some("pkg/mod.py"));
         assert_eq!(resolve("app.py", "pkg").as_deref(), Some("pkg/__init__.py"));
@@ -1440,7 +1445,10 @@ mod tests {
             resolve("pkg/sub/use.py", "..mod").as_deref(),
             Some("pkg/mod.py")
         );
-        assert_eq!(resolve("pkg/use.py", ".").as_deref(), Some("pkg/__init__.py"));
+        assert_eq!(
+            resolve("pkg/use.py", ".").as_deref(),
+            Some("pkg/__init__.py")
+        );
         // A relative import past the workspace root has no target.
         assert_eq!(resolve("pkg/use.py", "..").as_deref(), None);
     }

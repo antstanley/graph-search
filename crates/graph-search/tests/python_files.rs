@@ -81,12 +81,9 @@ fn python_symbols_calls_and_relative_imports_resolve() {
         .callees(&TraversalQuery::new("Greeter.hello", 1))
         .unwrap_or_else(|e| panic!("callees: {e}"));
     assert!(
-        callees
-            .edges
-            .iter()
-            .any(|edge| edge.kind == EdgeKind::Calls
-                && edge.resolved
-                && edge.to_name == "Greeter.render"),
+        callees.edges.iter().any(|edge| edge.kind == EdgeKind::Calls
+            && edge.resolved
+            && edge.to_name == "Greeter.render"),
         "{callees:?}"
     );
 

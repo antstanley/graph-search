@@ -11,6 +11,7 @@ pub(crate) fn manifest_family(path: &str) -> Option<PackageEcosystem> {
     match Path::new(path).file_name()?.to_str()? {
         "Cargo.toml" => Some(PackageEcosystem::Cargo),
         "package.json" | "pnpm-workspace.yaml" => Some(PackageEcosystem::Node),
+        "pyproject.toml" => Some(PackageEcosystem::Python),
         _ => None,
     }
 }
@@ -23,10 +24,8 @@ fn preferred_family(path: &str, language: Language) -> Option<PackageEcosystem> 
         | Language::Svelte
         | Language::Vue
         | Language::Astro => Some(PackageEcosystem::Node),
+        Language::Python => Some(PackageEcosystem::Python),
         Language::Html | Language::Css | Language::Unknown => None,
-        // Python package boundaries (`pyproject.toml`, `__init__.py` packages)
-        // are not modeled yet; files carry no package identity.
-        Language::Python => None,
     })
 }
 
@@ -117,7 +116,7 @@ fn valid_definition(definition: &PackageManifest) -> bool {
     match definition.role {
         PackageRole::Package => {
             definition.unavailable_reason.is_none()
-                && (definition.ecosystem == PackageEcosystem::Node || definition.name.is_some())
+                && (definition.ecosystem != PackageEcosystem::Cargo || definition.name.is_some())
         }
         PackageRole::Workspace => {
             (definition.ecosystem == PackageEcosystem::Cargo
@@ -209,7 +208,7 @@ impl Catalog {
         let preferred = preferred_family(path, language);
         let mut directory = Path::new(path).parent();
         while let Some(dir) = directory {
-            let candidates: Vec<_> = ["Cargo.toml", "package.json"]
+            let candidates: Vec<_> = ["Cargo.toml", "package.json", "pyproject.toml"]
                 .into_iter()
                 .filter_map(|name| {
                     let candidate = dir.join(name).to_string_lossy().replace('\\', "/");
@@ -516,8 +515,14 @@ mod pnpm_boundary_tests {
         // `package.json`, and a sub-package beneath it.
         let catalog = Catalog {
             manifests: BTreeMap::from([
-                ("package.json".into(), manifest(PackageRole::Package, Some("workspace-tools"))),
-                ("subproject/pnpm-workspace.yaml".into(), manifest(PackageRole::Workspace, None)),
+                (
+                    "package.json".into(),
+                    manifest(PackageRole::Package, Some("workspace-tools")),
+                ),
+                (
+                    "subproject/pnpm-workspace.yaml".into(),
+                    manifest(PackageRole::Workspace, None),
+                ),
                 (
                     "subproject/packages/foo/package.json".into(),
                     manifest(PackageRole::Package, Some("foo")),

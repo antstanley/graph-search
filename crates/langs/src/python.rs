@@ -121,8 +121,9 @@ impl Extractor<'_> {
     fn emit(&mut self, node: Node<'_>, kind: NodeKind, name: String, signature: String) {
         let (key, qualified) = self.qualify(&name, kind);
         let parent = self.scope.last().map(|scope| scope.key.clone());
-        let mut fact = SymbolFact::new(key.clone(), kind, name, qualified.clone(), Self::span(node))
-            .with_signature(signature);
+        let mut fact =
+            SymbolFact::new(key.clone(), kind, name, qualified.clone(), Self::span(node))
+                .with_signature(signature);
         if let Some(parent) = parent {
             fact = fact.with_parent(parent);
         }
@@ -140,7 +141,9 @@ impl Extractor<'_> {
     }
 
     fn current_context(&self) -> Context {
-        self.scope.last().map_or(Context::Module, |scope| scope.context)
+        self.scope
+            .last()
+            .map_or(Context::Module, |scope| scope.context)
     }
 
     /// A reference owned by the enclosing symbol, or the file when top level.
@@ -174,9 +177,10 @@ impl Extractor<'_> {
         self.extraction.references.push(fact.at(Self::span(node)));
     }
 
-    fn is_async(&self, node: Node<'_>) -> bool {
+    fn is_async(node: Node<'_>) -> bool {
         let mut cursor = node.walk();
-        node.children(&mut cursor).any(|child| child.kind() == "async")
+        node.children(&mut cursor)
+            .any(|child| child.kind() == "async")
     }
 
     fn walk_children(&mut self, node: Node<'_>) {
@@ -254,11 +258,9 @@ impl Extractor<'_> {
             return;
         };
         let name = self.text(name_node).to_owned();
-        let is_async = self.is_async(node);
+        let is_async = Self::is_async(node);
         self.emit(node, kind, name, self.first_line(node));
-        if is_async
-            && let Some(symbol) = self.extraction.symbols.last_mut()
-        {
+        if is_async && let Some(symbol) = self.extraction.symbols.last_mut() {
             symbol.is_async = true;
         }
         self.annotations(node);
@@ -417,11 +419,7 @@ impl Extractor<'_> {
     /// enclosing class's qualified member, as Rust rewrites `self.method()`.
     fn self_member_target(&self, callee: &str) -> Option<String> {
         let member = callee.strip_prefix("self.")?;
-        if member.is_empty()
-            || !member
-                .chars()
-                .all(|c| c.is_alphanumeric() || c == '_')
-        {
+        if member.is_empty() || !member.chars().all(|c| c.is_alphanumeric() || c == '_') {
             return None;
         }
         let index = self

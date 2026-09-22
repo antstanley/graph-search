@@ -352,3 +352,56 @@ fn authored_cargo_targets_survive_edits_reopen_and_clean_rebuild() {
         assert_eq!(facts(&open(root.path())), source);
     }
 }
+
+#[test]
+fn pyproject_boundaries_scope_python_files_beside_cargo_and_node() {
+    let root = tempfile::tempdir().unwrap();
+    for (path, text) in [
+        // A maturin-style mixed project: one directory, two ecosystems.
+        ("Cargo.toml", "[package]\nname='native'\n"),
+        ("pyproject.toml", "[project]\nname='pyext'\n"),
+        ("src/lib.rs", "pub fn native() {}\n"),
+        ("python/pyext/__init__.py", "def wrapped():\n    pass\n"),
+        ("README.md", "# Mixed root\n"),
+        // Poetry names the project under `[tool.poetry]`.
+        ("poet/pyproject.toml", "[tool.poetry]\nname='poet'\n"),
+        ("poet/poet/cli.py", "def main():\n    pass\n"),
+        // Tool configuration only: an unnamed boundary, still a boundary.
+        ("tools/pyproject.toml", "[tool.black]\nline-length=100\n"),
+        ("tools/fmt.py", "def fmt():\n    pass\n"),
+        // An unsupported `[project]` value blocks outer inheritance.
+        ("broken/pyproject.toml", "project='nope'\n"),
+        ("broken/mod.py", "def broken():\n    pass\n"),
+    ] {
+        write(root.path(), path, text);
+    }
+    let index = open(root.path());
+    let report = index.reindex().unwrap();
+    let source = facts(&index);
+    let package = |path: &str| source[path].package.clone();
+    let python = package("python/pyext/__init__.py").unwrap();
+    assert_eq!(python.manifest_path, "pyproject.toml");
+    assert_eq!(
+        python.ecosystem,
+        graph_search_types::package::PackageEcosystem::Python
+    );
+    assert_eq!(python.name.as_deref(), Some("pyext"));
+    assert_eq!(python.manifest_hash, source["pyproject.toml"].source_hash);
+    assert_eq!(
+        package("src/lib.rs").unwrap().name.as_deref(),
+        Some("native")
+    );
+    // Other text sees two families at the same distance: explicit ambiguity.
+    assert!(source["README.md"].package_scope_incomplete);
+    assert_eq!(
+        package("poet/poet/cli.py").unwrap().name.as_deref(),
+        Some("poet")
+    );
+    let tools = package("tools/fmt.py").unwrap();
+    assert_eq!(tools.manifest_path, "tools/pyproject.toml");
+    assert!(tools.name.is_none());
+    assert!(package("broken/mod.py").is_none());
+    assert!(source["broken/mod.py"].package_scope_incomplete);
+    assert_eq!(report.coverage.package_scope_incomplete_files, 3);
+    assert_fresh(&index);
+}

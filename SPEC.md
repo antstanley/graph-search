@@ -64,8 +64,8 @@ situ with no harness change and a one-line rollback.
 6. **Machine-readable output.** A stable JSON envelope an agent can parse from
    `bash`.
 7. **Language coverage (first cut).** Rust, TypeScript, JavaScript (incl. JSX/
-   TSX), HTML, CSS, and the declared script regions of Svelte, Vue and Astro
-   single-file components.
+   TSX), Python, HTML, CSS, and the declared script regions of Svelte, Vue and
+   Astro single-file components.
 
 ## 2. Non-goals (v1)
 
@@ -1224,6 +1224,42 @@ presents the graph as exhaustive. Every `graph` and
   "note": "static approximation; dynamic/macro/generated edges may be missing"
 }
 ```
+
+### 7.5 Python
+
+`.py`, `.pyi` and `.pyw` files. Python binds names at run time, so the adapter
+models what the syntax states and leaves plain identifier uses and local bindings
+to the generic resolution rules (§7.4).
+
+| Node | Capture |
+|---|---|
+| `class` | `class_definition` |
+| `function` | `function_definition` outside a class body (incl. nested and `async def`) |
+| `method` | `function_definition` directly in a class body |
+| `field` | `name = …` / `name: T = …` in a class body |
+| `variable` | `name = …` / `name: T = …` at module level |
+| `type_alias` | `type X = …` (PEP 695) |
+
+Only a single-identifier assignment target declares a symbol; tuple unpacking,
+subscripts, attributes (`self.x = …`) and function-local assignments do not.
+
+| Edge | Source |
+|---|---|
+| `contains` | file → top level, class → method/field, function → nested `def` |
+| `imports` | `import a.b` (one edge per name); `from m import x` emits the module edge `m` and one binding `x` via `m` |
+| `calls` | `call` → callee spelling; `self.m()` in a method becomes `Class.m` |
+| `extends` | `class C(Base, pkg.Base)` positional bases (keyword arguments such as `metaclass=` are not bases) |
+| `type_uses` | parameter, return, annotated-assignment and type-alias annotations, excluding builtin scalar/container names |
+
+Module specifiers resolve against the known file set, never `sys.path` or
+installed packages. `a.b` tries `a/b.py`, `a/b.pyi`, `a/b/__init__.py` and
+`a/b/__init__.pyi` from the workspace root. A leading dot is the importing file's
+directory; each further dot walks one directory up, and walking past the root has
+no target. When `from m import x` finds no symbol `x` in `m`, `m.x` is tried as a
+submodule (`from . import views`). Unresolved imports are dangling with their
+reason, as in every other language. Package context comes from the nearest
+`pyproject.toml` (§ Manifest-owned package context); `__init__.py` does not create
+a package boundary.
 
 ---
 
@@ -2481,10 +2517,13 @@ a different association, or a different style prevents grouping.
 Parser policy 7 and source representation 9 add native package-boundary context.
 The standard library registry reuses the existing JSON/TOML decoders through an
 optional `LanguageRegistry::package_manifest` port; core names no syntax decoder.
-Recognized files are exactly `Cargo.toml` and `package.json`. The native subset
+Recognized files are exactly `Cargo.toml`, `package.json` (with
+`pnpm-workspace.yaml` workspace roots) and `pyproject.toml`. The native subset
 retains the authored package name, ecosystem and package/workspace/unavailable
 role. A Cargo `[workspace]` without `[package]` is not itself a package. A Node
-manifest can define an unnamed boundary. This is package-context discovery, not
+manifest can define an unnamed boundary. A `pyproject.toml` takes its name from
+PEP 621 `[project].name`, else `[tool.poetry].name`; with neither table it is an
+unnamed boundary. This is package-context discovery, not
 validation of every package-manager option or dependency/import resolution.
 
 Manifest syntax input is capped at 262,144 bytes and retained names at 512 bytes.
@@ -2499,8 +2538,9 @@ index manifest/header retains this boundary set; additions/removals participate
 in freshness checks even when a manifest body is oversized and unindexed. A
 nearest observed-but-unavailable boundary blocks outer inheritance. Partial walks
 cannot infer boundary removals. Rust selects Cargo boundaries; JS/TS selects Node
-boundaries. Other text, HTML and CSS select the nearest unique boundary across
-both families; a tie is explicit incomplete scope. Virtual Cargo workspaces stop
+boundaries; Python selects `pyproject.toml` boundaries. Other text, HTML and CSS
+select the nearest unique boundary across all families; a tie is explicit
+incomplete scope. Virtual Cargo workspaces stop
 package inheritance without inventing a package.
 
 `SourceFileUnits.package` and resolved indexed source-evidence identities retain manifest path,
@@ -3169,3 +3209,19 @@ exhausted bound is unresolved, never a guess. Glob reexports keep their explicit
 nodes, so unchanged generation consumers do not need raw extraction facts
 re-hydrated. The counterfactual and chained fixtures are recorded in
 `research/results/native-implementation/rust-reexports/README.md`.
+
+### Python extraction and pyproject.toml boundaries (parser policy 24, source representation 16)
+
+The `python` language value (projection schema 4) and the tree-sitter-python
+adapter (§7.5) replace indexing `.py`/`.pyi`/`.pyw` files as `unknown`. Parser
+policy 24 forces projection refresh. `pyproject.toml` joins the recognized
+manifests under the `python` ecosystem; its decoded fact reuses the TOML decoder
+already used for `Cargo.toml`, so no dependency was added beyond the grammar.
+An invalid document is `invalid_manifest_syntax`, a non-table `project` (or
+`tool.poetry`) is `unsupported_project_table`, and a non-string or empty name is
+`unsupported_package_name`. Each is an unavailable barrier, like every other
+ecosystem. A directory holding both `Cargo.toml` and `pyproject.toml` (a maturin
+layout) scopes Rust files to Cargo and Python files to the project; other text
+at that level is explicit incomplete scope. Source representation 16 admits the
+new ecosystem value in retained facts. uv/Hatch workspace tables, dependency
+lists, `src/` layout discovery and import-name mapping are not modeled.

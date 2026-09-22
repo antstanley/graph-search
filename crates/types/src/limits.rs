@@ -102,7 +102,8 @@ pub const RANKER_VERSION: u32 = 23;
 /// Source-owned reference and binding representation.
 pub const OCCURRENCE_VERSION: u32 = 1;
 /// Source retrieval serialization revision, independent of parser and chunker policy.
-pub const SOURCE_INDEX_VERSION: u32 = 15;
+/// v16: package facts admit the `python` ecosystem (`pyproject.toml`).
+pub const SOURCE_INDEX_VERSION: u32 = 16;
 /// Maximum authored links retained per original Markdown block.
 pub const MAX_MARKDOWN_LINKS: usize = 256;
 /// Maximum distinct authored links retained across one source file.
@@ -133,7 +134,8 @@ pub const RESULT_SCHEMA_VERSION: u32 = 4;
 /// types, not only direct field types; dangling display names are canonicalised.
 /// v23: generic type parameters and `Self` are excluded from Rust `type_uses`;
 /// dangling names are bounded and hash-disambiguated to keep edge identities 1:1.
-/// v24: Python `.py`/`.pyi` files are extracted instead of indexed as unknown.
+/// v24: Python `.py`/`.pyi`/`.pyw` files are extracted instead of indexed as
+/// unknown, and Python files take `pyproject.toml` package context.
 pub const PARSER_VERSION: u32 = 24;
 
 /// Default independent ceiling on edges delivered by one graph/explore query.

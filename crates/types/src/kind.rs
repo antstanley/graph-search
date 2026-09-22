@@ -31,7 +31,7 @@ pub enum Language {
     /// An Astro component (`.astro`). The frontmatter fence and declared
     /// `<script>` regions are extracted; template markup is not modeled.
     Astro,
-    /// Python (`.py`, `.pyi`). Module, class, function and method symbols,
+    /// Python (`.py`, `.pyi`, `.pyw`). Module, class, function and method symbols,
     /// imports, calls, inheritance and annotations are extracted.
     Python,
     /// A file no enabled extractor claims. Its `file` node is still indexed so
