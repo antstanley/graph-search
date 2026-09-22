@@ -181,7 +181,7 @@ fn verify_live_documentation_transition(index: &Index, root: &std::path::Path) {
             &graph_search_engine::StoreOptions::default(),
         )
         .unwrap();
-        store.snapshot().unwrap().source_files().clone()
+        store.snapshot().unwrap().source_files().unwrap().clone()
     };
     let incremental = source_facts();
     index.reindex().unwrap();

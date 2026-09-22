@@ -205,7 +205,7 @@ impl<'a> Projector<'a> {
                 .values()
                 .filter(|entry| entry.quarantine.is_some())
                 .count() as u64;
-            crate::units::coverage(store.snapshot()?.source_files(), &mut coverage);
+            store.snapshot()?.source_coverage().apply(&mut coverage);
             let mut report = SyncReport {
                 coverage,
                 unchanged: entries.len() as u64,
@@ -469,7 +469,7 @@ impl<'a> Projector<'a> {
             let snapshot = store.snapshot()?;
             let removed_paths: BTreeSet<_> = removed.iter().map(String::as_str).collect();
             let retained = snapshot
-                .source_files()
+                .source_files()?
                 .iter()
                 .filter(|(path, _)| {
                     !changed_paths.contains(*path) && !removed_paths.contains(path.as_str())
@@ -562,7 +562,7 @@ impl<'a> Projector<'a> {
     ) -> Result<BTreeMap<String, graph_search_types::source::SourceFileUnits>> {
         let snapshot = store.snapshot()?;
         let mut sources = BTreeMap::new();
-        for (path, source) in snapshot.source_files() {
+        for (path, source) in snapshot.source_files()? {
             self.check_work()?;
             if changed_paths.contains(path) || removed.iter().any(|removed| removed == path) {
                 continue;
@@ -611,7 +611,7 @@ impl<'a> Projector<'a> {
             .collect();
         let snapshot = store.snapshot()?;
         let mut catalog = crate::packages::Catalog::new(known);
-        for (path, source) in snapshot.source_files() {
+        for (path, source) in snapshot.source_files()? {
             self.check_work()?;
             if !replaced.contains(path.as_str()) {
                 catalog.add(path, source);
@@ -957,7 +957,7 @@ impl<'a> Projector<'a> {
                     hash: stored.content_hash.clone(),
                     projection: FileProjection {
                         file: (*file).clone(),
-                        source: snapshot.source_files().get(&entry.rel).cloned(),
+                        source: snapshot.source_files()?.get(&entry.rel).cloned(),
                         quarantine: if facts.is_none() {
                             stored
                                 .quarantine

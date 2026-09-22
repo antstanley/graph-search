@@ -160,10 +160,11 @@ impl<'a> SearchService<'a> {
             work,
         )
         .map_err(Error::Core)?;
-        graph_search_core::units::coverage(
-            store.snapshot().map_err(Error::Core)?.source_files(),
-            &mut coverage,
-        );
+        store
+            .snapshot()
+            .map_err(Error::Core)?
+            .source_coverage()
+            .apply(&mut coverage);
         Ok(ResultContext {
             indexed_versions: Some(manifest.versions()),
             runtime_versions: Some(graph_search_types::context::RuntimeVersions::current()),
@@ -424,7 +425,7 @@ impl<'a> SearchService<'a> {
                 .map_err(Error::Core)?;
                 result.staleness = Some(staleness);
                 result.coverage = coverage;
-                graph_search_core::units::coverage(snapshot.source_files(), &mut result.coverage);
+                snapshot.source_coverage().apply(&mut result.coverage);
             }
             work.check().map_err(Error::Core)?;
             graph_search_core::payload::fit_status(&mut result).map_err(Error::Core)?;

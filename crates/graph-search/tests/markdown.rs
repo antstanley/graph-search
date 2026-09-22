@@ -57,7 +57,7 @@ fn link_fields_persist_and_incremental_edits_match_fresh_extraction() {
             &graph_search_engine::StoreOptions::default(),
         )
         .unwrap();
-        store.snapshot().unwrap().source_files()["guide.md"].clone()
+        store.snapshot().unwrap().source_files().unwrap()["guide.md"].clone()
     };
     let before = read();
     let links: Vec<_> = before.units.iter().flat_map(|unit| &unit.links).collect();

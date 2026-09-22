@@ -24,7 +24,12 @@ fn facts(index: &Index) -> BTreeMap<String, OccurrenceFile> {
         &graph_search_engine::StoreOptions::default(),
     )
     .unwrap();
-    store.snapshot().unwrap().occurrence_files().clone()
+    store
+        .snapshot()
+        .unwrap()
+        .occurrence_files()
+        .unwrap()
+        .clone()
 }
 fn target(
     source: &BTreeMap<String, OccurrenceFile>,

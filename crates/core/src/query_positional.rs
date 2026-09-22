@@ -50,7 +50,7 @@ impl QueryEngine<'_> {
             BTreeSet::new()
         } else {
             self.snapshot
-                .body()
+                .body()?
                 .file_candidates(
                     &terms,
                     &self.filters.borrow(),
@@ -71,7 +71,7 @@ impl QueryEngine<'_> {
             if !self.filters.borrow().matches(&entry.rel, entry.language) {
                 continue;
             }
-            let facts = self.snapshot.source_files().get(&entry.rel);
+            let facts = self.snapshot.source_files()?.get(&entry.rel);
             let needs_scan = unchecked
                 || representation_changed
                 || changed.contains(&entry.rel)

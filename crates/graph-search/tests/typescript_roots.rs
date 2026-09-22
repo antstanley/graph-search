@@ -16,11 +16,11 @@ fn open(root: &Path, store: &Path) -> Index {
 fn roots(store: &Path) -> BTreeSet<String> {
     let store = GrafeoStore::open(store, &StoreOptions::default()).unwrap();
     let snapshot = store.snapshot().unwrap();
-    let config = inherit("app/tsconfig.json", snapshot.source_files()).unwrap();
+    let config = inherit("app/tsconfig.json", snapshot.source_files().unwrap()).unwrap();
     enumerate(
         "app/tsconfig.json",
         &config,
-        &snapshot.source_files().keys().cloned().collect(),
+        &snapshot.source_files().unwrap().keys().cloned().collect(),
     )
     .unwrap()
 }

@@ -246,22 +246,53 @@ pub trait GraphSnapshot {
     /// Exact cached counts from this generation; does not enumerate graph facts.
     fn counts(&self) -> &graph_search_types::result::StoreCounts;
 
+    /// Exact cached source coverage from this generation; does not load the
+    /// source facts.
+    fn source_coverage(&self) -> &crate::units::SourceCoverage;
+
+    // The fact and index accessors below may load and verify generation data
+    // on first use, so each one reports a read or integrity failure.
+
     /// File-owned reference occurrences from the selected graph generation.
+    ///
+    /// # Errors
+    /// When the facts cannot be read or fail verification.
     fn occurrence_files(
         &self,
-    ) -> &std::collections::BTreeMap<String, graph_search_types::occurrence::OccurrenceFile>;
+    ) -> Result<&std::collections::BTreeMap<String, graph_search_types::occurrence::OccurrenceFile>>;
     /// Native occurrence lookup positions from the same generation.
-    fn occurrences(&self) -> &crate::occurrences::OccurrenceIndex;
+    ///
+    /// # Errors
+    /// When the facts cannot be read or fail verification.
+    fn occurrences(&self) -> Result<&crate::occurrences::OccurrenceIndex>;
+    /// Known occurrences of one aggregate relationship; `None` when none are
+    /// recorded. Adapters may answer from a published count table without
+    /// loading the occurrence facts.
+    ///
+    /// # Errors
+    /// When the counts cannot be read or fail verification.
+    fn occurrence_count(&self, edge_id: &str) -> Result<Option<usize>> {
+        Ok(self.occurrences()?.count_for_edge(edge_id))
+    }
     /// Immutable source-region postings from the same generation.
-    fn body(&self) -> &crate::body::BodyIndex;
+    ///
+    /// # Errors
+    /// When the facts cannot be read or fail verification.
+    fn body(&self) -> Result<&crate::body::BodyIndex>;
 
     /// Hash-bound native source facts from this same committed generation.
+    ///
+    /// # Errors
+    /// When the facts cannot be read or fail verification.
     fn source_files(
         &self,
-    ) -> &std::collections::BTreeMap<String, graph_search_types::source::SourceFileUnits>;
+    ) -> Result<&std::collections::BTreeMap<String, graph_search_types::source::SourceFileUnits>>;
 
     /// Immutable native metadata retrieval structures owned by this generation.
-    fn metadata(&self) -> &crate::metadata::MetadataIndex;
+    ///
+    /// # Errors
+    /// When the graph cannot be read.
+    fn metadata(&self) -> Result<&crate::metadata::MetadataIndex>;
 
     /// The node with this exact id.
     ///

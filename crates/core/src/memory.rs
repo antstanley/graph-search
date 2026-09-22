@@ -21,6 +21,7 @@ pub struct MemoryStore {
     manifest: Option<Manifest>,
     dependencies: Option<crate::dependencies::DependencyIndex>,
     counts: graph_search_types::result::StoreCounts,
+    source_coverage: crate::units::SourceCoverage,
     adjacency: crate::adjacency::AdjacencyIndex,
     metadata: crate::metadata::MetadataIndex,
     body: crate::body::BodyIndex,
@@ -110,6 +111,7 @@ impl GraphStore for MemoryStore {
             .updated(self.nodes.values().cloned().collect());
         self.adjacency = crate::adjacency::AdjacencyIndex::new(self.edges.clone());
         self.body = crate::body::BodyIndex::new(&self.sources);
+        self.source_coverage = crate::units::SourceCoverage::summarize(self.sources.values());
         Ok(outcome)
     }
 
@@ -212,28 +214,34 @@ impl GraphSnapshot for MemorySnapshot<'_> {
         &self.store.counts
     }
 
-    fn occurrence_files(
-        &self,
-    ) -> &BTreeMap<String, graph_search_types::occurrence::OccurrenceFile> {
-        &self.store.occurrence_files
-    }
-    fn occurrences(&self) -> &crate::occurrences::OccurrenceIndex {
-        &self.store.occurrences
-    }
-    fn body(&self) -> &crate::body::BodyIndex {
-        &self.store.body
+    fn source_coverage(&self) -> &crate::units::SourceCoverage {
+        &self.store.source_coverage
     }
 
-    fn source_files(&self) -> &BTreeMap<String, graph_search_types::source::SourceFileUnits> {
-        &self.store.sources
+    fn occurrence_files(
+        &self,
+    ) -> Result<&BTreeMap<String, graph_search_types::occurrence::OccurrenceFile>> {
+        Ok(&self.store.occurrence_files)
+    }
+    fn occurrences(&self) -> Result<&crate::occurrences::OccurrenceIndex> {
+        Ok(&self.store.occurrences)
+    }
+    fn body(&self) -> Result<&crate::body::BodyIndex> {
+        Ok(&self.store.body)
+    }
+
+    fn source_files(
+        &self,
+    ) -> Result<&BTreeMap<String, graph_search_types::source::SourceFileUnits>> {
+        Ok(&self.store.sources)
     }
 
     fn node_by_id(&self, id: &NodeId) -> Result<Option<Node>> {
         Ok(self.store.nodes.get(id).cloned())
     }
 
-    fn metadata(&self) -> &crate::metadata::MetadataIndex {
-        &self.store.metadata
+    fn metadata(&self) -> Result<&crate::metadata::MetadataIndex> {
+        Ok(&self.store.metadata)
     }
 
     fn find_by_name(&self, name: &str, kinds: &[NodeKind], k: usize) -> Result<Vec<Scored<Node>>> {

@@ -65,8 +65,8 @@ fn compare(actual: &dyn GraphStore, clean: &dyn GraphStore) {
     let b = clean.snapshot().unwrap();
     assert_eq!(a.all_nodes().unwrap(), b.all_nodes().unwrap());
     assert_eq!(a.all_edges().unwrap(), b.all_edges().unwrap());
-    assert_eq!(a.source_files(), b.source_files());
-    assert_eq!(a.occurrence_files(), b.occurrence_files());
+    assert_eq!(a.source_files().unwrap(), b.source_files().unwrap());
+    assert_eq!(a.occurrence_files().unwrap(), b.occurrence_files().unwrap());
     assert_eq!(
         actual.manifest().unwrap().unwrap().entries,
         clean.manifest().unwrap().unwrap().entries

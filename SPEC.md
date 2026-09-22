@@ -763,8 +763,8 @@ only with successful publication. Header reads check the same unavailable-state
 guard as graph reads. Full raw extraction remains available through `manifest()`
 for compatibility and inspection. Generation format 6 and later keep only the header
 in `manifest.json`; extraction entries live in independently hashed native packs.
-Cold open verifies their bytes without deserializing their values. A true no-op sync
-uses only the header. Native changed-sync uses persisted dependencies to select the
+Their first reader verifies their bytes without deserializing their values. A true
+no-op sync uses only the header. Native changed-sync uses persisted dependencies to select the
 unchanged files requiring rebinding and requests just their raw facts. Changed files
 are parsed normally. Unchanged ECMAScript module surfaces come from compact dependency
 records, so module resolution does not require all parser payloads. Adapters without
@@ -836,17 +836,40 @@ Reconciliation calls `GraphStore::publish` with one `WriteBatch`. The Grafeo
 adapter prepares a complete replacement graph in isolation, saves it with the
 manifest, dangling references, native source facts and reference occurrences under `generations/<id>/`, then publishes a
 small `CURRENT` descriptor by atomic rename. The descriptor records storage
-format 8 and BLAKE3 fingerprints of every committed top-level artifact. Readers validate
-it on open and open the graph read-only. A missing or corrupt committed artifact
-is an error, never a silently empty index. Generations written before format 8
-carry SHA-256 fingerprints and fail verification; they are rebuilt, not migrated
-(deleting the store directory is always a safe rebuild).
+format 9 and BLAKE3 fingerprints of every committed top-level artifact. A missing
+or corrupt committed artifact is an error, never a silently empty index. Generations
+written before format 8 carry SHA-256 fingerprints and fail verification; they are
+rebuilt, not migrated (deleting the store directory is always a safe rebuild).
+
+Opening a generation is proportional to its header, not its size. Open validates
+the descriptor's completeness, rejects uncommitted artifacts, takes the reader lease,
+and verifies and parses only `manifest.json` and `summary.json`. Every other
+artifact (the graph, dangling references, source and occurrence facts, extraction
+and dependency indexes, the edge occurrence table) is verified against its CURRENT
+fingerprint by its first reader, before any of its bytes are used; the lease keeps
+those immutable paths alive for as long as the handle may read them. Facts are
+validated against the graph when they load, exactly as on an eager open, and
+retrieval indexes (metadata, source-region postings, occurrence positions,
+adjacency) are built on first use. A damaged artifact therefore fails the first
+query that touches it, loudly, and a failed load is not cached. `status` and the
+result context of every query read only the header, the summary and the tree, so
+they never load the graph or its facts.
+
+Format 9 adds two derived artifacts. `summary.json` holds the generation's exact
+node, edge and file counts and its source coverage counters, so status and result
+coverage need no facts. `edge-occurrences.bin` holds, for every relationship with
+at least one source occurrence, the BLAKE3 digest of its edge id and its occurrence
+count (`GSE1`, then 32-byte digest and little-endian `u32` entries in strictly
+ascending digest order); relationship queries report `occurrence_count` from it by
+binary search without loading occurrence facts. Both are computed by the writer
+from the final prepared state. Older generations lack them and fall back to
+computing counts at open and to the occurrence index.
 
 All content hashes, both file fingerprints in the manifest and artifact, pack and
 record fingerprints, are lowercase hex BLAKE3 (256-bit). BLAKE3 is fast through
 portable SIMD with runtime dispatch (NEON on AArch64, SSE4.1/AVX2/AVX-512 on x86)
-rather than dedicated SHA instructions, which some deployment CPUs lack. One-shot
-open verifies every committed byte, so hash throughput is query latency.
+rather than dedicated SHA instructions, which some deployment CPUs lack. Each query
+verifies the committed bytes it reads, so hash throughput is query latency.
 
 Preparation applies the old projection and the update before constructing derived
 retrieval indexes. Intermediate mutation reads only the graph, ID maps and owned
@@ -876,9 +899,10 @@ independently hashed, reusable across generations and selectively readable.
 The index transitively commits pack and record bytes. Open checks pack hashes,
 record hashes, checked slice bounds and non-overlap; identical references may
 share an exact range. Hash names accept only 64 lowercase hexadecimal characters.
-Generation selection passes the authenticated, decoded source descriptor directly
-to the loader. Each referenced pack is loaded and verified once before the store
-is exposed; replacing the descriptor on disk cannot redirect this handoff.
+The source descriptor is read when source facts are first needed and verified
+against the fingerprint CURRENT held at open, so a replaced descriptor fails
+verification rather than redirecting the load. Each referenced pack is then loaded
+and verified once before any source fact is exposed.
 Version-1 and version-2 indexes (uncompressed JSON records) remain decodable by the
 pack reader, but publication never reuses their records; a version-3 index requires
 generation format 8. Source representation
@@ -902,8 +926,8 @@ manifest. This compact version-1 index contains per-file header identities, raw
 non-dynamic reference names (including unresolved references), defined/exported
 names, authored module surfaces and specifiers, binding-surface fingerprints,
 selected module candidates and incoming file relationships. It is authenticated
-by CURRENT; readers check header/cache availability and reproducible reverse maps
-before admitting it. Legacy generations or incoherent direct adapter batches have
+by CURRENT; its first reader checks header/cache availability and reproducible
+reverse maps before admitting it. Legacy generations or incoherent direct adapter batches have
 no dependency index and use conservative repair. Explicit JSON null denotes that
 fallback in new generations. Dependency publication occurs before CURRENT changes.
 
@@ -922,8 +946,9 @@ Generation format 6 and later commit `extractions.json` whenever they commit a m
 This version-2 record index uses the same native pack codec under `extraction-records/`.
 Each record is a complete per-file manifest entry with a present extraction value;
 header entries carry no extraction values. Reopen authenticates the header and index,
-rejects unknown record owners, and verifies pack/record hashes and checked ranges.
-It defers raw JSON value decoding until facts are requested. A private verified-index
+rejects unknown record owners, and verifies pack/record hashes and checked ranges
+when extraction facts are first needed. It defers raw JSON value decoding until
+facts are requested. A private verified-index
 wrapper can be constructed only by initial pack/record verification or the writer.
 Hydration rechecks each full pack hash and range bounds. With that pinned descriptor,
 identical pack bytes preserve the already-verified record hashes, so hydration does

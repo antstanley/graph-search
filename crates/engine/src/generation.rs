@@ -2,30 +2,75 @@
 //! are never opened by readers; CURRENT is the sole visibility boundary.
 
 use serde::{Deserialize, Serialize};
+use std::collections::BTreeMap;
 use std::io::{self, Write};
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
 
 pub(crate) const CURRENT: &str = "CURRENT";
 pub(crate) const GRAPH: &str = "graph.grafeo";
-const FORMAT: u32 = 8;
+const FORMAT: u32 = 9;
 /// One zstd frame of the JSON dependency index.
 pub(crate) const DEPENDENCIES: &str = "dependencies.json.zst";
+/// Cached generation totals (format 9+, with [`crate::edge_counts::FILE`]).
+pub(crate) const SUMMARY: &str = "summary.json";
 static SERIAL: AtomicU64 = AtomicU64::new(0);
 
 #[derive(Serialize, Deserialize)]
 struct Pointer {
     format: u32,
     id: String,
-    files: std::collections::BTreeMap<String, String>,
+    files: BTreeMap<String, String>,
+}
+
+/// Exact totals of one generation, published with it so that `status` and
+/// query contexts never load the graph or its facts to report them.
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct Summary {
+    pub(crate) counts: graph_search_types::result::StoreCounts,
+    pub(crate) source: graph_search_core::units::SourceCoverage,
+}
+
+/// The artifacts CURRENT commits for one generation. Selection verifies the
+/// small header artifacts; every other artifact is verified against its
+/// committed hash when it is first read, before any of its bytes are used.
+pub(crate) struct Committed {
+    dir: PathBuf,
+    format: u32,
+    files: BTreeMap<String, String>,
+}
+
+impl Committed {
+    pub(crate) fn dir(&self) -> &Path {
+        &self.dir
+    }
+
+    pub(crate) const fn format(&self) -> u32 {
+        self.format
+    }
+
+    /// The committed bytes of `name`, verified against CURRENT; `None` when the
+    /// descriptor does not commit that artifact.
+    pub(crate) fn read(&self, name: &str) -> io::Result<Option<Vec<u8>>> {
+        let Some(expected) = self.files.get(name) else {
+            return Ok(None);
+        };
+        let bytes = std::fs::read(self.dir.join(name))?;
+        if graph_search_core::hash::content_hash(&bytes) != *expected {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                format!("generation checksum mismatch: {name}"),
+            ));
+        }
+        Ok(Some(bytes))
+    }
 }
 
 pub(crate) struct Selected {
-    pub(crate) dir: PathBuf,
-    pub(crate) source: Option<crate::source_records::Prepared>,
+    pub(crate) committed: Committed,
     pub(crate) manifest: Option<graph_search_types::manifest::Manifest>,
-    pub(crate) extractions: Option<crate::manifest_records::Verified>,
-    pub(crate) dependencies: Option<graph_search_core::dependencies::DependencyIndex>,
+    pub(crate) summary: Option<Summary>,
     pub(crate) lease: std::fs::File,
 }
 
@@ -61,7 +106,10 @@ fn read_current(
     ))
 }
 
-#[allow(clippy::too_many_lines)] // validate one authenticated generation before admission
+/// Admits one generation: the descriptor must be complete, the directory is
+/// pinned, and the manifest header and summary are verified and parsed. The
+/// graph, facts and records are verified lazily through [`Committed::read`];
+/// the lease keeps their paths alive for as long as the store holds it.
 fn select(root: &Path, bytes: &[u8]) -> io::Result<Selected> {
     let pointer: Pointer = serde_json::from_slice(bytes).map_err(io::Error::other)?;
     if !(1..=FORMAT).contains(&pointer.format) || !valid_id(&pointer.id) {
@@ -76,6 +124,8 @@ fn select(root: &Path, bytes: &[u8]) -> io::Result<Selected> {
         || !pointer.files.contains_key(crate::sidecar::DANGLING_FILE)
         || (pointer.format >= 2 && !pointer.files.contains_key(crate::sidecar::SOURCE_FILE))
         || (pointer.format >= 3 && !pointer.files.contains_key(crate::sidecar::OCCURRENCE_FILE))
+        || (pointer.format >= 9) != pointer.files.contains_key(SUMMARY)
+        || (pointer.format >= 9) != pointer.files.contains_key(crate::edge_counts::FILE)
         || pointer.files.keys().any(|name| {
             ![
                 GRAPH,
@@ -85,6 +135,8 @@ fn select(root: &Path, bytes: &[u8]) -> io::Result<Selected> {
                 crate::sidecar::OCCURRENCE_FILE,
                 crate::manifest_records::FILE,
                 DEPENDENCIES,
+                SUMMARY,
+                crate::edge_counts::FILE,
             ]
             .contains(&name.as_str())
         })
@@ -111,38 +163,14 @@ fn select(root: &Path, bytes: &[u8]) -> io::Result<Selected> {
             "incomplete dependency generation descriptor",
         ));
     }
-    let mut dependencies: Option<graph_search_core::dependencies::DependencyIndex> = None;
-    let mut source = None;
-    let mut manifest = None;
-    let mut extraction_bytes = None;
-    for (name, expected) in &pointer.files {
-        let bytes = std::fs::read(dir.join(name))?;
-        if graph_search_core::hash::content_hash(&bytes) != *expected {
-            return Err(io::Error::new(
-                io::ErrorKind::InvalidData,
-                format!("generation checksum mismatch: {name}"),
-            ));
-        }
-        if name == crate::sidecar::SOURCE_FILE {
-            source = Some(crate::source_records::prepare(&bytes, pointer.format)?);
-        } else if name == crate::sidecar::MANIFEST_FILE {
-            manifest = Some(
-                serde_json::from_slice::<graph_search_types::manifest::Manifest>(&bytes)
-                    .map_err(io::Error::other)?,
-            );
-        } else if name == DEPENDENCIES {
-            dependencies = serde_json::from_slice(&crate::compress::inflate_sidecar(&bytes)?)
-                .map_err(io::Error::other)?;
-        } else if name == crate::manifest_records::FILE {
-            extraction_bytes = Some(bytes);
-        }
-    }
     for name in [
         crate::sidecar::MANIFEST_FILE,
         crate::sidecar::SOURCE_FILE,
         crate::sidecar::OCCURRENCE_FILE,
         crate::manifest_records::FILE,
         DEPENDENCIES,
+        SUMMARY,
+        crate::edge_counts::FILE,
     ] {
         if !pointer.files.contains_key(name) && dir.join(name).exists() {
             return Err(io::Error::new(
@@ -151,34 +179,28 @@ fn select(root: &Path, bytes: &[u8]) -> io::Result<Selected> {
             ));
         }
     }
-    let extractions = match (extraction_bytes, manifest.as_ref()) {
-        (Some(bytes), Some(header)) => Some(crate::manifest_records::prepare_verified(
-            &bytes, header, &dir,
-        )?),
-        _ => None,
+    let committed = Committed {
+        dir,
+        format: pointer.format,
+        files: pointer.files,
     };
-    let manifest = manifest
+    let manifest = committed
+        .read(crate::sidecar::MANIFEST_FILE)?
+        .map(|bytes| {
+            serde_json::from_slice::<graph_search_types::manifest::Manifest>(&bytes)
+                .map_err(io::Error::other)
+        })
+        .transpose()?
         .as_ref()
         .map(graph_search_types::manifest::Manifest::header);
-    if let Some(index) = &dependencies {
-        let valid = manifest
-            .as_ref()
-            .zip(extractions.as_ref())
-            .is_some_and(|(header, facts)| index.validates(header, &facts.paths()));
-        if !valid {
-            return Err(io::Error::other(
-                "dependency index does not match generation",
-            ));
-        }
-    }
-    // The store must consume the authenticated source descriptor and verify its
-    // packs before exposing any read handle. Avoid verifying/parsing them twice.
+    let summary = committed
+        .read(SUMMARY)?
+        .map(|bytes| serde_json::from_slice::<Summary>(&bytes).map_err(io::Error::other))
+        .transpose()?;
     Ok(Selected {
-        dir,
-        source,
+        committed,
         manifest,
-        extractions,
-        dependencies,
+        summary,
         lease,
     })
 }
@@ -235,7 +257,7 @@ pub(crate) fn prepare_pointer(root: &Path, dir: &Path) -> io::Result<()> {
         .file_name()
         .and_then(|s| s.to_str())
         .ok_or_else(|| io::Error::other("invalid generation name"))?;
-    let mut files = std::collections::BTreeMap::new();
+    let mut files = BTreeMap::new();
     for name in [
         GRAPH,
         crate::sidecar::DANGLING_FILE,
@@ -244,6 +266,8 @@ pub(crate) fn prepare_pointer(root: &Path, dir: &Path) -> io::Result<()> {
         crate::sidecar::OCCURRENCE_FILE,
         crate::manifest_records::FILE,
         DEPENDENCIES,
+        SUMMARY,
+        crate::edge_counts::FILE,
     ] {
         match std::fs::read(dir.join(name)) {
             Ok(bytes) => {
@@ -343,7 +367,7 @@ mod tests {
         .unwrap();
         assert_eq!(selections, 2);
         assert_eq!(
-            selected.dir.file_name().unwrap().to_str(),
+            selected.committed.dir().file_name().unwrap().to_str(),
             writer.generation().unwrap().as_deref()
         );
         for _ in 0..3 {
@@ -352,10 +376,10 @@ mod tests {
                 .unwrap();
         }
         assert!(
-            selected.dir.exists(),
+            selected.committed.dir().exists(),
             "selection already owns a reader lease"
         );
-        let retained = selected.dir.clone();
+        let retained = selected.committed.dir().to_path_buf();
         drop(selected);
         writer
             .publish(graph_search_core::conformance::fixture_batch())

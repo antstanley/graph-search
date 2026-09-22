@@ -83,10 +83,14 @@ fn equal(actual: &dyn GraphStore, expected: &dyn GraphStore, case: &str) {
         b.all_edges().unwrap(),
         "edges: {case}"
     );
-    assert_eq!(a.source_files(), b.source_files(), "source: {case}");
     assert_eq!(
-        a.occurrence_files(),
-        b.occurrence_files(),
+        a.source_files().unwrap(),
+        b.source_files().unwrap(),
+        "source: {case}"
+    );
+    assert_eq!(
+        a.occurrence_files().unwrap(),
+        b.occurrence_files().unwrap(),
         "occurrences: {case}"
     );
 }

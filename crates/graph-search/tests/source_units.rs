@@ -17,7 +17,7 @@ fn open(root: &std::path::Path) -> Index {
 }
 fn facts(index: &Index) -> BTreeMap<String, SourceFileUnits> {
     let store = GrafeoStore::open(index.store_dir(), &StoreOptions::default()).unwrap();
-    store.snapshot().unwrap().source_files().clone()
+    store.snapshot().unwrap().source_files().unwrap().clone()
 }
 
 #[test]
@@ -147,6 +147,11 @@ fn a_legacy_generation_rebuilds_source_facts_before_automatic_queries() {
         .unwrap()
         .remove("source-units.json");
     std::fs::remove_file(generation.join("source-units.json")).unwrap();
+    // Summaries and edge occurrence tables arrived with format 9.
+    for artifact in ["summary.json", "edge-occurrences.bin"] {
+        pointer["files"].as_object_mut().unwrap().remove(artifact);
+        std::fs::remove_file(generation.join(artifact)).unwrap();
+    }
     std::fs::write(pointer_path, serde_json::to_vec(&pointer).unwrap()).unwrap();
     let index = Index::open(OpenOptions {
         root: root.path().into(),
@@ -187,8 +192,16 @@ fn reopening_rejects_hash_consistent_facts_with_a_foreign_owner() {
     pointer["files"]["source-units.json"] =
         serde_json::json!(graph_search_core::hash::content_hash(&bytes));
     std::fs::write(pointer_path, serde_json::to_vec(&pointer).unwrap()).unwrap();
-    let result = GrafeoStore::open(&store_dir, &StoreOptions::default());
+    // Source facts are verified when first read, so opening succeeds and the
+    // first reader of those facts fails loudly.
+    let store = GrafeoStore::open(&store_dir, &StoreOptions::default()).unwrap();
+    let snapshot = store.snapshot().unwrap();
+    let result = snapshot.source_files();
     assert!(matches!(result, Err(error) if error.to_string().contains("source retrieval facts")));
+    assert!(
+        snapshot.source_files().is_err(),
+        "a failed load is not cached"
+    );
 }
 
 #[test]

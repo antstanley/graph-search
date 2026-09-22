@@ -3,13 +3,19 @@
 //!
 //! BLAKE3: its speed comes from generic SIMD with runtime dispatch (NEON on
 //! AArch64/Graviton, SSE4.1/AVX2/AVX-512 on x86), not from dedicated SHA
-//! instructions that some deployment CPUs lack. One-shot index open verifies
-//! every committed byte, so the hash is on the query path.
+//! instructions that some deployment CPUs lack. Queries verify each committed
+//! artifact they read, so the hash is on the query path.
 
 /// The lowercase hex BLAKE3 digest (256-bit) of `bytes`.
 #[must_use]
 pub fn content_hash(bytes: &[u8]) -> String {
     blake3::hash(bytes).to_hex().to_string()
+}
+
+/// The raw BLAKE3 digest of `bytes`, for fixed-width binary keys.
+#[must_use]
+pub fn digest(bytes: &[u8]) -> [u8; 32] {
+    *blake3::hash(bytes).as_bytes()
 }
 
 #[cfg(test)]

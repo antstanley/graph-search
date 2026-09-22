@@ -8,7 +8,7 @@ use std::{collections::BTreeMap, path::Path};
 
 fn facts(store: &Path) -> BTreeMap<String, SourceFileUnits> {
     let store = GrafeoStore::open(store, &StoreOptions::default()).unwrap();
-    store.snapshot().unwrap().source_files().clone()
+    store.snapshot().unwrap().source_files().unwrap().clone()
 }
 fn open(root: &Path, store: &Path) -> Index {
     Index::open(OpenOptions {

@@ -260,7 +260,8 @@ pub(crate) fn extend_prepared(
                 edge.kind,
                 edge.to.as_deref().unwrap_or(&edge.to_name),
             );
-            let positions = snapshot.occurrences().edge_positions(id.as_str());
+            let occurrences = snapshot.occurrences()?;
+            let positions = occurrences.edge_positions(id.as_str());
             if positions.is_empty() {
                 // Legacy/synthetic edges have no raw occurrence facts. Their
                 // existing indexed line remains a coarse relationship anchor.
@@ -272,9 +273,8 @@ pub(crate) fn extend_prepared(
                 if !work.occurrence()? {
                     break;
                 }
-                let Some((path, file, record)) = snapshot
-                    .occurrences()
-                    .record(snapshot.occurrence_files(), position)
+                let Some((path, file, record)) =
+                    occurrences.record(snapshot.occurrence_files()?, position)
                 else {
                     return Err(crate::Error::Store(
                         "occurrence context lookup does not match its generation".into(),

@@ -141,7 +141,10 @@ fn dependency_records_are_pinned_and_authenticated_with_the_generation() {
     let path = dir.join("dependencies.json.zst");
     let original = zstd::decode_all(std::fs::read(&path).unwrap().as_slice()).unwrap();
     std::fs::write(&path, b"corrupt").unwrap();
-    assert!(GrafeoStore::open(directory.path(), &options).is_err());
+    // Artifacts are verified by their first reader, not by open.
+    let damaged = GrafeoStore::open(directory.path(), &options).unwrap();
+    assert!(damaged.dependency_index().is_err());
+    drop(damaged);
     // Even a rehashed artifact must match the authenticated manifest header.
     let mut malformed: serde_json::Value = serde_json::from_slice(&original).unwrap();
     malformed["records"]["src/a.rs"]["header"]["content_hash"] = "foreign".into();
@@ -150,7 +153,9 @@ fn dependency_records_are_pinned_and_authenticated_with_the_generation() {
     pointer["files"]["dependencies.json.zst"] =
         graph_search_core::hash::content_hash(&bytes).into();
     std::fs::write(&pointer_path, serde_json::to_vec(&pointer).unwrap()).unwrap();
-    assert!(GrafeoStore::open(directory.path(), &options).is_err());
+    let damaged = GrafeoStore::open(directory.path(), &options).unwrap();
+    assert!(damaged.dependency_index().is_err());
+    drop(damaged);
     // Old readers retain the admitted record set, independent of later artifacts.
     assert_eq!(reader.dependency_index().unwrap(), Some(&first));
 }

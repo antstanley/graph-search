@@ -24,7 +24,7 @@ fn facts(index: &Index) -> BTreeMap<String, SourceFileUnits> {
         &graph_search_engine::StoreOptions::default(),
     )
     .unwrap();
-    store.snapshot().unwrap().source_files().clone()
+    store.snapshot().unwrap().source_files().unwrap().clone()
 }
 fn assert_fresh(index: &Index) {
     index.sync().unwrap();

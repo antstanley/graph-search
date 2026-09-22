@@ -352,7 +352,7 @@ pub fn check_package_ownership(store: &mut dyn GraphStore) {
     store
         .apply(package_batch("package-old"))
         .expect("package fixture");
-    let before = store.snapshot().unwrap().source_files().clone();
+    let before = store.snapshot().unwrap().source_files().unwrap().clone();
     let removal = WriteBatch {
         removed_files: vec!["scope/package.json".into()],
         ..WriteBatch::default()
@@ -361,7 +361,7 @@ pub fn check_package_ownership(store: &mut dyn GraphStore) {
         store.apply(removal).is_err(),
         "a retained source cannot refer to a deleted manifest"
     );
-    assert_eq!(store.snapshot().unwrap().source_files(), &before);
+    assert_eq!(store.snapshot().unwrap().source_files().unwrap(), &before);
     let mut manifest_only = package_batch("package-new");
     manifest_only
         .upserts
@@ -370,7 +370,7 @@ pub fn check_package_ownership(store: &mut dyn GraphStore) {
         store.apply(manifest_only).is_err(),
         "a retained source cannot claim the old manifest hash"
     );
-    assert_eq!(store.snapshot().unwrap().source_files(), &before);
+    assert_eq!(store.snapshot().unwrap().source_files().unwrap(), &before);
     let mut wrong_hash = package_batch("package-old");
     let item = &mut wrong_hash.upserts[1];
     let package = item.source.as_mut().unwrap().package.as_mut().unwrap();
@@ -383,12 +383,12 @@ pub fn check_package_ownership(store: &mut dyn GraphStore) {
         store.apply(wrong_hash).is_err(),
         "source and file metadata cannot jointly forge manifest identity"
     );
-    assert_eq!(store.snapshot().unwrap().source_files(), &before);
+    assert_eq!(store.snapshot().unwrap().source_files().unwrap(), &before);
     store
         .apply(package_batch("package-new"))
         .expect("coherent package replacement");
     assert_eq!(
-        store.snapshot().unwrap().source_files()["scope/item.ts"]
+        store.snapshot().unwrap().source_files().unwrap()["scope/item.ts"]
             .package
             .as_ref()
             .unwrap()
@@ -409,7 +409,12 @@ pub fn check_source_ownership(store: &mut dyn GraphStore) {
         &a.symbols,
     ));
     store.apply(valid.clone()).expect("valid source owner");
-    let before = store.snapshot().expect("snapshot").source_files().clone();
+    let before = store
+        .snapshot()
+        .expect("snapshot")
+        .source_files()
+        .unwrap()
+        .clone();
     let original_ids: Vec<_> = store
         .snapshot()
         .expect("snapshot")
@@ -452,7 +457,7 @@ pub fn check_source_ownership(store: &mut dyn GraphStore) {
         }
         assert!(store.apply(invalid).is_err(), "source fact fault {fault}");
         let snapshot = store.snapshot().expect("snapshot after rejection");
-        assert_eq!(snapshot.source_files(), &before);
+        assert_eq!(snapshot.source_files().unwrap(), &before);
         let ids: Vec<_> = snapshot
             .all_nodes()
             .expect("nodes")

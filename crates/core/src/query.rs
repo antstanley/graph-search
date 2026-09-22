@@ -152,7 +152,11 @@ impl<'a> QueryEngine<'a> {
         Ok(())
     }
 
-    fn finish_edges(&self, edges: &mut Vec<EdgeHit>, truncations: &mut Vec<Truncation>) {
+    fn finish_edges(
+        &self,
+        edges: &mut Vec<EdgeHit>,
+        truncations: &mut Vec<Truncation>,
+    ) -> Result<()> {
         let cap = self.work.borrow().returned_edge_limit();
         if edges.len() > cap {
             edges.truncate(cap);
@@ -168,8 +172,9 @@ impl<'a> QueryEngine<'a> {
                 edge.kind,
                 edge.to.as_deref().unwrap_or(&edge.to_name),
             );
-            edge.occurrence_count = self.snapshot.occurrences().count_for_edge(id.as_str());
+            edge.occurrence_count = self.snapshot.occurrence_count(id.as_str())?;
         }
+        Ok(())
     }
 
     fn read_node(&self, id: &NodeId) -> Result<Option<Node>> {
@@ -274,7 +279,7 @@ impl<'a> QueryEngine<'a> {
         self.reset_work()?;
         let mut result = self.symbol_inner(query)?;
         self.finish_work(&mut result.stats, &mut result.truncations)?;
-        self.finish_edges(&mut result.edges, &mut result.truncations);
+        self.finish_edges(&mut result.edges, &mut result.truncations)?;
         crate::payload::fit_graph(&mut result)?;
         Ok(result)
     }
@@ -286,7 +291,7 @@ impl<'a> QueryEngine<'a> {
         self.validate_filters(&query.filters)?;
         let found = if let Some(node) = self.read_node(&NodeId::new(&query.target))? {
             if (kinds.is_empty() || kinds.contains(&node.kind))
-                && self.passes_filters(&node)
+                && self.passes_filters(&node)?
                 && self.work.borrow_mut().candidate()?
             {
                 vec![Scored::new(node, 1.0)]
@@ -294,7 +299,7 @@ impl<'a> QueryEngine<'a> {
                 Vec::new()
             }
         } else {
-            self.snapshot.metadata().find_filtered(
+            self.snapshot.metadata()?.find_filtered(
                 &query.target,
                 &kinds,
                 &self.filters.borrow(),
@@ -330,7 +335,7 @@ impl<'a> QueryEngine<'a> {
         self.reset_work()?;
         let mut result = self.refs_inner(query)?;
         self.finish_work(&mut result.stats, &mut result.truncations)?;
-        self.finish_edges(&mut result.edges, &mut result.truncations);
+        self.finish_edges(&mut result.edges, &mut result.truncations)?;
         crate::payload::fit_graph(&mut result)?;
         Ok(result)
     }
@@ -359,7 +364,7 @@ impl<'a> QueryEngine<'a> {
                 self.resolve_target(&query.target)?.to_string()
             }
         };
-        let index = self.snapshot.occurrences();
+        let index = self.snapshot.occurrences()?;
         let (indexed_files, extracted_files) = index.coverage();
         let mut result = OccurrenceResult {
             indexed_files,
@@ -372,7 +377,7 @@ impl<'a> QueryEngine<'a> {
                 break;
             }
             let (path, file, record) = index
-                .record(self.snapshot.occurrence_files(), position)
+                .record(self.snapshot.occurrence_files()?, position)
                 .ok_or_else(|| {
                     Error::Store("occurrence lookup does not match its generation".into())
                 })?;
@@ -382,7 +387,7 @@ impl<'a> QueryEngine<'a> {
             let Some(owner) = self.read_node(&record.owner)? else {
                 continue;
             };
-            if !self.passes_filters(&owner) {
+            if !self.passes_filters(&owner)? {
                 continue;
             }
             if result.items.len() == cap {
@@ -421,7 +426,7 @@ impl<'a> QueryEngine<'a> {
         self.reset_work()?;
         let mut result = self.callers_inner(query)?;
         self.finish_work(&mut result.stats, &mut result.truncations)?;
-        self.finish_edges(&mut result.edges, &mut result.truncations);
+        self.finish_edges(&mut result.edges, &mut result.truncations)?;
         crate::payload::fit_graph(&mut result)?;
         Ok(result)
     }
@@ -438,7 +443,7 @@ impl<'a> QueryEngine<'a> {
         self.reset_work()?;
         let mut result = self.callees_inner(query)?;
         self.finish_work(&mut result.stats, &mut result.truncations)?;
-        self.finish_edges(&mut result.edges, &mut result.truncations);
+        self.finish_edges(&mut result.edges, &mut result.truncations)?;
         crate::payload::fit_graph(&mut result)?;
         Ok(result)
     }
@@ -457,7 +462,7 @@ impl<'a> QueryEngine<'a> {
         self.reset_work()?;
         let mut result = self.impact_inner(query)?;
         self.finish_work(&mut result.stats, &mut result.truncations)?;
-        self.finish_edges(&mut result.edges, &mut result.truncations);
+        self.finish_edges(&mut result.edges, &mut result.truncations)?;
         crate::payload::fit_impact(&mut result)?;
         Ok(result)
     }
@@ -488,7 +493,7 @@ impl<'a> QueryEngine<'a> {
                         && let Some(node) = self.read_node(&from)?
                     {
                         distances.insert(from.clone(), depth);
-                        if self.passes_filters(&node) {
+                        if self.passes_filters(&node)? {
                             let count = ring.entry(node.kind).or_insert(0u64);
                             *count = count.saturating_add(1);
                         }
@@ -516,7 +521,7 @@ impl<'a> QueryEngine<'a> {
         let mut top = Vec::new();
         for (id, depth) in distances {
             if let Some(node) = self.read_node(&id)?
-                && self.passes_filters(&node)
+                && self.passes_filters(&node)?
             {
                 top.push((
                     depth,
@@ -579,7 +584,7 @@ impl<'a> QueryEngine<'a> {
         self.reset_work()?;
         let mut result = self.deps_inner(query)?;
         self.finish_work(&mut result.stats, &mut result.truncations)?;
-        self.finish_edges(&mut result.edges, &mut result.truncations);
+        self.finish_edges(&mut result.edges, &mut result.truncations)?;
         crate::payload::fit_graph(&mut result)?;
         Ok(result)
     }
@@ -612,7 +617,7 @@ impl<'a> QueryEngine<'a> {
         self.reset_work()?;
         let mut result = self.neighbors_inner(query)?;
         self.finish_work(&mut result.stats, &mut result.truncations)?;
-        self.finish_edges(&mut result.edges, &mut result.truncations);
+        self.finish_edges(&mut result.edges, &mut result.truncations)?;
         crate::payload::fit_graph(&mut result)?;
         Ok(result)
     }
@@ -628,7 +633,7 @@ impl<'a> QueryEngine<'a> {
             &kinds,
             Direction::Both,
         )?;
-        Ok(self.result_from_subgraph(&subgraph, query.limit, &query.filters, started))
+        self.result_from_subgraph(&subgraph, query.limit, &query.filters, started)
     }
 
     /// `path`: the shortest path between two nodes (`SPEC.md` §8.3).
@@ -639,7 +644,7 @@ impl<'a> QueryEngine<'a> {
         self.reset_work()?;
         let mut result = self.path_inner(query)?;
         self.finish_work(&mut result.stats, &mut result.truncations)?;
-        self.finish_edges(&mut result.edges, &mut result.truncations);
+        self.finish_edges(&mut result.edges, &mut result.truncations)?;
         crate::payload::fit_graph(&mut result)?;
         Ok(result)
     }
@@ -797,7 +802,7 @@ impl<'a> QueryEngine<'a> {
         } = self.seed(query, root, policy, &mut sources, &context)?;
         if coverage.enumeration_complete.is_some() {
             coverage.quarantined_files = context.coverage.quarantined_files;
-            crate::units::coverage(self.snapshot.source_files(), &mut coverage);
+            self.snapshot.source_coverage().apply(&mut coverage);
             context.coverage = coverage;
         }
         let hops = query.hops.clamp(1, MAX_HOPS_CEILING);
@@ -992,7 +997,7 @@ impl<'a> QueryEngine<'a> {
         };
         let mut primary_sources = crate::context_dedup::prepare(&mut result);
         self.finish_work(&mut result.stats, &mut result.truncations)?;
-        self.finish_edges(&mut result.edges, &mut result.truncations);
+        self.finish_edges(&mut result.edges, &mut result.truncations)?;
         fit_explore(&mut result, explore_byte_cap(query.max_bytes))?;
         primary_sources.retain(&result);
         if query.context_lines > 0 && !compact {
@@ -1026,12 +1031,12 @@ impl<'a> QueryEngine<'a> {
         }
         let seed_ids: Vec<NodeId> = seeds.iter().map(|s| s.item.id.clone()).collect();
         let subgraph = self.expand(&seed_ids, hops, relations, Direction::Both)?;
-        let allowed: BTreeSet<NodeId> = subgraph
-            .nodes
-            .iter()
-            .filter(|n| self.passes_filters(n))
-            .map(|n| n.id.clone())
-            .collect();
+        let mut allowed: BTreeSet<NodeId> = BTreeSet::new();
+        for node in &subgraph.nodes {
+            if self.passes_filters(node)? {
+                allowed.insert(node.id.clone());
+            }
+        }
         let seed_set: BTreeSet<NodeId> = seed_ids.iter().cloned().collect();
         let connections = crate::connections::ConnectionGraph::new(allowed, &subgraph.edges);
         let selected = connections.paths(&seed_ids, hops, &mut self.work.borrow_mut())?;
@@ -1179,10 +1184,10 @@ impl<'a> QueryEngine<'a> {
         let navigation = if direct_id {
             plan.routes.push(RetrievalRoute::ExactId);
             let id = NodeId::new(query.query.trim());
-            let node = self
-                .snapshot
-                .node_by_id(&id)?
-                .filter(|node| self.passes_filters(node));
+            let node = match self.snapshot.node_by_id(&id)? {
+                Some(node) if self.passes_filters(&node)? => Some(node),
+                _ => None,
+            };
             let mut hits = Vec::new();
             if let Some(node) = node
                 && self.work.borrow_mut().candidate()?
@@ -1192,7 +1197,7 @@ impl<'a> QueryEngine<'a> {
             Some(hits)
         } else if query.retrieval.mode == ExploreMode::ExactName || fast_name {
             plan.routes.push(RetrievalRoute::ExactName);
-            let mut hits = self.snapshot.metadata().find_filtered(
+            let mut hits = self.snapshot.metadata()?.find_filtered(
                 query.query.trim(),
                 &[],
                 &self.filters.borrow(),
@@ -1208,14 +1213,14 @@ impl<'a> QueryEngine<'a> {
             }
         } else if query.retrieval.mode == ExploreMode::NamePrefix {
             plan.routes.push(RetrievalRoute::NamePrefix);
-            Some(self.snapshot.metadata().find_prefix(
+            Some(self.snapshot.metadata()?.find_prefix(
                 query.query.trim(),
                 &self.filters.borrow(),
                 &mut self.work.borrow_mut(),
             )?)
         } else if query.retrieval.mode == ExploreMode::PathGlob {
             plan.routes.push(RetrievalRoute::PathGlob);
-            Some(self.snapshot.metadata().find_paths(
+            Some(self.snapshot.metadata()?.find_paths(
                 query.query.trim(),
                 &self.filters.borrow(),
                 &mut self.work.borrow_mut(),
@@ -1307,7 +1312,7 @@ impl<'a> QueryEngine<'a> {
                     } else {
                         2
                     });
-            let candidates = self.snapshot.metadata().search_top_with_policy(
+            let candidates = self.snapshot.metadata()?.search_top_with_policy(
                 &terms,
                 &exact,
                 &self.filters.borrow(),
@@ -1361,14 +1366,14 @@ impl<'a> QueryEngine<'a> {
         let representation_changed = context
             .indexed_versions
             .is_some_and(|versions| !versions.retrieval_is_current());
+        let indexed_sources = self.snapshot.source_files()?;
         let mut excluded = changed;
         if representation_changed {
-            excluded.extend(self.snapshot.source_files().keys().cloned());
+            excluded.extend(indexed_sources.keys().cloned());
         }
         if query.retrieval.analysis == graph_search_types::AnalysisMode::Identifiers {
             excluded.extend(
-                self.snapshot
-                    .source_files()
+                indexed_sources
                     .iter()
                     .filter(|(_, file)| file.version < 2)
                     .map(|(path, _)| path.clone()),
@@ -1385,7 +1390,7 @@ impl<'a> QueryEngine<'a> {
             eligible.insert(entry.rel.clone());
             if !unchecked
                 && !excluded.contains(&entry.rel)
-                && self.snapshot.source_files().contains_key(&entry.rel)
+                && indexed_sources.contains_key(&entry.rel)
             {
                 continue;
             }
@@ -1420,17 +1425,12 @@ impl<'a> QueryEngine<'a> {
             };
             scanned_bytes = scanned_bytes.saturating_add(text.len() as u64);
             let hash = crate::hash::content_hash(text.as_bytes());
-            if self
-                .snapshot
-                .source_files()
-                .get(&entry.rel)
-                .is_some_and(|file| {
-                    !representation_changed
-                        && file.source_hash == hash
-                        && (query.retrieval.analysis == graph_search_types::AnalysisMode::Split
-                            || file.version >= 2)
-                })
-            {
+            if indexed_sources.get(&entry.rel).is_some_and(|file| {
+                !representation_changed
+                    && file.source_hash == hash
+                    && (query.retrieval.analysis == graph_search_types::AnalysisMode::Split
+                        || file.version >= 2)
+            }) {
                 excluded.remove(&entry.rel);
                 continue;
             }
@@ -1448,8 +1448,7 @@ impl<'a> QueryEngine<'a> {
         }
         if coverage.enumeration_complete == Some(true) {
             excluded.extend(
-                self.snapshot
-                    .source_files()
+                indexed_sources
                     .keys()
                     .filter(|path| !eligible.contains(*path))
                     .cloned(),
@@ -1469,10 +1468,11 @@ impl<'a> QueryEngine<'a> {
             query.retrieval.analysis,
         )?;
         self.work.borrow_mut().absorb_lexical(overlay_work);
-        let (indexed, indexed_count) = self.snapshot.body().search_with_analysis(
+        let metadata_index = self.snapshot.metadata()?;
+        let (indexed, indexed_count) = self.snapshot.body()?.search_with_analysis(
             &terms,
             &self.filters.borrow(),
-            |path| self.snapshot.metadata().language(path),
+            |path| metadata_index.language(path),
             &excluded,
             &mut self.work.borrow_mut(),
             pool,
@@ -1499,7 +1499,7 @@ impl<'a> QueryEngine<'a> {
         });
         if automatic_ranking && ranking == RankingStrategy::Body && body_hits.is_empty() {
             plan.routes.push(RetrievalRoute::Metadata);
-            metadata = self.snapshot.metadata().search_top_with_policy(
+            metadata = self.snapshot.metadata()?.search_top_with_policy(
                 &terms,
                 &exact,
                 &self.filters.borrow(),
@@ -1541,7 +1541,7 @@ impl<'a> QueryEngine<'a> {
             let facts = if live {
                 &overlay[&hit.path]
             } else {
-                &self.snapshot.source_files()[&hit.path]
+                &indexed_sources[&hit.path]
             };
             let unit = &facts.units[hit.unit];
             let owner = if live { None } else { unit.owner.as_ref() };
@@ -1705,10 +1705,16 @@ impl<'a> QueryEngine<'a> {
         Ok(())
     }
 
-    fn passes_filters(&self, node: &Node) -> bool {
-        self.filters
-            .borrow()
-            .matches(&node.path, self.snapshot.metadata().language(&node.path))
+    /// Only a language filter needs the metadata index; the path filter and
+    /// the common unfiltered case never load it.
+    fn passes_filters(&self, node: &Node) -> Result<bool> {
+        let filters = self.filters.borrow();
+        let language = if filters.needs_language() {
+            self.snapshot.metadata()?.language(&node.path)
+        } else {
+            None
+        };
+        Ok(filters.matches(&node.path, language))
     }
 
     fn traverse(
@@ -1727,7 +1733,7 @@ impl<'a> QueryEngine<'a> {
             kinds,
             dir,
         )?;
-        Ok(self.result_from_subgraph(&subgraph, query.limit, &query.filters, started))
+        self.result_from_subgraph(&subgraph, query.limit, &query.filters, started)
     }
 
     fn assemble_graph(
@@ -1748,7 +1754,7 @@ impl<'a> QueryEngine<'a> {
                 nodes.insert(id.clone(), node);
             }
         }
-        Ok(self.result_from_subgraph(
+        self.result_from_subgraph(
             &graph_search_types::Subgraph {
                 nodes: nodes.into_values().collect(),
                 edges: edges.to_vec(),
@@ -1756,7 +1762,7 @@ impl<'a> QueryEngine<'a> {
             limit,
             filters,
             started,
-        ))
+        )
     }
 
     fn result_from_subgraph(
@@ -1765,13 +1771,13 @@ impl<'a> QueryEngine<'a> {
         limit: u32,
         _filters: &graph_search_types::query::GraphFilters,
         started: std::time::Instant,
-    ) -> GraphResult {
-        let allowed: BTreeSet<String> = subgraph
-            .nodes
-            .iter()
-            .filter(|n| self.passes_filters(n))
-            .map(|n| n.id.to_string())
-            .collect();
+    ) -> Result<GraphResult> {
+        let mut allowed: BTreeSet<String> = BTreeSet::new();
+        for node in &subgraph.nodes {
+            if self.passes_filters(node)? {
+                allowed.insert(node.id.to_string());
+            }
+        }
         let mut hits: Vec<SymbolHit> = subgraph
             .nodes
             .iter()
@@ -1802,7 +1808,7 @@ impl<'a> QueryEngine<'a> {
         edges.sort();
         let resolved = edges.iter().filter(|e| e.resolved).count() as u64;
         let unresolved = (edges.len() as u64).saturating_sub(resolved);
-        GraphResult {
+        Ok(GraphResult {
             context: ResultContext::default(),
             nodes: hits,
             edges,
@@ -1817,7 +1823,7 @@ impl<'a> QueryEngine<'a> {
                 elapsed_ms: ms_since(started),
                 ..Stats::default()
             },
-        }
+        })
     }
 }
 

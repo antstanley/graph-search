@@ -74,13 +74,17 @@ pub(crate) fn prepare_manifest(store_dir: &Path, manifest: &Manifest) -> std::io
 /// # Errors
 /// When the sidecar exists but cannot be parsed.
 pub fn load_dangling(store_dir: &Path) -> std::io::Result<Vec<Edge>> {
-    let path = store_dir.join(DANGLING_FILE);
-    let text = match std::fs::read(&path) {
-        Ok(bytes) => String::from_utf8(crate::compress::inflate_sidecar(&bytes)?)
-            .map_err(|error| std::io::Error::new(std::io::ErrorKind::InvalidData, error))?,
-        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(Vec::new()),
-        Err(error) => return Err(error),
-    };
+    match std::fs::read(store_dir.join(DANGLING_FILE)) {
+        Ok(bytes) => decode_dangling(&bytes),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(Vec::new()),
+        Err(error) => Err(error),
+    }
+}
+
+/// Decodes the committed (compressed) dangling sidecar bytes.
+pub(crate) fn decode_dangling(bytes: &[u8]) -> std::io::Result<Vec<Edge>> {
+    let text = String::from_utf8(crate::compress::inflate_sidecar(bytes)?)
+        .map_err(|error| std::io::Error::new(std::io::ErrorKind::InvalidData, error))?;
     let mut edges = Vec::new();
     for line in text.lines() {
         if line.trim().is_empty() {
@@ -164,15 +168,22 @@ pub fn load_occurrences(
 ) -> std::io::Result<
     std::collections::BTreeMap<String, graph_search_types::occurrence::OccurrenceFile>,
 > {
-    let bytes = match std::fs::read(dir.join(OCCURRENCE_FILE)) {
-        Ok(bytes) => bytes,
+    match std::fs::read(dir.join(OCCURRENCE_FILE)) {
+        Ok(bytes) => decode_occurrences(&bytes),
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
-            return Ok(std::collections::BTreeMap::new());
+            Ok(std::collections::BTreeMap::new())
         }
-        Err(error) => return Err(error),
-    };
-    serde_json::from_slice(&crate::compress::inflate_sidecar(&bytes)?)
-        .map_err(std::io::Error::other)
+        Err(error) => Err(error),
+    }
+}
+
+/// Decodes the committed (compressed) occurrence sidecar bytes.
+pub(crate) fn decode_occurrences(
+    bytes: &[u8],
+) -> std::io::Result<
+    std::collections::BTreeMap<String, graph_search_types::occurrence::OccurrenceFile>,
+> {
+    serde_json::from_slice(&crate::compress::inflate_sidecar(bytes)?).map_err(std::io::Error::other)
 }
 
 /// Publishes and syncs occurrences inside an unpublished generation.

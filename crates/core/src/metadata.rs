@@ -24,6 +24,13 @@ impl CompiledFilters {
                 .transpose()?,
         })
     }
+    /// Whether matching needs a node's language, which only the metadata
+    /// index knows.
+    #[must_use]
+    pub const fn needs_language(&self) -> bool {
+        self.language.is_some()
+    }
+
     /// Matches cached language metadata and a workspace-relative path.
     #[must_use]
     pub fn matches(&self, path: &str, language: Option<graph_search_types::Language>) -> bool {
@@ -77,8 +84,10 @@ pub struct MetadataIndex {
     folded: BTreeMap<String, Vec<usize>>,
     symbols: Vec<usize>,
     file_ordinals: Vec<usize>,
-    lexical: LexicalIndex,
-    identifiers: LexicalIndex,
+    /// Ranked-search postings, built on first ranked search: exact-name,
+    /// prefix and path lookups never need them.
+    lexical: std::sync::OnceLock<LexicalIndex>,
+    identifiers: std::sync::OnceLock<LexicalIndex>,
 }
 impl Default for MetadataIndex {
     fn default() -> Self {
@@ -154,37 +163,13 @@ impl MetadataIndex {
                 }
             }
         }
-        let (lexical, identifiers) = if let Some(previous) = previous {
-            let old: BTreeMap<_, _> = previous
-                .symbols
-                .iter()
-                .enumerate()
-                .map(|(ordinal, &i)| (&previous.nodes[i].id, (ordinal, &previous.nodes[i])))
-                .collect();
-            let mut claimed = BTreeSet::new();
-            let reuse: Vec<_> = symbol_nodes
-                .iter()
-                .map(|node| {
-                    old.get(&node.id)
-                        .filter(|(_, before)| {
-                            node.path == before.path
-                                && node.name == before.name
-                                && node.qualified_name == before.qualified_name
-                                && node.signature == before.signature
-                        })
-                        .filter(|(ordinal, _)| claimed.insert(*ordinal))
-                        .map(|(ordinal, _)| *ordinal)
-                })
-                .collect();
-            (
-                previous.lexical.updated(&symbol_nodes, &reuse),
-                previous.identifiers.updated(&symbol_nodes, &reuse),
-            )
-        } else {
-            (
-                LexicalIndex::new(&symbol_nodes),
-                LexicalIndex::with_fields(&symbol_nodes, true, true),
-            )
+        let (lexical, identifiers) = match previous {
+            Some(previous)
+                if previous.lexical.get().is_some() || previous.identifiers.get().is_some() =>
+            {
+                Self::updated_postings(previous, &symbol_nodes)
+            }
+            _ => (std::sync::OnceLock::new(), std::sync::OnceLock::new()),
         };
         let file_ordinals = nodes
             .iter()
@@ -204,6 +189,63 @@ impl MetadataIndex {
             lexical,
             identifiers,
         }
+    }
+
+    /// Shares unchanged posting lists with an earlier generation's postings,
+    /// for whichever of them that generation had built.
+    fn updated_postings(
+        previous: &Self,
+        symbol_nodes: &[Node],
+    ) -> (
+        std::sync::OnceLock<LexicalIndex>,
+        std::sync::OnceLock<LexicalIndex>,
+    ) {
+        let old: BTreeMap<_, _> = previous
+            .symbols
+            .iter()
+            .enumerate()
+            .map(|(ordinal, &i)| (&previous.nodes[i].id, (ordinal, &previous.nodes[i])))
+            .collect();
+        let mut claimed = BTreeSet::new();
+        let reuse: Vec<_> = symbol_nodes
+            .iter()
+            .map(|node| {
+                old.get(&node.id)
+                    .filter(|(_, before)| {
+                        node.path == before.path
+                            && node.name == before.name
+                            && node.qualified_name == before.qualified_name
+                            && node.signature == before.signature
+                    })
+                    .filter(|(ordinal, _)| claimed.insert(*ordinal))
+                    .map(|(ordinal, _)| *ordinal)
+            })
+            .collect();
+        let updated = |postings: &std::sync::OnceLock<LexicalIndex>| {
+            postings
+                .get()
+                .map_or_else(std::sync::OnceLock::new, |postings| {
+                    std::sync::OnceLock::from(postings.updated(symbol_nodes, &reuse))
+                })
+        };
+        (updated(&previous.lexical), updated(&previous.identifiers))
+    }
+
+    fn symbol_nodes(&self) -> Vec<Node> {
+        self.symbols
+            .iter()
+            .map(|&i| self.nodes[i].clone())
+            .collect()
+    }
+
+    fn lexical(&self) -> &LexicalIndex {
+        self.lexical
+            .get_or_init(|| LexicalIndex::new(&self.symbol_nodes()))
+    }
+
+    fn identifiers(&self) -> &LexicalIndex {
+        self.identifiers
+            .get_or_init(|| LexicalIndex::with_fields(&self.symbol_nodes(), true, true))
     }
 
     /// Cached source-file language without graph property reads.
@@ -437,8 +479,8 @@ impl MetadataIndex {
         normalization: graph_search_types::FieldNormalization,
     ) -> Result<MetadataCandidates> {
         let lexical = match analysis {
-            graph_search_types::AnalysisMode::Split => &self.lexical,
-            graph_search_types::AnalysisMode::Identifiers => &self.identifiers,
+            graph_search_types::AnalysisMode::Split => self.lexical(),
+            graph_search_types::AnalysisMode::Identifiers => self.identifiers(),
         };
 
         let accept = |document: usize| {
@@ -955,7 +997,7 @@ mod tests {
                 .enumerate()
                 .filter_map(|(document, &i)| {
                     let node = &index.nodes[i];
-                    let raw = index.lexical.score(document, &terms);
+                    let raw = index.lexical().score(document, &terms);
                     let is_exact = [node.name.as_ref(), node.qualified_name.as_ref()]
                         .into_iter()
                         .flatten()

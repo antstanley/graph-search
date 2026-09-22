@@ -245,6 +245,7 @@ fn native_metadata_rebuilds_on_publication_and_reopen() {
         );
         let hits = snapshot
             .metadata()
+            .expect("metadata")
             .search(
                 &graph_search_core::lexical::query_terms("renamed"),
                 "absent",
@@ -275,6 +276,7 @@ fn native_metadata_rebuilds_on_publication_and_reopen() {
     assert!(
         snapshot
             .metadata()
+            .expect("metadata")
             .search(
                 &graph_search_core::lexical::query_terms("renamed"),
                 "absent",

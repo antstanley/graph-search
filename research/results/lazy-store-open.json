@@ -1,0 +1,27 @@
+{
+  "experiment": "lazy-store-open",
+  "date": "2026-09-22",
+  "finding": "P0.1",
+  "baseline": { "commit": "49144a7", "storage_format": 8 },
+  "candidate": { "branch": "perf/lazy-store-open", "storage_format": 9 },
+  "method": "criterion, cargo bench -p graph-search --bench evaluation -- 'open/|repo/'; repo = nanus via GRAPH_SEARCH_BENCH_REPO; each iteration opens, queries once, drops; point estimates (median of criterion interval)",
+  "unit": "ms",
+  "results": {
+    "repo/status":          { "main": 495.30, "branch": 2.4052 },
+    "repo/text":            { "main": 499.50, "branch": 9.4686 },
+    "repo/sync":            { "main": 494.54, "branch": 2.5209 },
+    "repo/symbol":          { "main": 494.23, "branch": 121.30 },
+    "repo/callers":         { "main": 491.64, "branch": 170.36 },
+    "repo/impact":          { "main": 493.54, "branch": 171.18 },
+    "repo/explore":         { "main": 498.95, "branch": 404.53 },
+    "open/published_store": { "main": 61.028, "branch": 0.2978 },
+    "open/status":          { "main": 62.924, "branch": 1.3261 },
+    "open/refs":            { "main": 62.463, "branch": 38.032 },
+    "open/explore":         { "main": 64.413, "branch": 48.636 }
+  },
+  "gate": { "tests_passed": 582, "tests_failed": 0, "clippy": "clean" },
+  "acceptance_doc12_5_1": {
+    "status_corpus_under_100ms": true,
+    "status_nanus_under_150ms": true
+  }
+}

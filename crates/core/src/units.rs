@@ -520,62 +520,100 @@ pub(crate) fn coverage_from<'a>(
     files: impl Iterator<Item = &'a SourceFileUnits>,
     coverage: &mut graph_search_types::coverage::Coverage,
 ) {
-    coverage.package_scope_incomplete_files = 0;
-    coverage.source_indexed_files = 0;
-    coverage.source_units = 0;
-    coverage.source_unit_truncated_files = 0;
-    coverage.source_link_truncated_files = 0;
-    coverage.source_documentation_truncated_files = 0;
-    coverage.source_framework_region_files = 0;
-    coverage.source_framework_regions = 0;
-    coverage.source_framework_unextracted_regions = 0;
-    coverage.source_framework_truncated_files = 0;
-    for file in files {
-        coverage.package_scope_incomplete_files = coverage
-            .package_scope_incomplete_files
-            .saturating_add(u64::from(file.package_scope_incomplete));
-        coverage.source_documentation_truncated_files = coverage
-            .source_documentation_truncated_files
-            .saturating_add(u64::from(file.documentation_truncated));
-        coverage.source_link_truncated_files =
-            coverage
+    SourceCoverage::summarize(files).apply(coverage);
+}
+
+/// The generation-owned source coverage counters, small enough to cache with
+/// a generation so that reporting them never loads the source facts.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct SourceCoverage {
+    /// Files with ambiguous or unavailable nearest package metadata.
+    pub package_scope_incomplete_files: u64,
+    /// Files with source retrieval facts.
+    pub source_indexed_files: u64,
+    /// Source regions.
+    pub source_units: u64,
+    /// Files whose region cap omitted source.
+    pub source_unit_truncated_files: u64,
+    /// Files whose Markdown link metadata reached a cap.
+    pub source_link_truncated_files: u64,
+    /// Files with incomplete documentation metadata.
+    pub source_documentation_truncated_files: u64,
+    /// Files with at least one framework script region.
+    pub source_framework_region_files: u64,
+    /// Framework script regions.
+    pub source_framework_regions: u64,
+    /// Framework regions whose dialect is unmodeled.
+    pub source_framework_unextracted_regions: u64,
+    /// Framework files whose region scan reached an adapter bound.
+    pub source_framework_truncated_files: u64,
+}
+
+impl SourceCoverage {
+    /// Counts the coverage of one generation's source facts.
+    pub fn summarize<'a>(files: impl Iterator<Item = &'a SourceFileUnits>) -> Self {
+        let mut summary = Self::default();
+        for file in files {
+            summary.package_scope_incomplete_files = summary
+                .package_scope_incomplete_files
+                .saturating_add(u64::from(file.package_scope_incomplete));
+            summary.source_documentation_truncated_files = summary
+                .source_documentation_truncated_files
+                .saturating_add(u64::from(file.documentation_truncated));
+            summary.source_link_truncated_files = summary
                 .source_link_truncated_files
                 .saturating_add(u64::from(
                     file.units.iter().any(|unit| unit.links_truncated),
                 ));
-        coverage.source_framework_region_files = coverage
-            .source_framework_region_files
-            .saturating_add(u64::from(file.embedded_regions > 0));
-        coverage.source_framework_regions = coverage
-            .source_framework_regions
-            .saturating_add(u64::from(file.embedded_regions));
-        coverage.source_framework_unextracted_regions = coverage
-            .source_framework_unextracted_regions
-            .saturating_add(u64::from(file.embedded_unextracted_regions));
-        coverage.source_framework_truncated_files = coverage
-            .source_framework_truncated_files
-            .saturating_add(u64::from(file.embedded_truncated));
-        coverage.source_indexed_files = coverage.source_indexed_files.saturating_add(1);
-        coverage.source_units = coverage
-            .source_units
-            .saturating_add(file.units.len() as u64);
-        coverage.source_unit_truncated_files = coverage
-            .source_unit_truncated_files
-            .saturating_add(u64::from(file.truncated));
+            summary.source_framework_region_files = summary
+                .source_framework_region_files
+                .saturating_add(u64::from(file.embedded_regions > 0));
+            summary.source_framework_regions = summary
+                .source_framework_regions
+                .saturating_add(u64::from(file.embedded_regions));
+            summary.source_framework_unextracted_regions = summary
+                .source_framework_unextracted_regions
+                .saturating_add(u64::from(file.embedded_unextracted_regions));
+            summary.source_framework_truncated_files = summary
+                .source_framework_truncated_files
+                .saturating_add(u64::from(file.embedded_truncated));
+            summary.source_indexed_files = summary.source_indexed_files.saturating_add(1);
+            summary.source_units = summary.source_units.saturating_add(file.units.len() as u64);
+            summary.source_unit_truncated_files = summary
+                .source_unit_truncated_files
+                .saturating_add(u64::from(file.truncated));
+        }
+        summary
     }
-    if coverage.source_unit_truncated_files > 0
-        && !coverage
-            .truncations
-            .iter()
-            .any(|t| t.kind == graph_search_types::result::TruncationKind::SourceUnits)
-    {
-        coverage
-            .truncations
-            .push(graph_search_types::result::Truncation::new(
-                graph_search_types::result::TruncationKind::SourceUnits,
-                graph_search_types::limits::MAX_SOURCE_UNITS_PER_FILE as u64,
-                "source-region indexing reached its per-file cap; source retrieval is partial",
-            ));
+
+    /// Replaces the source counters of a report and records the source-unit
+    /// truncation notice when the cap was reached.
+    pub fn apply(&self, coverage: &mut graph_search_types::coverage::Coverage) {
+        coverage.package_scope_incomplete_files = self.package_scope_incomplete_files;
+        coverage.source_indexed_files = self.source_indexed_files;
+        coverage.source_units = self.source_units;
+        coverage.source_unit_truncated_files = self.source_unit_truncated_files;
+        coverage.source_link_truncated_files = self.source_link_truncated_files;
+        coverage.source_documentation_truncated_files = self.source_documentation_truncated_files;
+        coverage.source_framework_region_files = self.source_framework_region_files;
+        coverage.source_framework_regions = self.source_framework_regions;
+        coverage.source_framework_unextracted_regions = self.source_framework_unextracted_regions;
+        coverage.source_framework_truncated_files = self.source_framework_truncated_files;
+        if coverage.source_unit_truncated_files > 0
+            && !coverage
+                .truncations
+                .iter()
+                .any(|t| t.kind == graph_search_types::result::TruncationKind::SourceUnits)
+        {
+            coverage
+                .truncations
+                .push(graph_search_types::result::Truncation::new(
+                    graph_search_types::result::TruncationKind::SourceUnits,
+                    graph_search_types::limits::MAX_SOURCE_UNITS_PER_FILE as u64,
+                    "source-region indexing reached its per-file cap; source retrieval is partial",
+                ));
+        }
     }
 }
 

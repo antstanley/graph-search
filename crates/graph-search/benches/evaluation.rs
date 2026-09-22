@@ -10,6 +10,8 @@
 //!
 //! ```sh
 //! cargo bench -p graph-search --bench evaluation
+//! # Also measure one-shot queries on a real repository (the `nanus` probes):
+//! GRAPH_SEARCH_BENCH_REPO=../nanus cargo bench -p graph-search --bench evaluation -- repo
 //! ```
 
 // Benchmarks are fixture code; a setup failure must abort the measurement and
@@ -26,7 +28,9 @@
 use criterion::{BenchmarkId, Criterion, criterion_group, criterion_main};
 use graph_search::{Index, OpenOptions};
 use graph_search_types::ExploreDetail;
-use graph_search_types::query::{ExploreQuery, RefQuery, TextQuery, TraversalQuery};
+use graph_search_types::query::{
+    ExploreQuery, RefQuery, SymbolQuery, TextQuery, TraversalQuery,
+};
 use std::hint::black_box;
 use std::path::{Path, PathBuf};
 use std::sync::OnceLock;
@@ -83,7 +87,77 @@ fn open(root: &Path, store: &Path) -> Index {
     .expect("benchmark index opens")
 }
 
+/// One-shot open-plus-query shapes on an external repository, as a CLI
+/// invocation pays them. Symbols are the independent evaluation's `nanus`
+/// probes; any repository works, with misses measured as empty answers.
+fn repository(c: &mut Criterion) {
+    let Some(repo) = std::env::var_os("GRAPH_SEARCH_BENCH_REPO") else {
+        return;
+    };
+    let root = PathBuf::from(repo);
+    let store = tempfile::tempdir().expect("benchmark store directory");
+    open(&root, store.path())
+        .reindex()
+        .expect("benchmark repository indexes");
+    let store = store.path();
+    let mut group = c.benchmark_group("repo");
+    group.sample_size(20);
+    group.bench_function("status", |b| {
+        b.iter(|| black_box(open(&root, store).search().status()));
+    });
+    group.bench_function("symbol", |b| {
+        b.iter(|| {
+            black_box(
+                open(&root, store)
+                    .search()
+                    .symbol(&SymbolQuery::new("ToolRegistry")),
+            )
+        });
+    });
+    group.bench_function("text", |b| {
+        b.iter(|| {
+            black_box(
+                open(&root, store)
+                    .search()
+                    .text(&TextQuery::new("ToolRegistry")),
+            )
+        });
+    });
+    group.bench_function("callers", |b| {
+        b.iter(|| {
+            black_box(
+                open(&root, store)
+                    .search()
+                    .callers(&TraversalQuery::new("AgentRunner::run_step", 1)),
+            )
+        });
+    });
+    group.bench_function("impact", |b| {
+        b.iter(|| {
+            black_box(
+                open(&root, store)
+                    .search()
+                    .impact(&TraversalQuery::new("ToolSchema", 2)),
+            )
+        });
+    });
+    group.bench_function("explore", |b| {
+        b.iter(|| {
+            black_box(
+                open(&root, store)
+                    .search()
+                    .explore(&ExploreQuery::new("tool registry execute")),
+            )
+        });
+    });
+    group.bench_function("sync", |b| {
+        b.iter(|| black_box(open(&root, store).sync()));
+    });
+    group.finish();
+}
+
 fn benches(c: &mut Criterion) {
+    repository(c);
     let corpus = corpus();
     let root = corpus.path.as_path();
 
@@ -98,6 +172,30 @@ fn benches(c: &mut Criterion) {
     open_group.sample_size(20);
     open_group.bench_function("published_store", |b| {
         b.iter(|| black_box(open(root, store.path())));
+    });
+    // The complete one-shot shapes: open, then the first query a CLI
+    // invocation answers. Opening a published generation defers the graph and
+    // its facts to first use, so open alone no longer measures their cost.
+    open_group.bench_function("status", |b| {
+        b.iter(|| black_box(open(root, store.path()).search().status()));
+    });
+    open_group.bench_function("refs", |b| {
+        b.iter(|| {
+            black_box(
+                open(root, store.path())
+                    .search()
+                    .refs(&RefQuery::new("Thing70")),
+            )
+        });
+    });
+    open_group.bench_function("explore", |b| {
+        b.iter(|| {
+            black_box(
+                open(root, store.path())
+                    .search()
+                    .explore(&ExploreQuery::new("Thing70 run request handler")),
+            )
+        });
     });
     open_group.finish();
 

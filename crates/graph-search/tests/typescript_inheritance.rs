@@ -12,6 +12,7 @@ fn facts(store: &Path) -> BTreeMap<String, SourceFileUnits> {
         .snapshot()
         .unwrap()
         .source_files()
+        .unwrap()
         .clone()
 }
 

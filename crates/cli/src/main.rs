@@ -409,6 +409,7 @@ fn run(cli: &Cli) -> Result<ExitCode, Error> {
             let index = open_index(cli, true)?;
             let status: IndexStatus = index.search().status()?;
             render::status(&status, format)?;
+            exit_without_teardown(index);
             Ok(ExitCode::SUCCESS)
         }
         Command::Search { mode } => {
@@ -444,9 +445,19 @@ fn run(cli: &Cli) -> Result<ExitCode, Error> {
                     return Ok(ExitCode::from(3));
                 }
             }
-            search(&index, mode, cli, format)
+            let code = search(&index, mode, cli, format);
+            exit_without_teardown(index);
+            code
         }
     }
+}
+
+/// A one-shot read is the last thing this process does, and the OS reclaims
+/// the loaded generation at exit far faster than dropping its indexes one
+/// allocation at a time. Anything the command published was already synced,
+/// and the generation's reader lease is a file lock the OS releases.
+fn exit_without_teardown(index: Index) {
+    std::mem::forget(index);
 }
 
 fn init(cli: &Cli) -> Result<ExitCode, Error> {

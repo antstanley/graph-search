@@ -29,10 +29,10 @@ fn resolve(root: &Path, store: &Path, specifier: &str) -> Result {
     let store = GrafeoStore::open(store, &StoreOptions::default()).unwrap();
     let packages = store.manifest().unwrap().unwrap().package_boundaries;
     let snapshot = store.snapshot().unwrap();
-    let config = inherit("tsconfig.json", snapshot.source_files()).unwrap();
+    let config = inherit("tsconfig.json", snapshot.source_files().unwrap()).unwrap();
     let aliases = Aliases::compile(&config).unwrap();
     let options = Options::compile(&config, Mode::Bundler).unwrap();
-    let known: BTreeSet<_> = snapshot.source_files().keys().cloned().collect();
+    let known: BTreeSet<_> = snapshot.source_files().unwrap().keys().cloned().collect();
     let mut capture = Capture::new(root).unwrap();
     let mut presence = |path: &str| capture.classify(path);
     let mut lookup = Lookup::new(&options, &known, &packages, &mut presence);
