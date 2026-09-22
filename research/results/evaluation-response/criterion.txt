@@ -1,0 +1,62 @@
+   Compiling graph-search-engine v0.1.0 (/Volumes/Delorean/code/graph-search/crates/engine)
+   Compiling graph-search v0.1.0 (/Volumes/Delorean/code/graph-search/crates/graph-search)
+    Finished `bench` profile [optimized] target(s) in 48.34s
+     Running benches/evaluation.rs (target/release/deps/evaluation-c983d3952be61fd7)
+Benchmarking open/published_store
+Benchmarking open/published_store: Warming up for 1.0000 s
+Benchmarking open/published_store: Collecting 20 samples in estimated 3.4954 s (40 iterations)
+Benchmarking open/published_store: Analyzing
+open/published_store    time:   [86.766 ms 87.096 ms 87.559 ms]
+                        change: [+14.120% +14.701% +15.363%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+Found 2 outliers among 20 measurements (10.00%)
+  2 (10.00%) high severe
+
+Benchmarking graph/refs_type
+Benchmarking graph/refs_type: Warming up for 1.0000 s
+Benchmarking graph/refs_type: Collecting 20 samples in estimated 2.0510 s (1890 iterations)
+Benchmarking graph/refs_type: Analyzing
+graph/refs_type         time:   [1.0739 ms 1.0761 ms 1.0795 ms]
+                        change: [+13.758% +14.293% +14.879%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+Found 1 outliers among 20 measurements (5.00%)
+  1 (5.00%) high mild
+Benchmarking graph/impact_type
+Benchmarking graph/impact_type: Warming up for 1.0000 s
+Benchmarking graph/impact_type: Collecting 20 samples in estimated 2.1354 s (2100 iterations)
+Benchmarking graph/impact_type: Analyzing
+graph/impact_type       time:   [1.0711 ms 1.0745 ms 1.0791 ms]
+                        change: [+13.433% +13.978% +14.588%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+Found 2 outliers among 20 measurements (10.00%)
+  1 (5.00%) low mild
+  1 (5.00%) high severe
+
+Benchmarking payload/explore_compact/5793B
+Benchmarking payload/explore_compact/5793B: Warming up for 1.0000 s
+Benchmarking payload/explore_compact/5793B: Collecting 20 samples in estimated 2.0015 s (840 iterations)
+Benchmarking payload/explore_compact/5793B: Analyzing
+payload/explore_compact/5793B
+                        time:   [2.5581 ms 2.5634 ms 2.5707 ms]
+Found 2 outliers among 20 measurements (10.00%)
+  2 (10.00%) high mild
+Benchmarking payload/explore_full/8810B
+Benchmarking payload/explore_full/8810B: Warming up for 1.0000 s
+Benchmarking payload/explore_full/8810B: Collecting 20 samples in estimated 2.0403 s (840 iterations)
+Benchmarking payload/explore_full/8810B: Analyzing
+payload/explore_full/8810B
+                        time:   [2.6219 ms 2.6256 ms 2.6295 ms]
+Found 2 outliers among 20 measurements (10.00%)
+  1 (5.00%) low mild
+  1 (5.00%) high mild
+Benchmarking payload/text_search/1387B
+Benchmarking payload/text_search/1387B: Warming up for 1.0000 s
+Benchmarking payload/text_search/1387B: Collecting 20 samples in estimated 2.0548 s (420 iterations)
+Benchmarking payload/text_search/1387B: Analyzing
+payload/text_search/1387B
+                        time:   [4.9865 ms 5.0155 ms 5.0518 ms]
+                        change: [+13.711% +14.575% +15.505%] (p = 0.00 < 0.05)
+                        Performance has regressed.
+Found 1 outliers among 20 measurements (5.00%)
+  1 (5.00%) high mild
+

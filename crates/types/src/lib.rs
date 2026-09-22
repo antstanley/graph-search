@@ -34,8 +34,8 @@ pub use limits::{MAX_HOPS_CEILING, PARSER_VERSION, RESULT_SCHEMA_VERSION, SCHEMA
 pub use manifest::{FileEntry, Manifest, Rename};
 pub use node::{Edge, Node, Span};
 pub use query::{
-    DepsQuery, ExploreQuery, FilesQuery, NeighborsQuery, PathQuery, RefQuery, SymbolQuery,
-    TextQuery, TraversalQuery,
+    DepsQuery, ExploreDetail, ExploreQuery, FilesQuery, NeighborsQuery, PathQuery, RefQuery,
+    SymbolQuery, TextQuery, TraversalQuery,
 };
 pub use result::{
     Approximation, DepthCount, EdgeHit, ExcerptRole, ExploreItem, ExploreResult, FileHit,

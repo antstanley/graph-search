@@ -322,6 +322,50 @@ fn explore_intent_and_channel_diagnostics_survive_the_cli_envelope() {
 }
 
 #[test]
+fn explore_defaults_to_compact_detail_and_full_opts_in() {
+    // Finding E2: the CLI is the context-cost-sensitive surface nanus drives,
+    // so its default omits labelled excerpts and matched-body evidence; the
+    // library default keeps them and `--detail full` restores them here.
+    let tmp = workspace();
+    let root = tmp.path().to_str().expect("path");
+    let evidence_count = |out: &str| -> usize {
+        let value: serde_json::Value = serde_json::from_str(out).expect("JSON");
+        value["results"]
+            .as_array()
+            .expect("results")
+            .iter()
+            .filter(|item| {
+                item["evidence"] != serde_json::Value::Null
+                    || item["excerpts"].as_array().is_some_and(|e| !e.is_empty())
+            })
+            .count()
+    };
+    let (code, out, err) = run(&["--root", root, "--json", "search", "explore", "alpha beta"]);
+    assert_eq!(code, 0, "{err}");
+    let value: serde_json::Value = serde_json::from_str(&out).expect("JSON");
+    assert_eq!(value["query"]["detail"], "compact");
+    assert_eq!(evidence_count(&out), 0, "compact must not publish evidence");
+
+    let (code, out, err) = run(&[
+        "--root",
+        root,
+        "--json",
+        "search",
+        "explore",
+        "alpha beta",
+        "--detail",
+        "full",
+    ]);
+    assert_eq!(code, 0, "{err}");
+    let value: serde_json::Value = serde_json::from_str(&out).expect("JSON");
+    assert_eq!(value["query"]["detail"], "full");
+    assert!(
+        evidence_count(&out) > 0,
+        "full detail must publish evidence: {out}"
+    );
+}
+
+#[test]
 fn explore_envelope_keeps_symbols_when_source_lines_exceed_the_byte_cap() {
     let tmp = workspace();
     let text = format!(
@@ -905,6 +949,8 @@ fn explore_package_references_survive_final_envelope_trimming() {
             "search",
             "explore",
             "saffron boundary",
+            "--detail",
+            "full",
             "--max-bytes",
             cap,
         ]);

@@ -422,6 +422,55 @@ pub struct Resolution {
     pub to_name: String,
 }
 
+/// The largest stored display name for an unresolved reference, in bytes.
+///
+/// `to_name` labels a dangle for a reader; resolution has already failed by the
+/// time it is written, so it is never a lookup key. Complex callees — method
+/// chains, closure literals, macro-ish expressions — otherwise arrive as
+/// multi-line source text that bloats `dangling.jsonl` and renders unreadably
+/// (finding E4).
+const MAX_DANGLING_NAME_BYTES: usize = 96;
+
+/// Collapses a dangling reference name to one bounded, readable line.
+fn canonical_dangling_name(name: &str) -> String {
+    if !name.chars().any(char::is_whitespace) {
+        return name.to_owned();
+    }
+    let mut out = String::with_capacity(name.len().min(MAX_DANGLING_NAME_BYTES));
+    let mut pending_space = false;
+    for ch in name.chars() {
+        if ch.is_whitespace() {
+            pending_space = true;
+            continue;
+        }
+        // Drop the inserted space around a `.`/`::` member separator so
+        // `receiv\n  .member` reads as `receiver.member`.
+        if pending_space
+            && !out.is_empty()
+            && !out.ends_with('.')
+            && !out.ends_with(':')
+            && ch != '.'
+            && ch != ':'
+        {
+            out.push(' ');
+        }
+        pending_space = false;
+        out.push(ch);
+        if out.len() > MAX_DANGLING_NAME_BYTES {
+            break;
+        }
+    }
+    if out.len() > MAX_DANGLING_NAME_BYTES {
+        let mut end = MAX_DANGLING_NAME_BYTES;
+        while end > 0 && !out.is_char_boundary(end) {
+            end = end.saturating_sub(1);
+        }
+        out.truncate(end);
+        out.push('…');
+    }
+    out
+}
+
 /// Resolves one reference against the table, by the §7.4 order:
 /// via-import, same-file, qualified, global-unique, else dangling.
 #[must_use]
@@ -439,7 +488,7 @@ pub fn resolve_reference(
         reason: Some(reason.into()),
         fact: fact.clone(),
         to: None,
-        to_name,
+        to_name: canonical_dangling_name(&to_name),
     };
 
     if fact.dynamic {
@@ -1188,6 +1237,20 @@ mod tests {
             resolved.to.as_ref().map(NodeId::as_str),
             Some("sym:src/a.rs#function:parse")
         );
+    }
+
+    #[test]
+    fn dangling_names_are_canonicalised_to_one_bounded_line() {
+        assert_eq!(
+            canonical_dangling_name("docs\n      .filter((doc) => doc.id)"),
+            "docs.filter((doc) => doc.id)"
+        );
+        assert_eq!(canonical_dangling_name("plain_name"), "plain_name");
+        let long = canonical_dangling_name(&"x".repeat(200));
+        assert_eq!(long, "x".repeat(200), "no whitespace is left untouched");
+        let truncated = canonical_dangling_name(&format!("{}\n  .tail", "y".repeat(200)));
+        assert!(truncated.ends_with('…'));
+        assert!(truncated.len() <= MAX_DANGLING_NAME_BYTES.saturating_add('…'.len_utf8()));
     }
 
     #[test]

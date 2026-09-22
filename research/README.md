@@ -28,6 +28,8 @@ Read in this order:
 
 8. [Task-based evaluation suite](08-task-evaluation.md): source-backed real tasks, held-out families, engine adapters, agent protocol and blind grading.
 9. [Native search improvements](09-native-search-review.md): current source findings, reproducible experiments, native architecture and phased acceptance gates.
+10. [Independent evaluation](10-independent-evaluation.md) and [round 2](11-independent-evaluation-round-2.md): black-box trials of the shipped binary on `nanus`.
+11. [Response to the independent evaluations](12-independent-evaluation-response.md): finding-by-finding evaluation, the four increments landed in response, the staged lazy-store plan, and the Criterion suite that validates progressive improvement.
 
 ## Reproduction
 

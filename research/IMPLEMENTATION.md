@@ -47,6 +47,41 @@ Scope: implement the recommendations in [the review](09-native-search-review.md)
 
 ## Completed increments
 
+### Independent-evaluation response: four findings fixed, one gated
+
+[Doc 10](10-independent-evaluation.md) and [doc 11](11-independent-evaluation-round-2.md)
+are black-box trials of the shipped binary. The point-by-point reply is
+[the response](12-independent-evaluation-response.md); the numbers are in
+[`results/evaluation-response.json`](results/evaluation-response.json).
+
+Landed this increment, each with a named regression test:
+
+- **P1.3** `impact` now traverses the `refs` vocabulary (`Calls`, `References`,
+  `TypeUses`), so a struct/enum/trait has a blast radius (`SPEC.md` §8.3).
+  On `nanus`, `impact ToolRegistry/SearchQuery/ToolSchema/ToolOutcome` go from
+  0 to 3/5/25/8 at depth 1.
+- **P2.7** Rust `type_uses` now cover parameter, return, local and nested wrapper
+  types, not only direct field types. On `nanus`, `refs SearchQuery` 0 → 5 and
+  `refs ToolDefinition` 0 → 9 (all resolved). `PARSER_VERSION` 21 → 22.
+- **P0.2** `explore` gains `ExploreDetail { Compact, Full }`; the CLI defaults to
+  `compact`, restoring the §9.1 item shape. The measured payload falls from
+  17 547 B to 8 061 B, below the 12 359 B `text` search it replaces, while
+  `--detail full` keeps the richer contract.
+- **P2.8** dangling display names are canonicalised to one bounded line; on
+  `nanus`, multi-line names fall from 2 388 to 0.
+
+New validation: `cargo bench -p graph-search --bench evaluation` measures
+`open/published_store` (P0.1), `graph/refs_type` and `graph/impact_type`
+(E1/E5), and `payload/explore_compact/<N>B` vs `payload/explore_full/<N>B` vs
+`payload/text_search/<N>B` (E2); the release-gate `search` suite is unchanged.
+Gate: 574 tests, strict Clippy clean.
+
+Still open, with acceptance criteria in the response: the lazily loaded store
+(P0.1, instrumented attribution in §3 of the response), receiver-aware
+`x.method()` binding (P1.4), a measured de-rank of test-owned symbols (P1.5,
+worse on the current tree than reported), and cross-crate import resolution
+(P2.6).
+
 ### Recommendation 12 complete: source selection and its release-gate evaluation
 
 Every implementation clause is in place: matched locations from lexical

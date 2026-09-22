@@ -165,7 +165,12 @@ impl Extractor<'_> {
             "enum_variant" => self.variant(node),
             "use_declaration" => self.use_declaration(node),
             "call_expression" => self.call(node),
-            "generic_type"
+            // A bare type in position (`t: Thing`, `-> Thing`, `let x: Thing`)
+            // is a use in its own right; the composite type kinds below consume
+            // their subtrees, so this arm is the only one that sees a lone
+            // `type_identifier` (finding E5).
+            "type_identifier"
+            | "generic_type"
             | "scoped_type_identifier"
             | "reference_type"
             | "pointer_type"
@@ -482,6 +487,13 @@ impl Extractor<'_> {
 
 /// The concrete type names a type node refers to: `Vec<u8>` yields `Vec`,
 /// `std::io::Result<T>` yields `std::io::Result`.
+///
+/// Every type wrapper (`&T`, `*T`, `[T; N]`, `(A, B)`, `fn(T) -> U`,
+/// `<T as Trait>::Assoc`, generic argument lists) carries the referred type in a
+/// named child, so the walk descends into unnamed wrapper kinds rather than
+/// matching a closed list. Otherwise only direct field types produced
+/// `type_uses`, and a type used solely as a parameter or return type was
+/// invisible (finding E5).
 fn type_names(node: Node<'_>, source: &str) -> Vec<String> {
     fn text_of<'a>(node: Node<'_>, source: &'a str) -> &'a str {
         let start = node.start_byte().min(source.len());
@@ -508,7 +520,7 @@ fn type_names(node: Node<'_>, source: &str) -> Vec<String> {
                     stack.push(args);
                 }
             }
-            "type_arguments" => {
+            _ => {
                 let mut cursor = current.walk();
                 if cursor.goto_first_child() {
                     loop {
@@ -522,7 +534,6 @@ fn type_names(node: Node<'_>, source: &str) -> Vec<String> {
                     }
                 }
             }
-            _ => {}
         }
     }
     names.sort();

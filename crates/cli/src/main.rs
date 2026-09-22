@@ -127,6 +127,14 @@ enum QueryPolicyMode {
     Task,
 }
 
+#[derive(Clone, Copy, Debug, clap::ValueEnum)]
+enum DetailMode {
+    /// Node, primary snippet and impact only.
+    Compact,
+    /// Adds labelled excerpts and matched-body evidence.
+    Full,
+}
+
 #[derive(Debug, Subcommand)]
 enum SearchMode {
     /// Find files whose path matches a glob, anchored to the search root.
@@ -291,6 +299,10 @@ enum SearchMode {
         /// Primary match context radius (default 2, ceiling 10); 0 disables excerpts.
         #[arg(long)]
         context_lines: Option<u32>,
+        /// Per-seed source evidence: `compact` (node, snippet, impact) or `full`
+        /// (adds labelled excerpts and matched-body evidence).
+        #[arg(long, value_enum, default_value_t = DetailMode::Compact)]
+        detail: DetailMode,
         /// The whole-payload byte budget (default 64 KiB).
         #[arg(long)]
         max_bytes: Option<u32>,
@@ -740,6 +752,7 @@ fn search(
             k,
             hops,
             context_lines,
+            detail,
             max_bytes,
             lang,
             path,
@@ -819,6 +832,10 @@ fn search(
             if let Some(lines) = context_lines {
                 query = query.with_context_lines(*lines);
             }
+            query = query.with_detail(match detail {
+                DetailMode::Full => graph_search_types::ExploreDetail::Full,
+                DetailMode::Compact => graph_search_types::ExploreDetail::Compact,
+            });
             if let Some(bytes) = max_bytes {
                 query.max_bytes = *bytes;
             }

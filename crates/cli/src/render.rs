@@ -506,6 +506,7 @@ pub(crate) fn explore(
                     "k": query.k,
                     "hops": query.hops,
                     "context_lines": query.context_lines,
+                    "detail": query.detail,
                     "filters": query.filters,
                     "max_bytes": query.max_bytes,
                 }),

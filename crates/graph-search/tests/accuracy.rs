@@ -318,6 +318,46 @@ fn impact_keeps_all_converging_edges_and_orders_by_depth() {
     assert_eq!(r.top.last().unwrap().name, "z");
 }
 #[test]
+fn impact_includes_type_uses_so_structs_have_a_blast_radius() {
+    // Finding E1: `impact` traversed only Calls/References, so asking what
+    // breaks when a struct changes returned nothing even though `type_uses`
+    // edges existed. The cone now matches the `refs` reference vocabulary.
+    let (_d, i) = fixture(&[(
+        "a.rs",
+        "pub struct Thing { pub v: usize }\npub struct Holder { pub inner: Thing }\n",
+    )]);
+    let r = i.search().impact(&TraversalQuery::new("Thing", 2)).unwrap();
+    assert!(
+        !r.top.is_empty(),
+        "a used struct must have a non-empty impact cone: {r:?}"
+    );
+    assert_eq!(r.by_depth[0].total, 1, "{:?}", r.by_depth);
+    assert!(
+        r.top.iter().any(|hit| hit.name.as_str() == "Holder"),
+        "the user of the struct must be in the cone: {:?}",
+        r.top
+    );
+}
+
+#[test]
+fn rust_parameter_and_return_types_are_type_uses() {
+    // Finding E5: `type_uses` came only from direct field types, so a type used
+    // solely as a parameter or return type was invisible to `refs`/`impact`.
+    let (_d, i) = fixture(&[(
+        "a.rs",
+        "pub struct Thing { pub v: usize }\npub fn take(t: &Thing) -> Thing { *t }\n",
+    )]);
+    let r = i.search().refs(&RefQuery::new("Thing")).unwrap();
+    assert!(
+        r.edges
+            .iter()
+            .any(|e| e.resolved && e.from.contains("take")),
+        "the parameter and return type must be recorded as type uses: {:?}",
+        r.edges
+    );
+}
+
+#[test]
 fn explore_respects_index_exclusions() {
     let d = tempfile::tempdir().unwrap();
     std::fs::create_dir_all(d.path().join("excluded")).unwrap();

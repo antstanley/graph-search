@@ -128,9 +128,9 @@ pub const RESULT_SCHEMA_VERSION: u32 = 4;
 
 /// Bumps when extractor behaviour changes in a way that alters output for an
 /// unchanged file.
-/// v21: JS/TS `this.method()` calls resolve to the enclosing class member, and
-/// `pub use` reexport members are kept out of name-based resolution/fallback.
-pub const PARSER_VERSION: u32 = 21;
+/// v22: Rust `type_uses` cover parameter, return, local and nested wrapper
+/// types, not only direct field types; dangling display names are canonicalised.
+pub const PARSER_VERSION: u32 = 22;
 
 /// Default independent ceiling on edges delivered by one graph/explore query.
 pub const RETURNED_EDGES_DEFAULT: usize = 1000;

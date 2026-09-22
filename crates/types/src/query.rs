@@ -331,6 +331,23 @@ impl PathQuery {
     }
 }
 
+/// How much per-seed source evidence an `explore` answer materializes.
+///
+/// `Compact` keeps only what a reader needs to act — the definition, one bounded
+/// primary snippet and the one-line impact — because the labelled excerpts and
+/// matched-body evidence roughly double the per-item payload. It is the enum
+/// default and the CLI default; [`ExploreQuery::new`] still selects `Full` so the
+/// library's rich-evidence contract is unchanged (`SPEC.md` §9.3, finding E2).
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ExploreDetail {
+    /// Definition, primary snippet and impact only.
+    #[default]
+    Compact,
+    /// Adds labelled `excerpts` and matched-body `evidence` per seed.
+    Full,
+}
+
 /// `search explore`: the one-call retrieval (`SPEC.md` §8.4).
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ExploreQuery {
@@ -351,6 +368,15 @@ pub struct ExploreQuery {
     pub filters: GraphFilters,
     /// The result cap, already clamped.
     pub limit: u32,
+    /// How much per-seed source evidence to materialize.
+    #[serde(default = "full_detail")]
+    pub detail: ExploreDetail,
+}
+
+/// The deserialization default, matching [`ExploreQuery::new`]: the library
+/// keeps its rich evidence contract unless a caller opts into compact.
+fn full_detail() -> ExploreDetail {
+    ExploreDetail::Full
 }
 
 impl ExploreQuery {
@@ -366,6 +392,9 @@ impl ExploreQuery {
             max_bytes: u32::try_from(crate::limits::MAX_TOTAL_BYTES).unwrap_or(u32::MAX),
             filters: GraphFilters::default(),
             limit: GRAPH_DEFAULT_LIMIT,
+            // The library keeps the rich evidence contract by default; the CLI
+            // (the context-cost-sensitive surface nanus drives) selects compact.
+            detail: ExploreDetail::Full,
         }
     }
 
@@ -377,6 +406,13 @@ impl ExploreQuery {
         } else {
             lines
         };
+        self
+    }
+
+    /// Sets how much per-seed source evidence the answer carries.
+    #[must_use]
+    pub const fn with_detail(mut self, detail: ExploreDetail) -> Self {
+        self.detail = detail;
         self
     }
 

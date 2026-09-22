@@ -162,13 +162,20 @@ graph-search search explore "where gethttpresponse" --analysis identifiers
 graph-search search explore "cache invalidation" --intent phrase
 graph-search search explore "cache expired" --intent phrase --phrase-gap 3
 graph-search search explore "expired cache" --intent near --near-window 8
+graph-search search explore "how does reconcile classify a modified file" --detail full
 ```
 
 `explore` uses indexed source regions for multiword discovery, with metadata
 fallback when no body candidate matches. Single-token queries combine metadata
 and body retrieval while preserving exact-name priority. Explicit name, ID, path
 and whole-name prefix modes protect navigation intent. `--explain` reports the
-executed routes and supporting channel ranks. Source excerpts are hash-verified
+executed routes and supporting channel ranks. By default the CLI returns the
+compact item shape — the definition, one bounded primary snippet and the
+one-line caller impact — so the payload stays smaller than the `text` search it
+replaces; `--detail full` adds the labeled excerpts and matched-body evidence
+described next. The library keeps `full` by default and a host opts into compact
+with `ExploreDetail::Compact`.
+Source excerpts are hash-verified
 and packed into bounded, labeled intervals; read/work/output limits are reported.
 After structural context, remaining space can show matching lines from up to four
 regions of each selected function or document, with nearby context when it fits.

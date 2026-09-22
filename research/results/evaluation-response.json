@@ -1,0 +1,157 @@
+{
+  "experiment": "response-to-independent-evaluations",
+  "date": "2026-09-22",
+  "author": "graph-search authors",
+  "responds_to": [
+    "research/10-independent-evaluation.md",
+    "research/11-independent-evaluation-round-2.md"
+  ],
+  "revision": {
+    "base_commit": "7016e98",
+    "schema_version": 3,
+    "parser_version": 22,
+    "chunker_version": 10
+  },
+  "gate": {
+    "tests_passed": 574,
+    "tests_failed": 0,
+    "clippy": "clean",
+    "workspace": "cargo test --workspace; cargo clippy --workspace --all-targets -- -D warnings"
+  },
+  "host": {
+    "repository": "$HOME/code/nanus",
+    "walked_files": 188,
+    "index_seconds": 2.6,
+    "store_bytes": 60000000
+  },
+  "open_cost_breakdown_ms": {
+    "note": "instrumented GrafeoStore::open, warm release build, nanus; temporary probes removed after measurement",
+    "select_read_hash_prepare": 218,
+    "grafeo_open": 52,
+    "rebuild_maps": 15,
+    "dangling_load": 13,
+    "occurrences_parse": 207,
+    "validate_fact_owners": 85,
+    "refresh_indexes_total": 283,
+    "refresh_indexes_scan": 45,
+    "refresh_indexes_metadata": 48,
+    "refresh_indexes_body": 169,
+    "total": 873
+  },
+  "findings": {
+    "P0_1_store_open": {
+      "verdict": "confirmed",
+      "status": "open",
+      "status_before_s": 0.99,
+      "status_after_s": 1.0,
+      "plan": "lazy sidecar packs and index construction"
+    },
+    "P0_2_explore_payload": {
+      "verdict": "confirmed",
+      "status": "fixed",
+      "query": "tool call dispatch approval",
+      "explore_default_before_bytes": 17547,
+      "explore_default_after_bytes": 8061,
+      "explore_full_after_bytes": 17562,
+      "text_before_bytes": 12358,
+      "text_after_bytes": 12359
+    },
+    "P1_3_impact_type_uses": {
+      "verdict": "confirmed",
+      "status": "fixed",
+      "impact_before": {
+        "ToolRegistry": 0,
+        "SearchQuery": 0,
+        "ToolSchema": 0,
+        "ToolOutcome": 0
+      },
+      "impact_after_depth1": {
+        "ToolRegistry": 3,
+        "SearchQuery": 5,
+        "ToolSchema": 25,
+        "ToolOutcome": 8
+      }
+    },
+    "P1_4_receiver_binding": {
+      "verdict": "confirmed",
+      "status": "open",
+      "callers_ToolRegistry_execute_edges": 0,
+      "callers_ToolRegistryHandle_borrow_edges": 0
+    },
+    "P1_5_test_symbols": {
+      "verdict": "confirmed",
+      "status": "open",
+      "query_search_query_literal_top8_test_owned": 5,
+      "query_port_failure_top8_test_owned": 3
+    },
+    "P2_6_cross_crate_imports": {
+      "verdict": "confirmed",
+      "status": "open"
+    },
+    "P2_7_type_refs_uneven": {
+      "verdict": "confirmed",
+      "status": "fixed",
+      "refs_before": {
+        "SearchQuery": 0,
+        "ToolDefinition": 0,
+        "ToolOutcome": 2,
+        "AgentConfig": 2,
+        "ToolSchema": 1
+      },
+      "refs_after": {
+        "SearchQuery": 5,
+        "ToolDefinition": 9,
+        "ToolOutcome": 8,
+        "AgentConfig": 9,
+        "ToolSchema": 25
+      }
+    },
+    "P2_8_dangling_names": {
+      "verdict": "confirmed",
+      "status": "fixed",
+      "multi_line_to_names_before": 2388,
+      "multi_line_to_names_after": 0,
+      "max_to_name_bytes_before": 914,
+      "max_to_name_bytes_after": 97
+    }
+  },
+  "increments": [
+    {
+      "id": "E1",
+      "finding": "P1_3",
+      "change": "impact traverses REFERENCE_KINDS (Calls, References, TypeUses)"
+    },
+    {
+      "id": "E2",
+      "finding": "P0_2",
+      "change": "ExploreDetail compact/full; CLI defaults to compact"
+    },
+    {
+      "id": "E4",
+      "finding": "P2_8",
+      "change": "dangling display names canonicalised to one bounded line"
+    },
+    {
+      "id": "E5",
+      "finding": "P2_7",
+      "change": "Rust type_uses include parameter, return, local and nested wrapper types"
+    }
+  ],
+  "regression_checks": {
+    "incremental_incoming_edge_after_target_edit": {
+      "edges_before_edit": 1,
+      "edges_after_edit": 1,
+      "confirmed": true
+    }
+  },
+  "criterion": {
+    "command": "cargo bench -p graph-search --bench evaluation",
+    "corpus": "150 generated Rust files with a struct used as field/parameter/return and a #[cfg(test)] module",
+    "open_published_store_ms_p50": 87.1,
+    "graph_refs_type_ms_p50": 1.076,
+    "graph_impact_type_ms_p50": 1.075,
+    "payload_explore_compact_bytes": 5793,
+    "payload_explore_full_bytes": 8810,
+    "payload_text_search_bytes": 1387
+  }
+}

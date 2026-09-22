@@ -467,7 +467,10 @@ impl<'a> QueryEngine<'a> {
         self.validate_filters(&query.filters)?;
         let started = std::time::Instant::now();
         let target = self.resolve_target(&query.target)?;
-        let kinds = [EdgeKind::Calls, EdgeKind::References];
+        // The blast radius is every reference kind `refs` counts, not only calls:
+        // a struct or trait is "used" through `type_uses`, so excluding it made
+        // "what breaks if I change this type" answer nothing (finding E1).
+        let kinds = REFERENCE_KINDS;
 
         let mut by_depth = Vec::new();
         let mut frontier = BTreeSet::from([target.clone()]);
@@ -777,6 +780,7 @@ impl<'a> QueryEngine<'a> {
     ) -> Result<ExploreResult> {
         self.reset_work()?;
         context.runtime_versions = Some(graph_search_types::context::RuntimeVersions::current());
+        let compact = query.detail == graph_search_types::ExploreDetail::Compact;
         let mut sources = crate::source::SourceCache::new(SCAN_BYTES_CAP, policy.max_file_bytes);
         let started = std::time::Instant::now();
         self.validate_filters(&query.filters)?;
@@ -867,7 +871,9 @@ impl<'a> QueryEngine<'a> {
             let mut item = ExploreItem {
                 retrieval: retrieval.get(&node.id).cloned(),
                 excerpts: Vec::new(),
-                evidence: body.cloned(),
+                // Compact detail keeps the matched-body facts internal (they
+                // anchor the snippet) but does not publish them per item.
+                evidence: if compact { None } else { body.cloned() },
                 node: SymbolHit::of(node),
                 snippet: None,
                 impact,
@@ -989,7 +995,7 @@ impl<'a> QueryEngine<'a> {
         self.finish_edges(&mut result.edges, &mut result.truncations);
         fit_explore(&mut result, explore_byte_cap(query.max_bytes))?;
         primary_sources.retain(&result);
-        if query.context_lines > 0 {
+        if query.context_lines > 0 && !compact {
             crate::evidence::extend_prepared(
                 &mut result,
                 &sources,

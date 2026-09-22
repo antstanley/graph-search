@@ -1304,7 +1304,10 @@ Semantics:
 - `<id>` is exact.
 - `impact --depth N` reports **counts by depth and by kind**, plus the top
   nodes; it does not dump the whole cone. A model asking "what breaks" wants the
-  shape, not 400 lines.
+  shape, not 400 lines. The traversal cone is the same reference vocabulary as
+  `refs`: `Calls`, `References` and `TypeUses`. Including `TypeUses` means a
+  struct, enum or trait reports the code that names it, so "what breaks if I
+  change this type" is answerable rather than empty.
 - Hops are clamped to `MAX_HOPS_CEILING` (4); over-ceiling is clamped, not an
   error (matching `llm-wiki-graph`'s capability-clamp posture).
 - Every result lists nodes then edges; edges carry `resolved`.
@@ -1313,6 +1316,7 @@ Semantics:
 
 ```
 graph-search search explore <query> [--k 8] [--hops 1] [--context-lines 2]
+                                    [--detail compact|full]
                                     [--max-bytes N] [--lang L]
                                     [--intent auto|exact-name|exact-id|name-prefix|path|terms|phrase|near]
                                     [--phrase-gap 0] [--near-window 8]
@@ -1554,6 +1558,14 @@ component membership does not certify completeness beyond that admitted graph.
    primary excerpt radius while bounded implementation expansion uses remaining
    space. Execution clamps the radius to half the ten-line primary ceiling so
    oversized public/decoded requests cannot move the excerpt away from its anchor.
+   `detail` selects how much of that evidence reaches the payload. `compact` (the
+   CLI default) returns the item shape in §9.1 — node, one primary snippet and
+   impact — and computes matched-body facts internally to anchor the snippet
+   without publishing them. `full` adds the labelled `excerpts` and matched-body
+   `evidence` fields. The library's `ExploreQuery::new` keeps `full` by default;
+   a host that pays per byte selects `compact`. Compact exists because the
+   evidence fields roughly doubled the per-item payload and pushed `explore`
+   above the `text` search it replaces.
 3. **Connect** — the edges among the returned nodes, up to `hops`.
 4. **Summarise impact** — for function/method seeds, a one-line blast-radius
    count.
