@@ -6,7 +6,7 @@
 
 use graph_search::{Index, OpenOptions, Reconcile};
 use graph_search_types::kind::{EdgeKind, NodeKind};
-use graph_search_types::query::{DepsQuery, SymbolQuery, TraversalQuery};
+use graph_search_types::query::{DepsQuery, NeighborsQuery, SymbolQuery, TraversalQuery};
 use graph_search_types::{FilesQuery, Language};
 
 fn write(dir: &std::path::Path, rel: &str, contents: &str) {
@@ -111,4 +111,103 @@ fn python_symbols_calls_and_relative_imports_resolve() {
             && edge.to_name == "pkg/util.py"),
         "{deps:?}"
     );
+}
+
+#[test]
+fn python_rebound_methods_are_each_contained_by_their_class() {
+    let tmp = tempfile::TempDir::new().unwrap_or_else(|e| panic!("tmp: {e}"));
+    write(
+        tmp.path(),
+        "m.py",
+        "class C:\n    @property\n    def x(self):\n        return 1\n\n    @x.setter\n    def x(self, value):\n        pass\n",
+    );
+    let index = open(tmp.path());
+    index.reindex().unwrap_or_else(|e| panic!("reindex: {e}"));
+    let found = index
+        .search()
+        .symbol(&SymbolQuery::new("C.x"))
+        .unwrap_or_else(|e| panic!("symbol: {e}"));
+    assert_eq!(found.nodes.len(), 2, "{found:?}");
+    let class = index
+        .search()
+        .neighbors(&NeighborsQuery::new("C"))
+        .unwrap_or_else(|e| panic!("neighbors: {e}"));
+    for node in &found.nodes {
+        assert!(
+            class
+                .edges
+                .iter()
+                .any(|edge| edge.kind == EdgeKind::Contains
+                    && edge.from == "sym:m.py#class:C"
+                    && edge.to.as_deref() == Some(node.id.as_str())),
+            "{} is not contained by C: {class:?}",
+            node.id
+        );
+    }
+}
+
+#[test]
+fn python_function_local_imports_resolve_to_module_files() {
+    let tmp = tempfile::TempDir::new().unwrap_or_else(|e| panic!("tmp: {e}"));
+    let root = tmp.path();
+    write(root, "pkg/__init__.py", "");
+    write(root, "pkg/mod.py", "def run():\n    pass\n");
+    write(root, "util.py", "");
+    write(root, "lib.rs", "pub mod util {}\n");
+    write(
+        root,
+        "app.py",
+        "def main():\n    import pkg.mod\n    import util\n    from pkg import mod\n",
+    );
+    let index = open(root);
+    index.reindex().unwrap_or_else(|e| panic!("reindex: {e}"));
+    let main = index
+        .search()
+        .neighbors(&NeighborsQuery::new("main"))
+        .unwrap_or_else(|e| panic!("neighbors: {e}"));
+    let imports: Vec<(&str, Option<&str>)> = main
+        .edges
+        .iter()
+        .filter(|edge| edge.kind == EdgeKind::Imports)
+        .map(|edge| (edge.to_name.as_str(), edge.to.as_deref()))
+        .collect();
+    // `import util` names `util.py`, not the Rust `mod util`.
+    for target in ["pkg/__init__.py", "pkg/mod.py", "util.py"] {
+        assert!(
+            imports
+                .iter()
+                .any(|(_, to)| *to == Some(format!("file:{target}").as_str())),
+            "{target}: {imports:?}"
+        );
+    }
+    assert!(
+        imports
+            .iter()
+            .all(|(_, to)| to.is_some_and(|to| to.starts_with("file:"))),
+        "{imports:?}"
+    );
+}
+
+#[test]
+fn python_submodule_added_later_rebinds_from_import() {
+    let tmp = tempfile::TempDir::new().unwrap_or_else(|e| panic!("tmp: {e}"));
+    let root = tmp.path();
+    write(root, "pkg/__init__.py", "X = 1\n");
+    write(root, "app.py", "from pkg import mod\n");
+    let index = open(root);
+    index.reindex().unwrap_or_else(|e| panic!("reindex: {e}"));
+    // A new `pkg/mod.py` changes what `from pkg import mod` binds, although
+    // `pkg` itself still resolves to the same `__init__.py`.
+    write(root, "pkg/mod.py", "def run():\n    pass\n");
+    let deps = index
+        .search()
+        .deps(&DepsQuery::new("app.py"))
+        .unwrap_or_else(|e| panic!("deps: {e}"));
+    assert!(
+        deps.edges.iter().any(|edge| edge.kind == EdgeKind::Imports
+            && edge.resolved
+            && edge.to_name == "pkg/mod.py"),
+        "{deps:?}"
+    );
+    assert!(deps.edges.iter().all(|edge| edge.resolved), "{deps:?}");
 }

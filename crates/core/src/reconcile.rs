@@ -881,16 +881,12 @@ impl<'a> Projector<'a> {
                         continue;
                     }
                     consumers.entry(&fact.name).or_default().insert(path);
-                    let specifier = fact.via_import.as_deref().or_else(|| {
-                        (fact.kind == EdgeKind::Imports && fact.from_key.is_none())
-                            .then_some(fact.name.as_str())
-                    });
-                    if let Some(specifier) = specifier {
+                    for specifier in crate::resolve::import_specifiers(fact, language) {
                         let old = crate::resolve::resolve_specifier(
-                            path, specifier, &old_files, language,
+                            path, &specifier, &old_files, language,
                         );
                         let new = crate::resolve::resolve_specifier(
-                            path, specifier, &new_files, language,
+                            path, &specifier, &new_files, language,
                         );
                         if old != new || old.iter().chain(new.iter()).any(|p| dirty.contains(p)) {
                             dirty.insert(path.clone());

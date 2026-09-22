@@ -1256,7 +1256,9 @@ installed packages. `a.b` tries `a/b.py`, `a/b.pyi`, `a/b/__init__.py` and
 `a/b/__init__.pyi` from the workspace root. A leading dot is the importing file's
 directory; each further dot walks one directory up, and walking past the root has
 no target. When `from m import x` finds no symbol `x` in `m`, `m.x` is tried as a
-submodule (`from . import views`). Unresolved imports are dangling with their
+submodule (`from . import views`). An `import` inside a function or class body
+is owned by that symbol but still resolves as a module, never by name to an
+unrelated workspace symbol. Unresolved imports are dangling with their
 reason, as in every other language. Package context comes from the nearest
 `pyproject.toml` (§ Manifest-owned package context); `__init__.py` does not create
 a package boundary.

@@ -375,9 +375,22 @@ fn js_candidates(from_path: &str, specifier: &str) -> Vec<String> {
 /// (`.`, `..pkg`). A module is a `.py`/`.pyi` file or a package directory with
 /// an `__init__`.
 fn python_candidates(from_path: &str, specifier: &str) -> Vec<String> {
+    python_module_path(from_path, specifier).map_or_else(Vec::new, |joined| {
+        vec![
+            format!("{joined}.py"),
+            format!("{joined}.pyi"),
+            format!("{joined}/__init__.py"),
+            format!("{joined}/__init__.pyi"),
+        ]
+    })
+}
+
+/// The slash-joined module path a Python specifier names, or `None` when it
+/// names nothing (empty, or a relative import that walks past the root).
+fn python_module_path(from_path: &str, specifier: &str) -> Option<String> {
     let specifier = specifier.trim();
     if specifier.is_empty() {
-        return Vec::new();
+        return None;
     }
     let dots = specifier.chars().take_while(|c| *c == '.').count();
     let tail = specifier.get(dots..).unwrap_or_default();
@@ -398,7 +411,8 @@ fn python_candidates(from_path: &str, specifier: &str) -> Vec<String> {
             .map(str::to_owned)
             .collect();
         for _ in 1..dots {
-            base.pop();
+            // Walking past the workspace root has no target.
+            base.pop()?;
         }
         base.extend(
             tail.split('.')
@@ -407,16 +421,7 @@ fn python_candidates(from_path: &str, specifier: &str) -> Vec<String> {
         );
         base
     };
-    if segments.is_empty() {
-        return Vec::new();
-    }
-    let joined = segments.join("/");
-    vec![
-        format!("{joined}.py"),
-        format!("{joined}.pyi"),
-        format!("{joined}/__init__.py"),
-        format!("{joined}/__init__.pyi"),
-    ]
+    (!segments.is_empty()).then(|| segments.join("/"))
 }
 
 /// The specifier that names `name` as a submodule of `specifier`: `from .` and
@@ -426,6 +431,30 @@ fn python_submodule_specifier(specifier: &str, name: &str) -> String {
         format!("{specifier}{name}")
     } else {
         format!("{specifier}.{name}")
+    }
+}
+
+/// Whether `fact` is a module import that resolves to a file. Python allows an
+/// `import` inside a function or class body; it still names a module, so its
+/// owner does not change how it resolves.
+fn module_import(fact: &ReferenceFact, language: Language) -> bool {
+    fact.kind == EdgeKind::Imports
+        && fact.via_import.is_none()
+        && (fact.from_key.is_none() || language == Language::Python)
+}
+
+/// The module specifiers whose file resolution decides `fact`'s target, so a
+/// change in the known file set can invalidate it. A Python `from m import x`
+/// also consults the submodule `m.x`.
+pub(crate) fn import_specifiers(fact: &ReferenceFact, language: Language) -> Vec<String> {
+    match &fact.via_import {
+        Some(specifier) if language == Language::Python => vec![
+            specifier.clone(),
+            python_submodule_specifier(specifier, &fact.name),
+        ],
+        Some(specifier) => vec![specifier.clone()],
+        None if module_import(fact, language) => vec![fact.name.clone()],
+        None => Vec::new(),
     }
 }
 
@@ -655,7 +684,7 @@ pub fn resolve_reference(
     }
 
     // File-level import statements become file->file (or file->module) edges.
-    if fact.kind == EdgeKind::Imports && fact.from_key.is_none() && fact.via_import.is_none() {
+    if module_import(fact, language) {
         let target = if js_family(language) {
             table.js_specifier(from_path, &fact.name, known_files)
         } else {
@@ -1451,6 +1480,48 @@ mod tests {
         );
         // A relative import past the workspace root has no target.
         assert_eq!(resolve("pkg/use.py", "..").as_deref(), None);
+    }
+
+    #[test]
+    fn python_relative_imports_past_the_root_have_no_target() {
+        let known = BTreeSet::from(["x.py".to_owned(), "pkg/use.py".to_owned()]);
+        let resolve = |from: &str, specifier: &str| {
+            resolve_specifier(from, specifier, &known, Language::Python)
+        };
+        // `..` from `pkg/use.py` is the root, so `..x` is `x.py`.
+        assert_eq!(resolve("pkg/use.py", "..x").as_deref(), Some("x.py"));
+        // One dot further walks past the root.
+        assert_eq!(resolve("pkg/use.py", "...x"), None);
+        assert_eq!(resolve("use.py", "..x"), None);
+        // `from .. import x` in a top-level file is not the root's `x.py`.
+        let table = SymbolTable::new();
+        let fact = ReferenceFact::file_level(EdgeKind::Imports, "x", 1).via_import("..");
+        let resolved = resolve_reference(&fact, "use.py", &table, &known, Language::Python);
+        assert_eq!(resolved.to, None);
+    }
+
+    #[test]
+    fn python_function_local_imports_resolve_to_modules() {
+        // `def f(): import util` names the module `util.py`, never an unrelated
+        // workspace symbol that happens to share its name.
+        let rust_module = symbol("lib.rs", NodeKind::Module, "util", "util");
+        let table = table_with(&[rust_module]);
+        let known = BTreeSet::from(["lib.rs".to_owned(), "util.py".to_owned()]);
+        let fact = ReferenceFact::from_symbol("function:f", EdgeKind::Imports, "util", 2);
+        let resolved = resolve_reference(&fact, "app.py", &table, &known, Language::Python);
+        assert_eq!(
+            resolved.to.as_ref().map(NodeId::as_str),
+            Some("file:util.py")
+        );
+        assert_eq!(
+            import_specifiers(&fact, Language::Python),
+            vec!["util".to_owned()]
+        );
+        let binding = ReferenceFact::file_level(EdgeKind::Imports, "mod", 1).via_import("pkg");
+        assert_eq!(
+            import_specifiers(&binding, Language::Python),
+            vec!["pkg".to_owned(), "pkg.mod".to_owned()]
+        );
     }
 
     #[test]

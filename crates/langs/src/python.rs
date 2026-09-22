@@ -12,6 +12,7 @@ use graph_search_core::extraction::{Extraction, ReferenceFact, SymbolFact};
 use graph_search_core::ports::{LanguageExtractor, ParseError, SourceFile};
 use graph_search_types::kind::{EdgeKind, NodeKind};
 use graph_search_types::node::Span;
+use std::collections::BTreeSet;
 use std::path::Path;
 use tree_sitter::Node;
 
@@ -43,6 +44,7 @@ impl LanguageExtractor for PythonExtractor {
             source: file.text,
             extraction: Extraction::default(),
             scope: Vec::new(),
+            keys: BTreeSet::new(),
         };
         extractor.walk_node(tree.root_node());
         Ok(extractor.extraction)
@@ -75,6 +77,8 @@ struct Extractor<'a> {
     source: &'a str,
     extraction: Extraction,
     scope: Vec<Scope>,
+    /// Every symbol fact key emitted so far, to keep keys unique.
+    keys: BTreeSet<String>,
 }
 
 impl Extractor<'_> {
@@ -111,7 +115,9 @@ impl Extractor<'_> {
         }
         qualified.push_str(name);
         let mut key = format!("{}:{qualified}", kind.as_str());
-        for scope in self.scope.iter().rev() {
+        // The immediate parent's key already contains its full ancestry.
+        // Prepending every ancestor again makes nested keys grow exponentially.
+        if let Some(scope) = self.scope.last() {
             key = format!("{}>{}", scope.key, key);
         }
         (key, qualified)
@@ -119,7 +125,17 @@ impl Extractor<'_> {
 
     /// Pushes a symbol and its scope; the caller pops after walking children.
     fn emit(&mut self, node: Node<'_>, kind: NodeKind, name: String, signature: String) {
-        let (key, qualified) = self.qualify(&name, kind);
+        let (mut key, qualified) = self.qualify(&name, kind);
+        // Python rebinds names freely (`@x.setter`, `@overload`, conditional
+        // `def`s), but a fact key must be unique within the file: a repeat takes
+        // its `#line` (then byte) disambiguator.
+        if self.keys.contains(&key) {
+            key = format!("{key}#{}", Self::line(node));
+            if self.keys.contains(&key) {
+                key = format!("{key}@{}", node.start_byte());
+            }
+        }
+        self.keys.insert(key.clone());
         let parent = self.scope.last().map(|scope| scope.key.clone());
         let mut fact =
             SymbolFact::new(key.clone(), kind, name, qualified.clone(), Self::span(node))

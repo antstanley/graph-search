@@ -269,6 +269,41 @@ fn python_module() {
 }
 
 #[test]
+fn python_symbol_keys_are_unique_and_linear_in_nesting() {
+    let text = "class A:\n    class B:\n        class C:\n            @property\n            def x(self):\n                return 1\n\n            @x.setter\n            def x(self, value):\n                pass\n";
+    let extraction = graph_search_langs::PythonExtractor
+        .extract(&SourceFile {
+            path: Path::new("nested.py"),
+            text,
+        })
+        .unwrap_or_else(|e| panic!("extract: {e}"));
+    let keys: Vec<&str> = extraction
+        .symbols
+        .iter()
+        .map(|fact| fact.key.as_str())
+        .collect();
+    // Each key extends its parent's key once, and a rebound name (a property
+    // setter) is disambiguated rather than colliding with the getter.
+    assert_eq!(
+        keys,
+        vec![
+            "class:A",
+            "class:A>class:A.B",
+            "class:A>class:A.B>class:A.B.C",
+            "class:A>class:A.B>class:A.B.C>method:A.B.C.x",
+            "class:A>class:A.B>class:A.B.C>method:A.B.C.x#9",
+        ],
+        "{keys:?}"
+    );
+    for fact in &extraction.symbols[3..] {
+        assert_eq!(
+            fact.parent_key.as_deref(),
+            Some("class:A>class:A.B>class:A.B.C")
+        );
+    }
+}
+
+#[test]
 fn css_site() {
     let extraction = extract(&graph_search_langs::CssExtractor, "css/site.css");
     let rules = names(&extraction, NodeKind::CssRule);
