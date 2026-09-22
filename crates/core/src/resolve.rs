@@ -430,12 +430,19 @@ pub struct Resolution {
 /// multi-line source text that bloats `dangling.jsonl` and renders unreadably
 /// (finding E4).
 const MAX_DANGLING_NAME_BYTES: usize = 96;
+/// Hex characters of the raw-name hash appended to a shortened dangling name.
+const DANGLING_HASH_HEX: usize = 8;
 
 /// Collapses a dangling reference name to one bounded, readable line.
+///
+/// The result is also the dangling edge's identity (`Edge::dangling` keys the
+/// `EdgeId` on it), so shortening must not merge two distinct references. When
+/// the collapsed name exceeds the bound it is truncated and a short hash of the
+/// raw name is appended, keeping distinct long names on distinct edges. The
+/// bound applies whether or not the name contains whitespace.
 fn canonical_dangling_name(name: &str) -> String {
-    if !name.chars().any(char::is_whitespace) {
-        return name.to_owned();
-    }
+    // Collapse internal whitespace onto one line, dropping the space around a
+    // `.`/`::` member separator so `receiv\n  .member` reads as `receiver.member`.
     let mut out = String::with_capacity(name.len().min(MAX_DANGLING_NAME_BYTES));
     let mut pending_space = false;
     for ch in name.chars() {
@@ -443,8 +450,6 @@ fn canonical_dangling_name(name: &str) -> String {
             pending_space = true;
             continue;
         }
-        // Drop the inserted space around a `.`/`::` member separator so
-        // `receiv\n  .member` reads as `receiver.member`.
         if pending_space
             && !out.is_empty()
             && !out.ends_with('.')
@@ -456,18 +461,24 @@ fn canonical_dangling_name(name: &str) -> String {
         }
         pending_space = false;
         out.push(ch);
-        if out.len() > MAX_DANGLING_NAME_BYTES {
-            break;
-        }
     }
-    if out.len() > MAX_DANGLING_NAME_BYTES {
-        let mut end = MAX_DANGLING_NAME_BYTES;
-        while end > 0 && !out.is_char_boundary(end) {
-            end = end.saturating_sub(1);
-        }
-        out.truncate(end);
-        out.push('…');
+    if out.len() <= MAX_DANGLING_NAME_BYTES {
+        return out;
     }
+    // Over the bound: truncate at a char boundary and append `…` plus a short
+    // hash of the raw name so two long names sharing a prefix stay distinct.
+    let suffix = format!(
+        "…{}",
+        crate::hash::content_hash(name.as_bytes())
+            .get(..DANGLING_HASH_HEX)
+            .unwrap_or_default()
+    );
+    let mut end = MAX_DANGLING_NAME_BYTES.saturating_sub(suffix.len());
+    while end > 0 && !out.is_char_boundary(end) {
+        end = end.saturating_sub(1);
+    }
+    out.truncate(end);
+    out.push_str(&suffix);
     out
 }
 
@@ -1246,11 +1257,18 @@ mod tests {
             "docs.filter((doc) => doc.id)"
         );
         assert_eq!(canonical_dangling_name("plain_name"), "plain_name");
+        // A long name is bounded whether or not it contains whitespace.
         let long = canonical_dangling_name(&"x".repeat(200));
-        assert_eq!(long, "x".repeat(200), "no whitespace is left untouched");
+        assert!(long.len() <= MAX_DANGLING_NAME_BYTES, "{}", long.len());
+        assert!(long.contains('…'));
         let truncated = canonical_dangling_name(&format!("{}\n  .tail", "y".repeat(200)));
-        assert!(truncated.ends_with('…'));
-        assert!(truncated.len() <= MAX_DANGLING_NAME_BYTES.saturating_add('…'.len_utf8()));
+        assert!(truncated.len() <= MAX_DANGLING_NAME_BYTES, "{}", truncated.len());
+        assert!(truncated.contains('…'));
+        // The canonical name is the dangling edge identity, so two distinct long
+        // names that share a prefix past the bound must not collapse into one.
+        let a = canonical_dangling_name(&format!("{}.first()", "z".repeat(150)));
+        let b = canonical_dangling_name(&format!("{}.second()", "z".repeat(150)));
+        assert_ne!(a, b);
     }
 
     #[test]

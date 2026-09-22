@@ -130,7 +130,9 @@ pub const RESULT_SCHEMA_VERSION: u32 = 4;
 /// unchanged file.
 /// v22: Rust `type_uses` cover parameter, return, local and nested wrapper
 /// types, not only direct field types; dangling display names are canonicalised.
-pub const PARSER_VERSION: u32 = 22;
+/// v23: generic type parameters and `Self` are excluded from Rust `type_uses`;
+/// dangling names are bounded and hash-disambiguated to keep edge identities 1:1.
+pub const PARSER_VERSION: u32 = 23;
 
 /// Default independent ceiling on edges delivered by one graph/explore query.
 pub const RETURNED_EDGES_DEFAULT: usize = 1000;

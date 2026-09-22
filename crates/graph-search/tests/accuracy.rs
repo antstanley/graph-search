@@ -358,6 +358,38 @@ fn rust_parameter_and_return_types_are_type_uses() {
 }
 
 #[test]
+fn rust_generic_parameters_and_self_are_not_type_uses() {
+    // A generic parameter `T` is a lexical binding, not a reference to a
+    // workspace type named `T`; it must not fabricate a type-use edge, while a
+    // real parameter type is still recorded.
+    let (_d, i) = fixture(&[
+        (
+            "a.rs",
+            "pub fn generic<T: Clone>(x: T, thing: Thing) -> T { x }\n",
+        ),
+        (
+            "b.rs",
+            "pub struct T { pub v: usize }\npub struct Thing { pub v: usize }\n",
+        ),
+    ]);
+    let refs_t = i.search().refs(&RefQuery::new("T")).unwrap();
+    assert!(
+        !refs_t.edges.iter().any(|e| e.from.contains("generic")),
+        "the generic parameter T must not reference struct T: {:?}",
+        refs_t.edges
+    );
+    let refs_thing = i.search().refs(&RefQuery::new("Thing")).unwrap();
+    assert!(
+        refs_thing
+            .edges
+            .iter()
+            .any(|e| e.resolved && e.from.contains("generic")),
+        "the real parameter type Thing must remain a type use: {:?}",
+        refs_thing.edges
+    );
+}
+
+#[test]
 fn explore_respects_index_exclusions() {
     let d = tempfile::tempdir().unwrap();
     std::fs::create_dir_all(d.path().join("excluded")).unwrap();

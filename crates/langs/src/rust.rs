@@ -61,6 +61,10 @@ impl LanguageExtractor for RustExtractor {
 struct Scope {
     key: String,
     qualified: String,
+    /// Generic type parameters this item declares (`<T, U>`). Their bare uses in
+    /// child positions are lexical bindings, not references to a workspace type,
+    /// so they must not become `type_uses` edges.
+    type_params: Vec<String>,
 }
 
 struct Extractor<'a> {
@@ -234,6 +238,7 @@ impl Extractor<'_> {
         self.scope.push(Scope {
             key: key.clone(),
             qualified,
+            type_params: type_parameter_names(node, self.source),
         });
         // Fields, variants, and (for traits) members.
         if let Some(body) = node.child_by_field_name("body") {
@@ -262,6 +267,7 @@ impl Extractor<'_> {
         self.scope.push(Scope {
             key: key.clone(),
             qualified,
+            type_params: type_parameter_names(node, self.source),
         });
         // Parameters, return type, and the body — types become type uses,
         // calls become call references, all attached to this item.
@@ -302,6 +308,7 @@ impl Extractor<'_> {
         self.scope.push(Scope {
             key: key.clone(),
             qualified: impl_type_path(&type_text),
+            type_params: type_parameter_names(node, self.source),
         });
         if let Some(body) = node.child_by_field_name("body") {
             self.walk_children(body);
@@ -348,6 +355,7 @@ impl Extractor<'_> {
         self.scope.push(Scope {
             key: key.clone(),
             qualified,
+            type_params: type_parameter_names(node, self.source),
         });
         if let Some(body) = node.child_by_field_name("body") {
             self.walk_children(body);
@@ -363,6 +371,9 @@ impl Extractor<'_> {
         self.emit(node, NodeKind::Field, name, self.first_line(node));
         if let Some(type_node) = node.child_by_field_name("type") {
             for name in type_names(type_node, self.source) {
+                if self.is_type_binder(&name) {
+                    continue;
+                }
                 self.extraction.references.push(self.reference_from(
                     EdgeKind::TypeUses,
                     name,
@@ -476,8 +487,21 @@ impl Extractor<'_> {
         }
     }
 
+    /// Whether `name` is `Self` or a generic type parameter of an enclosing
+    /// item — a lexical type binding, not a reference to a workspace type.
+    fn is_type_binder(&self, name: &str) -> bool {
+        name == "Self"
+            || self
+                .scope
+                .iter()
+                .any(|scope| scope.type_params.iter().any(|param| param == name))
+    }
+
     fn type_use(&mut self, node: Node<'_>) {
         for name in type_names(node, self.source) {
+            if self.is_type_binder(&name) {
+                continue;
+            }
             self.extraction
                 .references
                 .push(self.reference_from(EdgeKind::TypeUses, name, node));
@@ -494,6 +518,42 @@ impl Extractor<'_> {
 /// matching a closed list. Otherwise only direct field types produced
 /// `type_uses`, and a type used solely as a parameter or return type was
 /// invisible (finding E5).
+/// The generic type-parameter names an item declares (`fn f<T, U: Bound>` →
+/// `[T, U]`), so their bare uses in parameter/return/body/field positions are
+/// not mistaken for references to a workspace type. Lifetimes and const
+/// parameters are not type names and are skipped; trait bounds (`U: Bound`) are
+/// left for the normal type-use walk.
+fn type_parameter_names(node: Node<'_>, source: &str) -> Vec<String> {
+    let Some(params) = node.child_by_field_name("type_parameters") else {
+        return Vec::new();
+    };
+    let text_of = |node: Node<'_>| -> String {
+        let start = node.start_byte().min(source.len());
+        let end = node.end_byte().min(source.len());
+        source.get(start..end).unwrap_or_default().to_owned()
+    };
+    let mut names = Vec::new();
+    let mut cursor = params.walk();
+    for child in params.named_children(&mut cursor) {
+        match child.kind() {
+            "lifetime" | "const_parameter" => {}
+            "type_identifier" => names.push(text_of(child)),
+            _ => {
+                // constrained/optional/higher-ranked: the parameter name is the
+                // first direct `type_identifier`; bounds are nested deeper.
+                let mut inner = child.walk();
+                if let Some(name) = child
+                    .named_children(&mut inner)
+                    .find(|node| node.kind() == "type_identifier")
+                {
+                    names.push(text_of(name));
+                }
+            }
+        }
+    }
+    names
+}
+
 fn type_names(node: Node<'_>, source: &str) -> Vec<String> {
     fn text_of<'a>(node: Node<'_>, source: &'a str) -> &'a str {
         let start = node.start_byte().min(source.len());
