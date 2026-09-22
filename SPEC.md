@@ -1238,25 +1238,36 @@ to the generic resolution rules (§7.4).
 | `method` | `function_definition` directly in a class body |
 | `field` | `name = …` / `name: T = …` in a class body |
 | `variable` | `name = …` / `name: T = …` at module level |
-| `type_alias` | `type X = …` (PEP 695) |
+| `type_alias` | `type X = …` / `type X[T] = …` (PEP 695; the name is `X`) |
 
 Only a single-identifier assignment target declares a symbol; tuple unpacking,
-subscripts, attributes (`self.x = …`) and function-local assignments do not.
+subscripts, attributes (`self.x = …`) and function-local assignments do not. A
+`def` or `class` inside a function body is lexically local to that function
+(`lexical_local`): it is visible only within it, never to same-file,
+qualified or unique-name lookup elsewhere.
 
 | Edge | Source |
 |---|---|
 | `contains` | file → top level, class → method/field, function → nested `def` |
 | `imports` | `import a.b` (one edge per name); `from m import x` emits the module edge `m` and one binding `x` via `m` |
-| `calls` | `call` → callee spelling; `self.m()` in a method becomes `Class.m` |
-| `extends` | `class C(Base, pkg.Base)` positional bases (keyword arguments such as `metaclass=` are not bases) |
-| `type_uses` | parameter, return, annotated-assignment and type-alias annotations, excluding builtin scalar/container names |
+| `calls` | `call` → callee spelling; `self.m()` in a method becomes `Class.m`; `mod.f()` where `import a.b as mod` (or `import mod`) binds `mod` becomes `f` via module `a.b` |
+| `extends` | `class C(Base, pkg.Base, Generic[T])` positional bases, a subscripted base naming the class it parameterizes (keyword arguments such as `metaclass=` are not bases) |
+| `type_uses` | parameter, return, annotated-assignment, type-alias and PEP 695 bound annotations, including names in string forward references; excluding builtin scalar/container names, `typing` special forms and generic aliases, in-scope PEP 695 type parameters, `Literal[…]` arguments and `Annotated[…]` metadata |
+
+A Python call binds to a `class` (calling it constructs an instance), and a bare
+call name never binds to a `method`, which is only reachable through a
+receiver.
 
 Module specifiers resolve against the known file set, never `sys.path` or
-installed packages. `a.b` tries `a/b.py`, `a/b.pyi`, `a/b/__init__.py` and
-`a/b/__init__.pyi` from the workspace root. A leading dot is the importing file's
+installed packages. `a.b` tries `a/b/__init__.py`, `a/b/__init__.pyi`, `a/b.py`
+and `a/b.pyi` from the workspace root: as in Python's path finder, a regular
+package wins over a same-named module. A leading dot is the importing file's
 directory; each further dot walks one directory up, and walking past the root has
-no target. When `from m import x` finds no symbol `x` in `m`, `m.x` is tried as a
-submodule (`from . import views`). An `import` inside a function or class body
+no target. `from m import x` (and a module-qualified call) binds only a top-level
+symbol `x` of `m`, never a method, class field or nested `def` sharing the name;
+when `m` rebinds `x` (`@overload` stubs, conditional `def`s) the last binding in
+the file wins. When `from m import x` finds no symbol `x` in `m`, `m.x` is tried
+as a submodule (`from . import views`). An `import` inside a function or class body
 is owned by that symbol but still resolves as a module, never by name to an
 unrelated workspace symbol. Unresolved imports are dangling with their
 reason, as in every other language. Package context comes from the nearest

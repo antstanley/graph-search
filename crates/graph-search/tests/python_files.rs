@@ -211,3 +211,124 @@ fn python_submodule_added_later_rebinds_from_import() {
     );
     assert!(deps.edges.iter().all(|edge| edge.resolved), "{deps:?}");
 }
+
+fn binding_workspace() -> tempfile::TempDir {
+    let tmp = tempfile::TempDir::new().unwrap_or_else(|e| panic!("tmp: {e}"));
+    let root = tmp.path();
+    write(root, "pkg/__init__.py", "");
+    write(
+        root,
+        "pkg/mod.py",
+        "from typing import overload\n\n\nclass Job:\n    def run(self):\n        pass\n\n\ndef run():\n    pass\n\n\n@overload\ndef load(x: int) -> int: ...\n@overload\ndef load(x: str) -> str: ...\ndef load(x):\n    return x\n",
+    );
+    write(root, "pkg/tools.py", "def helper():\n    pass\n");
+    // A regular package wins over a same-named module file.
+    write(root, "pkg/util.py", "def which():\n    pass\n");
+    write(root, "pkg/util/__init__.py", "def which():\n    pass\n");
+    write(
+        root,
+        "app.py",
+        "import pkg.tools\nimport pkg.tools as tools\nfrom pkg.mod import run, load, Job\nfrom pkg.util import which\n\n\ndef outer():\n    def inner():\n        pass\n    inner()\n\n\ndef main():\n    run()\n    Job()\n    tools.helper()\n    pkg.tools.helper()\n    inner()\n    later()\n    json.dumps()\n",
+    );
+    tmp
+}
+
+fn callees(index: &Index, symbol: &str) -> Vec<(String, Option<String>)> {
+    index
+        .search()
+        .callees(&TraversalQuery::new(symbol, 1))
+        .unwrap_or_else(|e| panic!("callees: {e}"))
+        .edges
+        .into_iter()
+        .filter(|edge| edge.kind == EdgeKind::Calls)
+        .map(|edge| (edge.to_name, edge.to))
+        .collect()
+}
+
+#[test]
+fn python_calls_bind_constructors_module_members_and_top_level_imports() {
+    let tmp = binding_workspace();
+    let index = open(tmp.path());
+    index.reindex().unwrap_or_else(|e| panic!("reindex: {e}"));
+
+    let imports: Vec<(String, Option<String>)> = index
+        .search()
+        .deps(&DepsQuery::new("app.py"))
+        .unwrap_or_else(|e| panic!("deps: {e}"))
+        .edges
+        .into_iter()
+        .filter(|edge| edge.kind == EdgeKind::Imports)
+        .map(|edge| (edge.to_name, edge.to))
+        .collect();
+    let import = |name: &str| {
+        imports
+            .iter()
+            .find(|(to_name, _)| to_name == name)
+            .and_then(|(_, to)| to.clone())
+            .unwrap_or_else(|| panic!("{name}: {imports:?}"))
+    };
+    // `run` is the top-level function, not `Job.run`; `load` is the last of
+    // its `@overload` rebindings; `which` comes from the package, not the
+    // same-named module file.
+    assert_eq!(import("run"), "sym:pkg/mod.py#function:run");
+    assert_eq!(import("load"), "sym:pkg/mod.py#function:load@17");
+    assert!(
+        import("which").starts_with("sym:pkg/util/__init__.py#"),
+        "{imports:?}"
+    );
+
+    let main = callees(&index, "main");
+    let target = |name: &str| {
+        main.iter()
+            .find(|(to_name, _)| to_name == name)
+            .unwrap_or_else(|| panic!("{name}: {main:?}"))
+            .1
+            .clone()
+    };
+    // A bare call never reaches a method; calling a class constructs it.
+    assert_eq!(
+        target("run").as_deref(),
+        Some("sym:pkg/mod.py#function:run")
+    );
+    assert_eq!(target("Job").as_deref(), Some("sym:pkg/mod.py#class:Job"));
+    // Both module-qualified calls (`tools.helper()`, `pkg.tools.helper()`)
+    // resolve through the module they name: one edge, nothing dangling.
+    assert_eq!(
+        target("helper").as_deref(),
+        Some("sym:pkg/tools.py#function:helper")
+    );
+    assert!(
+        main.iter().all(|(name, _)| !name.ends_with("tools.helper")),
+        "{main:?}"
+    );
+    // An external module call keeps its spelling when it dangles.
+    assert_eq!(target("json.dumps"), None);
+    // A function-local `def` is invisible outside its function.
+    assert_eq!(target("inner"), None);
+    assert!(
+        callees(&index, "outer")
+            .iter()
+            .any(|(name, to)| name == "outer.inner" && to.is_some()),
+        "{:?}",
+        callees(&index, "outer")
+    );
+
+    // A body-only edit keeps the binding surface; a new top-level name
+    // changes it and binds the waiting consumer.
+    write(
+        tmp.path(),
+        "pkg/tools.py",
+        "def helper():\n    return 1\n\n\ndef later():\n    pass\n",
+    );
+    let main = callees(&index, "main");
+    assert!(
+        main.iter().any(|(name, to)| name == "later"
+            && to.as_deref() == Some("sym:pkg/tools.py#function:later")),
+        "{main:?}"
+    );
+    assert!(
+        main.iter()
+            .any(|(name, to)| name == "helper" && to.is_some()),
+        "{main:?}"
+    );
+}

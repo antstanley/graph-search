@@ -62,6 +62,21 @@ pub fn compatible(edge_kind: EdgeKind, node_kind: NodeKind) -> bool {
     }
 }
 
+/// [`compatible`], refined by the referring language: calling a Python class
+/// constructs it, and a bare Python call name is never a method, which is only
+/// reachable through its receiver (`self.method()` resolves by its qualified
+/// class member).
+fn admits(edge_kind: EdgeKind, name: &str, language: Language, node_kind: NodeKind) -> bool {
+    if language == Language::Python && edge_kind == EdgeKind::Calls {
+        return match node_kind {
+            NodeKind::Class => true,
+            NodeKind::Method => name.contains('.'),
+            other => compatible(edge_kind, other),
+        };
+    }
+    compatible(edge_kind, node_kind)
+}
+
 /// The workspace-wide name tables resolution reads. Built once per sync from
 /// the store plus the batch (`SPEC.md` §6.2).
 #[derive(Clone, Debug, Default)]
@@ -242,15 +257,21 @@ impl SymbolTable {
     }
 
     /// Rule 4: a bare name that matches exactly one workspace symbol of a
-    /// compatible kind. Ambiguity dangles, by design.
+    /// kind compatible with the referring language's edge. Ambiguity dangles,
+    /// by design.
     #[must_use]
-    pub fn unique_global(&self, name: &str, edge_kind: EdgeKind) -> Option<&NodeId> {
+    pub fn unique_global(
+        &self,
+        name: &str,
+        edge_kind: EdgeKind,
+        language: Language,
+    ) -> Option<&NodeId> {
         let candidates = self.by_name.get(name)?;
         let compatible: Vec<&NodeId> = candidates
             .iter()
             .filter(|id| {
                 self.symbols.get(*id).is_some_and(|node| {
-                    compatible(edge_kind, node.kind)
+                    admits(edge_kind, name, language, node.kind)
                         && node.attribute("lexical_local") != Some("true")
                 })
             })
@@ -372,15 +393,16 @@ fn js_candidates(from_path: &str, specifier: &str) -> Vec<String> {
 }
 
 /// Python module spellings: an absolute dotted path (`a.b`) or a relative one
-/// (`.`, `..pkg`). A module is a `.py`/`.pyi` file or a package directory with
-/// an `__init__`.
+/// (`.`, `..pkg`). A module is a package directory with an `__init__` or a
+/// `.py`/`.pyi` file; as in Python's own path finder, a regular package wins over
+/// a same-named module file.
 fn python_candidates(from_path: &str, specifier: &str) -> Vec<String> {
     python_module_path(from_path, specifier).map_or_else(Vec::new, |joined| {
         vec![
-            format!("{joined}.py"),
-            format!("{joined}.pyi"),
             format!("{joined}/__init__.py"),
             format!("{joined}/__init__.pyi"),
+            format!("{joined}.py"),
+            format!("{joined}.pyi"),
         ]
     })
 }
@@ -746,18 +768,30 @@ pub fn resolve_reference(
             };
         }
         if let Some(target) = resolve_specifier(from_path, specifier, known_files, language) {
-            let matches: Vec<&Node> = table
+            let mut matches: Vec<&Node> = table
                 .named(&fact.name)
                 .into_iter()
                 .filter(|n| {
                     n.path == target
                         && n.attribute("lexical_local") != Some("true")
                         && n.name.as_deref() == Some(fact.name.as_str())
+                        // A Python module's importable names are its top-level
+                        // bindings; a method, class field or nested `def` that
+                        // shares the name is not one.
+                        && (language != Language::Python
+                            || n.qualified_name.as_deref() == Some(fact.name.as_str()))
                         && (fact.kind == EdgeKind::Imports
                             || n.kind == NodeKind::Export
-                            || compatible(fact.kind, n.kind))
+                            || admits(fact.kind, &fact.name, language, n.kind))
                 })
                 .collect();
+            // Python rebinds a top-level name freely (`@overload` stubs,
+            // conditional `def`s): the file's last binding is the one an import
+            // sees.
+            if language == Language::Python {
+                matches.sort_by_key(|n| n.span.map(|span| span.start_byte));
+                matches = matches.pop().into_iter().collect();
+            }
             if let [node] = matches.as_slice() {
                 return Resolution {
                     class: ResolutionClass::ExplicitImport,
@@ -773,8 +807,9 @@ pub fn resolve_reference(
         }
         // `from . import submodule`: the imported name is a module inside the
         // package, not a symbol in its `__init__`. Resolve it as a submodule
-        // before giving up.
-        if language == Language::Python {
+        // before giving up. A module-qualified call names a function, never a
+        // submodule.
+        if language == Language::Python && fact.kind == EdgeKind::Imports {
             let nested = python_submodule_specifier(specifier, &fact.name);
             if let Some(target) = resolve_specifier(from_path, &nested, known_files, language) {
                 return Resolution {
@@ -786,7 +821,13 @@ pub fn resolve_reference(
                 };
             }
         }
-        return dangling(fact.name.clone(), "import_target_missing_or_ambiguous");
+        // A module-qualified call reads as its spelling (`json.dumps`), not
+        // its bare member.
+        let display = match (&fact.raw_name, fact.kind) {
+            (Some(raw), EdgeKind::Calls) => raw.clone(),
+            _ => fact.name.clone(),
+        };
+        return dangling(display, "import_target_missing_or_ambiguous");
     }
 
     // A same-file name must be unique and kind-compatible. Duplicate
@@ -797,7 +838,7 @@ pub fn resolve_reference(
         .filter(|n| {
             n.path == from_path
                 && lexically_visible(n, fact, from_path)
-                && compatible(fact.kind, n.kind)
+                && admits(fact.kind, &fact.name, language, n.kind)
                 && (n.qualified_name.as_deref() == Some(fact.name.as_str())
                     || n.name.as_deref() == Some(fact.name.as_str()))
         })
@@ -829,7 +870,7 @@ pub fn resolve_reference(
     if fact.name.contains("::") || fact.name.contains('.') {
         let mut matches = table.named(&fact.name).into_iter().filter(|n| {
             n.qualified_name.as_deref() == Some(fact.name.as_str())
-                && compatible(fact.kind, n.kind)
+                && admits(fact.kind, &fact.name, language, n.kind)
                 && lexically_visible(n, fact, from_path)
         });
         if let Some(node) = matches.next()
@@ -847,7 +888,10 @@ pub fn resolve_reference(
     }
 
     // Rule 4: exactly one workspace symbol of a compatible kind.
-    if let Some(id) = table.unique_global(&fact.name, fact.kind).cloned() {
+    if let Some(id) = table
+        .unique_global(&fact.name, fact.kind, language)
+        .cloned()
+    {
         let name = table
             .symbols
             .get(&id)

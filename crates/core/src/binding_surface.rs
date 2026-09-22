@@ -36,7 +36,7 @@ pub(crate) fn fingerprint<'a>(
 ) -> Option<String> {
     if !matches!(
         language,
-        Language::Rust | Language::JavaScript | Language::TypeScript
+        Language::Rust | Language::JavaScript | Language::TypeScript | Language::Python
     ) || (matches!(language, Language::JavaScript | Language::TypeScript)
         && facts.js_module.is_none())
     {
@@ -48,8 +48,9 @@ pub(crate) fn fingerprint<'a>(
         .map(binding_node)
         .collect();
     nodes.sort_by(|a, b| a.id.cmp(&b.id));
-    // Rust does not consult an ECMAScript surface.
-    let module = (language != Language::Rust).then(|| module(facts));
+    // Rust and Python do not consult an ECMAScript surface.
+    let module =
+        matches!(language, Language::JavaScript | Language::TypeScript).then(|| module(facts));
     serde_json::to_vec(&(language, nodes, module))
         .ok()
         .map(|bytes| crate::hash::content_hash(&bytes))
@@ -67,7 +68,7 @@ pub(crate) fn unchanged(
 ) -> bool {
     if !matches!(
         language,
-        Language::Rust | Language::JavaScript | Language::TypeScript
+        Language::Rust | Language::JavaScript | Language::TypeScript | Language::Python
     ) {
         return false;
     }
