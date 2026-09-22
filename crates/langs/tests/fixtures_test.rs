@@ -211,6 +211,184 @@ fn html_page() {
 }
 
 #[test]
+fn python_module() {
+    let extraction = extract(&graph_search_langs::PythonExtractor, "python/module.py");
+    assert_eq!(
+        names(&extraction, NodeKind::Class),
+        vec!["Base", "Widget"],
+        "{:?}",
+        names(&extraction, NodeKind::Class)
+    );
+    assert_eq!(
+        names(&extraction, NodeKind::Method),
+        vec!["ping", "__init__", "render"],
+        "{:?}",
+        names(&extraction, NodeKind::Method)
+    );
+    assert_eq!(
+        names(&extraction, NodeKind::Function),
+        vec!["make_widget", "run"],
+        "{:?}",
+        names(&extraction, NodeKind::Function)
+    );
+    assert_eq!(names(&extraction, NodeKind::Field), vec!["size", "name"]);
+    assert_eq!(names(&extraction, NodeKind::Variable), vec!["MAX"]);
+    assert_eq!(names(&extraction, NodeKind::TypeAlias), vec!["Alias"]);
+    // `self.draw()` is rewritten to the enclosing class's qualified member.
+    let calls = refs(&extraction, EdgeKind::Calls);
+    assert!(calls.contains(&String::from("Widget.draw")), "{calls:?}");
+    // `osp.join()` after `import os.path as osp` calls `join` in `os.path`.
+    let join = extraction
+        .references
+        .iter()
+        .find(|fact| fact.kind == EdgeKind::Calls && fact.name == "join")
+        .expect("join call");
+    assert_eq!(join.via_import.as_deref(), Some("os.path"));
+    assert_eq!(join.raw_name.as_deref(), Some("osp.join"));
+    assert!(calls.contains(&String::from("helpers.help")), "{calls:?}");
+    assert!(calls.contains(&String::from("make_widget")), "{calls:?}");
+    // `class Widget(Base)` is an inheritance edge.
+    assert_eq!(refs(&extraction, EdgeKind::Extends), vec!["Base"]);
+    // `from .models import User, Account as Acct` records both the module edge
+    // and each imported binding's specifier.
+    let imports = refs(&extraction, EdgeKind::Imports);
+    assert!(imports.contains(&String::from("os")), "{imports:?}");
+    assert!(imports.contains(&String::from("os.path")), "{imports:?}");
+    assert!(imports.contains(&String::from(".")), "{imports:?}");
+    assert!(imports.contains(&String::from(".models")), "{imports:?}");
+    let user = extraction
+        .references
+        .iter()
+        .find(|fact| fact.name == "User" && fact.kind == EdgeKind::Imports)
+        .expect("User binding");
+    assert_eq!(user.via_import.as_deref(), Some(".models"));
+    let account = extraction
+        .references
+        .iter()
+        .find(|fact| fact.name == "Account" && fact.kind == EdgeKind::Imports)
+        .expect("Account binding");
+    assert_eq!(account.via_import.as_deref(), Some(".models"));
+    // `Widget` appears in annotations; builtins and `typing` forms do not.
+    let types = refs(&extraction, EdgeKind::TypeUses);
+    assert!(types.contains(&String::from("Widget")), "{types:?}");
+    assert!(!types.contains(&String::from("Optional")), "{types:?}");
+    assert!(!types.contains(&String::from("int")), "{types:?}");
+}
+
+fn extract_python(text: &str) -> Extraction {
+    graph_search_langs::PythonExtractor
+        .extract(&SourceFile {
+            path: Path::new("m.py"),
+            text,
+        })
+        .unwrap_or_else(|e| panic!("extract: {e}"))
+}
+
+#[test]
+fn python_generic_aliases_and_type_parameters_are_not_type_uses() {
+    let extraction = extract_python(
+        "type Vec[T] = list[T]
+
+class Box[U: Item]:
+    value: U
+
+def first[V](items: Vec[V]) -> V:
+    pass
+",
+    );
+    assert_eq!(names(&extraction, NodeKind::TypeAlias), vec!["Vec"]);
+    let alias = extraction
+        .symbols
+        .iter()
+        .find(|fact| fact.kind == NodeKind::TypeAlias)
+        .expect("alias");
+    assert_eq!(alias.qualified_name, "Vec");
+    // Only real types are uses: `Vec` and the bound `Item`, never `T`/`U`/`V`.
+    assert_eq!(refs(&extraction, EdgeKind::TypeUses), vec!["Item", "Vec"]);
+}
+
+#[test]
+fn python_subscripted_bases_forward_references_and_literals() {
+    let extraction = extract_python(
+        "class UserRepo(BaseRepo[User], mod.Base[T], metaclass=Meta):
+    pass
+
+def parent(x: Literal[\"Ghost\"], y: Annotated[Tree, \"Meta\"]) -> \"Node | None\":
+    pass
+",
+    );
+    assert_eq!(
+        refs(&extraction, EdgeKind::Extends),
+        vec!["BaseRepo", "mod.Base"]
+    );
+    // `"Node | None"` is a forward reference; `Literal` values and
+    // `Annotated` metadata are not types.
+    assert_eq!(refs(&extraction, EdgeKind::TypeUses), vec!["Tree", "Node"]);
+}
+
+#[test]
+fn python_definitions_in_function_bodies_are_lexically_local() {
+    let text = "def outer():
+    def helper():
+        pass
+    class Local:
+        def m(self):
+            pass
+    helper()
+
+def helper():
+    pass
+";
+    let extraction = extract_python(text);
+    let outer_end = text.find("\n\ndef helper").expect("outer end");
+    for fact in &extraction.symbols {
+        let local = fact.attributes.get("lexical_local").map(String::as_str);
+        if fact.qualified_name.starts_with("outer.") {
+            assert_eq!(local, Some("true"), "{fact:?}");
+            assert_eq!(fact.attributes["lexical_start"], "0");
+            assert_eq!(fact.attributes["lexical_end"], outer_end.to_string());
+        } else {
+            assert_eq!(local, None, "{fact:?}");
+        }
+    }
+}
+
+#[test]
+fn python_symbol_keys_are_unique_and_linear_in_nesting() {
+    let text = "class A:\n    class B:\n        class C:\n            @property\n            def x(self):\n                return 1\n\n            @x.setter\n            def x(self, value):\n                pass\n";
+    let extraction = graph_search_langs::PythonExtractor
+        .extract(&SourceFile {
+            path: Path::new("nested.py"),
+            text,
+        })
+        .unwrap_or_else(|e| panic!("extract: {e}"));
+    let keys: Vec<&str> = extraction
+        .symbols
+        .iter()
+        .map(|fact| fact.key.as_str())
+        .collect();
+    // Each key extends its parent's key once, and a rebound name (a property
+    // setter) is disambiguated rather than colliding with the getter.
+    assert_eq!(
+        keys,
+        vec![
+            "class:A",
+            "class:A>class:A.B",
+            "class:A>class:A.B>class:A.B.C",
+            "class:A>class:A.B>class:A.B.C>method:A.B.C.x",
+            "class:A>class:A.B>class:A.B.C>method:A.B.C.x#9",
+        ],
+        "{keys:?}"
+    );
+    for fact in &extraction.symbols[3..] {
+        assert_eq!(
+            fact.parent_key.as_deref(),
+            Some("class:A>class:A.B>class:A.B.C")
+        );
+    }
+}
+
+#[test]
 fn css_site() {
     let extraction = extract(&graph_search_langs::CssExtractor, "css/site.css");
     let rules = names(&extraction, NodeKind::CssRule);

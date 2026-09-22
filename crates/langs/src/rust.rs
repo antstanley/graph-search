@@ -98,21 +98,11 @@ impl Extractor<'_> {
     }
 
     fn qualify(&self, name: &str, kind: NodeKind) -> (String, String) {
-        let mut qualified = self
+        let parent = self
             .scope
             .last()
-            .map_or_else(String::new, |scope| scope.qualified.clone());
-        if !qualified.is_empty() {
-            qualified.push_str("::");
-        }
-        qualified.push_str(name);
-        let mut key = format!("{}:{qualified}", kind.as_str());
-        // The immediate parent's key already contains its full ancestry.
-        // Prepending every ancestor again makes nested keys grow exponentially.
-        if let Some(scope) = self.scope.last() {
-            key = format!("{}>{}", scope.key, key);
-        }
-        (key, qualified)
+            .map(|scope| (scope.key.as_str(), scope.qualified.as_str()));
+        crate::walk::qualify(parent, name, kind, "::")
     }
 
     fn visibility(&self, node: Node<'_>) -> Option<Visibility> {

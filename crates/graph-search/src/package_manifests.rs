@@ -6,6 +6,7 @@ pub(crate) fn extract(file: &SourceFile<'_>) -> Option<PackageManifest> {
     let ecosystem = match file.path.file_name()?.to_str()? {
         "Cargo.toml" => PackageEcosystem::Cargo,
         "package.json" | "pnpm-workspace.yaml" => PackageEcosystem::Node,
+        "pyproject.toml" => PackageEcosystem::Python,
         _ => return None,
     };
     let unavailable = |reason: &str| PackageManifest {
@@ -27,9 +28,11 @@ pub(crate) fn extract(file: &SourceFile<'_>) -> Option<PackageManifest> {
         return Some(crate::pnpm_workspace::extract(file.text));
     }
     let value = match ecosystem {
-        PackageEcosystem::Cargo => toml::from_str::<toml::Value>(file.text)
-            .ok()
-            .and_then(|value| serde_json::to_value(value).ok()),
+        PackageEcosystem::Cargo | PackageEcosystem::Python => {
+            toml::from_str::<toml::Value>(file.text)
+                .ok()
+                .and_then(|value| serde_json::to_value(value).ok())
+        }
         PackageEcosystem::Node => serde_json::from_str::<serde_json::Value>(file.text).ok(),
     };
     let Some(value) = value.filter(serde_json::Value::is_object) else {
@@ -53,12 +56,20 @@ pub(crate) fn extract(file: &SourceFile<'_>) -> Option<PackageManifest> {
             }
             _ => return Some(unavailable("missing_package_or_workspace")),
         }
+    } else if ecosystem == PackageEcosystem::Python {
+        // PEP 621 `[project]`, else Poetry's `[tool.poetry]`. A pyproject.toml
+        // with neither (tool configuration only) is still an unnamed boundary.
+        match python_project(&value) {
+            Some(project) if project.is_object() => project,
+            Some(_) => return Some(unavailable("unsupported_project_table")),
+            None => &serde_json::Value::Null,
+        }
     } else {
         &value
     };
     let name = match package.get("name") {
         Some(serde_json::Value::String(name)) if !name.is_empty() => Some(name.clone()),
-        None if ecosystem == PackageEcosystem::Node => None,
+        None if ecosystem != PackageEcosystem::Cargo => None,
         _ => return Some(unavailable("unsupported_package_name")),
     };
     if name
@@ -76,6 +87,13 @@ pub(crate) fn extract(file: &SourceFile<'_>) -> Option<PackageManifest> {
         name,
         unavailable_reason: None,
     })
+}
+
+/// The table naming a Python project: PEP 621 `[project]`, else `[tool.poetry]`.
+fn python_project(value: &serde_json::Value) -> Option<&serde_json::Value> {
+    value
+        .get("project")
+        .or_else(|| value.get("tool")?.get("poetry"))
 }
 
 #[cfg(test)]
@@ -125,6 +143,38 @@ mod tests {
                 .as_deref(),
             Some("package_name_limit")
         );
+    }
+    #[test]
+    fn pyproject_names_come_from_pep_621_then_poetry() {
+        let read = |text| {
+            extract(&SourceFile {
+                path: Path::new("pyproject.toml"),
+                text,
+            })
+            .unwrap()
+        };
+        let pep = read("[project]\nname='alpha'\n[tool.poetry]\nname='beta'\n");
+        assert_eq!(pep.ecosystem, PackageEcosystem::Python);
+        assert_eq!(pep.role, PackageRole::Package);
+        assert_eq!(pep.name.as_deref(), Some("alpha"));
+        assert!(pep.node.is_none() && pep.cargo_targets.is_none());
+        assert_eq!(
+            read("[tool.poetry]\nname='beta'\n").name.as_deref(),
+            Some("beta")
+        );
+        let unnamed = read("[tool.ruff]\nline-length=100\n");
+        assert_eq!(unnamed.role, PackageRole::Package);
+        assert!(unnamed.name.is_none());
+        for (text, reason) in [
+            ("not toml", "invalid_manifest_syntax"),
+            ("project='x'", "unsupported_project_table"),
+            ("[project]\nname=3", "unsupported_package_name"),
+            ("[project]\nname=''", "unsupported_package_name"),
+        ] {
+            let fact = read(text);
+            assert_eq!(fact.role, PackageRole::Unavailable, "{text}");
+            assert_eq!(fact.unavailable_reason.as_deref(), Some(reason), "{text}");
+        }
     }
     #[test]
     fn cargo_target_caps_preserve_package_identity_and_legacy_defaults() {

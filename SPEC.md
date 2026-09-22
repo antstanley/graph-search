@@ -64,8 +64,8 @@ situ with no harness change and a one-line rollback.
 6. **Machine-readable output.** A stable JSON envelope an agent can parse from
    `bash`.
 7. **Language coverage (first cut).** Rust, TypeScript, JavaScript (incl. JSX/
-   TSX), HTML, CSS, and the declared script regions of Svelte, Vue and Astro
-   single-file components.
+   TSX), Python, HTML, CSS, and the declared script regions of Svelte, Vue and
+   Astro single-file components.
 
 ## 2. Non-goals (v1)
 
@@ -1275,6 +1275,55 @@ presents the graph as exhaustive. Every `graph` and
   "note": "static approximation; dynamic/macro/generated edges may be missing"
 }
 ```
+
+### 7.5 Python
+
+`.py`, `.pyi` and `.pyw` files. Python binds names at run time, so the adapter
+models what the syntax states and leaves plain identifier uses and local bindings
+to the generic resolution rules (§7.4).
+
+| Node | Capture |
+|---|---|
+| `class` | `class_definition` |
+| `function` | `function_definition` outside a class body (incl. nested and `async def`) |
+| `method` | `function_definition` directly in a class body |
+| `field` | `name = …` / `name: T = …` in a class body |
+| `variable` | `name = …` / `name: T = …` at module level |
+| `type_alias` | `type X = …` / `type X[T] = …` (PEP 695; the name is `X`) |
+
+Only a single-identifier assignment target declares a symbol; tuple unpacking,
+subscripts, attributes (`self.x = …`) and function-local assignments do not. A
+`def` or `class` inside a function body is lexically local to that function
+(`lexical_local`): it is visible only within it, never to same-file,
+qualified or unique-name lookup elsewhere.
+
+| Edge | Source |
+|---|---|
+| `contains` | file → top level, class → method/field, function → nested `def` |
+| `imports` | `import a.b` (one edge per name); `from m import x` emits the module edge `m` and one binding `x` via `m` |
+| `calls` | `call` → callee spelling; `self.m()` in a method becomes `Class.m`; `mod.f()` where `import a.b as mod` (or `import mod`) binds `mod` becomes `f` via module `a.b` |
+| `extends` | `class C(Base, pkg.Base, Generic[T])` positional bases, a subscripted base naming the class it parameterizes (keyword arguments such as `metaclass=` are not bases) |
+| `type_uses` | parameter, return, annotated-assignment, type-alias and PEP 695 bound annotations, including names in string forward references; excluding builtin scalar/container names, `typing` special forms and generic aliases, in-scope PEP 695 type parameters, `Literal[…]` arguments and `Annotated[…]` metadata |
+
+A Python call binds to a `class` (calling it constructs an instance), and a bare
+call name never binds to a `method`, which is only reachable through a
+receiver.
+
+Module specifiers resolve against the known file set, never `sys.path` or
+installed packages. `a.b` tries `a/b/__init__.py`, `a/b/__init__.pyi`, `a/b.py`
+and `a/b.pyi` from the workspace root: as in Python's path finder, a regular
+package wins over a same-named module. A leading dot is the importing file's
+directory; each further dot walks one directory up, and walking past the root has
+no target. `from m import x` (and a module-qualified call) binds only a top-level
+symbol `x` of `m`, never a method, class field or nested `def` sharing the name;
+when `m` rebinds `x` (`@overload` stubs, conditional `def`s) the last binding in
+the file wins. When `from m import x` finds no symbol `x` in `m`, `m.x` is tried
+as a submodule (`from . import views`). An `import` inside a function or class body
+is owned by that symbol but still resolves as a module, never by name to an
+unrelated workspace symbol. Unresolved imports are dangling with their
+reason, as in every other language. Package context comes from the nearest
+`pyproject.toml` (§ Manifest-owned package context); `__init__.py` does not create
+a package boundary.
 
 ---
 
@@ -2532,10 +2581,13 @@ a different association, or a different style prevents grouping.
 Parser policy 7 and source representation 9 add native package-boundary context.
 The standard library registry reuses the existing JSON/TOML decoders through an
 optional `LanguageRegistry::package_manifest` port; core names no syntax decoder.
-Recognized files are exactly `Cargo.toml` and `package.json`. The native subset
+Recognized files are exactly `Cargo.toml`, `package.json` (with
+`pnpm-workspace.yaml` workspace roots) and `pyproject.toml`. The native subset
 retains the authored package name, ecosystem and package/workspace/unavailable
 role. A Cargo `[workspace]` without `[package]` is not itself a package. A Node
-manifest can define an unnamed boundary. This is package-context discovery, not
+manifest can define an unnamed boundary. A `pyproject.toml` takes its name from
+PEP 621 `[project].name`, else `[tool.poetry].name`; with neither table it is an
+unnamed boundary. This is package-context discovery, not
 validation of every package-manager option or dependency/import resolution.
 
 Manifest syntax input is capped at 262,144 bytes and retained names at 512 bytes.
@@ -2550,8 +2602,9 @@ index manifest/header retains this boundary set; additions/removals participate
 in freshness checks even when a manifest body is oversized and unindexed. A
 nearest observed-but-unavailable boundary blocks outer inheritance. Partial walks
 cannot infer boundary removals. Rust selects Cargo boundaries; JS/TS selects Node
-boundaries. Other text, HTML and CSS select the nearest unique boundary across
-both families; a tie is explicit incomplete scope. Virtual Cargo workspaces stop
+boundaries; Python selects `pyproject.toml` boundaries. Other text, HTML and CSS
+select the nearest unique boundary across all families; a tie is explicit
+incomplete scope. Virtual Cargo workspaces stop
 package inheritance without inventing a package.
 
 `SourceFileUnits.package` and resolved indexed source-evidence identities retain manifest path,
@@ -3220,3 +3273,19 @@ exhausted bound is unresolved, never a guess. Glob reexports keep their explicit
 nodes, so unchanged generation consumers do not need raw extraction facts
 re-hydrated. The counterfactual and chained fixtures are recorded in
 `research/results/native-implementation/rust-reexports/README.md`.
+
+### Python extraction and pyproject.toml boundaries (parser policy 24, source representation 16)
+
+The `python` language value (projection schema 4) and the tree-sitter-python
+adapter (§7.5) replace indexing `.py`/`.pyi`/`.pyw` files as `unknown`. Parser
+policy 24 forces projection refresh. `pyproject.toml` joins the recognized
+manifests under the `python` ecosystem; its decoded fact reuses the TOML decoder
+already used for `Cargo.toml`, so no dependency was added beyond the grammar.
+An invalid document is `invalid_manifest_syntax`, a non-table `project` (or
+`tool.poetry`) is `unsupported_project_table`, and a non-string or empty name is
+`unsupported_package_name`. Each is an unavailable barrier, like every other
+ecosystem. A directory holding both `Cargo.toml` and `pyproject.toml` (a maturin
+layout) scopes Rust files to Cargo and Python files to the project; other text
+at that level is explicit incomplete scope. Source representation 16 admits the
+new ecosystem value in retained facts. uv/Hatch workspace tables, dependency
+lists, `src/` layout discovery and import-name mapping are not modeled.

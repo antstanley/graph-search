@@ -45,6 +45,9 @@ pub fn default_extensions() -> BTreeMap<String, Language> {
         (String::from(".svelte"), Language::Svelte),
         (String::from(".vue"), Language::Vue),
         (String::from(".astro"), Language::Astro),
+        (String::from(".py"), Language::Python),
+        (String::from(".pyi"), Language::Python),
+        (String::from(".pyw"), Language::Python),
     ])
 }
 
@@ -95,6 +98,7 @@ impl Default for WalkPolicy {
                 Language::Svelte,
                 Language::Vue,
                 Language::Astro,
+                Language::Python,
             ],
             extensions: default_extensions(),
         }

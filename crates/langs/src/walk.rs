@@ -55,6 +55,30 @@ pub fn span_of(node: tree_sitter::Node<'_>) -> graph_search_types::node::Span {
     )
 }
 
+/// A declaration's fact key and qualified name under its immediate parent
+/// (that parent's key and qualified name), joining qualified segments with
+/// `separator`.
+#[must_use]
+pub fn qualify(
+    parent: Option<(&str, &str)>,
+    name: &str,
+    kind: graph_search_types::kind::NodeKind,
+    separator: &str,
+) -> (String, String) {
+    let mut qualified = parent.map_or_else(String::new, |(_, qualified)| qualified.to_owned());
+    if !qualified.is_empty() {
+        qualified.push_str(separator);
+    }
+    qualified.push_str(name);
+    let mut key = format!("{}:{qualified}", kind.as_str());
+    // The immediate parent's key already contains its full ancestry.
+    // Prepending every ancestor again makes nested keys grow exponentially.
+    if let Some((parent_key, _)) = parent {
+        key = format!("{parent_key}>{key}");
+    }
+    (key, qualified)
+}
+
 /// The 1-based line of a 0-based row.
 #[must_use]
 pub fn line_of(row: usize) -> u32 {

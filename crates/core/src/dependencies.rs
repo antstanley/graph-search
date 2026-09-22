@@ -3,7 +3,7 @@
 //! These records describe binding inputs, not just successfully resolved edges.
 //! They can be serialized independently of parser payloads. An absent index must
 //! use conservative repair; an absent extraction is never an empty extraction.
-use graph_search_types::{Edge, Language, Manifest, Node, kind::EdgeKind, manifest::FileEntry};
+use graph_search_types::{Edge, Language, Manifest, Node, manifest::FileEntry};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet, VecDeque};
 
@@ -132,12 +132,9 @@ impl DependencyIndex {
                         continue;
                     }
                     record.references.insert(fact.name.clone());
-                    if let Some(specifier) = fact.via_import.as_ref().or_else(|| {
-                        (fact.kind == EdgeKind::Imports && fact.from_key.is_none())
-                            .then_some(&fact.name)
-                    }) {
-                        record.imports.insert(specifier.clone());
-                    }
+                    record
+                        .imports
+                        .extend(crate::resolve::import_specifiers(fact, language));
                 }
                 if let Some(module) = &record.module {
                     record
@@ -386,7 +383,7 @@ mod tests {
         NodeId, Span,
         extraction::{Extraction, ReferenceFact},
         js_module::{JsExport, JsModule},
-        kind::NodeKind,
+        kind::{EdgeKind, NodeKind},
     };
 
     fn fixture() -> (Manifest, Vec<Node>) {

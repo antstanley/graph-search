@@ -62,6 +62,21 @@ pub fn compatible(edge_kind: EdgeKind, node_kind: NodeKind) -> bool {
     }
 }
 
+/// [`compatible`], refined by the referring language: calling a Python class
+/// constructs it, and a bare Python call name is never a method, which is only
+/// reachable through its receiver (`self.method()` resolves by its qualified
+/// class member).
+fn admits(edge_kind: EdgeKind, name: &str, language: Language, node_kind: NodeKind) -> bool {
+    if language == Language::Python && edge_kind == EdgeKind::Calls {
+        return match node_kind {
+            NodeKind::Class => true,
+            NodeKind::Method => name.contains('.'),
+            other => compatible(edge_kind, other),
+        };
+    }
+    compatible(edge_kind, node_kind)
+}
+
 /// The workspace-wide name tables resolution reads. Built once per sync from
 /// the store plus the batch (`SPEC.md` §6.2).
 #[derive(Clone, Debug, Default)]
@@ -242,15 +257,21 @@ impl SymbolTable {
     }
 
     /// Rule 4: a bare name that matches exactly one workspace symbol of a
-    /// compatible kind. Ambiguity dangles, by design.
+    /// kind compatible with the referring language's edge. Ambiguity dangles,
+    /// by design.
     #[must_use]
-    pub fn unique_global(&self, name: &str, edge_kind: EdgeKind) -> Option<&NodeId> {
+    pub fn unique_global(
+        &self,
+        name: &str,
+        edge_kind: EdgeKind,
+        language: Language,
+    ) -> Option<&NodeId> {
         let candidates = self.by_name.get(name)?;
         let compatible: Vec<&NodeId> = candidates
             .iter()
             .filter(|id| {
                 self.symbols.get(*id).is_some_and(|node| {
-                    compatible(edge_kind, node.kind)
+                    admits(edge_kind, name, language, node.kind)
                         && node.attribute("lexical_local") != Some("true")
                 })
             })
@@ -286,6 +307,7 @@ pub fn resolve_specifier(
         | Language::Vue
         | Language::Astro => js_candidates(from_path, specifier),
         Language::Css | Language::Html => vec![relative(from_path, specifier)],
+        Language::Python => python_candidates(from_path, specifier),
         Language::Unknown => vec![],
     };
     candidates
@@ -368,6 +390,94 @@ fn js_candidates(from_path: &str, specifier: &str) -> Vec<String> {
         candidates.push(format!("{base}/index{ext}"));
     }
     candidates
+}
+
+/// Python module spellings: an absolute dotted path (`a.b`) or a relative one
+/// (`.`, `..pkg`). A module is a package directory with an `__init__` or a
+/// `.py`/`.pyi` file; as in Python's own path finder, a regular package wins over
+/// a same-named module file.
+fn python_candidates(from_path: &str, specifier: &str) -> Vec<String> {
+    python_module_path(from_path, specifier).map_or_else(Vec::new, |joined| {
+        vec![
+            format!("{joined}/__init__.py"),
+            format!("{joined}/__init__.pyi"),
+            format!("{joined}.py"),
+            format!("{joined}.pyi"),
+        ]
+    })
+}
+
+/// The slash-joined module path a Python specifier names, or `None` when it
+/// names nothing (empty, or a relative import that walks past the root).
+fn python_module_path(from_path: &str, specifier: &str) -> Option<String> {
+    let specifier = specifier.trim();
+    if specifier.is_empty() {
+        return None;
+    }
+    let dots = specifier.chars().take_while(|c| *c == '.').count();
+    let tail = specifier.get(dots..).unwrap_or_default();
+    let segments: Vec<String> = if dots == 0 {
+        tail.split('.')
+            .filter(|part| !part.is_empty())
+            .map(str::to_owned)
+            .collect()
+    } else {
+        // One dot is the importing file's package (its directory); each
+        // further dot walks one package up.
+        let mut base: Vec<String> = std::path::Path::new(from_path)
+            .parent()
+            .map(|parent| parent.to_string_lossy().into_owned())
+            .unwrap_or_default()
+            .split('/')
+            .filter(|part| !part.is_empty())
+            .map(str::to_owned)
+            .collect();
+        for _ in 1..dots {
+            // Walking past the workspace root has no target.
+            base.pop()?;
+        }
+        base.extend(
+            tail.split('.')
+                .filter(|part| !part.is_empty())
+                .map(str::to_owned),
+        );
+        base
+    };
+    (!segments.is_empty()).then(|| segments.join("/"))
+}
+
+/// The specifier that names `name` as a submodule of `specifier`: `from .` and
+/// `from ..` concatenate, an explicit module joins with a dot.
+fn python_submodule_specifier(specifier: &str, name: &str) -> String {
+    if specifier.ends_with('.') {
+        format!("{specifier}{name}")
+    } else {
+        format!("{specifier}.{name}")
+    }
+}
+
+/// Whether `fact` is a module import that resolves to a file. Python allows an
+/// `import` inside a function or class body; it still names a module, so its
+/// owner does not change how it resolves.
+fn module_import(fact: &ReferenceFact, language: Language) -> bool {
+    fact.kind == EdgeKind::Imports
+        && fact.via_import.is_none()
+        && (fact.from_key.is_none() || language == Language::Python)
+}
+
+/// The module specifiers whose file resolution decides `fact`'s target, so a
+/// change in the known file set can invalidate it. A Python `from m import x`
+/// also consults the submodule `m.x`.
+pub(crate) fn import_specifiers(fact: &ReferenceFact, language: Language) -> Vec<String> {
+    match &fact.via_import {
+        Some(specifier) if language == Language::Python => vec![
+            specifier.clone(),
+            python_submodule_specifier(specifier, &fact.name),
+        ],
+        Some(specifier) => vec![specifier.clone()],
+        None if module_import(fact, language) => vec![fact.name.clone()],
+        None => Vec::new(),
+    }
 }
 
 /// A relative path from the importing file's directory.
@@ -596,7 +706,7 @@ pub fn resolve_reference(
     }
 
     // File-level import statements become file->file (or file->module) edges.
-    if fact.kind == EdgeKind::Imports && fact.from_key.is_none() && fact.via_import.is_none() {
+    if module_import(fact, language) {
         let target = if js_family(language) {
             table.js_specifier(from_path, &fact.name, known_files)
         } else {
@@ -658,18 +768,30 @@ pub fn resolve_reference(
             };
         }
         if let Some(target) = resolve_specifier(from_path, specifier, known_files, language) {
-            let matches: Vec<&Node> = table
+            let mut matches: Vec<&Node> = table
                 .named(&fact.name)
                 .into_iter()
                 .filter(|n| {
                     n.path == target
                         && n.attribute("lexical_local") != Some("true")
                         && n.name.as_deref() == Some(fact.name.as_str())
+                        // A Python module's importable names are its top-level
+                        // bindings; a method, class field or nested `def` that
+                        // shares the name is not one.
+                        && (language != Language::Python
+                            || n.qualified_name.as_deref() == Some(fact.name.as_str()))
                         && (fact.kind == EdgeKind::Imports
                             || n.kind == NodeKind::Export
-                            || compatible(fact.kind, n.kind))
+                            || admits(fact.kind, &fact.name, language, n.kind))
                 })
                 .collect();
+            // Python rebinds a top-level name freely (`@overload` stubs,
+            // conditional `def`s): the file's last binding is the one an import
+            // sees.
+            if language == Language::Python {
+                matches.sort_by_key(|n| n.span.map(|span| span.start_byte));
+                matches = matches.pop().into_iter().collect();
+            }
             if let [node] = matches.as_slice() {
                 return Resolution {
                     class: ResolutionClass::ExplicitImport,
@@ -683,7 +805,29 @@ pub fn resolve_reference(
                 };
             }
         }
-        return dangling(fact.name.clone(), "import_target_missing_or_ambiguous");
+        // `from . import submodule`: the imported name is a module inside the
+        // package, not a symbol in its `__init__`. Resolve it as a submodule
+        // before giving up. A module-qualified call names a function, never a
+        // submodule.
+        if language == Language::Python && fact.kind == EdgeKind::Imports {
+            let nested = python_submodule_specifier(specifier, &fact.name);
+            if let Some(target) = resolve_specifier(from_path, &nested, known_files, language) {
+                return Resolution {
+                    class: ResolutionClass::ExplicitImport,
+                    reason: None,
+                    fact: fact.clone(),
+                    to: Some(NodeId::file(&target)),
+                    to_name: target,
+                };
+            }
+        }
+        // A module-qualified call reads as its spelling (`json.dumps`), not
+        // its bare member.
+        let display = match (&fact.raw_name, fact.kind) {
+            (Some(raw), EdgeKind::Calls) => raw.clone(),
+            _ => fact.name.clone(),
+        };
+        return dangling(display, "import_target_missing_or_ambiguous");
     }
 
     // A same-file name must be unique and kind-compatible. Duplicate
@@ -694,7 +838,7 @@ pub fn resolve_reference(
         .filter(|n| {
             n.path == from_path
                 && lexically_visible(n, fact, from_path)
-                && compatible(fact.kind, n.kind)
+                && admits(fact.kind, &fact.name, language, n.kind)
                 && (n.qualified_name.as_deref() == Some(fact.name.as_str())
                     || n.name.as_deref() == Some(fact.name.as_str()))
         })
@@ -726,7 +870,7 @@ pub fn resolve_reference(
     if fact.name.contains("::") || fact.name.contains('.') {
         let mut matches = table.named(&fact.name).into_iter().filter(|n| {
             n.qualified_name.as_deref() == Some(fact.name.as_str())
-                && compatible(fact.kind, n.kind)
+                && admits(fact.kind, &fact.name, language, n.kind)
                 && lexically_visible(n, fact, from_path)
         });
         if let Some(node) = matches.next()
@@ -744,7 +888,10 @@ pub fn resolve_reference(
     }
 
     // Rule 4: exactly one workspace symbol of a compatible kind.
-    if let Some(id) = table.unique_global(&fact.name, fact.kind).cloned() {
+    if let Some(id) = table
+        .unique_global(&fact.name, fact.kind, language)
+        .cloned()
+    {
         let name = table
             .symbols
             .get(&id)
@@ -1262,7 +1409,11 @@ mod tests {
         assert!(long.len() <= MAX_DANGLING_NAME_BYTES, "{}", long.len());
         assert!(long.contains('…'));
         let truncated = canonical_dangling_name(&format!("{}\n  .tail", "y".repeat(200)));
-        assert!(truncated.len() <= MAX_DANGLING_NAME_BYTES, "{}", truncated.len());
+        assert!(
+            truncated.len() <= MAX_DANGLING_NAME_BYTES,
+            "{}",
+            truncated.len()
+        );
         assert!(truncated.contains('…'));
         // The canonical name is the dangling edge identity, so two distinct long
         // names that share a prefix past the bound must not collapse into one.
@@ -1342,6 +1493,105 @@ mod tests {
         let resolved = resolve_reference(&fact, "src/a.rs", &table, &known, Language::Rust);
         assert!(resolved.to.is_none());
         assert_eq!(resolved.to_name, "serde");
+    }
+
+    #[test]
+    fn python_import_specifiers_resolve_to_modules() {
+        let known = BTreeSet::from([
+            "pkg/__init__.py".to_owned(),
+            "pkg/mod.py".to_owned(),
+            "pkg/sub/__init__.py".to_owned(),
+            "pkg/sub/deep.py".to_owned(),
+        ]);
+        let resolve = |from: &str, specifier: &str| {
+            resolve_specifier(from, specifier, &known, Language::Python)
+        };
+        // Absolute dotted paths.
+        assert_eq!(resolve("app.py", "pkg.mod").as_deref(), Some("pkg/mod.py"));
+        assert_eq!(resolve("app.py", "pkg").as_deref(), Some("pkg/__init__.py"));
+        // Relative: one dot is the file's package, each further dot walks up.
+        assert_eq!(
+            resolve("pkg/sub/use.py", ".deep").as_deref(),
+            Some("pkg/sub/deep.py")
+        );
+        assert_eq!(
+            resolve("pkg/sub/use.py", "..mod").as_deref(),
+            Some("pkg/mod.py")
+        );
+        assert_eq!(
+            resolve("pkg/use.py", ".").as_deref(),
+            Some("pkg/__init__.py")
+        );
+        // A relative import past the workspace root has no target.
+        assert_eq!(resolve("pkg/use.py", "..").as_deref(), None);
+    }
+
+    #[test]
+    fn python_relative_imports_past_the_root_have_no_target() {
+        let known = BTreeSet::from(["x.py".to_owned(), "pkg/use.py".to_owned()]);
+        let resolve = |from: &str, specifier: &str| {
+            resolve_specifier(from, specifier, &known, Language::Python)
+        };
+        // `..` from `pkg/use.py` is the root, so `..x` is `x.py`.
+        assert_eq!(resolve("pkg/use.py", "..x").as_deref(), Some("x.py"));
+        // One dot further walks past the root.
+        assert_eq!(resolve("pkg/use.py", "...x"), None);
+        assert_eq!(resolve("use.py", "..x"), None);
+        // `from .. import x` in a top-level file is not the root's `x.py`.
+        let table = SymbolTable::new();
+        let fact = ReferenceFact::file_level(EdgeKind::Imports, "x", 1).via_import("..");
+        let resolved = resolve_reference(&fact, "use.py", &table, &known, Language::Python);
+        assert_eq!(resolved.to, None);
+    }
+
+    #[test]
+    fn python_function_local_imports_resolve_to_modules() {
+        // `def f(): import util` names the module `util.py`, never an unrelated
+        // workspace symbol that happens to share its name.
+        let rust_module = symbol("lib.rs", NodeKind::Module, "util", "util");
+        let table = table_with(&[rust_module]);
+        let known = BTreeSet::from(["lib.rs".to_owned(), "util.py".to_owned()]);
+        let fact = ReferenceFact::from_symbol("function:f", EdgeKind::Imports, "util", 2);
+        let resolved = resolve_reference(&fact, "app.py", &table, &known, Language::Python);
+        assert_eq!(
+            resolved.to.as_ref().map(NodeId::as_str),
+            Some("file:util.py")
+        );
+        assert_eq!(
+            import_specifiers(&fact, Language::Python),
+            vec!["util".to_owned()]
+        );
+        let binding = ReferenceFact::file_level(EdgeKind::Imports, "mod", 1).via_import("pkg");
+        assert_eq!(
+            import_specifiers(&binding, Language::Python),
+            vec!["pkg".to_owned(), "pkg.mod".to_owned()]
+        );
+    }
+
+    #[test]
+    fn python_submodule_import_resolves_the_module_file() {
+        let known = BTreeSet::from(["pkg/__init__.py".to_owned(), "pkg/mod.py".to_owned()]);
+        let table = SymbolTable::new();
+        // `from pkg import mod`: `mod` is a module, not a symbol in `__init__`.
+        let fact = ReferenceFact::file_level(EdgeKind::Imports, "mod", 1).via_import("pkg");
+        let resolved = resolve_reference(&fact, "app.py", &table, &known, Language::Python);
+        assert_eq!(
+            resolved.to.as_ref().map(NodeId::as_str),
+            Some("file:pkg/mod.py")
+        );
+    }
+
+    #[test]
+    fn python_imported_symbol_resolves_in_its_module() {
+        let target = symbol("pkg/mod.py", NodeKind::Function, "run", "run");
+        let table = table_with(&[target]);
+        let known = BTreeSet::from(["pkg/mod.py".to_owned()]);
+        let fact = ReferenceFact::file_level(EdgeKind::Imports, "run", 1).via_import("pkg.mod");
+        let resolved = resolve_reference(&fact, "app.py", &table, &known, Language::Python);
+        assert_eq!(
+            resolved.to.as_ref().map(NodeId::as_str),
+            Some("sym:pkg/mod.py#function:run")
+        );
     }
 
     #[test]

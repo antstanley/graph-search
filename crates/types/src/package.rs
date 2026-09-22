@@ -9,13 +9,16 @@ pub enum PackageEcosystem {
     Cargo,
     /// package.json boundaries for JavaScript/TypeScript projects.
     Node,
+    /// pyproject.toml project boundaries for Python.
+    Python,
 }
 
 /// What a recognized manifest establishes in the supported subset.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum PackageRole {
-    /// An authored package boundary, possibly unnamed for package.json.
+    /// An authored package boundary, possibly unnamed for package.json or
+    /// pyproject.toml.
     Package,
     /// A workspace declaration without its own package (Cargo or pnpm).
     Workspace,
