@@ -121,7 +121,8 @@ pub const EXPLORE_DEFAULT_K: u32 = 8;
 
 /// Bumps when the projection vocabulary or extraction changes, invalidating
 /// every stored projection.
-pub const SCHEMA_VERSION: u32 = 3;
+/// v4: the `Language` vocabulary gains `python`.
+pub const SCHEMA_VERSION: u32 = 4;
 
 /// Wire result schema, independent of stored projection format.
 pub const RESULT_SCHEMA_VERSION: u32 = 4;
@@ -132,7 +133,8 @@ pub const RESULT_SCHEMA_VERSION: u32 = 4;
 /// types, not only direct field types; dangling display names are canonicalised.
 /// v23: generic type parameters and `Self` are excluded from Rust `type_uses`;
 /// dangling names are bounded and hash-disambiguated to keep edge identities 1:1.
-pub const PARSER_VERSION: u32 = 23;
+/// v24: Python `.py`/`.pyi` files are extracted instead of indexed as unknown.
+pub const PARSER_VERSION: u32 = 24;
 
 /// Default independent ceiling on edges delivered by one graph/explore query.
 pub const RETURNED_EDGES_DEFAULT: usize = 1000;

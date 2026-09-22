@@ -211,6 +211,64 @@ fn html_page() {
 }
 
 #[test]
+fn python_module() {
+    let extraction = extract(&graph_search_langs::PythonExtractor, "python/module.py");
+    assert_eq!(
+        names(&extraction, NodeKind::Class),
+        vec!["Base", "Widget"],
+        "{:?}",
+        names(&extraction, NodeKind::Class)
+    );
+    assert_eq!(
+        names(&extraction, NodeKind::Method),
+        vec!["ping", "__init__", "render"],
+        "{:?}",
+        names(&extraction, NodeKind::Method)
+    );
+    assert_eq!(
+        names(&extraction, NodeKind::Function),
+        vec!["make_widget", "run"],
+        "{:?}",
+        names(&extraction, NodeKind::Function)
+    );
+    assert_eq!(names(&extraction, NodeKind::Field), vec!["size", "name"]);
+    assert_eq!(names(&extraction, NodeKind::Variable), vec!["MAX"]);
+    assert_eq!(names(&extraction, NodeKind::TypeAlias), vec!["Alias"]);
+    // `self.draw()` is rewritten to the enclosing class's qualified member.
+    let calls = refs(&extraction, EdgeKind::Calls);
+    assert!(calls.contains(&String::from("Widget.draw")), "{calls:?}");
+    assert!(calls.contains(&String::from("osp.join")), "{calls:?}");
+    assert!(calls.contains(&String::from("helpers.help")), "{calls:?}");
+    assert!(calls.contains(&String::from("make_widget")), "{calls:?}");
+    // `class Widget(Base)` is an inheritance edge.
+    assert_eq!(refs(&extraction, EdgeKind::Extends), vec!["Base"]);
+    // `from .models import User, Account as Acct` records both the module edge
+    // and each imported binding's specifier.
+    let imports = refs(&extraction, EdgeKind::Imports);
+    assert!(imports.contains(&String::from("os")), "{imports:?}");
+    assert!(imports.contains(&String::from("os.path")), "{imports:?}");
+    assert!(imports.contains(&String::from(".")), "{imports:?}");
+    assert!(imports.contains(&String::from(".models")), "{imports:?}");
+    let user = extraction
+        .references
+        .iter()
+        .find(|fact| fact.name == "User" && fact.kind == EdgeKind::Imports)
+        .expect("User binding");
+    assert_eq!(user.via_import.as_deref(), Some(".models"));
+    let account = extraction
+        .references
+        .iter()
+        .find(|fact| fact.name == "Account" && fact.kind == EdgeKind::Imports)
+        .expect("Account binding");
+    assert_eq!(account.via_import.as_deref(), Some(".models"));
+    // `Optional` and `Widget` appear in annotations; builtins do not.
+    let types = refs(&extraction, EdgeKind::TypeUses);
+    assert!(types.contains(&String::from("Optional")), "{types:?}");
+    assert!(types.contains(&String::from("Widget")), "{types:?}");
+    assert!(!types.contains(&String::from("int")), "{types:?}");
+}
+
+#[test]
 fn css_site() {
     let extraction = extract(&graph_search_langs::CssExtractor, "css/site.css");
     let rules = names(&extraction, NodeKind::CssRule);

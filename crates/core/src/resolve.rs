@@ -286,6 +286,7 @@ pub fn resolve_specifier(
         | Language::Vue
         | Language::Astro => js_candidates(from_path, specifier),
         Language::Css | Language::Html => vec![relative(from_path, specifier)],
+        Language::Python => python_candidates(from_path, specifier),
         Language::Unknown => vec![],
     };
     candidates
@@ -368,6 +369,64 @@ fn js_candidates(from_path: &str, specifier: &str) -> Vec<String> {
         candidates.push(format!("{base}/index{ext}"));
     }
     candidates
+}
+
+/// Python module spellings: an absolute dotted path (`a.b`) or a relative one
+/// (`.`, `..pkg`). A module is a `.py`/`.pyi` file or a package directory with
+/// an `__init__`.
+fn python_candidates(from_path: &str, specifier: &str) -> Vec<String> {
+    let specifier = specifier.trim();
+    if specifier.is_empty() {
+        return Vec::new();
+    }
+    let dots = specifier.chars().take_while(|c| *c == '.').count();
+    let tail = specifier.get(dots..).unwrap_or_default();
+    let segments: Vec<String> = if dots == 0 {
+        tail.split('.')
+            .filter(|part| !part.is_empty())
+            .map(str::to_owned)
+            .collect()
+    } else {
+        // One dot is the importing file's package (its directory); each
+        // further dot walks one package up.
+        let mut base: Vec<String> = std::path::Path::new(from_path)
+            .parent()
+            .map(|parent| parent.to_string_lossy().into_owned())
+            .unwrap_or_default()
+            .split('/')
+            .filter(|part| !part.is_empty())
+            .map(str::to_owned)
+            .collect();
+        for _ in 1..dots {
+            base.pop();
+        }
+        base.extend(
+            tail.split('.')
+                .filter(|part| !part.is_empty())
+                .map(str::to_owned),
+        );
+        base
+    };
+    if segments.is_empty() {
+        return Vec::new();
+    }
+    let joined = segments.join("/");
+    vec![
+        format!("{joined}.py"),
+        format!("{joined}.pyi"),
+        format!("{joined}/__init__.py"),
+        format!("{joined}/__init__.pyi"),
+    ]
+}
+
+/// The specifier that names `name` as a submodule of `specifier`: `from .` and
+/// `from ..` concatenate, an explicit module joins with a dot.
+fn python_submodule_specifier(specifier: &str, name: &str) -> String {
+    if specifier.ends_with('.') {
+        format!("{specifier}{name}")
+    } else {
+        format!("{specifier}.{name}")
+    }
 }
 
 /// A relative path from the importing file's directory.
@@ -680,6 +739,21 @@ pub fn resolve_reference(
                         .qualified_name
                         .clone()
                         .unwrap_or_else(|| fact.name.clone()),
+                };
+            }
+        }
+        // `from . import submodule`: the imported name is a module inside the
+        // package, not a symbol in its `__init__`. Resolve it as a submodule
+        // before giving up.
+        if language == Language::Python {
+            let nested = python_submodule_specifier(specifier, &fact.name);
+            if let Some(target) = resolve_specifier(from_path, &nested, known_files, language) {
+                return Resolution {
+                    class: ResolutionClass::ExplicitImport,
+                    reason: None,
+                    fact: fact.clone(),
+                    to: Some(NodeId::file(&target)),
+                    to_name: target,
                 };
             }
         }
@@ -1342,6 +1416,59 @@ mod tests {
         let resolved = resolve_reference(&fact, "src/a.rs", &table, &known, Language::Rust);
         assert!(resolved.to.is_none());
         assert_eq!(resolved.to_name, "serde");
+    }
+
+    #[test]
+    fn python_import_specifiers_resolve_to_modules() {
+        let known = BTreeSet::from([
+            "pkg/__init__.py".to_owned(),
+            "pkg/mod.py".to_owned(),
+            "pkg/sub/__init__.py".to_owned(),
+            "pkg/sub/deep.py".to_owned(),
+        ]);
+        let resolve =
+            |from: &str, specifier: &str| resolve_specifier(from, specifier, &known, Language::Python);
+        // Absolute dotted paths.
+        assert_eq!(resolve("app.py", "pkg.mod").as_deref(), Some("pkg/mod.py"));
+        assert_eq!(resolve("app.py", "pkg").as_deref(), Some("pkg/__init__.py"));
+        // Relative: one dot is the file's package, each further dot walks up.
+        assert_eq!(
+            resolve("pkg/sub/use.py", ".deep").as_deref(),
+            Some("pkg/sub/deep.py")
+        );
+        assert_eq!(
+            resolve("pkg/sub/use.py", "..mod").as_deref(),
+            Some("pkg/mod.py")
+        );
+        assert_eq!(resolve("pkg/use.py", ".").as_deref(), Some("pkg/__init__.py"));
+        // A relative import past the workspace root has no target.
+        assert_eq!(resolve("pkg/use.py", "..").as_deref(), None);
+    }
+
+    #[test]
+    fn python_submodule_import_resolves_the_module_file() {
+        let known = BTreeSet::from(["pkg/__init__.py".to_owned(), "pkg/mod.py".to_owned()]);
+        let table = SymbolTable::new();
+        // `from pkg import mod`: `mod` is a module, not a symbol in `__init__`.
+        let fact = ReferenceFact::file_level(EdgeKind::Imports, "mod", 1).via_import("pkg");
+        let resolved = resolve_reference(&fact, "app.py", &table, &known, Language::Python);
+        assert_eq!(
+            resolved.to.as_ref().map(NodeId::as_str),
+            Some("file:pkg/mod.py")
+        );
+    }
+
+    #[test]
+    fn python_imported_symbol_resolves_in_its_module() {
+        let target = symbol("pkg/mod.py", NodeKind::Function, "run", "run");
+        let table = table_with(&[target]);
+        let known = BTreeSet::from(["pkg/mod.py".to_owned()]);
+        let fact = ReferenceFact::file_level(EdgeKind::Imports, "run", 1).via_import("pkg.mod");
+        let resolved = resolve_reference(&fact, "app.py", &table, &known, Language::Python);
+        assert_eq!(
+            resolved.to.as_ref().map(NodeId::as_str),
+            Some("sym:pkg/mod.py#function:run")
+        );
     }
 
     #[test]

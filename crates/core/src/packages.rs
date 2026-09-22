@@ -24,6 +24,9 @@ fn preferred_family(path: &str, language: Language) -> Option<PackageEcosystem> 
         | Language::Vue
         | Language::Astro => Some(PackageEcosystem::Node),
         Language::Html | Language::Css | Language::Unknown => None,
+        // Python package boundaries (`pyproject.toml`, `__init__.py` packages)
+        // are not modeled yet; files carry no package identity.
+        Language::Python => None,
     })
 }
 
