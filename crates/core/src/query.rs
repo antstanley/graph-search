@@ -1650,6 +1650,7 @@ impl<'a> QueryEngine<'a> {
             .saturating_add(live_count)
             .saturating_add(indexed_count);
         truncations.extend(result_truncations(candidates, k));
+        let scored = defer_tests(scored, &query.query, query.retrieval.tests);
         let scored = select_diverse(scored, k as usize, query.retrieval.per_file);
         Ok(Seeds {
             plan: query.retrieval.explain.then_some(plan),
@@ -1961,6 +1962,121 @@ fn rank_score(rank: usize) -> f32 {
     1.0 / (61.0 + f32::from(u16::try_from(rank).unwrap_or(u16::MAX)))
 }
 
+/// Moves test-owned hits behind every other hit, keeping each group's order,
+/// unless the query names them: an exact name (score 2.0), or a query that
+/// spells every content word of the test's qualified name, `tests` modules aside
+/// (`log one step` for `tests::log_one_step`, not `search` for
+/// `UnusedFs::search`). A query
+/// that asks about tests and [`TestRanking::Neutral`] are left alone; deferred
+/// hits still fill any slot nothing else takes.
+fn defer_tests(
+    scored: Vec<Scored<Node>>,
+    query: &str,
+    policy: graph_search_types::retrieval::TestRanking,
+) -> Vec<Scored<Node>> {
+    if policy == graph_search_types::retrieval::TestRanking::Neutral || asks_about_tests(query) {
+        return scored;
+    }
+    let spelled: BTreeSet<String> = words(query).collect();
+    let (tests, rest): (Vec<_>, Vec<_>) = scored.into_iter().partition(|hit| {
+        hit.score < 2.0 && test_owned(&hit.item) && !spells_name(&spelled, &hit.item)
+    });
+    rest.into_iter().chain(tests).collect()
+}
+
+/// Lower-case content words of an identifier or phrase: split at separators and
+/// camel-case humps, without English function words.
+fn words(text: &str) -> impl Iterator<Item = String> + '_ {
+    const STOP: &[&str] = &[
+        "a", "an", "and", "are", "as", "at", "be", "by", "does", "for", "from", "how", "in", "is",
+        "it", "its", "of", "on", "or", "that", "the", "to", "what", "when", "where", "which",
+        "with",
+    ];
+    text.split(|ch: char| !ch.is_alphanumeric())
+        .flat_map(|part| {
+            let mut pieces = Vec::new();
+            let mut current = String::new();
+            let mut previous_lower = false;
+            for ch in part.chars() {
+                if ch.is_uppercase() && previous_lower && !current.is_empty() {
+                    pieces.push(std::mem::take(&mut current));
+                }
+                previous_lower = ch.is_lowercase() || ch.is_ascii_digit();
+                current.extend(ch.to_lowercase());
+            }
+            pieces.push(current);
+            pieces
+        })
+        .filter(|word| !word.is_empty() && !STOP.contains(&word.as_str()))
+}
+
+/// Whether the query spells every content word of a symbol's qualified name,
+/// ignoring the `tests` modules that hold it.
+fn spells_name(spelled: &BTreeSet<String>, node: &Node) -> bool {
+    let qualified = node
+        .qualified_name
+        .as_deref()
+        .or(node.name.as_deref())
+        .unwrap_or_default();
+    let mut name = qualified
+        .split("::")
+        .filter(|segment| !matches!(*segment, "tests" | "test"))
+        .flat_map(words)
+        .peekable();
+    name.peek().is_some() && name.all(|word| spelled.contains(&word))
+}
+
+/// Whether the query itself is about tests.
+fn asks_about_tests(query: &str) -> bool {
+    query.split(|ch: char| !ch.is_alphanumeric()).any(|word| {
+        matches!(
+            word.to_ascii_lowercase().as_str(),
+            "test"
+                | "tests"
+                | "testing"
+                | "spec"
+                | "specs"
+                | "fixture"
+                | "fixtures"
+                | "mock"
+                | "mocks"
+        )
+    })
+}
+
+/// Whether a symbol or file is test code: marked by its adapter (Rust
+/// `#[cfg(test)]`/`#[test]`), qualified under a `tests` module, or at a test
+/// path (a `tests`, `test`, `__tests__` or `spec` directory, or a file whose
+/// name has a `test`/`tests`/`spec` word: `tests.rs`, `test_io.py`,
+/// `view.test.ts`, `tests_support.rs`).
+#[must_use]
+pub fn test_owned(node: &Node) -> bool {
+    if node.attribute("test_owned") == Some("true") {
+        return true;
+    }
+    let test_word = |word: &str| matches!(word, "test" | "tests" | "spec" | "specs" | "__tests__");
+    if node
+        .qualified_name
+        .as_deref()
+        .is_some_and(|name| name.split("::").any(|segment| segment == "tests"))
+    {
+        return true;
+    }
+    let mut segments = node.path.rsplit('/');
+    let file = segments.next().unwrap_or_default();
+    if segments.any(test_word) {
+        return true;
+    }
+    // The file name's words without its extension; a lone `spec` word
+    // (`spec.rs`) is a module about specifications, not a test.
+    let words: Vec<&str> = file.split(['.', '_', '-']).collect();
+    let words = &words[..words.len().saturating_sub(1).max(1)];
+    words
+        .iter()
+        .any(|word| matches!(*word, "test" | "tests" | "__tests__"))
+        || (words.len() > 1 && words.iter().any(|word| matches!(*word, "spec" | "specs")))
+}
+
 // Diversity is a soft first pass; exact names keep priority and deferred hits
 // fill unused slots. Zero explicitly disables diversification for ablations.
 fn select_diverse(scored: Vec<Scored<Node>>, k: usize, per_file: u16) -> Vec<Scored<Node>> {
@@ -1979,6 +2095,64 @@ fn select_diverse(scored: Vec<Scored<Node>>, k: usize, per_file: u16) -> Vec<Sco
     selected.extend(deferred);
     selected.truncate(k);
     selected
+}
+
+#[cfg(test)]
+mod test_ranking_tests {
+    use super::*;
+
+    fn node(path: &str, qualified: &str) -> Node {
+        let name = qualified.rsplit("::").next().unwrap_or(qualified);
+        let mut node = Node::file(path, graph_search_types::Language::Rust, 0, 0, "", 0);
+        node.kind = NodeKind::Function;
+        node.name = Some(name.into());
+        node.qualified_name = Some(qualified.into());
+        node
+    }
+
+    #[test]
+    fn test_ownership_follows_markers_modules_and_paths() {
+        for (path, qualified) in [
+            ("src/a.rs", "tests::helper"),
+            ("crates/x/tests/it.rs", "helper"),
+            ("src/__tests__/a.ts", "helper"),
+            ("src/view.test.ts", "helper"),
+            ("src/view.spec.ts", "helper"),
+            ("pkg/test_io.py", "helper"),
+            ("pkg/io_test.go", "helper"),
+            ("src/tests_support.rs", "UnusedFs::search"),
+        ] {
+            assert!(test_owned(&node(path, qualified)), "{path} {qualified}");
+        }
+        for (path, qualified) in [
+            ("src/spec.rs", "parse"),
+            ("src/attestation.rs", "verify"),
+            ("src/contest.rs", "latest"),
+            ("src/lib.rs", "testing_mode"),
+        ] {
+            assert!(!test_owned(&node(path, qualified)), "{path} {qualified}");
+        }
+        let mut marked = node("src/lib.rs", "checks::case");
+        marked.attributes.insert("test_owned".into(), "true".into());
+        assert!(test_owned(&marked));
+    }
+
+    #[test]
+    fn a_spelled_name_needs_every_content_word_outside_test_modules() {
+        let spelled = |query: &str, qualified: &str| {
+            spells_name(&words(query).collect(), &node("src/a.rs", qualified))
+        };
+        assert!(spelled("log one step", "tests::log_one_step"));
+        assert!(spelled("conversation window", "tests::conversation"));
+        assert!(spelled("unused fs search", "UnusedFs::search"));
+        assert!(!spelled("search query literal", "UnusedFs::search"));
+        assert!(!spelled(
+            "port failure",
+            "tests::a_port_failure_names_the_tool"
+        ));
+        assert!(asks_about_tests("where are the Tests for port failure"));
+        assert!(!asks_about_tests("attestation latest contest"));
+    }
 }
 
 #[cfg(test)]

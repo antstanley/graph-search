@@ -12,6 +12,10 @@ pub(crate) struct Catalog {
     declarations: BTreeMap<NodeId, Result<String, &'static str>>,
     uncertain: BTreeSet<String>,
     packages: BTreeSet<String>,
+    /// Workspace library crates by the name other crates spell them with
+    /// (`nanus_domain`), to their library root. Two packages claiming one
+    /// name are ambiguous, never a guess.
+    crates: BTreeMap<String, Result<String, &'static str>>,
 }
 
 /// Normalize only within the walked workspace; never read or follow a path.
@@ -42,6 +46,14 @@ impl Catalog {
     pub(crate) fn roots(&self) -> impl Iterator<Item = &str> {
         self.roots.iter().map(String::as_str)
     }
+
+    /// Workspace library crate roots by the name a path spells them with.
+    pub(crate) fn libraries(&self) -> BTreeMap<String, Result<NodeId, &'static str>> {
+        self.crates
+            .iter()
+            .map(|(name, root)| (name.clone(), root.clone().map(|root| NodeId::file(&root))))
+            .collect()
+    }
     pub(crate) fn build(
         files: &BTreeMap<String, Node>,
         known: &BTreeSet<String>,
@@ -70,16 +82,45 @@ impl Catalog {
                 result.roots.insert(path.clone());
             }
         }
-        for directory in &result.packages {
-            let definition = join(directory, "Cargo.toml")
+        let manifest = |directory: &str| {
+            join(directory, "Cargo.toml")
                 .and_then(|path| files.get(&path))
                 .and_then(|node| node.attribute("package_definition"))
-                .and_then(|value| serde_json::from_str::<PackageManifest>(value).ok());
-            let paths = grouped.get(directory).map_or(&[][..], Vec::as_slice);
-            if let Some(roots) = definition
+                .and_then(|value| serde_json::from_str::<PackageManifest>(value).ok())
+        };
+        for directory in &result.packages {
+            let definition = manifest(directory);
+            // `edition.workspace = true` inherits the nearest enclosing
+            // workspace root's `[workspace.package] edition`.
+            let inherited = definition
                 .as_ref()
-                .and_then(|definition| package_roots(directory, definition, paths, known))
-            {
+                .and_then(|definition| definition.cargo_targets.as_ref())
+                .filter(|metadata| metadata.edition_workspace)
+                .and_then(|_| {
+                    let mut dir = Some(directory.as_str());
+                    while let Some(current) = dir {
+                        if let Some(edition) = manifest(current)
+                            .and_then(|definition| definition.cargo_targets)
+                            .and_then(|metadata| metadata.workspace_edition)
+                        {
+                            return Some(edition);
+                        }
+                        dir = (!current.is_empty()).then(|| parent(current));
+                    }
+                    None
+                });
+            let paths = grouped.get(directory).map_or(&[][..], Vec::as_slice);
+            if let Some((definition, roots)) = definition.as_ref().and_then(|definition| {
+                package_roots(directory, definition, inherited.as_deref(), paths, known)
+                    .map(|roots| (definition, roots))
+            }) {
+                if let Some((name, root)) = library(directory, definition, &roots) {
+                    result
+                        .crates
+                        .entry(name)
+                        .and_modify(|existing| *existing = Err("rust_crate_name_ambiguous"))
+                        .or_insert(Ok(root));
+                }
                 result.roots.extend(roots);
             } else {
                 result.uncertain.insert(directory.clone());
@@ -172,6 +213,7 @@ impl Catalog {
 fn package_roots(
     directory: &str,
     definition: &PackageManifest,
+    inherited_edition: Option<&str>,
     paths: &[&str],
     known: &BTreeSet<String>,
 ) -> Option<BTreeSet<String>> {
@@ -185,7 +227,11 @@ fn package_roots(
     let inferred_default = |kind| {
         let declared = metadata.empty_target_tables.contains(&kind)
             || metadata.targets.iter().any(|target| target.kind == kind);
-        match metadata.edition.as_deref() {
+        let edition = metadata
+            .edition
+            .as_deref()
+            .or(inherited_edition.filter(|_| metadata.edition_workspace));
+        match edition {
             Some("2018" | "2021" | "2024") => Some(true),
             None if metadata.edition_workspace => (!declared).then_some(true),
             None | Some("2015") => Some(!declared),
@@ -253,6 +299,32 @@ fn package_roots(
         }
     }
     Some(roots)
+}
+
+/// A package's library crate: the name dependents spell it with (the `[lib]`
+/// name, else the package name with `-` as `_`) and its selected root.
+fn library(
+    directory: &str,
+    definition: &PackageManifest,
+    roots: &BTreeSet<String>,
+) -> Option<(String, String)> {
+    let metadata = definition.cargo_targets.as_ref()?;
+    let explicit = metadata
+        .targets
+        .iter()
+        .find(|target| target.kind == Kind::Lib);
+    let root = match explicit.and_then(|target| target.path.as_deref()) {
+        Some(path) => join(directory, path)?,
+        None => join(directory, "src/lib.rs")?,
+    };
+    if !roots.contains(&root) {
+        return None;
+    }
+    let name = explicit
+        .and_then(|target| target.name.clone())
+        .or_else(|| definition.name.clone())?
+        .replace('-', "_");
+    (!name.is_empty()).then_some((name, root))
 }
 
 fn inferred_target(path: &str, package: &str) -> Option<(Kind, String)> {

@@ -47,7 +47,12 @@ pub(crate) fn extract(file: &SourceFile<'_>) -> Option<PackageManifest> {
             {
                 return Some(PackageManifest {
                     node: None,
-                    cargo_targets: None,
+                    cargo_targets: crate::cargo_targets::workspace_edition(&value).map(|edition| {
+                        graph_search_types::package::CargoTargetMetadata {
+                            workspace_edition: Some(edition),
+                            ..Default::default()
+                        }
+                    }),
                     ecosystem,
                     role: PackageRole::Workspace,
                     name: None,

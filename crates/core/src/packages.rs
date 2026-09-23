@@ -44,14 +44,19 @@ fn valid_targets(metadata: &graph_search_types::package::CargoTargetMetadata) ->
             && metadata.build_script.is_none()
             && metadata.edition.is_none()
             && !metadata.edition_workspace
+            && metadata.workspace_edition.is_none()
             && metadata.auto_discovery.is_empty()
             && metadata.empty_target_tables.is_empty()
             && metadata.targets.is_empty();
     }
     metadata
-        .edition
+        .workspace_edition
         .as_ref()
-        .is_none_or(|edition| text(edition, 32) && !metadata.edition_workspace)
+        .is_none_or(|edition| text(edition, 32))
+        && metadata
+            .edition
+            .as_ref()
+            .is_none_or(|edition| text(edition, 32) && !metadata.edition_workspace)
         && metadata
             .build_script
             .as_ref()
@@ -103,8 +108,20 @@ fn valid_definition(definition: &PackageManifest) -> bool {
     }
     if let Some(metadata) = &definition.cargo_targets
         && (definition.ecosystem != PackageEcosystem::Cargo
-            || definition.role != PackageRole::Package
-            || !valid_targets(metadata))
+            || !match definition.role {
+                PackageRole::Package => valid_targets(metadata),
+                // A virtual workspace carries only the edition its members inherit.
+                PackageRole::Workspace => {
+                    metadata.workspace_edition.is_some()
+                        && *metadata
+                            == graph_search_types::package::CargoTargetMetadata {
+                                workspace_edition: metadata.workspace_edition.clone(),
+                                ..Default::default()
+                            }
+                        && valid_targets(metadata)
+                }
+                PackageRole::Unavailable => false,
+            })
     {
         return false;
     }

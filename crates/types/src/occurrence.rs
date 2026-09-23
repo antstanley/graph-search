@@ -16,6 +16,9 @@ pub enum ResolutionClass {
     Qualified,
     /// A unique workspace name; visibility is not compiler-proven.
     UniqueName,
+    /// A method selected through its receiver's syntactically inferred static
+    /// type (`x.method()` → `Type::method`); trait dispatch is not proven.
+    Receiver,
     /// No static target is established.
     #[default]
     Unresolved,

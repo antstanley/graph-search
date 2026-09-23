@@ -1425,6 +1425,7 @@ graph-search search explore <query> [--k 8] [--hops 1] [--context-lines 2]
                                     [--graph-context semantic|none|calls|imports|types]
                                     [--analysis split|identifiers]
                                     [--all-terms | --min-terms N] [--per-file N]
+                                    [--tests defer|neutral]
                                     [--exact-fast-path] [--explain]
 ```
 
@@ -1549,7 +1550,9 @@ component membership does not certify completeness beyond that admitted graph.
    Fusion combines ranks with reciprocal rank (constant 60) and an exact-name
    priority tier. File diversity is disabled by default after controlled tests;
    a positive `per_file` makes a soft first pass, with exact-name exemptions,
-   then fills remaining slots from deferred entities.
+   then fills remaining slots from deferred entities. Before that pass,
+   test-owned hits (§ Test-owned symbols) follow every other hit unless the
+   query names them; `--tests neutral` ranks them like any other.
 
    `RetrievalOptions` preserves the original query separately from mode, ranking,
    minimum term coverage and diversification. `Any` is OR discovery; `All` and
@@ -3289,3 +3292,98 @@ layout) scopes Rust files to Cargo and Python files to the project; other text
 at that level is explicit incomplete scope. Source representation 16 admits the
 new ecosystem value in retained facts. uv/Hatch workspace tables, dependency
 lists, `src/` layout discovery and import-name mapping are not modeled.
+
+### Workspace crate paths and associated items (parser policy 25)
+
+A Rust path whose first segment is neither `crate`, `self` nor `super` resolves
+by the edition-2018 rules: a module declared in the origin scope is walked from
+the origin, and otherwise the segment may name a workspace library crate. Each
+Cargo package with a selected library root contributes its crate name (the
+`[lib]` name, else the package name with `-` as `_`); two packages claiming one
+name are `rust_crate_name_ambiguous`. Dependency tables are not consulted, so a
+renamed dependency (`package = …`) stays unresolved. A crate outside the
+workspace (`std`, `serde`) keeps `rust_import_path_unanchored`. Crossing a crate
+boundary admits only `pub` items; `pub(crate)` and private items are
+`rust_path_not_visible`. A qualified reference spelled through a workspace crate
+(`other::item()`) enters the same resolver when every segment is an identifier.
+
+`pub use` of such a path (`pub use tool::{A, B}`, `pub use other::C`) publishes a
+reexport symbol like an anchored one; only a global `::` path publishes none.
+`Type::member`, where the penultimate segment names exactly one struct, enum,
+trait or type alias (directly or through a reexport) and no module, binds the
+associated item or variant qualified `Type::member` in the type's crate. When
+the crate declares several same-named types, the type's own file breaks the tie;
+across crates only `pub` associated items and variants are visible. A missing
+member is `rust_associated_member_missing`.
+
+A member declaring `edition.workspace = true` inherits the nearest enclosing
+workspace root's `[workspace.package] edition` for target auto-discovery, which
+a virtual workspace manifest now records. A `cfg_attr` whose payload cannot
+apply `path`, and `macro_use`, `rustfmt`, `no_std`, `no_implicit_prelude`,
+`recursion_limit` and `feature` attributes, no longer make module paths
+unavailable.
+
+### Rust receiver types (parser policy 26)
+
+A method call `x.method()` binds to `Type::method` when the receiver's static
+type is stated in syntax; the occurrence's resolution class is `receiver`. The
+extractor records each field's declared type (`rust_type`) and each callable's
+declared return type (`rust_returns`), and the `Option`/`Result` success type of
+either (`…_fallible`). A declared type is named through the declaring file's own
+bindings: a declaration in the same module (`key:`), a `use` import expanded to
+its path or an anchored path (`path:`), or `self` for `Self`. References, `Box`,
+`Rc`, `Arc`, `Ref`, `RefMut`, `MutexGuard`, `RwLock` guards, `Cow`, `Pin` and
+`dyn`/`impl` trait objects are peeled, since a method call dereferences through
+them.
+
+A call records how its receiver's type is stated: `self` (the enclosing impl or
+trait), a typed parameter or `let` annotation, a struct literal, a field of
+another receiver, the declared return of whatever another call in the file
+resolves to (including `Type::new()` returning `Self`, and tuple-struct or
+variant constructors), `clone()`/`to_owned()` of another receiver, or the
+success type of `?`, `unwrap()` or `expect(..)`. Locals are block-scoped; every
+identifier bound by a closure parameter, `match` arm, `for` pattern, `if let`/
+`while let` or destructuring `let` shadows an outer local as untyped, so a
+stale type is never reused. Anything else leaves the receiver untyped.
+
+Resolution evaluates the description against the workspace: the member must be
+a method or function qualified `Type::member` in the type's crate, the type's own
+file breaking ties between same-named types, and another crate sees only `pub`
+members. Evaluation is memoized per file and bounded at 32 nested steps. Any
+step that cannot be proven falls back to the ordinary rules, which keep the call
+unresolved; trait dispatch through generics is not modeled. A receiver call's
+dependency record includes its member and the fields and types it reaches
+through, so an edit to a declared field or return type elsewhere rebinds it.
+
+### Test-owned symbols (parser policy 26)
+
+A symbol or file is test-owned when its adapter marks it (Rust: every item in a
+`#[cfg(test)]` item or module, including under `all(..)`/`any(..)` but never
+`not(..)`, and every `#[test]`/`#[*::test]` function), when its qualified name
+has a `tests` module segment, or when its path has a `tests`, `test`,
+`__tests__` or `spec` directory, or a file name word `test`, `tests` or
+`__tests__` (`tests.rs`, `test_io.py`, `view.test.ts`, `tests_support.rs`), or a
+`spec` word beside another (`view.spec.ts`, not `spec.rs`).
+
+Ranked discovery (`TestRanking::Defer`, the default) moves test-owned hits behind
+every other hit, keeping each group's order; they still fill slots nothing else
+takes, so a test is demoted, never dropped. Three cases keep a test's rank: an
+exact name (the 2.0 tier); a query that spells every content word of the test's
+qualified name outside `tests` modules (`log one step` for
+`tests::log_one_step`, but not `search` for `UnusedFs::search`); and a query
+that asks about tests (`test`, `tests`, `testing`, `spec`, `specs`, `fixture`,
+`fixtures`, `mock`, `mocks`). `TestRanking::Neutral` (`--tests neutral`) is the
+ablation.
+
+On the frozen doc-07 query sets (exact, split, held-out and natural, three
+repositories), deferral loses no hit and gains five; on the release-gate
+evidence protocol (56 source-valid tasks) required files rise from 36 to 38,
+complete regions from 13 to 16 and mean region coverage from 0.404 to 0.457.
+The `nanus` evaluation probes carry no test-owned result in their top eight.
+Deferring every non-exact test hit was measured first and rejected: `nanus`
+split targets are mostly test functions, and their recall fell from 29/30 to
+7/30.
+
+Rust `type_uses` now descend into generic arguments (`Vec<Foo>` uses `Foo`);
+the adapter had read a field name the grammar does not define. A `pub use` target
+that is itself a reexport is followed at the terminal segment of any path.

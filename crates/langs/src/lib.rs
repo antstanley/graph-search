@@ -20,6 +20,7 @@ pub mod js_common;
 mod js_modules;
 pub mod python;
 pub mod rust;
+mod rust_receivers;
 mod rust_use;
 mod scopes;
 pub mod typescript;

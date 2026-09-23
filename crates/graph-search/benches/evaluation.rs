@@ -28,9 +28,7 @@
 use criterion::{BenchmarkId, Criterion, criterion_group, criterion_main};
 use graph_search::{Index, OpenOptions};
 use graph_search_types::ExploreDetail;
-use graph_search_types::query::{
-    ExploreQuery, RefQuery, SymbolQuery, TextQuery, TraversalQuery,
-};
+use graph_search_types::query::{ExploreQuery, RefQuery, SymbolQuery, TextQuery, TraversalQuery};
 use std::hint::black_box;
 use std::path::{Path, PathBuf};
 use std::sync::OnceLock;

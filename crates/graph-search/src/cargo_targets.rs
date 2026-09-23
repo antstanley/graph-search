@@ -17,6 +17,18 @@ pub(crate) fn extract(manifest: &Value, package: &Value) -> CargoTargetMetadata 
     })
 }
 
+/// A workspace root's `[workspace.package] edition`, when it states one as a
+/// bounded string.
+pub(crate) fn workspace_edition(manifest: &Value) -> Option<String> {
+    text(
+        manifest.get("workspace")?.get("package")?.get("edition"),
+        32,
+    )
+    .ok()
+    .flatten()
+    .filter(|edition| !edition.is_empty() && !edition.contains('\0'))
+}
+
 fn text(value: Option<&Value>, limit: usize) -> Result<Option<String>> {
     match value {
         None => Ok(None),
@@ -64,6 +76,7 @@ fn parse(manifest: &Value, package: &Value) -> Result<CargoTargetMetadata> {
     };
     let mut result = CargoTargetMetadata {
         build_script,
+        workspace_edition: workspace_edition(manifest),
         ..Default::default()
     };
     match package.get("edition") {

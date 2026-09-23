@@ -46,6 +46,7 @@ pub mod resolve;
 pub mod retention;
 mod rust_modules;
 mod rust_paths;
+mod rust_receivers;
 pub mod source;
 mod source_capture;
 pub mod stale;

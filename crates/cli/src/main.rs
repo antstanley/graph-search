@@ -122,6 +122,14 @@ enum GraphContextMode {
 }
 
 #[derive(Clone, Copy, Debug, clap::ValueEnum)]
+enum TestRankingMode {
+    /// Test-owned hits follow other hits unless the query asks about tests.
+    Defer,
+    /// Test-owned hits rank like any other.
+    Neutral,
+}
+
+#[derive(Clone, Copy, Debug, clap::ValueEnum)]
 enum QueryPolicyMode {
     Verbatim,
     Task,
@@ -343,6 +351,9 @@ enum SearchMode {
         /// First-pass candidates per file; 0 disables file diversity.
         #[arg(long, default_value_t = 0)]
         per_file: u16,
+        /// How test-owned symbols and files rank.
+        #[arg(long, default_value = "defer", value_enum)]
+        tests: TestRankingMode,
         /// Stop automatic discovery when an exact name survives filtering.
         #[arg(long)]
         exact_fast_path: bool,
@@ -778,6 +789,7 @@ fn search(
             all_terms,
             min_terms,
             per_file,
+            tests,
             exact_fast_path,
             explain,
         } => {
@@ -831,6 +843,10 @@ fn search(
                 phrase_gap: *phrase_gap,
                 near_window: *near_window,
                 per_file: *per_file,
+                tests: match tests {
+                    TestRankingMode::Defer => graph_search_types::retrieval::TestRanking::Defer,
+                    TestRankingMode::Neutral => graph_search_types::retrieval::TestRanking::Neutral,
+                },
                 exact_fast_path: *exact_fast_path,
                 explain: *explain,
             };

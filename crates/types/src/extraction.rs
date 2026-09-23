@@ -150,6 +150,33 @@ pub struct ReferenceFact {
     pub via_import: Option<String>,
     /// A lexical value or unsupported expression has an unknown runtime target.
     pub dynamic: bool,
+    /// How a Rust method call's receiver type is derived, so `x.method()` can
+    /// bind to `Type::method` once the receiver's static type is known.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub receiver: Option<ReceiverType>,
+}
+
+/// How a Rust method call's receiver type is derived from facts of the same
+/// file, evaluated at resolution time. Ordinals index the file's references.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ReceiverType {
+    /// `self` in an `impl`: the type the impl's methods are qualified by.
+    SelfType(String),
+    /// The type a `type_uses` reference (by ordinal) names: an annotation or a
+    /// struct literal, with references and smart pointers peeled.
+    Annotation(usize),
+    /// A type named through this file's bindings: `key:` a same-file
+    /// declaration, `path:` a path resolvable from this file.
+    Declared(String),
+    /// The declared return type of the callable a call reference (by
+    /// ordinal) resolves to, or the type a constructor call builds.
+    Return(usize),
+    /// A named field of another receiver's type.
+    Field(Box<ReceiverType>, String),
+    /// The `Option`/`Result` success type of another receiver (`?`,
+    /// `unwrap()`, `expect(..)`).
+    Try(Box<ReceiverType>),
 }
 
 impl ReferenceFact {
@@ -171,6 +198,7 @@ impl ReferenceFact {
             line,
             via_import: None,
             dynamic: false,
+            receiver: None,
         }
     }
 
@@ -197,6 +225,7 @@ impl ReferenceFact {
             line,
             via_import: None,
             dynamic: false,
+            receiver: None,
         }
     }
 
