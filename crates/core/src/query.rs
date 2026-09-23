@@ -598,12 +598,13 @@ impl<'a> QueryEngine<'a> {
             graph_search_types::Direction::In => Direction::In,
             graph_search_types::Direction::Both => Direction::Both,
         };
-        // File relationships: imports (all languages) plus the HTML
-        // link kinds (`SPEC.md` §8.3, §7.3).
+        // File relationships: imports (all languages) plus the HTML and OKF
+        // link kinds (`SPEC.md` §8.3, §7.3, §7.6).
         let kinds = [
             EdgeKind::Imports,
             EdgeKind::LinksTo,
             EdgeKind::LoadsStylesheet,
+            EdgeKind::Cites,
         ];
         let edges = self.read_edges(&target, &kinds, dir)?;
         self.assemble_graph(&target, &edges, query.limit, &query.filters, started)
@@ -1456,7 +1457,14 @@ impl<'a> QueryEngine<'a> {
         }
         let mut overlay_work = self.work.borrow().lexical_lane(2);
         let overlay_index = crate::body::BodyIndex::new(&overlay);
-        let language = |path: &str| policy.language_for(std::path::Path::new(path));
+        // The walked language, not the extension table: OKF membership depends
+        // on the bundle around a `.md` file.
+        let languages: BTreeMap<&str, graph_search_types::Language> = report
+            .entries
+            .iter()
+            .filter_map(|entry| Some((entry.rel.as_str(), entry.language?)))
+            .collect();
+        let language = |path: &str| languages.get(path).copied();
         let (live, live_count) = overlay_index.search_with_analysis(
             &terms,
             &self.filters.borrow(),

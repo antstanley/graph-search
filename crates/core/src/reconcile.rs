@@ -175,6 +175,11 @@ impl<'a> Projector<'a> {
         if manifest.policy_fingerprint.as_deref() != Some(self.policy.fingerprint().as_str())
             || !manifest.versions().retrieval_is_current()
             || manifest.occurrence_version != graph_search_types::limits::OCCURRENCE_VERSION
+            // A bundle `index.md` appearing or vanishing changes which unchanged
+            // `.md` files are OKF documents; language is not a per-entry diff input.
+            || self.policy.is_enabled(Language::Okf)
+                && crate::okf::index_dirs(entries.iter().map(|entry| entry.rel.as_str()))
+                != crate::okf::index_dirs(manifest.entries.keys().map(String::as_str))
         {
             return self.reindex(search_root, store);
         }
@@ -872,8 +877,9 @@ impl<'a> Projector<'a> {
                     .or_else(|| self.policy.language_for(Path::new(path)))
                     .unwrap_or(Language::Unknown);
                 // Cross-language HTML/CSS matching has bidirectional generated edges
-                // and file links. Conservatively rebind this family on every change.
-                if matches!(language, Language::Html | Language::Css) {
+                // and file links, and OKF links name files and their concepts.
+                // Conservatively rebind these families on every change.
+                if matches!(language, Language::Html | Language::Css | Language::Okf) {
                     dirty.insert(path.clone());
                 }
                 for fact in &facts.references {
@@ -1063,10 +1069,15 @@ impl<'a> Projector<'a> {
             }
             pending
         };
-        // No enabled extractor: preserve the file, with no language facts.
+        // No enabled extractor: preserve the file, with no language facts. The
+        // OKF extractor serves only files walked as OKF, so a `.md` file outside
+        // a bundle never reaches it; other extractors keep claiming by path.
         let extractor = self
             .registry
             .extractor_for(Path::new(&entry.rel))
+            .filter(|extractor| {
+                extractor.language() != Language::Okf || entry.language == Some(Language::Okf)
+            })
             .filter(|_| entry.is_parseable(self.policy));
         let Some(extractor) = extractor else {
             pending.extraction = Some(Extraction::default().into());

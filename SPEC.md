@@ -82,7 +82,9 @@ situ with no harness change and a one-line rollback.
 - **No general-purpose query language exposed to callers.** GQL/Cypher stay
   inside the engine adapter; callers use the modes in §8.
 - **Not a knowledge base.** It does not author prose, and it does not index
-  markdown *content* as a knowledge graph. (That is `llm-wiki-graph`'s job.)
+  general markdown *content* as a knowledge graph. (That is `llm-wiki-graph`'s
+  job.) The one exception is an Open Knowledge Format bundle (§7.6), whose
+  concepts, links and citations are structured data by design.
 
 ---
 
@@ -418,6 +420,8 @@ is derived, so correctness is a question of convergence to the working tree
 | `css_rule` | CSS | a selector block. |
 | `css_at_rule` | CSS | `@media`, `@keyframes`, `@import`, … |
 | `css_custom_property` | CSS | `--var`. |
+| `concept` | OKF | one per non-reserved bundle document, named by its `title`. |
+| `section` | OKF | a heading section, nested under its concept or parent section. |
 
 The vocabulary is **closed** and versioned; adding a kind is a schema change
 (§9.1), not an incidental one.
@@ -435,10 +439,11 @@ The vocabulary is **closed** and versioned; adding a kind is a schema change
 | `implements` | class/impl → interface/trait | implementation. |
 | `type_uses` | symbol → symbol | a type position (parameter, return, field). |
 | `declares` | css_rule → symbol? | *(CSS/HTML cross-edges, see below)* |
-| `links_to` | HTML element → file | `href`/`src` resolving to a workspace file. |
+| `links_to` | HTML element → file; OKF concept/section → concept/file | `href`/`src` or an OKF cross-link resolving to a workspace file. |
 | `loads_stylesheet` | HTML element → file | `<link rel="stylesheet">`. |
 | `uses_class` | HTML element → css selector | `class="…"` matched to a `css_rule`. |
 | `selects` | css_rule → HTML element | selector matched to an element `id`/`class`. |
+| `cites` | OKF concept/section → concept/file | a `sources[].resource`, cited by the concept and by each section holding its `[^id]` footnote. |
 
 Every edge carries `resolved: bool`. An unresolved reference is kept with the
 **name it referred to** and marked dangling — never dropped, never an error
@@ -1324,6 +1329,58 @@ unrelated workspace symbol. Unresolved imports are dangling with their
 reason, as in every other language. Package context comes from the nearest
 `pyproject.toml` (§ Manifest-owned package context); `__init__.py` does not create
 a package boundary.
+
+### 7.6 Open Knowledge Format
+
+[OKF](https://github.com/GoogleCloudPlatform/open-knowledge-format) v0.2
+bundles, parsed with `tree-sitter-okf` (markdown body plus a native OKF-YAML
+frontmatter tree). OKF makes `index.md` optional in every directory and has no
+required root marker, so bundle membership is a declared path approximation: a
+`.md` file the extension table does not claim is an `okf` document when its own
+directory or an ancestor holds an admitted `index.md`. Every other `.md` file
+stays unknown-language prose, chunked as Markdown as before. Binding `.md` to
+`okf` in `[extensions]` claims every Markdown file instead. Because membership is
+not a per-file diff input, `sync` rebuilds the index when the set of
+`index.md` directories changes (while `okf` is enabled). Language filters and
+live search use this walked language, not the extension table.
+
+The rule is deliberately path-only, and it over-claims in one known way. The
+outermost `index.md` is the bundle root. A documentation site with its own
+`docs/index.md` therefore absorbs a bundle at `docs/kb/`: its `/`-links
+resolve from `docs/`, and a root `index.md` makes every `.md` in the
+workspace an OKF document. An `okf_version` key in a root `index.md` (OKF §12)
+is not consulted.
+
+| Node | Capture |
+|---|---|
+| `concept` | the document, unless it is a reserved `index.md` or `log.md`; named by frontmatter `title`, else the file stem; signature `type: description`; `okf_type`, `okf_status`, `okf_tags`, `okf_description`, `okf_resource`, `okf_stale_after`, `okf_trust` (OKF §5.3) and `concept_stem` attributes |
+| `section` | each ATX/setext heading `section`, qualified `Concept > Heading > Subheading` |
+
+| Edge | Source |
+|---|---|
+| `contains` | file → concept → section → nested section |
+| `links_to` | inline, image and reference links (through their definitions), from the innermost section (else the concept, else the file) |
+| `cites` | concept → every `sources[].resource`; section → the resource of each `[^id]` footnote naming a `sources[].id` |
+
+A URI with a scheme and a fragment-only destination is not a bundle path and
+produces no reference; links inside code are not links. A destination beginning
+with `/` is bundle-relative, the bundle root being the outermost ancestor
+holding an `index.md`; any other destination is relative to the document. A
+path-valued field (`sources[].resource`) also tries the bundle root, as
+producers commonly spell those paths from the root without the `/`. Query and
+fragment are dropped and `%XX` escapes decoded; a directory names its
+`index.md` and an extensionless path names a concept id (`x` → `x.md`). The
+target is the document's concept when it has one, else its file node. A path
+naming no walked file is dangling with `okf_link_target_missing` (OKF §6.1:
+broken links are not malformed). OKF documents are rebound on every change,
+like HTML/CSS. A heading repeated under the same parent keeps one qualified
+name. Its fact key gains `@line`, so containment stays exact.
+
+`neighbors` is the query for OKF relationships. `deps` reads only edges
+incident to the file node. For an OKF document those are its incoming links to
+a concept-less target such as an `index.md`, plus `links_to`/`cites` made
+outside any concept. Links and citations made by a concept or section, and
+links into a concept, belong to those symbols.
 
 ---
 
@@ -2421,11 +2478,11 @@ developed; `nanus` depends on the library, not the other way round.
 **Nodes:** `file`, `module`, `function`, `method`, `struct`, `enum`, `trait`,
 `impl`, `type_alias`, `const`, `static`, `macro`, `field`, `variant`, `class`,
 `interface`, `variable`, `export`, `element`, `css_rule`, `css_at_rule`,
-`css_custom_property`.
+`css_custom_property`, `concept`, `section`.
 
 **Edges:** `contains`, `imports`, `exports`, `calls`, `references`, `extends`,
 `implements`, `type_uses`, `links_to`, `loads_stylesheet`, `uses_class`,
-`selects`.
+`selects`, `cites`.
 
 ## Appendix B — Example JSON (illustrative)
 
@@ -3387,3 +3444,13 @@ split targets are mostly test functions, and their recall fell from 29/30 to
 Rust `type_uses` now descend into generic arguments (`Vec<Foo>` uses `Foo`);
 the adapter had read a field name the grammar does not define. A `pub use` target
 that is itself a reexport is followed at the terminal segment of any path.
+
+### Open Knowledge Format bundles (schema 5, parser policy 27)
+
+The `okf` language, the `concept` and `section` node kinds and the `cites` edge
+kind (projection schema 5) and the tree-sitter-okf adapter (§7.6) replace
+indexing bundle `.md` files as `unknown`. Parser policy 27 forces projection
+refresh. The OKF extractor serves only files walked as `okf`, so the `.md`
+extension alone never selects it. Every other extractor still claims files by
+path. `deps` includes `cites` among its file relationship kinds. The grammar is
+the only new dependency. Scalars are read as strings, never typed.

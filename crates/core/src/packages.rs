@@ -25,7 +25,7 @@ fn preferred_family(path: &str, language: Language) -> Option<PackageEcosystem> 
         | Language::Vue
         | Language::Astro => Some(PackageEcosystem::Node),
         Language::Python => Some(PackageEcosystem::Python),
-        Language::Html | Language::Css | Language::Unknown => None,
+        Language::Html | Language::Css | Language::Okf | Language::Unknown => None,
     })
 }
 

@@ -34,6 +34,9 @@ pub enum Language {
     /// Python (`.py`, `.pyi`, `.pyw`). Module, class, function and method symbols,
     /// imports, calls, inheritance and annotations are extracted.
     Python,
+    /// An Open Knowledge Format document (`.md` inside an OKF bundle). Concepts,
+    /// their heading sections, cross-links and cited sources are extracted.
+    Okf,
     /// A file no enabled extractor claims. Its `file` node is still indexed so
     /// a glob can be answered from the index (`SPEC.md` §6.2).
     Unknown,
@@ -53,6 +56,7 @@ impl Language {
             Self::Vue => "vue",
             Self::Astro => "astro",
             Self::Python => "python",
+            Self::Okf => "okf",
             Self::Unknown => "unknown",
         }
     }
@@ -70,6 +74,7 @@ impl Language {
             "vue" => Some(Self::Vue),
             "astro" => Some(Self::Astro),
             "python" | "py" => Some(Self::Python),
+            "okf" => Some(Self::Okf),
             "unknown" => Some(Self::Unknown),
             _ => None,
         }
@@ -133,6 +138,10 @@ pub enum NodeKind {
     CssAtRule,
     /// A CSS custom property (`--var`).
     CssCustomProperty,
+    /// An OKF concept: one per non-reserved document in a bundle.
+    Concept,
+    /// A heading section of an OKF document.
+    Section,
 }
 
 impl NodeKind {
@@ -162,6 +171,8 @@ impl NodeKind {
             Self::CssRule,
             Self::CssAtRule,
             Self::CssCustomProperty,
+            Self::Concept,
+            Self::Section,
         ]
     }
 
@@ -191,6 +202,8 @@ impl NodeKind {
             Self::CssRule => "css_rule",
             Self::CssAtRule => "css_at_rule",
             Self::CssCustomProperty => "css_custom_property",
+            Self::Concept => "concept",
+            Self::Section => "section",
         }
     }
 
@@ -231,7 +244,7 @@ pub enum EdgeKind {
     Implements,
     /// A type position: parameter, return, field.
     TypeUses,
-    /// An HTML `href`/`src` resolving to a workspace file.
+    /// An HTML `href`/`src` or OKF cross-link resolving to a workspace file.
     LinksTo,
     /// `<link rel="stylesheet">`.
     LoadsStylesheet,
@@ -239,6 +252,8 @@ pub enum EdgeKind {
     UsesClass,
     /// A CSS selector matched to an element `id`/class.
     Selects,
+    /// An OKF concept or section citing a `sources[]` resource.
+    Cites,
 }
 
 impl EdgeKind {
@@ -258,6 +273,7 @@ impl EdgeKind {
             Self::LoadsStylesheet,
             Self::UsesClass,
             Self::Selects,
+            Self::Cites,
         ]
     }
 
@@ -277,6 +293,7 @@ impl EdgeKind {
             Self::LoadsStylesheet => "loads_stylesheet",
             Self::UsesClass => "uses_class",
             Self::Selects => "selects",
+            Self::Cites => "cites",
         }
     }
 

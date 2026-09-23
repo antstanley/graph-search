@@ -99,6 +99,7 @@ impl Default for WalkPolicy {
                 Language::Vue,
                 Language::Astro,
                 Language::Python,
+                Language::Okf,
             ],
             extensions: default_extensions(),
         }

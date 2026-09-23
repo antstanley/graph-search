@@ -308,6 +308,9 @@ pub fn resolve_specifier(
         | Language::Astro => js_candidates(from_path, specifier),
         Language::Css | Language::Html => vec![relative(from_path, specifier)],
         Language::Python => python_candidates(from_path, specifier),
+        Language::Okf => {
+            return crate::okf::resolve_path(from_path, specifier, known_files, false);
+        }
         Language::Unknown => vec![],
     };
     candidates
@@ -550,7 +553,7 @@ const DANGLING_HASH_HEX: usize = 8;
 /// the collapsed name exceeds the bound it is truncated and a short hash of the
 /// raw name is appended, keeping distinct long names on distinct edges. The
 /// bound applies whether or not the name contains whitespace.
-fn canonical_dangling_name(name: &str) -> String {
+pub(crate) fn canonical_dangling_name(name: &str) -> String {
     // Collapse internal whitespace onto one line, dropping the space around a
     // `.`/`::` member separator so `receiv\n  .member` reads as `receiver.member`.
     let mut out = String::with_capacity(name.len().min(MAX_DANGLING_NAME_BYTES));
@@ -641,6 +644,11 @@ pub(crate) fn resolve_in(
                 .clone()
                 .unwrap_or_else(|| fact.name.clone()),
         };
+    }
+
+    // OKF cross-links and citations name bundle paths, never symbols.
+    if language == Language::Okf && matches!(fact.kind, EdgeKind::LinksTo | EdgeKind::Cites) {
+        return crate::okf::resolve(fact, from_path, table, known_files);
     }
 
     if fact.dynamic {

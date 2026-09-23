@@ -1,6 +1,6 @@
 [package]
 name = "graph-search-langs"
-description = "Driven adapter: tree-sitter extractors for Rust, TypeScript/JavaScript, HTML and CSS."
+description = "Driven adapter: tree-sitter extractors for Rust, TypeScript/JavaScript, Python, HTML, CSS and OKF."
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -17,6 +17,7 @@ tree-sitter-javascript = { workspace = true }
 tree-sitter-html = { workspace = true }
 tree-sitter-css = { workspace = true }
 tree-sitter-python = { workspace = true }
+tree-sitter-okf = { workspace = true }
 
 [dev-dependencies]
 tempfile = { workspace = true }

@@ -46,6 +46,13 @@ impl QueryEngine<'_> {
             .is_some_and(|versions| !versions.retrieval_is_current());
         // When all eligible files need verification, postings cannot safely
         // exclude any file and would only spend the shared candidate allowance.
+        // The walked language, not the extension table: OKF membership depends
+        // on the bundle around a `.md` file.
+        let languages: BTreeMap<&str, graph_search_types::Language> = report
+            .entries
+            .iter()
+            .filter_map(|entry| Some((entry.rel.as_str(), entry.language?)))
+            .collect();
         let candidates: BTreeSet<_> = if unchecked || representation_changed {
             BTreeSet::new()
         } else {
@@ -54,7 +61,7 @@ impl QueryEngine<'_> {
                 .file_candidates(
                     &terms,
                     &self.filters.borrow(),
-                    |path| policy.language_for(Path::new(path)),
+                    |path| languages.get(path).copied(),
                     &changed,
                     &mut self.work.borrow_mut(),
                 )?

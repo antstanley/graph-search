@@ -346,7 +346,10 @@ impl DependencyIndex {
             if !record.facts_available && record.header.quarantine.is_none() {
                 changed.extend(new_files.iter().cloned());
             }
-            if matches!(record.language, Language::Html | Language::Css) {
+            if matches!(
+                record.language,
+                Language::Html | Language::Css | Language::Okf
+            ) {
                 changed.insert(path.clone());
             }
             if presence_changed {

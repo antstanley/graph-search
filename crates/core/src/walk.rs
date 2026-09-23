@@ -269,6 +269,19 @@ fn walk_report_checked(
     check()?;
     entries.sort_by(|a, b| a.rel.cmp(&b.rel).then_with(|| a.path.cmp(&b.path)));
     check()?;
+    // OKF bundle membership depends on the whole admitted set: an unclaimed
+    // `.md` file under an `index.md` is an OKF document (`SPEC.md` §7.6).
+    let okf_dirs = crate::okf::index_dirs(entries.iter().map(|entry| entry.rel.as_str()));
+    for entry in &mut entries {
+        if entry.language.is_none() && crate::okf::is_member(&entry.rel, &okf_dirs) {
+            entry.language = Some(Language::Okf);
+            coverage.unsupported_files = coverage.unsupported_files.saturating_sub(1);
+            if !policy.is_enabled(Language::Okf) {
+                coverage.disabled_language_files =
+                    coverage.disabled_language_files.saturating_add(1);
+            }
+        }
+    }
     coverage.admitted_files = entries.len() as u64;
     Ok(WalkReport {
         package_boundaries,

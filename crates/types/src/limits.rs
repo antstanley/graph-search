@@ -123,7 +123,8 @@ pub const EXPLORE_DEFAULT_K: u32 = 8;
 /// Bumps when the projection vocabulary or extraction changes, invalidating
 /// every stored projection.
 /// v4: the `Language` vocabulary gains `python`.
-pub const SCHEMA_VERSION: u32 = 4;
+/// v5: `okf` language, `concept`/`section` node kinds and the `cites` edge kind.
+pub const SCHEMA_VERSION: u32 = 5;
 
 /// Wire result schema, independent of stored projection format.
 pub const RESULT_SCHEMA_VERSION: u32 = 4;
@@ -141,7 +142,9 @@ pub const RESULT_SCHEMA_VERSION: u32 = 4;
 /// v26: Rust fields and callables record their declared types, method calls
 /// record how their receiver's type is stated, and test-only items are marked
 /// `test_owned`.
-pub const PARSER_VERSION: u32 = 26;
+/// v27: `.md` files inside an OKF bundle are extracted as `okf` concepts,
+/// sections, cross-links and source citations instead of indexed as unknown.
+pub const PARSER_VERSION: u32 = 27;
 
 /// Default independent ceiling on edges delivered by one graph/explore query.
 pub const RETURNED_EDGES_DEFAULT: usize = 1000;
