@@ -1,0 +1,151 @@
+{
+  "experiment": "independent-evaluation-round-6",
+  "date": "2026-09-23",
+  "evaluator": "independent external agent (nanus session)",
+  "revision": {
+    "commit": "1b44235",
+    "title": "merge PR #5 feature/accuracy-gaps + PR #4 python",
+    "schema_version": 4,
+    "parser_version": 26,
+    "requires_rebuild": true
+  },
+  "method_note": "index deleted and rebuilt fresh (schema 4 / parser 26)",
+  "gate": {
+    "tests_passed": 607,
+    "tests_failed": 0,
+    "clippy": "clean"
+  },
+  "findings_resolved": {
+    "P1.2_receiver_calls": {
+      "callers_ToolRegistry::execute": {
+        "before": 0,
+        "after": 5,
+        "includes": "AgentRunner::run_tools"
+      },
+      "callers_ToolRegistryHandle::borrow": {
+        "before": 0,
+        "after": 6,
+        "includes": [
+          "AgentRunner::fmt",
+          "build_request",
+          "run_tools",
+          "gate",
+          "Pending::fmt"
+        ]
+      }
+    },
+    "P2.6_cross_crate_imports": {
+      "deps_unresolved_lines": {
+        "before": 20,
+        "after": 5
+      },
+      "remaining_all_external": [
+        "core::fmt::Write",
+        "serde_json::json",
+        "std::path::PathBuf",
+        "super::*"
+      ]
+    },
+    "P1.1_test_ranking": {
+      "test_noise_top8": {
+        "before": "2/8",
+        "after": "0/8"
+      },
+      "queries": [
+        "how does a tool call get dispatched and approved",
+        "search query literal",
+        "port failure"
+      ]
+    }
+  },
+  "still_fixed": {
+    "impact_ToolSchema": [
+      [
+        1,
+        30
+      ],
+      [
+        2,
+        81
+      ]
+    ],
+    "refs": {
+      "SearchQuery": 6,
+      "ToolDefinition": 12,
+      "ToolOutcome": 12
+    },
+    "callers_AgentRunner::run_step": 1,
+    "explore_default_bytes": 7745,
+    "text_bytes": 12352,
+    "dangling_multiline": 0,
+    "callees_run_tools": {
+      "edges": 30,
+      "resolved": 8,
+      "unresolved": 22
+    }
+  },
+  "graph": {
+    "contains": 6414,
+    "imports": 1740,
+    "exports": 5,
+    "calls": 18320,
+    "implements": 140,
+    "type_uses": 6348,
+    "prev_type_uses": 4885,
+    "files_by_language": {
+      "rust": 128,
+      "type_script": 4,
+      "java_script": 1,
+      "unknown": 55
+    }
+  },
+  "latency_s": {
+    "status": [
+      0.014,
+      0.011
+    ],
+    "text": [
+      0.027,
+      0.032
+    ],
+    "symbol": [
+      0.172,
+      0.188
+    ],
+    "impact": 0.213,
+    "explore": [
+      0.332,
+      0.335
+    ],
+    "callers": {
+      "cold": 0.519,
+      "warm": 0.197
+    },
+    "index_s": 2.94,
+    "store_bytes": 13631488
+  },
+  "python": {
+    "extractor_works": true,
+    "fixture": "pkg/mod.py + pkg/other.py",
+    "nodes": {
+      "file": 2,
+      "function": 2,
+      "method": 2,
+      "class": 1
+    },
+    "deps_edges": 3,
+    "new_gap": "method calls through a receiver variable do not bind (callers Widget.render 0; w.render unresolved)"
+  },
+  "unchanged_good": {
+    "parity": true,
+    "reconcile_defect_still_fixed": {
+      "fresh": 1,
+      "edit_callee": 1,
+      "sync": 1
+    }
+  },
+  "verdict": {
+    "verdict": "ALL_RUST_FINDINGS_RESOLVED_PYTHON_RECEIVER_BINDING_NEW_GAP",
+    "confidence": "high"
+  }
+}
