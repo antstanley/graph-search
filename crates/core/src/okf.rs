@@ -229,7 +229,7 @@ fn percent_decode(text: &str) -> String {
 pub(crate) fn resolve(
     fact: &ReferenceFact,
     from_path: &str,
-    table: &SymbolTable,
+    table: &SymbolTable<'_>,
     known_files: &BTreeSet<String>,
 ) -> Resolution {
     let fallback = fact.kind == EdgeKind::Cites;
@@ -242,10 +242,7 @@ pub(crate) fn resolve(
             to_name: crate::resolve::canonical_dangling_name(&fact.name),
         };
     };
-    let concept = table
-        .okf_concepts
-        .get(&target)
-        .and_then(|id| table.symbols.get(id));
+    let concept = table.concept(&target);
     let (to, to_name) = match concept {
         Some(node) => (
             node.id.clone(),

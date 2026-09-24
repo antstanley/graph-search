@@ -17,7 +17,9 @@ pub(crate) const CURRENT: &str = "CURRENT";
 /// that every generation references, instead of being linked into each.
 /// Format 12: dependency records live in shards and their reverse maps in
 /// posting tables, replacing the whole-workspace dependency index artifact.
-const FORMAT: u32 = 12;
+/// Format 13: shards also index symbols by name, qualified name and
+/// structure, so a sync reads only the symbols its references name.
+const FORMAT: u32 = 13;
 /// The store-level directory of content-addressed packs and segments.
 pub(crate) const OBJECTS: &str = "objects";
 /// Every object a generation references, relative to [`OBJECTS`]: what the
@@ -101,7 +103,8 @@ pub(crate) struct Selected {
 }
 
 /// The published generation, or `None` when nothing is published or the
-/// published generation predates format 12 (it is rebuilt, never migrated).
+/// published generation predates the current format (it is rebuilt, never
+/// migrated).
 pub(crate) fn current(root: &Path) -> io::Result<Option<Selected>> {
     match read_current(root, |bytes| select(root, bytes)) {
         Err(error) if error.kind() == io::ErrorKind::Unsupported => Ok(None),
@@ -152,7 +155,7 @@ fn select(root: &Path, bytes: &[u8]) -> io::Result<Selected> {
     if pointer.format < FORMAT {
         return Err(io::Error::new(
             io::ErrorKind::Unsupported,
-            "generation predates format 12 and must be rebuilt",
+            "generation predates the current format and must be rebuilt",
         ));
     }
     let dir = root.join("generations").join(pointer.id);

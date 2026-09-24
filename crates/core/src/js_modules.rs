@@ -12,7 +12,7 @@ impl Modules {
         path: &str,
         name: &str,
         kind: EdgeKind,
-        table: &SymbolTable,
+        table: &SymbolTable<'_>,
         known: &BTreeSet<String>,
     ) -> Result<NodeId, &'static str> {
         let mut lookup = Lookup {
@@ -33,7 +33,7 @@ impl Modules {
 
 struct Lookup<'a> {
     modules: &'a Modules,
-    table: &'a SymbolTable,
+    table: &'a SymbolTable<'a>,
     known: &'a BTreeSet<String>,
     active: BTreeSet<(String, String)>,
     remaining: usize,
@@ -92,15 +92,11 @@ impl Lookup<'_> {
                 let target = self.table.js_specifier(path, source, self.known)?;
                 return self.visit(&target, local, kind);
             }
-            let symbols: Vec<_> = self
-                .table
-                .by_name
-                .get(local)
-                .into_iter()
-                .flatten()
-                .filter_map(|id| self.table.symbols.get(id))
+            let file = self.table.in_path(path);
+            let symbols: Vec<_> = file
+                .iter()
                 .filter(|node| {
-                    node.path == path
+                    crate::symbols::indexed(node, crate::symbols::SymbolIndex::Name, local)
                         && node.attribute("lexical_local") != Some("true")
                         && node
                             .parent

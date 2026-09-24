@@ -51,6 +51,7 @@ mod rust_receivers;
 pub mod source;
 mod source_capture;
 pub mod stale;
+pub mod symbols;
 pub mod text_search;
 pub mod typescript;
 pub mod typescript_aliases;

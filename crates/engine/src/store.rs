@@ -21,6 +21,7 @@ use graph_search_core::Result;
 use graph_search_core::dependencies::{DependencyLookup, DependencyRecord, Flag};
 use graph_search_core::error::Error;
 use graph_search_core::ports::{GraphSnapshot, GraphStore};
+use graph_search_core::symbols::{Structure, SymbolIndex, SymbolRow};
 use graph_search_types::js_module::JsModule;
 use graph_search_types::kind::{Direction, NodeKind};
 use graph_search_types::manifest::Manifest;
@@ -1785,6 +1786,39 @@ impl GraphSnapshot for NativeSnapshot<'_> {
         self.store.node(id)
     }
 
+    fn nodes_in(&self, path: &str) -> Result<Vec<Node>> {
+        Ok(self
+            .store
+            .shard(path)?
+            .map(|shard| shard.nodes.clone())
+            .unwrap_or_default())
+    }
+
+    fn symbol_rows(&self, index: SymbolIndex, key: &str) -> Result<Vec<SymbolRow>> {
+        let table = match index {
+            SymbolIndex::Name => crate::shards::NAMES,
+            SymbolIndex::Qualified => crate::shards::QUALIFIED,
+        };
+        self.store
+            .postings(table, key)?
+            .into_iter()
+            .map(|row| crate::shards::symbol_row(row).map_err(store_io))
+            .collect()
+    }
+
+    fn structure(&self, structure: Structure) -> Result<Vec<Node>> {
+        self.store
+            .postings(crate::shards::STRUCTURE, structure.as_str())?
+            .into_iter()
+            .map(|row| {
+                serde_json::from_str::<Node>(&row.value)
+                    .ok()
+                    .filter(|node| node.path == row.owner)
+                    .ok_or_else(|| Error::Store("invalid structure row".into()))
+            })
+            .collect()
+    }
+
     fn metadata(&self) -> Result<&graph_search_core::metadata::MetadataIndex> {
         self.store.metadata()
     }
@@ -2268,7 +2302,7 @@ mod publication_tests {
         let older = NativeStore::open(root.path(), &StoreOptions::default()).unwrap();
         assert!(older.generation().unwrap().is_none());
         drop(older);
-        pointer["format"] = serde_json::json!(12);
+        pointer["format"] = serde_json::json!(13);
         pointer["files"]
             .as_object_mut()
             .unwrap()

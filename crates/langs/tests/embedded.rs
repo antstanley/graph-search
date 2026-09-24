@@ -24,7 +24,7 @@ fn original_span(source: &str, span: Span, start: usize, end: usize) {
     }
 }
 
-fn table(extraction: &Extraction) -> SymbolTable {
+fn table(extraction: &Extraction) -> SymbolTable<'static> {
     let mut table = SymbolTable::new();
     for symbol in &extraction.symbols {
         table.add(&Node {

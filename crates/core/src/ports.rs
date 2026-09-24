@@ -348,6 +348,50 @@ pub trait GraphSnapshot {
     /// When the read fails.
     fn node_by_id(&self, id: &NodeId) -> Result<Option<Node>>;
 
+    /// Every node `path` owns, its file node included, sorted by id. Stores
+    /// that can read one file's nodes without the rest override this.
+    ///
+    /// # Errors
+    /// When the read fails.
+    fn nodes_in(&self, path: &str) -> Result<Vec<Node>> {
+        Ok(self
+            .all_nodes()?
+            .into_iter()
+            .filter(|node| node.path == path)
+            .collect())
+    }
+
+    /// The symbols indexed under `key` in `index` (see [`crate::symbols::keys`]),
+    /// in no particular order. Stores that index symbol keys override this.
+    ///
+    /// # Errors
+    /// When the read fails.
+    fn symbol_rows(
+        &self,
+        index: crate::symbols::SymbolIndex,
+        key: &str,
+    ) -> Result<Vec<crate::symbols::SymbolRow>> {
+        Ok(self
+            .all_nodes()?
+            .iter()
+            .filter(|node| crate::symbols::indexed(node, index, key))
+            .map(crate::symbols::SymbolRow::of)
+            .collect())
+    }
+
+    /// Every node of one structure (see [`crate::symbols::structure`]), in no
+    /// particular order. Stores that index structures override this.
+    ///
+    /// # Errors
+    /// When the read fails.
+    fn structure(&self, structure: crate::symbols::Structure) -> Result<Vec<Node>> {
+        Ok(self
+            .all_nodes()?
+            .into_iter()
+            .filter(|node| crate::symbols::structure(node) == Some(structure))
+            .collect())
+    }
+
     /// Symbols whose `name` or `qualified_name` equals `name`, best first,
     /// at most `k`. An empty `kinds` slice admits every kind.
     ///

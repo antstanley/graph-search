@@ -14,7 +14,7 @@ use crate::resolve::{CrossTables, SymbolTable, cross_edges_for};
 use crate::walk::WalkEntry;
 use graph_search_types::NodeId;
 use graph_search_types::batch::{FileProjection, QuarantineRecord, WriteBatch};
-use graph_search_types::kind::{EdgeKind, Language};
+use graph_search_types::kind::{EdgeKind, Language, NodeKind};
 use graph_search_types::limits::{
     MAX_EDGES_PER_FILE, MAX_NODES_PER_FILE, MAX_SIGNATURE_CHARS, PARSER_VERSION, SCHEMA_VERSION,
 };
@@ -330,19 +330,15 @@ impl<'a> Projector<'a> {
 
         self.annotate_packages(store, package_boundaries, &removed, &mut pending)?;
 
-        // Phase B: the symbol table reflects the post-apply world: untouched
-        // files from the store, changed files from the batch.
+        // Phase B: the symbol table reflects the post-apply world: changed
+        // files from the batch, untouched files read from the store only as
+        // resolution names them.
         let changed_paths: BTreeSet<String> = pending.iter().map(|p| p.entry.rel.clone()).collect();
-        let mut table = SymbolTable::new();
-        {
-            let snapshot = store.snapshot()?;
-            for node in snapshot.all_nodes()? {
-                self.check_work()?;
-                if !changed_paths.contains(&node.path) && !removed.contains(&node.path) {
-                    table.add(&node);
-                }
-            }
-        }
+        let snapshot = store.snapshot()?;
+        let mut table = SymbolTable::over(
+            snapshot.as_ref(),
+            changed_paths.iter().chain(&removed).cloned().collect(),
+        )?;
         for item in &pending {
             self.check_work()?;
             table.add(&item.projection.file);
@@ -395,7 +391,20 @@ impl<'a> Projector<'a> {
         self.check_work()?;
 
         // Phase C: resolve references into edges, then the HTML/CSS matches.
-        let cross = CrossTables::from_table(&table);
+        // Markup is read only when a changed file can match against it.
+        let markup = pending.iter().any(|item| {
+            item.extraction.as_ref().is_some_and(|facts| {
+                facts
+                    .symbols
+                    .iter()
+                    .any(|fact| matches!(fact.kind, NodeKind::Element | NodeKind::CssRule))
+            })
+        });
+        let cross = if markup {
+            CrossTables::from_table(&table)
+        } else {
+            CrossTables::default()
+        };
         for item in &mut pending {
             self.check_work()?;
             item.projection.occurrences = Some(graph_search_types::occurrence::OccurrenceFile {
@@ -437,6 +446,10 @@ impl<'a> Projector<'a> {
                 item.projection.occurrences = Some(occurrences);
             }
         }
+
+        table.finish()?;
+        drop(table);
+        drop(snapshot);
 
         // The batch: removals, upserts, and the manifest over the *whole*
         // walked tree — committed last (`SPEC.md` §6.4).

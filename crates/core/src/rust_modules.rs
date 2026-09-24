@@ -5,6 +5,7 @@ use graph_search_types::package::{
 use graph_search_types::{Node, NodeId, NodeKind};
 use std::collections::{BTreeMap, BTreeSet, VecDeque};
 use std::path::{Component, Path};
+use std::rc::Rc;
 
 #[derive(Clone, Debug, Default)]
 pub(crate) struct Catalog {
@@ -132,14 +133,20 @@ impl Catalog {
     /// A file has at most two directory contexts: physical parent (root/path
     /// attribute) and physical stem (ordinary module). Cycles cannot grow this
     /// worklist beyond twice the walked file set.
-    pub(crate) fn populate(&mut self, symbols: &BTreeMap<NodeId, Node>, known: &BTreeSet<String>) {
-        let mut modules: BTreeMap<&str, Vec<&Node>> = BTreeMap::new();
-        for node in symbols
-            .values()
+    pub(crate) fn populate(
+        &mut self,
+        modules: &[Rc<Node>],
+        lookup: &dyn Fn(&NodeId) -> Option<Rc<Node>>,
+        known: &BTreeSet<String>,
+    ) {
+        let mut by_path: BTreeMap<&str, Vec<&Node>> = BTreeMap::new();
+        for node in modules
+            .iter()
             .filter(|node| node.attribute("rust_module_form") == Some("external"))
         {
-            modules.entry(&node.path).or_default().push(node);
+            by_path.entry(&node.path).or_default().push(node);
         }
+        let modules = by_path;
         let mut contexts: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
         let mut pending = VecDeque::new();
         for path in &self.roots {
@@ -153,7 +160,7 @@ impl Catalog {
         let mut choices: BTreeMap<NodeId, BTreeSet<Result<String, &'static str>>> = BTreeMap::new();
         while let Some((path, directory)) = pending.pop_front() {
             for node in modules.get(path.as_str()).into_iter().flatten() {
-                let resolved = in_directory(node, symbols, known, &directory);
+                let resolved = in_directory(node, lookup, known, &directory);
                 if let Ok(target) = &resolved
                     && contexts
                         .entry(target.path.clone())
@@ -359,14 +366,14 @@ struct Target {
 
 fn in_directory(
     node: &Node,
-    symbols: &BTreeMap<NodeId, Node>,
+    lookup: &dyn Fn(&NodeId) -> Option<Rc<Node>>,
     known: &BTreeSet<String>,
     base: &str,
 ) -> Result<Target, &'static str> {
-    let mut chain = vec![node];
-    let mut ancestor = node.parent.as_ref();
-    while let Some(id) = ancestor {
-        let parent = symbols.get(id).ok_or("rust_module_parent_missing")?;
+    let mut chain = vec![Rc::new(node.clone())];
+    let mut ancestor = node.parent.clone();
+    while let Some(id) = ancestor.take() {
+        let parent = lookup(&id).ok_or("rust_module_parent_missing")?;
         if parent.kind != NodeKind::Module || parent.attribute("rust_module_form") != Some("inline")
         {
             return Err("rust_block_module_unsupported");
@@ -374,8 +381,8 @@ fn in_directory(
         if chain.len() >= 256 {
             return Err("rust_module_depth_limit");
         }
+        ancestor.clone_from(&parent.parent);
         chain.push(parent);
-        ancestor = parent.parent.as_ref();
     }
     chain.reverse();
     let mut directory = base.to_owned();

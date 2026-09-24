@@ -209,7 +209,7 @@ Design notes:
 ### 4.3 The engine: a native generation store
 
 `graph-search-engine` implements core's `GraphStore` port with its own storage
-(format 12, `research/16-proportional-sync.md`). The store lives at
+(format 13, `research/16-proportional-sync.md`). The store lives at
 `<root>/.graph-search/index/` by default and is git-ignored. It replaced the
 embedded Grafeo database, as this section always allowed: an in-process
 adjacency map proved sufficient, and Grafeo rebuilt and re-serialized the whole
@@ -857,7 +857,7 @@ it write the changed shards and source records as new packs and one delta
 segment per posting table into `objects/`, and, under `generations/<id>/`, the
 pack indexes, the table list, the object list, the manifest header and the
 summary. It then publishes a small `CURRENT` descriptor by atomic rename. The
-descriptor records storage format 12 and BLAKE3 fingerprints of the small index
+descriptor records storage format 13 and BLAKE3 fingerprints of the small index
 artifacts (`shards.json`, `source-units.json`, `tables.json`, `summary.json`,
 `manifest.json`, `extractions.json`); packs and segments are committed
 transitively by their own content hashes. A missing or corrupt
@@ -944,7 +944,7 @@ deduplicated. Repacking and removal preserve original per-file facts, and deleti
 older generations unlinks their references without deleting current packs.
 The pack directory is synced before committing its index and CURRENT.
 
-Every file's dependency record lives in its shard (format 12). A record holds
+Every file's dependency record is a record in its own pack family (format 12). A record holds
 the file's header identity, raw non-dynamic reference names (including
 unresolved references), defined/exported names, authored module surface and
 specifiers, binding-surface fingerprint and the links of the edges it owns. Each
@@ -967,6 +967,17 @@ a presence change rechecks only importers with a candidate among the appearing o
 vanishing files, since a selection depends on nothing else. Reconciliation does not
 read the whole graph or hydrate raw facts for unchanged, unaffected files when
 dependency records exist.
+
+Resolution reads symbols the same way (format 13). Each shard also posts its
+symbols by bare name (`names`) and by qualified name (`qualified`), each row
+carrying the symbol's kind and whether it is lexically local, and posts whole
+nodes for the structures resolution reads first (`structure`: Rust module
+declarations, CSS rules and HTML elements, package manifests). The symbol table
+holds the batch's symbols and reads stored ones on demand, excluding the
+changed and removed files: a name lookup reads its postings, a same-file or
+module-member lookup reads one shard, and a symbol by id reads its owner's
+shard. The global unique-name rule decides from the postings alone. Markup is
+read only when a changed file has elements or CSS rules.
 
 Generation format 6 and later commit `extractions.json` whenever they commit a manifest.
 This version-2 record index uses the same native pack codec under `extraction-records/`.

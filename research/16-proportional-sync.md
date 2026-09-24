@@ -224,6 +224,40 @@ a clean rebuild, and is measured with Criterion (see `AGENTS.md`).
    `storage_sync/json_edit` read +56% (p < 0.05) in one run and +16%
    (p = 0.24, not significant) in a second; it needs a quiet re-measurement.
 
+1d. **Symbol table as keyed lookups (format 13). Done.** Shards also post
+   their symbols by bare name (`names`) and qualified name (`qualified`), each
+   row carrying the kind and the `lexical_local` flag, and post whole nodes for
+   the structures resolution reads first (`structure`: Rust module
+   declarations, markup, package manifests). `SymbolTable` holds the batch's
+   symbols and reads stored ones on demand through new `GraphSnapshot`
+   accessors (`nodes_in`, `symbol_rows`, `structure`, with defaults over
+   `all_nodes`), excluding changed and removed files. Same-file and
+   module-member lookups read one shard; a qualified lookup reads its postings
+   and their nodes; the unique-name rule decides from postings alone, so a
+   common name (`new`, `f0`) never loads its thousands of candidates. The Rust
+   path resolver keeps its module structure eager (from `structure`) and
+   indexes members one file at a time as a path walks into it. Markup is read
+   only when a changed file has elements or CSS rules. A failed store read is
+   kept and fails the sync after resolution.
+
+   Criterion against `307b4a5`, separate target directories (a first run was
+   void: the baseline half ran beside a VM at full CPU and read 4.7 s for a
+   full reindex):
+
+   | Benchmark | Format 12 | Format 13 | Change |
+   |---|---|---|---|
+   | `sync_scaling` 250 modules | 66 ms | 65 ms | no change |
+   | `sync_scaling` 1,000 modules | 95 ms | 74 ms | −23.1% |
+   | `sync_scaling` 4,000 modules | 246 ms | 138 ms | −44.7% |
+   | `storage_sync/rust_body_edit` | 66 ms | 57 ms | −12.7% |
+   | `storage_sync/json_edit` | 67 ms | 62 ms | −10.5% |
+   | `storage_sync/noop` | 881 µs | 776 µs | −10.2% |
+   | `storage_open/open_then_symbol` | 31.8 ms | 35.0 ms | +7.8% (regression) |
+   | `storage_open/open_then_explore` | 101 ms | 104 ms | no change |
+   | `storage_publish/reindex_full` | 765 ms (noisy) | 543 ms | no change (p = 0.08) |
+
+   The store grows 1.3% (2,210,190 to 2,238,206 bytes) for the three tables.
+
 2. **Posting tables.** `names`, `incoming`, `consumers`, `selected`, `cross` as
    base and delta segments. Delta summaries and edge counts. Publish writes one
    delta per table.

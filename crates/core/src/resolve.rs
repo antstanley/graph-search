@@ -6,10 +6,13 @@
 //! to — never dropped, never an error.
 
 use crate::extraction::{Extraction, ReferenceFact};
+use crate::symbols::{Structure, SymbolIndex, SymbolRow};
 use graph_search_types::kind::{EdgeKind, Language, NodeKind};
 use graph_search_types::node::Node;
 use graph_search_types::{Edge, NodeId};
+use std::cell::RefCell;
 use std::collections::{BTreeMap, BTreeSet};
+use std::rc::Rc;
 
 /// Whether a language consumes JavaScript/TypeScript module surfaces, including
 /// the script regions of native framework components.
@@ -77,37 +80,122 @@ fn admits(edge_kind: EdgeKind, name: &str, language: Language, node_kind: NodeKi
     compatible(edge_kind, node_kind)
 }
 
-/// The workspace-wide name tables resolution reads. Built once per sync from
-/// the store plus the batch (`SPEC.md` §6.2).
-#[derive(Clone, Debug, Default)]
-pub struct SymbolTable {
-    /// Cargo manifest nodes retained separately from symbol-name lookup.
+/// The workspace-wide name tables resolution reads (`SPEC.md` §6.2): the
+/// batch's own symbols over the store's, which are read on demand, so a sync
+/// reads only the symbols its references name. The stored symbols of changed
+/// and removed files are superseded by the batch.
+///
+/// Lookups cannot fail: a failed store read is kept, the lookup answers as
+/// if nothing were stored, and [`SymbolTable::finish`] reports the failure
+/// after resolution.
+#[derive(Default)]
+pub struct SymbolTable<'s> {
+    store: Option<Stored<'s>>,
+    /// Package manifest nodes by path, retained separately from symbol lookup.
     files: BTreeMap<String, Node>,
     pub(crate) rust_roots: crate::rust_modules::Catalog,
     pub(crate) rust_paths: crate::rust_paths::Paths,
     js_modules: crate::js_modules::Modules,
     node_packages: crate::node_packages::Packages,
-    /// Bare name to symbol ids, workspace-wide.
-    pub by_name: BTreeMap<String, Vec<NodeId>>,
-    /// Qualified name to symbol id, workspace-wide.
-    pub by_qualified: BTreeMap<String, NodeId>,
-    /// All qualified-name candidates, retaining ambiguity across files.
-    pub qualified_candidates: BTreeMap<String, Vec<NodeId>>,
-    /// Per file: bare name to id.
-    pub by_file: BTreeMap<String, BTreeMap<String, NodeId>>,
-    /// Per file: qualified name to id.
-    pub by_file_qualified: BTreeMap<String, BTreeMap<String, NodeId>>,
-    /// Per file: exported binding name to id.
-    pub exports_by_file: BTreeMap<String, BTreeMap<String, NodeId>>,
-    /// Every symbol node, by id.
-    pub symbols: BTreeMap<NodeId, Node>,
-    /// Per OKF document: its concept, the target of links into the file.
-    pub(crate) okf_concepts: BTreeMap<String, NodeId>,
     /// Nearest selected TypeScript projects for declared path aliases.
     ts_projects: crate::typescript_project::Projects,
+    /// The symbols added directly (the batch's, or every symbol without a store).
+    added: Added,
+    cache: RefCell<Cache>,
+    error: RefCell<Option<crate::error::Error>>,
 }
 
-impl SymbolTable {
+struct Stored<'s> {
+    snapshot: &'s dyn crate::ports::GraphSnapshot,
+    /// Files whose stored symbols the batch supersedes.
+    superseded: BTreeSet<String>,
+}
+
+/// Symbols added directly, indexed as the store indexes its own.
+#[derive(Default)]
+struct Added {
+    nodes: BTreeMap<NodeId, Rc<Node>>,
+    names: BTreeMap<String, Vec<NodeId>>,
+    qualified: BTreeMap<String, Vec<NodeId>>,
+    paths: BTreeMap<String, Vec<NodeId>>,
+    structures: BTreeMap<Structure, Vec<NodeId>>,
+}
+
+/// Stored symbols already read.
+#[derive(Default)]
+struct Cache {
+    nodes: BTreeMap<NodeId, Option<Rc<Node>>>,
+    paths: BTreeMap<String, Rc<[Rc<Node>]>>,
+    rows: BTreeMap<(SymbolIndex, String), Rc<[SymbolRow]>>,
+    structures: BTreeMap<Structure, Rc<[Rc<Node>]>>,
+}
+
+impl<'s> SymbolTable<'s> {
+    /// An empty table.
+    #[must_use]
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// A table over the symbols in `snapshot`, less those of the files in
+    /// `superseded`, whose symbols the caller adds.
+    ///
+    /// # Errors
+    /// When the stored package manifests cannot be read.
+    pub fn over(
+        snapshot: &'s dyn crate::ports::GraphSnapshot,
+        superseded: BTreeSet<String>,
+    ) -> crate::Result<Self> {
+        let files = snapshot
+            .structure(Structure::Manifests)?
+            .into_iter()
+            .filter(|node| node.is_file() && !superseded.contains(&node.path))
+            .map(|node| (node.path.clone(), node))
+            .collect();
+        Ok(Self {
+            store: Some(Stored {
+                snapshot,
+                superseded,
+            }),
+            files,
+            ..Self::default()
+        })
+    }
+
+    /// The first store read that failed during resolution, if any.
+    ///
+    /// # Errors
+    /// That failure.
+    pub fn finish(&self) -> crate::Result<()> {
+        match self.error.borrow_mut().take() {
+            Some(error) => Err(error),
+            None => Ok(()),
+        }
+    }
+
+    /// A read from the store, when there is one and the read succeeds; a
+    /// failure is kept for [`Self::finish`].
+    fn read<T>(
+        &self,
+        read: impl FnOnce(&dyn crate::ports::GraphSnapshot) -> crate::Result<T>,
+    ) -> Option<T> {
+        let store = self.store.as_ref()?;
+        match read(store.snapshot) {
+            Ok(value) => Some(value),
+            Err(error) => {
+                self.error.borrow_mut().get_or_insert(error);
+                None
+            }
+        }
+    }
+
+    /// Whether the store's symbols of `path` are current.
+    fn stored(&self, path: &str) -> bool {
+        self.store
+            .as_ref()
+            .is_some_and(|store| !store.superseded.contains(path))
+    }
+
     /// Prepare file-owned ESM surfaces from current raw extraction identities.
     pub fn prepare_js_modules<'a>(
         &mut self,
@@ -162,11 +250,6 @@ impl SymbolTable {
     pub fn prepare_node_packages(&mut self, boundaries: &BTreeSet<String>) {
         self.node_packages = crate::node_packages::Packages::build(&self.files, boundaries);
     }
-    /// An empty table.
-    #[must_use]
-    pub fn new() -> Self {
-        Self::default()
-    }
 
     /// Prepare native Rust module paths from the post-update file set.
     pub fn prepare_rust_modules(
@@ -175,92 +258,194 @@ impl SymbolTable {
         boundaries: &BTreeSet<String>,
     ) {
         let mut catalog = crate::rust_modules::Catalog::build(&self.files, known, boundaries);
-        catalog.populate(&self.symbols, known);
-        self.rust_paths = crate::rust_paths::Paths::build(&self.symbols, &catalog);
+        let modules = self.structure(Structure::RustModules);
+        catalog.populate(&modules, &|id| self.get(id), known);
+        self.rust_paths = crate::rust_paths::Paths::build(&modules, &catalog);
         self.rust_roots = catalog;
     }
 
     /// Adds a file or symbol node; files never enter symbol-name lookup.
     pub fn add(&mut self, node: &Node) {
         if node.is_file() {
-            if std::path::Path::new(&node.path)
-                .file_name()
-                .is_some_and(|name| {
-                    name == "Cargo.toml" || name == "package.json" || name == "pnpm-workspace.yaml"
-                })
-            {
+            if crate::symbols::structure(node) == Some(Structure::Manifests) {
                 self.files.insert(node.path.clone(), node.clone());
             }
             return;
         }
-        // A `pub use` reexport is a module member for anchored path resolution, not
-        // a competing definition: it must not enter name-based retrieval or fallback.
-        if node.attribute("rust_reexport").is_some() {
-            self.symbols.insert(node.id.clone(), node.clone());
-            return;
-        }
-        let name = node.name.clone().unwrap_or_default();
-        let qualified = node.qualified_name.clone().unwrap_or_else(|| name.clone());
-        self.by_name
-            .entry(name.clone())
-            .or_default()
-            .push(node.id.clone());
-        self.qualified_candidates
-            .entry(qualified.clone())
-            .or_default()
-            .push(node.id.clone());
-        self.by_qualified
-            .entry(qualified.clone())
-            .or_insert(node.id.clone());
-        self.by_file
-            .entry(node.path.clone())
-            .or_default()
-            .entry(name)
-            .or_insert(node.id.clone());
-        self.by_file_qualified
-            .entry(node.path.clone())
-            .or_default()
-            .entry(qualified)
-            .or_insert(node.id.clone());
-        if node.kind == NodeKind::Concept {
-            self.okf_concepts
-                .entry(node.path.clone())
-                .or_insert(node.id.clone());
-        }
-        if matches!(node.kind, NodeKind::Export) {
-            self.exports_by_file
-                .entry(node.path.clone())
+        let added = &mut self.added;
+        if let Some((name, qualified)) = crate::symbols::keys(node) {
+            added.names.entry(name).or_default().push(node.id.clone());
+            added
+                .qualified
+                .entry(qualified)
                 .or_default()
-                .entry(node.name.clone().unwrap_or_default())
-                .or_insert(node.id.clone());
+                .push(node.id.clone());
         }
-        self.symbols.insert(node.id.clone(), node.clone());
+        if let Some(structure) = crate::symbols::structure(node) {
+            added
+                .structures
+                .entry(structure)
+                .or_default()
+                .push(node.id.clone());
+        }
+        added
+            .paths
+            .entry(node.path.clone())
+            .or_default()
+            .push(node.id.clone());
+        added.nodes.insert(node.id.clone(), Rc::new(node.clone()));
     }
 
-    fn named(&self, name: &str) -> Vec<&Node> {
-        self.by_name
-            .get(name)
+    /// The symbol `id`.
+    pub(crate) fn get(&self, id: &NodeId) -> Option<Rc<Node>> {
+        if let Some(node) = self.added.nodes.get(id) {
+            return Some(Rc::clone(node));
+        }
+        if let Some(node) = self.cache.borrow().nodes.get(id) {
+            return node.clone();
+        }
+        let node = self
+            .read(|store| store.node_by_id(id))
+            .flatten()
+            .filter(|node| !node.is_file() && self.stored(&node.path))
+            .map(Rc::new);
+        self.cache
+            .borrow_mut()
+            .nodes
+            .insert(id.clone(), node.clone());
+        node
+    }
+
+    /// Every symbol `path` owns, sorted by id.
+    pub(crate) fn in_path(&self, path: &str) -> Rc<[Rc<Node>]> {
+        if let Some(ids) = self.added.paths.get(path) {
+            let mut nodes: Vec<Rc<Node>> = ids
+                .iter()
+                .collect::<BTreeSet<_>>()
+                .into_iter()
+                .filter_map(|id| self.added.nodes.get(id).cloned())
+                .collect();
+            nodes.sort_by(|a, b| a.id.cmp(&b.id));
+            return nodes.into();
+        }
+        if !self.stored(path) {
+            return Rc::from([]);
+        }
+        if let Some(nodes) = self.cache.borrow().paths.get(path) {
+            return Rc::clone(nodes);
+        }
+        let mut nodes: Vec<Rc<Node>> = self
+            .read(|store| store.nodes_in(path))
+            .unwrap_or_default()
+            .into_iter()
+            .filter(|node| !node.is_file() && node.path == path)
+            .map(Rc::new)
+            .collect();
+        nodes.sort_by(|a, b| a.id.cmp(&b.id));
+        let nodes: Rc<[Rc<Node>]> = nodes.into();
+        let mut cache = self.cache.borrow_mut();
+        for node in nodes.iter() {
+            cache.nodes.insert(node.id.clone(), Some(Rc::clone(node)));
+        }
+        cache.paths.insert(path.to_owned(), Rc::clone(&nodes));
+        nodes
+    }
+
+    /// The symbols indexed under `key`: added ones, then current stored ones.
+    fn rows(&self, index: SymbolIndex, key: &str) -> Rc<[SymbolRow]> {
+        let cached = (index, key.to_owned());
+        if let Some(rows) = self.cache.borrow().rows.get(&cached) {
+            return Rc::clone(rows);
+        }
+        let added = match index {
+            SymbolIndex::Name => &self.added.names,
+            SymbolIndex::Qualified => &self.added.qualified,
+        };
+        let mut rows: Vec<SymbolRow> = added
+            .get(key)
             .into_iter()
             .flatten()
-            .chain(self.qualified_candidates.get(name).into_iter().flatten())
+            .filter_map(|id| self.added.nodes.get(id))
+            .map(|node| SymbolRow::of(node))
+            .collect();
+        let mut stored: Vec<SymbolRow> = self
+            .read(|store| store.symbol_rows(index, key))
+            .unwrap_or_default()
+            .into_iter()
+            .filter(|row| self.stored(&row.path))
+            .collect();
+        stored.sort_by(|a, b| a.id.cmp(&b.id));
+        stored.dedup_by(|a, b| a.id == b.id);
+        rows.extend(stored);
+        let rows: Rc<[SymbolRow]> = rows.into();
+        self.cache
+            .borrow_mut()
+            .rows
+            .insert(cached, Rc::clone(&rows));
+        rows
+    }
+
+    /// The symbols qualified `qualified`, sorted by id.
+    pub(crate) fn qualified(&self, qualified: &str) -> Vec<Rc<Node>> {
+        self.rows(SymbolIndex::Qualified, qualified)
+            .iter()
+            .map(|row| &row.id)
             .collect::<BTreeSet<_>>()
             .into_iter()
-            .filter_map(|id| self.symbols.get(id))
+            .filter_map(|id| self.get(id))
             .collect()
     }
 
-    /// Rule 1: same file, same name.
-    #[must_use]
-    pub fn local(&self, path: &str, name: &str) -> Option<&NodeId> {
-        self.by_file.get(path).and_then(|m| m.get(name))
+    /// The symbols of `path` named or qualified `name`, sorted by id.
+    pub(crate) fn named_in(&self, path: &str, name: &str) -> Vec<Rc<Node>> {
+        self.in_path(path)
+            .iter()
+            .filter(|node| {
+                crate::symbols::indexed(node, SymbolIndex::Name, name)
+                    || crate::symbols::indexed(node, SymbolIndex::Qualified, name)
+            })
+            .cloned()
+            .collect()
     }
 
-    /// Rule 1, qualified: same file, same lexical path.
-    #[must_use]
-    pub fn local_qualified(&self, path: &str, qualified: &str) -> Option<&NodeId> {
-        self.by_file_qualified
-            .get(path)
-            .and_then(|m| m.get(qualified))
+    /// The concept of the OKF document `path`, the target of links into it.
+    pub(crate) fn concept(&self, path: &str) -> Option<Rc<Node>> {
+        self.in_path(path)
+            .iter()
+            .find(|node| node.kind == NodeKind::Concept)
+            .cloned()
+    }
+
+    /// Every node of `structure`, sorted by id.
+    pub(crate) fn structure(&self, structure: Structure) -> Rc<[Rc<Node>]> {
+        if let Some(nodes) = self.cache.borrow().structures.get(&structure) {
+            return Rc::clone(nodes);
+        }
+        let mut nodes: Vec<Rc<Node>> = self
+            .added
+            .structures
+            .get(&structure)
+            .into_iter()
+            .flatten()
+            .collect::<BTreeSet<_>>()
+            .into_iter()
+            .filter_map(|id| self.added.nodes.get(id).cloned())
+            .collect();
+        nodes.extend(
+            self.read(|store| store.structure(structure))
+                .unwrap_or_default()
+                .into_iter()
+                .filter(|node| !node.is_file() && self.stored(&node.path))
+                .map(Rc::new),
+        );
+        nodes.sort_by(|a, b| a.id.cmp(&b.id));
+        nodes.dedup_by(|a, b| a.id == b.id);
+        let nodes: Rc<[Rc<Node>]> = nodes.into();
+        self.cache
+            .borrow_mut()
+            .structures
+            .insert(structure, Rc::clone(&nodes));
+        nodes
     }
 
     /// Rule 4: a bare name that matches exactly one workspace symbol of a
@@ -272,19 +457,14 @@ impl SymbolTable {
         name: &str,
         edge_kind: EdgeKind,
         language: Language,
-    ) -> Option<&NodeId> {
-        let candidates = self.by_name.get(name)?;
-        let compatible: Vec<&NodeId> = candidates
+    ) -> Option<NodeId> {
+        let rows = self.rows(SymbolIndex::Name, name);
+        let compatible: Vec<&SymbolRow> = rows
             .iter()
-            .filter(|id| {
-                self.symbols.get(*id).is_some_and(|node| {
-                    admits(edge_kind, name, language, node.kind)
-                        && node.attribute("lexical_local") != Some("true")
-                })
-            })
+            .filter(|row| admits(edge_kind, name, language, row.kind) && !row.lexical_local)
             .collect();
         match compatible.as_slice() {
-            [only] => Some(only),
+            [only] => Some(only.id.clone()),
             _ => None,
         }
     }
@@ -628,7 +808,7 @@ pub(crate) fn canonical_dangling_name(name: &str) -> String {
 pub fn resolve_reference(
     fact: &ReferenceFact,
     from_path: &str,
-    table: &SymbolTable,
+    table: &SymbolTable<'_>,
     known_files: &BTreeSet<String>,
     language: Language,
 ) -> Resolution {
@@ -642,7 +822,7 @@ pub fn resolve_reference(
 pub(crate) fn resolve_in(
     fact: &ReferenceFact,
     from_path: &str,
-    table: &SymbolTable,
+    table: &SymbolTable<'_>,
     known_files: &BTreeSet<String>,
     language: Language,
     receivers: Option<&crate::rust_receivers::Receivers<'_>>,
@@ -688,11 +868,10 @@ pub(crate) fn resolve_in(
     }
     if let Some(key) = &fact.lexical_target {
         let matches: Vec<_> = table
-            .named(&fact.name)
+            .named_in(from_path, &fact.name)
             .into_iter()
             .filter(|node| {
-                node.path == from_path
-                    && node.attribute("lexical_key") == Some(key.as_str())
+                node.attribute("lexical_key") == Some(key.as_str())
                     && compatible(fact.kind, node.kind)
             })
             .collect();
@@ -716,11 +895,10 @@ pub(crate) fn resolve_in(
     // it from the declared module context before generic use/import handling.
     if language == Language::Rust && fact.rust_module_declaration {
         let modules: Vec<_> = table
-            .named(&fact.name)
+            .named_in(from_path, &fact.name)
             .into_iter()
             .filter(|node| {
-                node.path == from_path
-                    && node.kind == NodeKind::Module
+                node.kind == NodeKind::Module
                     && node.attribute("rust_module_form") == Some("external")
                     && fact.span.is_some()
                     && node.span == fact.span
@@ -759,7 +937,7 @@ pub(crate) fn resolve_in(
                     })
             }))
     {
-        return match table.rust_paths.resolve(fact, from_path, &table.symbols) {
+        return match table.rust_paths.resolve(fact, from_path, table) {
             Ok(id) => Resolution {
                 class: if fact.rust_use.is_some() || fact.via_import.is_some() {
                     ResolutionClass::ExplicitImport
@@ -769,7 +947,6 @@ pub(crate) fn resolve_in(
                 reason: None,
                 fact: fact.clone(),
                 to_name: table
-                    .symbols
                     .get(&id)
                     .and_then(|node| node.qualified_name.clone())
                     .unwrap_or_else(|| fact.name.clone()),
@@ -832,7 +1009,6 @@ pub(crate) fn resolve_in(
                     reason: None,
                     fact: fact.clone(),
                     to_name: table
-                        .symbols
                         .get(&id)
                         .and_then(|node| node.qualified_name.clone())
                         .unwrap_or_else(|| fact.name.clone()),
@@ -842,12 +1018,11 @@ pub(crate) fn resolve_in(
             };
         }
         if let Some(target) = resolve_specifier(from_path, specifier, known_files, language) {
-            let mut matches: Vec<&Node> = table
-                .named(&fact.name)
+            let mut matches: Vec<Rc<Node>> = table
+                .named_in(&target, &fact.name)
                 .into_iter()
                 .filter(|n| {
-                    n.path == target
-                        && n.attribute("lexical_local") != Some("true")
+                    n.attribute("lexical_local") != Some("true")
                         && n.name.as_deref() == Some(fact.name.as_str())
                         // A Python module's importable names are its top-level
                         // bindings; a method, class field or nested `def` that
@@ -906,12 +1081,11 @@ pub(crate) fn resolve_in(
 
     // A same-file name must be unique and kind-compatible. Duplicate
     // methods or nested declarations cannot be collapsed to the first row.
-    let local: Vec<&Node> = table
-        .named(&fact.name)
+    let local: Vec<Rc<Node>> = table
+        .named_in(from_path, &fact.name)
         .into_iter()
         .filter(|n| {
-            n.path == from_path
-                && lexically_visible(n, fact, from_path)
+            lexically_visible(n, fact, from_path)
                 && admits(fact.kind, &fact.name, language, n.kind)
                 && (n.qualified_name.as_deref() == Some(fact.name.as_str())
                     || n.name.as_deref() == Some(fact.name.as_str()))
@@ -942,7 +1116,7 @@ pub(crate) fn resolve_in(
     // arbitrary receiver/module to its suffix invents edges (external::run
     // must not bind to an unrelated workspace run).
     if fact.name.contains("::") || fact.name.contains('.') {
-        let mut matches = table.named(&fact.name).into_iter().filter(|n| {
+        let mut matches = table.qualified(&fact.name).into_iter().filter(|n| {
             n.qualified_name.as_deref() == Some(fact.name.as_str())
                 && admits(fact.kind, &fact.name, language, n.kind)
                 && lexically_visible(n, fact, from_path)
@@ -962,12 +1136,8 @@ pub(crate) fn resolve_in(
     }
 
     // Rule 4: exactly one workspace symbol of a compatible kind.
-    if let Some(id) = table
-        .unique_global(&fact.name, fact.kind, language)
-        .cloned()
-    {
+    if let Some(id) = table.unique_global(&fact.name, fact.kind, language) {
         let name = table
-            .symbols
             .get(&id)
             .and_then(|n| n.qualified_name.clone())
             .unwrap_or_else(|| fact.name.clone());
@@ -1011,7 +1181,7 @@ pub fn edges_for_extraction(
     file_path: &str,
     extraction: &Extraction,
     symbol_ids: &BTreeMap<String, NodeId>,
-    table: &SymbolTable,
+    table: &SymbolTable<'_>,
     known_files: &BTreeSet<String>,
     language: Language,
 ) -> Vec<Edge> {
@@ -1037,7 +1207,7 @@ pub fn project_references(
     source_hash: &str,
     extraction: &Extraction,
     symbol_ids: &BTreeMap<String, NodeId>,
-    table: &SymbolTable,
+    table: &SymbolTable<'_>,
     known_files: &BTreeSet<String>,
     language: Language,
 ) -> (Vec<Edge>, graph_search_types::occurrence::OccurrenceFile) {
@@ -1121,15 +1291,15 @@ fn occurrence_owner(
     candidate: &NodeId,
     fact: &ReferenceFact,
     file: &NodeId,
-    table: &SymbolTable,
+    table: &SymbolTable<'_>,
 ) -> NodeId {
     let Some(span) = fact.span else {
         return candidate.clone();
     };
-    let Some(node) = table.symbols.get(candidate) else {
+    let Some(node) = table.get(candidate) else {
         return file.clone();
     };
-    let encloses = |node: &&Node| {
+    let encloses = |node: &Rc<Node>| {
         node.span.is_some_and(|owner| {
             owner.start_byte <= span.start_byte && span.end_byte <= owner.end_byte
         })
@@ -1140,11 +1310,16 @@ fn occurrence_owner(
     let mut owners = node
         .qualified_name
         .as_ref()
-        .and_then(|name| table.qualified_candidates.get(name))
         .into_iter()
-        .flatten()
-        .filter_map(|id| table.symbols.get(id))
-        .filter(|other| other.path == node.path && other.kind == node.kind)
+        .flat_map(|name| {
+            table
+                .in_path(&node.path)
+                .iter()
+                .filter(|other| crate::symbols::indexed(other, SymbolIndex::Qualified, name))
+                .cloned()
+                .collect::<Vec<_>>()
+        })
+        .filter(|other| other.kind == node.kind)
         .filter(encloses);
     match (owners.next(), owners.next()) {
         (Some(owner), None) => owner.id.clone(),
@@ -1202,9 +1377,9 @@ pub struct CrossTables {
 impl CrossTables {
     /// Builds the tables from symbol nodes in the table (all files).
     #[must_use]
-    pub fn from_table(table: &SymbolTable) -> Self {
+    pub fn from_table(table: &SymbolTable<'_>) -> Self {
         let mut cross = Self::default();
-        for node in table.symbols.values() {
+        for node in table.structure(Structure::Markup).iter() {
             match node.kind {
                 NodeKind::CssRule => {
                     let selector = node
@@ -1218,7 +1393,7 @@ impl CrossTables {
                             .or_default()
                             .push(node.id.clone());
                     }
-                    cross.rules.insert(node.id.clone(), node.clone());
+                    cross.rules.insert(node.id.clone(), Node::clone(node));
                     cross
                         .rules_by_file
                         .entry(node.path.clone())
@@ -1242,7 +1417,7 @@ impl CrossTables {
                             .or_default()
                             .push(node.id.clone());
                     }
-                    cross.elements.insert(node.id.clone(), node.clone());
+                    cross.elements.insert(node.id.clone(), Node::clone(node));
                     cross
                         .elements_by_file
                         .entry(node.path.clone())
@@ -1459,7 +1634,7 @@ mod tests {
         }
     }
 
-    fn table_with(nodes: &[Node]) -> SymbolTable {
+    fn table_with(nodes: &[Node]) -> SymbolTable<'static> {
         let mut table = SymbolTable::new();
         for node in nodes {
             table.add(node);

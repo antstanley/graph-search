@@ -9,6 +9,8 @@
 use crate::record_codec::{DecodeRecord, EncodeRecord};
 use crate::segment::Row;
 use crate::source_records::Layout;
+use graph_search_core::symbols::{self, SymbolRow};
+use graph_search_types::kind::NodeKind;
 use graph_search_types::occurrence::OccurrenceFile;
 use graph_search_types::{Edge, Node, NodeId};
 use serde::{Deserialize, Serialize};
@@ -30,8 +32,51 @@ pub(crate) const NODES: &str = "nodes";
 pub(crate) const INCOMING: &str = "incoming";
 pub(crate) const FOREIGN: &str = "foreign";
 pub(crate) const EDGE_COUNTS: &str = "edge_counts";
+/// Symbols by bare name and by qualified name (see `symbols::keys`); a value
+/// is a [`SymbolRow`] without its owner.
+pub(crate) const NAMES: &str = "names";
+pub(crate) const QUALIFIED: &str = "qualified";
+/// Whole nodes by the structure they belong to (see `symbols::structure`).
+pub(crate) const STRUCTURE: &str = "structure";
 /// Every table a shard contributes rows to.
-pub(crate) const TABLES: [&str; 4] = [NODES, INCOMING, FOREIGN, EDGE_COUNTS];
+pub(crate) const TABLES: [&str; 7] = [
+    NODES,
+    INCOMING,
+    FOREIGN,
+    EDGE_COUNTS,
+    NAMES,
+    QUALIFIED,
+    STRUCTURE,
+];
+
+/// A symbol row's value: its kind, whether it is lexically local, and its id.
+fn symbol_value(node: &Node) -> String {
+    format!(
+        "{}\t{}\t{}",
+        node.kind.as_str(),
+        u8::from(node.attribute("lexical_local") == Some("true")),
+        node.id.as_str()
+    )
+}
+
+/// The symbol a `names` or `qualified` row indexes.
+pub(crate) fn symbol_row(row: Row) -> io::Result<SymbolRow> {
+    let invalid = || io::Error::new(io::ErrorKind::InvalidData, "invalid symbol row");
+    let mut parts = row.value.splitn(3, '\t');
+    let kind = parts.next().and_then(NodeKind::parse).ok_or_else(invalid)?;
+    let lexical_local = match parts.next() {
+        Some("0") => false,
+        Some("1") => true,
+        _ => return Err(invalid()),
+    };
+    let id = parts.next().ok_or_else(invalid)?;
+    Ok(SymbolRow {
+        id: NodeId::new(id),
+        path: row.owner,
+        kind,
+        lexical_local,
+    })
+}
 
 /// Every graph fact one file owns.
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
@@ -115,6 +160,16 @@ impl Shard {
         };
         for node in &self.nodes {
             push(NODES, Row::new(node.id.as_str(), path, node.kind.as_str()));
+            if let Some((name, qualified)) = symbols::keys(node) {
+                let value = symbol_value(node);
+                push(NAMES, Row::new(name, path, value.clone()));
+                push(QUALIFIED, Row::new(qualified, path, value));
+            }
+            if let Some(structure) = symbols::structure(node)
+                && let Ok(value) = serde_json::to_string(node)
+            {
+                push(STRUCTURE, Row::new(structure.as_str(), path, value));
+            }
         }
         let mut targets: BTreeSet<&str> = BTreeSet::new();
         let mut foreign: BTreeSet<&str> = BTreeSet::new();

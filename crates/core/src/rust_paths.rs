@@ -1,74 +1,70 @@
 //! Anchored Rust paths over physical module scopes, retaining shared contexts.
+use crate::resolve::SymbolTable;
 use crate::rust_modules::Catalog;
 use graph_search_types::extraction::{ReferenceFact, RustUseFact};
 use graph_search_types::kind::Visibility;
 use graph_search_types::{Node, NodeId, NodeKind, Span};
+use std::cell::RefCell;
 use std::collections::{BTreeMap, BTreeSet, VecDeque};
+use std::rc::Rc;
 
 /// Maximum `pub use` hops followed for one anchored path.
 const MAX_REEXPORT_DEPTH: usize = 16;
 
-#[derive(Clone, Debug, Default)]
+/// One file's module members: per scope (the file, or an inline module in
+/// it), each name's symbols.
+type FileMembers = BTreeMap<NodeId, BTreeMap<String, Vec<NodeId>>>;
+
+#[derive(Debug, Default)]
 pub(crate) struct Paths {
-    members: BTreeMap<NodeId, BTreeMap<String, Vec<NodeId>>>,
     interiors: BTreeMap<NodeId, Result<NodeId, &'static str>>,
     parents: BTreeMap<NodeId, BTreeSet<NodeId>>,
     roots: BTreeSet<NodeId>,
     reachable: BTreeMap<NodeId, BTreeSet<NodeId>>,
     inline: BTreeMap<String, Vec<(Span, NodeId)>>,
+    /// Each inline module's file.
+    inline_files: BTreeMap<NodeId, String>,
     /// Workspace library crate roots by crate name (see [`Catalog::libraries`]).
     crates: BTreeMap<String, Result<NodeId, &'static str>>,
-    /// Associated items, variants and fields by qualified name (`Type::member`).
-    associated: BTreeMap<String, Vec<NodeId>>,
-    /// Types by qualified name, for `Self` and receiver typing.
-    types: BTreeMap<String, Vec<NodeId>>,
-    /// Symbols by file and lexical declaration key.
-    lexical: BTreeMap<(String, String), NodeId>,
+    /// Module members, indexed one file at a time as paths walk into it.
+    members: RefCell<BTreeMap<String, Rc<FileMembers>>>,
     incomplete: bool,
 }
 
 impl Paths {
-    pub(crate) fn build(symbols: &BTreeMap<NodeId, Node>, catalog: &Catalog) -> Self {
+    /// The module structure from every Rust module declaration; members are
+    /// read from `table` as paths reach their files.
+    pub(crate) fn build(modules: &[Rc<Node>], catalog: &Catalog) -> Self {
         let mut result = Self {
             roots: catalog.roots().map(NodeId::file).collect(),
             crates: catalog.libraries(),
             ..Self::default()
         };
-        for node in symbols.values().filter(|n| {
-            std::path::Path::new(&n.path)
+        let rust = |node: &&Rc<Node>| {
+            std::path::Path::new(&node.path)
                 .extension()
                 .is_some_and(|ext| ext == "rs")
-        }) {
-            result.index_members(node);
-            if node.attribute("rust_module_form") == Some("inline")
-                && let Some(span) = node.span
-            {
+        };
+        for node in modules.iter().filter(rust) {
+            if node.attribute("rust_module_form") == Some("inline") {
                 result
-                    .inline
-                    .entry(node.path.clone())
-                    .or_default()
-                    .push((span, node.id.clone()));
+                    .inline_files
+                    .insert(node.id.clone(), node.path.clone());
+                if let Some(span) = node.span {
+                    result
+                        .inline
+                        .entry(node.path.clone())
+                        .or_default()
+                        .push((span, node.id.clone()));
+                }
             }
+        }
+        for node in modules.iter().filter(rust) {
             let owner = match &node.parent {
                 None => NodeId::file(&node.path),
-                Some(parent)
-                    if symbols
-                        .get(parent)
-                        .is_some_and(|p| p.attribute("rust_module_form") == Some("inline")) =>
-                {
-                    parent.clone()
-                }
+                Some(parent) if result.inline_files.contains_key(parent) => parent.clone(),
                 _ => continue,
             };
-            if let Some(name) = &node.name {
-                result
-                    .members
-                    .entry(owner.clone())
-                    .or_default()
-                    .entry(identifier(name).into())
-                    .or_default()
-                    .push(node.id.clone());
-            }
             let interior = match node.attribute("rust_module_form") {
                 Some("inline") => {
                     if node.attribute("rust_module_unavailable").is_some() {
@@ -104,35 +100,63 @@ impl Paths {
         result
     }
 
-    /// Indexes a symbol for `Type::member` paths and receiver typing.
-    fn index_members(&mut self, node: &Node) {
-        if matches!(
-            node.kind,
-            NodeKind::Method
-                | NodeKind::Function
-                | NodeKind::Const
-                | NodeKind::Variant
-                | NodeKind::Field
-        ) && let Some(qualified) = &node.qualified_name
-            && qualified.contains("::")
-        {
-            self.associated
-                .entry(qualified.clone())
-                .or_default()
-                .push(node.id.clone());
+    /// The symbols named `name` directly in `scope`.
+    fn members(&self, scope: &NodeId, name: &str, table: &SymbolTable<'_>) -> Option<Vec<NodeId>> {
+        let path = match scope.as_str().strip_prefix("file:") {
+            Some(path) => path,
+            None => self.inline_files.get(scope)?.as_str(),
+        };
+        self.file_members(path, table)
+            .get(scope)?
+            .get(identifier(name))
+            .cloned()
+    }
+
+    /// Every scope's members in the file `path`.
+    fn file_members(&self, path: &str, table: &SymbolTable<'_>) -> Rc<FileMembers> {
+        if let Some(members) = self.members.borrow().get(path) {
+            return Rc::clone(members);
         }
-        if is_type(node.kind)
-            && let Some(qualified) = &node.qualified_name
-        {
-            self.types
-                .entry(qualified.clone())
-                .or_default()
-                .push(node.id.clone());
+        let mut members = FileMembers::new();
+        for node in table.in_path(path).iter() {
+            let owner = match &node.parent {
+                None => NodeId::file(&node.path),
+                Some(parent) if self.inline_files.contains_key(parent) => parent.clone(),
+                _ => continue,
+            };
+            if let Some(name) = &node.name {
+                members
+                    .entry(owner)
+                    .or_default()
+                    .entry(identifier(name).into())
+                    .or_default()
+                    .push(node.id.clone());
+            }
         }
-        if let Some(key) = node.attribute("lexical_key") {
-            self.lexical
-                .insert((node.path.clone(), key.to_owned()), node.id.clone());
-        }
+        let members = Rc::new(members);
+        self.members
+            .borrow_mut()
+            .insert(path.to_owned(), Rc::clone(&members));
+        members
+    }
+
+    /// The symbols qualified `qualified` in Rust files whose kind `admit`s.
+    fn qualified(
+        table: &SymbolTable<'_>,
+        qualified: &str,
+        admit: impl Fn(NodeKind) -> bool,
+    ) -> Vec<Rc<Node>> {
+        table
+            .qualified(qualified)
+            .into_iter()
+            .filter(|node| {
+                node.qualified_name.as_deref() == Some(qualified)
+                    && admit(node.kind)
+                    && std::path::Path::new(&node.path)
+                        .extension()
+                        .is_some_and(|ext| ext == "rs")
+            })
+            .collect()
     }
 
     fn propagate(&mut self, children: &BTreeMap<NodeId, Vec<NodeId>>, limit: usize) {
@@ -171,9 +195,9 @@ impl Paths {
         &self,
         fact: &ReferenceFact,
         path: &str,
-        symbols: &BTreeMap<NodeId, Node>,
+        table: &SymbolTable<'_>,
     ) -> Result<NodeId, &'static str> {
-        self.resolve_at(fact, path, symbols, 0)
+        self.resolve_at(fact, path, table, 0)
     }
 
     #[allow(clippy::too_many_lines)] // one path walk with explicit bounds
@@ -181,7 +205,7 @@ impl Paths {
         &self,
         fact: &ReferenceFact,
         path: &str,
-        symbols: &BTreeMap<NodeId, Node>,
+        table: &SymbolTable<'_>,
         depth: usize,
     ) -> Result<NodeId, &'static str> {
         if depth >= MAX_REEXPORT_DEPTH {
@@ -202,7 +226,7 @@ impl Paths {
         // Edition-2018 paths: a module in scope is walked from the origin as
         // its first member; any other anchor is consumed here.
         let local = !matches!(first, "crate" | "self" | "super")
-            && self.local_module(&origin, first, symbols);
+            && self.local_module(&origin, first, table);
         if !local {
             parts.next();
         }
@@ -247,20 +271,18 @@ impl Paths {
             if index.saturating_add(2) == remaining.len()
                 && let Some(member) = remaining.last()
                 && let Some(result) =
-                    self.associated_path(&scopes, part, member, fact, &origin, symbols, depth)
+                    self.associated_path(&scopes, part, member, fact, &origin, table, depth)
             {
                 return result;
             }
             let mut next = BTreeSet::new();
             for scope in &scopes {
                 let candidates = self
-                    .members
-                    .get(scope)
-                    .and_then(|names| names.get(identifier(part)))
+                    .members(scope, part, table)
                     .ok_or("rust_path_member_missing")?;
                 let matching: Vec<_> = candidates
                     .iter()
-                    .filter_map(|id| symbols.get(id))
+                    .filter_map(|id| table.get(id))
                     .filter(|node| {
                         if !terminal {
                             node.kind == NodeKind::Module
@@ -282,7 +304,7 @@ impl Paths {
                 };
                 self.visible(node, scope, &origin)?;
                 if let Some(target) = node.attribute("rust_reexport") {
-                    let resolved = self.follow_reexport(target, node, fact, symbols, depth)?;
+                    let resolved = self.follow_reexport(target, node, fact, table, depth)?;
                     if terminal {
                         next.insert(resolved);
                     } else {
@@ -322,22 +344,20 @@ impl Paths {
         member: &str,
         fact: &ReferenceFact,
         origin: &NodeId,
-        symbols: &BTreeMap<NodeId, Node>,
+        table: &SymbolTable<'_>,
         depth: usize,
     ) -> Option<Result<NodeId, &'static str>> {
         let mut targets = BTreeSet::new();
         for scope in scopes {
-            let candidates: Vec<&Node> = self
-                .members
-                .get(scope)?
-                .get(identifier(name))?
+            let candidates: Vec<Rc<Node>> = self
+                .members(scope, name, table)?
                 .iter()
-                .filter_map(|id| symbols.get(id))
+                .filter_map(|id| table.get(id))
                 .collect();
             if candidates.iter().any(|node| node.kind == NodeKind::Module) {
                 return None;
             }
-            let types: Vec<&&Node> = candidates
+            let types: Vec<&Rc<Node>> = candidates
                 .iter()
                 .filter(|node| is_type(node.kind) || node.attribute("rust_reexport").is_some())
                 .collect();
@@ -348,14 +368,14 @@ impl Paths {
                 return Some(Err(error));
             }
             let ty = match node.attribute("rust_reexport") {
-                Some(target) => match self.follow_reexport(target, node, fact, symbols, depth) {
+                Some(target) => match self.follow_reexport(target, node, fact, table, depth) {
                     Ok(id) => id,
                     Err(error) => return Some(Err(error)),
                 },
                 None => node.id.clone(),
             };
-            let ty = symbols.get(&ty).filter(|ty| is_type(ty.kind))?;
-            targets.insert(self.associated_member(ty, member, fact, origin, symbols));
+            let ty = table.get(&ty).filter(|ty| is_type(ty.kind))?;
+            targets.insert(self.associated_member(&ty, member, fact, origin, table));
         }
         match targets.len() {
             1 => targets.pop_first(),
@@ -373,7 +393,7 @@ impl Paths {
         member: &str,
         fact: &ReferenceFact,
         origin: &NodeId,
-        symbols: &BTreeMap<NodeId, Node>,
+        table: &SymbolTable<'_>,
     ) -> Result<NodeId, &'static str> {
         let qualified = format!(
             "{}::{}",
@@ -389,12 +409,8 @@ impl Paths {
             .reachable
             .get(origin)
             .is_none_or(|roots| roots.is_disjoint(type_roots));
-        let candidates: Vec<&Node> = self
-            .associated
-            .get(&qualified)
+        let candidates: Vec<Rc<Node>> = Self::qualified(table, &qualified, is_associated)
             .into_iter()
-            .flatten()
-            .filter_map(|id| symbols.get(id))
             .filter(|node| {
                 crate_of(&node.path).is_some_and(|roots| !roots.is_disjoint(type_roots))
                     && node.kind != NodeKind::Field
@@ -424,14 +440,14 @@ impl Paths {
     /// The field (`field`) or callable member `member` of `ty`, reached from
     /// `from_path`: an `impl` or field in `ty`'s crate, preferring `ty`'s own
     /// file among same-named types; another crate sees only `pub` members.
-    pub(crate) fn member<'s>(
+    pub(crate) fn member(
         &self,
         ty: &Node,
         member: &str,
         field: bool,
         from_path: &str,
-        symbols: &'s BTreeMap<NodeId, Node>,
-    ) -> Result<&'s Node, &'static str> {
+        table: &SymbolTable<'_>,
+    ) -> Result<Rc<Node>, &'static str> {
         let qualified = format!(
             "{}::{}",
             ty.qualified_name
@@ -443,12 +459,8 @@ impl Paths {
         let crate_of = |path: &str| self.reachable.get(&NodeId::file(path));
         let type_roots = crate_of(&ty.path).ok_or("rust_crate_context_unknown")?;
         let foreign = crate_of(from_path).is_none_or(|roots| roots.is_disjoint(type_roots));
-        let candidates: Vec<&Node> = self
-            .associated
-            .get(&qualified)
+        let candidates: Vec<Rc<Node>> = Self::qualified(table, &qualified, is_associated)
             .into_iter()
-            .flatten()
-            .filter_map(|id| symbols.get(id))
             .filter(|node| {
                 crate_of(&node.path).is_some_and(|roots| !roots.is_disjoint(type_roots))
                     && (node.kind == NodeKind::Field) == field
@@ -465,7 +477,7 @@ impl Paths {
             candidates
         };
         match candidates.as_slice() {
-            [node] => Ok(node),
+            [node] => Ok(Rc::clone(node)),
             [] => Err("rust_receiver_member_missing"),
             _ => Err("rust_receiver_member_ambiguous"),
         }
@@ -473,18 +485,15 @@ impl Paths {
 
     /// The type qualified `qualified` in `near`'s crate, preferring `near`'s
     /// own file.
-    pub(crate) fn type_named<'s>(
+    pub(crate) fn type_named(
         &self,
         qualified: &str,
         near: &str,
-        symbols: &'s BTreeMap<NodeId, Node>,
-    ) -> Option<&'s Node> {
+        table: &SymbolTable<'_>,
+    ) -> Option<Rc<Node>> {
         let roots = self.reachable.get(&NodeId::file(near))?;
-        let candidates: Vec<&Node> = self
-            .types
-            .get(qualified)?
-            .iter()
-            .filter_map(|id| symbols.get(id))
+        let candidates: Vec<Rc<Node>> = Self::qualified(table, qualified, is_type)
+            .into_iter()
             .filter(|node| {
                 self.reachable
                     .get(&NodeId::file(&node.path))
@@ -492,32 +501,35 @@ impl Paths {
             })
             .collect();
         match candidates.as_slice() {
-            [node] => Some(node),
+            [node] => Some(Rc::clone(node)),
             _ => candidates.into_iter().find(|node| node.path == near),
         }
     }
 
     /// The symbol a same-file lexical declaration key names.
-    pub(crate) fn lexical<'s>(
-        &self,
-        path: &str,
-        key: &str,
-        symbols: &'s BTreeMap<NodeId, Node>,
-    ) -> Option<&'s Node> {
-        symbols.get(self.lexical.get(&(path.to_owned(), key.to_owned()))?)
+    pub(crate) fn lexical(path: &str, key: &str, table: &SymbolTable<'_>) -> Option<Rc<Node>> {
+        if std::path::Path::new(path)
+            .extension()
+            .is_none_or(|ext| ext != "rs")
+        {
+            return None;
+        }
+        // Keys are unique per file; a repeat keeps the last by id.
+        table
+            .in_path(path)
+            .iter()
+            .rfind(|node| node.attribute("lexical_key") == Some(key))
+            .cloned()
     }
 
     /// Whether `name` is a module declared directly in `scope`, which an
     /// unanchored edition-2018 path names before any crate.
-    fn local_module(&self, scope: &NodeId, name: &str, symbols: &BTreeMap<NodeId, Node>) -> bool {
-        self.members
-            .get(scope)
-            .and_then(|members| members.get(identifier(name)))
-            .is_some_and(|ids| {
-                ids.iter()
-                    .filter_map(|id| symbols.get(id))
-                    .any(|node| node.kind == NodeKind::Module)
-            })
+    fn local_module(&self, scope: &NodeId, name: &str, table: &SymbolTable<'_>) -> bool {
+        self.members(scope, name, table).is_some_and(|ids| {
+            ids.iter()
+                .filter_map(|id| table.get(id))
+                .any(|node| node.kind == NodeKind::Module)
+        })
     }
 
     /// Whether `name` spells a workspace library crate.
@@ -531,7 +543,7 @@ impl Paths {
         target: &str,
         node: &Node,
         fact: &ReferenceFact,
-        symbols: &BTreeMap<NodeId, Node>,
+        table: &SymbolTable<'_>,
         depth: usize,
     ) -> Result<NodeId, &'static str> {
         let mut synthetic = fact.clone();
@@ -549,7 +561,7 @@ impl Paths {
         synthetic.raw_name = None;
         synthetic.dynamic = false;
         synthetic.unresolved_reason = None;
-        self.resolve_at(&synthetic, &node.path, symbols, depth.saturating_add(1))
+        self.resolve_at(&synthetic, &node.path, table, depth.saturating_add(1))
     }
 
     fn origin(&self, path: &str, span: Option<Span>) -> NodeId {
@@ -632,6 +644,18 @@ pub(crate) fn is_type(kind: NodeKind) -> bool {
     )
 }
 
+/// Kinds indexed for `Type::member` paths and receiver members.
+fn is_associated(kind: NodeKind) -> bool {
+    matches!(
+        kind,
+        NodeKind::Method
+            | NodeKind::Function
+            | NodeKind::Const
+            | NodeKind::Variant
+            | NodeKind::Field
+    )
+}
+
 fn identifier(name: &str) -> &str {
     name.strip_prefix("r#").unwrap_or(name)
 }
@@ -681,7 +705,7 @@ mod tests {
         );
         let fact = ReferenceFact::file_level(graph_search_types::EdgeKind::Calls, "self::run", 1);
         assert_eq!(
-            capped.resolve(&fact, "a.rs", &BTreeMap::new()),
+            capped.resolve(&fact, "a.rs", &SymbolTable::new()),
             Err("rust_module_context_limit")
         );
     }
