@@ -1,36 +1,112 @@
-//! Compact generation-owned dependency facts, including unresolved references.
+//! Compact generation-owned dependency facts, including unresolved references
+//! (`research/16-proportional-sync.md`, phase 2).
 //!
-//! These records describe binding inputs, not just successfully resolved edges.
-//! They can be serialized independently of parser payloads. An absent index must
-//! use conservative repair; an absent extraction is never an empty extraction.
+//! Each file has one [`DependencyRecord`]: the names it declares and references,
+//! the import specifiers it resolves, its ECMAScript surface and the links of
+//! the edges it owns. A record derives its own posting rows, so a store can keep
+//! the reverse maps (who consumes a name, who selected a file, who links into
+//! it, whose imports could select a path) as keyed tables updated per file.
+//! Repair reads only those keyed lookups ([`DependencyLookup`]).
+//!
+//! An absent index must use conservative repair; an absent extraction is never
+//! an empty extraction.
+use graph_search_types::js_module::JsModule;
 use graph_search_types::{Edge, Language, Manifest, Node, manifest::FileEntry};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet, VecDeque};
 
 type Postings = BTreeMap<String, BTreeSet<String>>;
 
+/// A set of files repair consults as a whole.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum Flag {
+    /// Files whose bindings depend on Rust module or path structure.
+    RustSensitive,
+    /// Files importing a bare (package) specifier.
+    BareImport,
+    /// Files with no cached facts that were not quarantined: their bindings are
+    /// unknown, so every change rebinds every file.
+    NoFacts,
+    /// HTML and CSS files, rebound on every change.
+    Markup,
+    /// Files with cached facts.
+    Facts,
+}
+
+impl Flag {
+    /// Every flag.
+    pub const ALL: [Self; 5] = [
+        Self::RustSensitive,
+        Self::BareImport,
+        Self::NoFacts,
+        Self::Markup,
+        Self::Facts,
+    ];
+
+    /// The flag's stable spelling (a posting key).
+    #[must_use]
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::RustSensitive => "rust_sensitive",
+            Self::BareImport => "bare_import",
+            Self::NoFacts => "no_facts",
+            Self::Markup => "markup",
+            Self::Facts => "facts",
+        }
+    }
+}
+
+/// One file's dependency facts.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
-struct Record {
+pub struct DependencyRecord {
+    /// The file version the record describes, without its timestamp.
     header: FileEntry,
     language: Language,
     facts_available: bool,
     names: BTreeSet<String>,
     references: BTreeSet<String>,
     imports: BTreeSet<String>,
-    module: Option<graph_search_types::js_module::JsModule>,
+    module: Option<JsModule>,
     surface: Option<String>,
     rust_sensitive: bool,
     bare_import: bool,
+    /// `(target path, source path)` links of the edges the file owns.
+    links: BTreeSet<(String, String)>,
 }
 
-/// Format 2 adds per-path `links`, so an index is updated per path.
-const FORMAT: u32 = 2;
+/// A manifest entry's identity, without its timestamp or facts.
+fn version(entry: &FileEntry) -> FileEntry {
+    let mut header = entry.header();
+    header.mtime_ns = 0;
+    header
+}
 
-impl Record {
-    /// A path's record from its nodes and, when present, its extraction facts.
-    /// `None` when the nodes do not own exactly the manifest's file version.
-    fn build(entry: &FileEntry, nodes: &[&Node]) -> Option<Self> {
+/// The posting rows one record contributes, each owned by its file.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct RecordPostings {
+    /// Names whose rebinding elsewhere can change this file's bindings.
+    pub consumers: BTreeSet<String>,
+    /// Files this file's imports select.
+    pub selected: BTreeSet<String>,
+    /// Every file any of this file's imports could select.
+    pub candidates: BTreeSet<String>,
+    /// `(target, source)` links of the file's edges.
+    pub incoming: BTreeSet<(String, String)>,
+    /// The flag sets the file belongs to.
+    pub flags: Vec<Flag>,
+}
+
+impl DependencyRecord {
+    /// A path's record from its nodes, the links of the edges it owns and, when
+    /// present, its extraction facts. `None` when the nodes do not own exactly
+    /// the manifest's file version.
+    #[must_use]
+    pub fn build(
+        entry: &FileEntry,
+        nodes: &[&Node],
+        links: BTreeSet<(String, String)>,
+    ) -> Option<Self> {
         let file = nodes.iter().find(|node| node.is_file())?;
         if file.content_hash.as_deref() != Some(&entry.content_hash)
             || file.parser_version != Some(entry.parser_version)
@@ -40,7 +116,7 @@ impl Record {
         }
         let language = file.language.unwrap_or(Language::Unknown);
         let mut record = Self {
-            header: entry.header(),
+            header: version(entry),
             language,
             facts_available: entry.extraction.is_some(),
             names: BTreeSet::new(),
@@ -50,6 +126,7 @@ impl Record {
             surface: None,
             rust_sensitive: false,
             bare_import: false,
+            links,
         };
         for node in nodes {
             record.names.extend(node.name.iter().cloned());
@@ -117,36 +194,271 @@ impl Record {
         }
         Some(record)
     }
+
+    /// A retained file's record: its previous record, whose facts the new
+    /// generation keeps unread, with its current links. `None` when the
+    /// previous record has no facts or describes another file version.
+    #[must_use]
+    pub fn retain(
+        prior: &Self,
+        entry: &FileEntry,
+        links: BTreeSet<(String, String)>,
+    ) -> Option<Self> {
+        if entry.extraction.is_some() || !prior.facts_available || prior.header != version(entry) {
+            return None;
+        }
+        let mut record = prior.clone();
+        record.links = links;
+        Some(record)
+    }
+
+    /// Whether the record describes `entry`'s file version.
+    #[must_use]
+    pub fn describes(&self, entry: &FileEntry) -> bool {
+        self.header == version(entry)
+    }
+
+    /// The file's language.
+    #[must_use]
+    pub const fn language(&self) -> Language {
+        self.language
+    }
+
+    /// Whether the file has cached facts, including empty ones.
+    #[must_use]
+    pub const fn facts_available(&self) -> bool {
+        self.facts_available
+    }
+
+    /// The names the file declares.
+    #[must_use]
+    pub const fn names(&self) -> &BTreeSet<String> {
+        &self.names
+    }
+
+    /// The file's ECMAScript surface, when it has one.
+    #[must_use]
+    pub const fn module(&self) -> Option<&JsModule> {
+        self.module.as_ref()
+    }
+
+    /// The flag sets the file belongs to.
+    #[must_use]
+    pub fn flags(&self) -> Vec<Flag> {
+        let mut flags = Vec::new();
+        if self.rust_sensitive {
+            flags.push(Flag::RustSensitive);
+        }
+        if self.bare_import {
+            flags.push(Flag::BareImport);
+        }
+        if !self.facts_available && self.header.quarantine.is_none() {
+            flags.push(Flag::NoFacts);
+        }
+        if matches!(self.language, Language::Html | Language::Css) {
+            flags.push(Flag::Markup);
+        }
+        if self.facts_available {
+            flags.push(Flag::Facts);
+        }
+        flags
+    }
+
+    /// The posting rows this record, owned by `path`, contributes; `known` is
+    /// the file set its imports resolve against.
+    #[must_use]
+    pub fn postings(&self, path: &str, known: &BTreeSet<String>) -> RecordPostings {
+        let mut postings = RecordPostings {
+            consumers: self.references.clone(),
+            flags: self.flags(),
+            ..RecordPostings::default()
+        };
+        for specifier in &self.imports {
+            let candidates =
+                crate::resolve::specifier_candidates(path, specifier, known, self.language);
+            if let Some(selected) = candidates
+                .iter()
+                .find(|candidate| known.contains(*candidate))
+            {
+                postings.selected.insert(selected.clone());
+            }
+            postings.candidates.extend(candidates);
+        }
+        postings.incoming = self
+            .links
+            .iter()
+            .filter(|(target, source)| known.contains(target) && known.contains(source))
+            .cloned()
+            .collect();
+        postings
+    }
+
+    /// Whether any import of this file, owned by `path`, selects differently
+    /// against `old` and `new` file sets.
+    fn selection_changed(
+        &self,
+        path: &str,
+        old: &BTreeSet<String>,
+        new: &BTreeSet<String>,
+    ) -> bool {
+        self.imports.iter().any(|specifier| {
+            crate::resolve::resolve_specifier(path, specifier, old, self.language)
+                != crate::resolve::resolve_specifier(path, specifier, new, self.language)
+        })
+    }
 }
 
-/// `incoming[target] = sources`, from every path's links, restricted to known paths.
-fn incoming(
-    links: &BTreeMap<String, BTreeSet<(String, String)>>,
-    known: &BTreeSet<String>,
-) -> Postings {
-    let mut incoming = Postings::new();
-    for (target, source) in links.values().flatten() {
-        if known.contains(target) && known.contains(source) {
-            incoming
-                .entry(target.clone())
-                .or_default()
-                .insert(source.clone());
+/// Keyed reads over one generation's dependency records and postings.
+pub trait DependencyLookup {
+    /// Every file the generation has a record for.
+    ///
+    /// # Errors
+    /// When the records cannot be read.
+    fn paths(&self) -> crate::Result<BTreeSet<String>>;
+    /// One file's record.
+    ///
+    /// # Errors
+    /// When the record cannot be read or fails verification.
+    fn record(&self, path: &str) -> crate::Result<Option<DependencyRecord>>;
+    /// Files that reference `name`.
+    ///
+    /// # Errors
+    /// When the postings cannot be read.
+    fn consumers(&self, name: &str) -> crate::Result<Vec<String>>;
+    /// Files with an edge into `target`.
+    ///
+    /// # Errors
+    /// When the postings cannot be read.
+    fn incoming(&self, target: &str) -> crate::Result<Vec<String>>;
+    /// Files whose imports select `target`.
+    ///
+    /// # Errors
+    /// When the postings cannot be read.
+    fn selected(&self, target: &str) -> crate::Result<Vec<String>>;
+    /// Files with an import that could select `path`.
+    ///
+    /// # Errors
+    /// When the postings cannot be read.
+    fn candidates(&self, path: &str) -> crate::Result<Vec<String>>;
+    /// The files in one flag set.
+    ///
+    /// # Errors
+    /// When the postings cannot be read.
+    fn flagged(&self, flag: Flag) -> crate::Result<BTreeSet<String>>;
+    /// Every cached ECMAScript surface.
+    ///
+    /// # Errors
+    /// When the surfaces cannot be read.
+    fn modules(&self) -> crate::Result<Vec<(String, JsModule)>>;
+}
+
+/// Whether this changed file retains the cached outward binding surface.
+///
+/// # Errors
+/// When the file's record cannot be read.
+pub fn surface_unchanged(
+    lookup: &dyn DependencyLookup,
+    path: &str,
+    header: &FileEntry,
+    nodes: &[Node],
+    facts: &graph_search_types::extraction::Extraction,
+    language: Language,
+) -> crate::Result<bool> {
+    Ok(lookup.record(path)?.is_some_and(|record| {
+        record.describes(header)
+            && record.surface.is_some()
+            && record.surface == crate::binding_surface::fingerprint(nodes, facts, language)
+    }))
+}
+
+/// Computes conservative repair closure from keyed lookups, without reading
+/// raw parser payloads. `changed` contains binding edits/removals; `new_names`
+/// contains names from their new projections. Physically changed files are
+/// independently upserted.
+///
+/// # Errors
+/// Propagates lookup failures and cancellation or work-budget errors from `check`.
+pub fn repair_paths(
+    lookup: &dyn DependencyLookup,
+    mut changed: BTreeSet<String>,
+    new_names: &BTreeSet<String>,
+    new_files: &BTreeSet<String>,
+    boundary_changed: bool,
+    mut check: impl FnMut() -> crate::Result<()>,
+) -> crate::Result<BTreeSet<String>> {
+    if boundary_changed
+        || changed
+            .iter()
+            .any(|path| crate::packages::manifest_family(path).is_some())
+    {
+        changed.extend(new_files.iter().cloned());
+    }
+    let old_files = lookup.paths()?;
+    let presence_changed = old_files != *new_files;
+    let rust_changed = presence_changed
+        || changed.iter().any(|path| {
+            std::path::Path::new(path)
+                .extension()
+                .is_some_and(|ext| ext == "rs")
+        });
+    if rust_changed {
+        changed.extend(lookup.flagged(Flag::RustSensitive)?);
+    }
+    if presence_changed {
+        changed.extend(lookup.flagged(Flag::BareImport)?);
+    }
+    let mut names = new_names.clone();
+    for path in &changed {
+        check()?;
+        if let Some(record) = lookup.record(path)? {
+            names.extend(record.names.iter().cloned());
         }
     }
-    incoming
-}
-
-/// Reverse binding dependencies belonging to one coherent graph/manifest pair.
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct DependencyIndex {
-    format: u32,
-    records: BTreeMap<String, Record>,
-    /// Per owning path: the `(target path, source path)` links of its edges.
-    links: BTreeMap<String, BTreeSet<(String, String)>>,
-    consumers: Postings,
-    incoming: Postings,
-    selected_modules: Postings,
+    if !lookup.flagged(Flag::NoFacts)?.is_empty() {
+        changed.extend(new_files.iter().cloned());
+    }
+    changed.extend(lookup.flagged(Flag::Markup)?);
+    if presence_changed {
+        // A selection can change only where an appearing or vanishing file is
+        // one of the specifier's candidates.
+        let mut importers = BTreeSet::new();
+        for path in old_files.symmetric_difference(new_files) {
+            check()?;
+            importers.extend(lookup.candidates(path)?);
+        }
+        for importer in importers {
+            check()?;
+            if lookup
+                .record(&importer)?
+                .is_some_and(|record| record.selection_changed(&importer, &old_files, new_files))
+            {
+                changed.insert(importer);
+            }
+        }
+    }
+    for name in names {
+        check()?;
+        changed.extend(lookup.consumers(&name)?);
+    }
+    let mut queue: VecDeque<_> = changed.iter().cloned().collect();
+    while let Some(target) = queue.pop_front() {
+        check()?;
+        let mut sources = lookup.incoming(&target)?;
+        sources.extend(lookup.selected(&target)?);
+        for source in sources {
+            // Rebinding an unchanged OKF document leaves its symbols as they
+            // were, so nothing that links to it can bind differently: its
+            // dependents are not followed (`SPEC.md` §7.6).
+            if changed.insert(source.clone())
+                && lookup
+                    .record(&source)?
+                    .is_none_or(|record| record.language != Language::Okf)
+            {
+                queue.push_back(source.clone());
+            }
+        }
+    }
+    Ok(changed)
 }
 
 /// One path's contribution to a [`DependencyIndex`]: the nodes it owns (its
@@ -180,6 +492,19 @@ pub fn edge_links(
         links.push((target, owner.clone()));
     }
     links
+}
+
+/// An in-memory dependency index: every record and the reverse maps derived
+/// from them. The in-memory store keeps one; the native store keeps records in
+/// its shards and the reverse maps as posting tables.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct DependencyIndex {
+    records: BTreeMap<String, DependencyRecord>,
+    consumers: Postings,
+    incoming: Postings,
+    selected_modules: Postings,
+    candidates: Postings,
+    flags: BTreeMap<Flag, BTreeSet<String>>,
 }
 
 impl DependencyIndex {
@@ -245,12 +570,11 @@ impl DependencyIndex {
 
     /// The next index: every path in `contributions` is rebuilt from its nodes
     /// (or, when retained, from its previous record) with its new links; every
-    /// other manifest path keeps its previous record and links. Reverse maps are
-    /// rebuilt from the records. `None` when the inputs are incoherent: a path
-    /// with neither a contribution nor a matching previous record, a node set
-    /// that does not own its file, or a retained path without previous facts.
+    /// other manifest path keeps its previous record. Reverse maps are rebuilt
+    /// from the records. `None` when the inputs are incoherent: a path with
+    /// neither a contribution nor a matching previous record, a node set that
+    /// does not own its file, or a retained path without previous facts.
     #[must_use]
-    #[allow(clippy::too_many_lines)] // one pass over each class of binding input
     pub fn update(
         manifest: &Manifest,
         previous: Option<&Self>,
@@ -263,255 +587,143 @@ impl DependencyIndex {
         {
             return None;
         }
-        let known: BTreeSet<_> = manifest.entries.keys().cloned().collect();
+        let mut records = BTreeMap::new();
+        for (path, entry) in &manifest.entries {
+            let record = if let Some(contribution) = contributions.get(path) {
+                if retained.contains(path) {
+                    DependencyRecord::retain(
+                        previous?.records.get(path)?,
+                        entry,
+                        contribution.links.clone(),
+                    )?
+                } else {
+                    DependencyRecord::build(entry, &contribution.nodes, contribution.links.clone())?
+                }
+            } else {
+                let prior = previous?.records.get(path)?;
+                // Facts supplied for an uncontributed path would be ignored.
+                if !prior.describes(entry) || entry.extraction.is_some() {
+                    return None;
+                }
+                prior.clone()
+            };
+            records.insert(path.clone(), record);
+        }
+        Some(Self::from_records(records))
+    }
+
+    /// The index over `records`, deriving every reverse map.
+    #[must_use]
+    pub fn from_records(records: BTreeMap<String, DependencyRecord>) -> Self {
+        let known: BTreeSet<String> = records.keys().cloned().collect();
         let mut index = Self {
-            format: FORMAT,
             records: BTreeMap::new(),
-            links: BTreeMap::new(),
             consumers: Postings::new(),
             incoming: Postings::new(),
             selected_modules: Postings::new(),
+            candidates: Postings::new(),
+            flags: BTreeMap::new(),
         };
-        for (path, entry) in &manifest.entries {
-            let (record, links) = if let Some(contribution) = contributions.get(path) {
-                let record = if retained.contains(path) {
-                    if entry.extraction.is_some() {
-                        return None;
-                    }
-                    let prior = previous?.records.get(path)?;
-                    let mut expected = prior.header.clone();
-                    expected.mtime_ns = entry.mtime_ns;
-                    if !prior.facts_available || expected != entry.header() {
-                        return None;
-                    }
-                    let mut record = prior.clone();
-                    record.header = entry.header();
-                    record
-                } else {
-                    Record::build(entry, &contribution.nodes)?
-                };
-                (record, contribution.links.clone())
-            } else {
-                let previous = previous?;
-                let prior = previous.records.get(path)?;
-                let mut expected = prior.header.clone();
-                expected.mtime_ns = entry.mtime_ns;
-                // Facts supplied for an uncontributed path would be ignored.
-                if expected != entry.header() || entry.extraction.is_some() {
-                    return None;
-                }
-                let mut record = prior.clone();
-                record.header = entry.header();
-                (
-                    record,
-                    previous.links.get(path).cloned().unwrap_or_default(),
-                )
-            };
-            for name in &record.references {
+        for (path, record) in &records {
+            let postings = record.postings(path, &known);
+            for name in postings.consumers {
                 index
                     .consumers
-                    .entry(name.clone())
+                    .entry(name)
                     .or_default()
                     .insert(path.clone());
             }
-            for specifier in &record.imports {
-                if let Some(target) =
-                    crate::resolve::resolve_specifier(path, specifier, &known, record.language)
-                {
-                    index
-                        .selected_modules
-                        .entry(target)
-                        .or_default()
-                        .insert(path.clone());
-                }
+            for target in postings.selected {
+                index
+                    .selected_modules
+                    .entry(target)
+                    .or_default()
+                    .insert(path.clone());
             }
-            index.records.insert(path.clone(), record);
-            if !links.is_empty() {
-                index.links.insert(path.clone(), links);
+            for candidate in postings.candidates {
+                index
+                    .candidates
+                    .entry(candidate)
+                    .or_default()
+                    .insert(path.clone());
+            }
+            for (target, source) in postings.incoming {
+                index.incoming.entry(target).or_default().insert(source);
+            }
+            for flag in postings.flags {
+                index.flags.entry(flag).or_default().insert(path.clone());
             }
         }
-        index.incoming = incoming(&index.links, &known);
-        Some(index)
+        index.records = records;
+        index
     }
 
-    /// Cached ECMAScript surfaces; coordinates are normalized for binding only.
-    pub fn modules(
-        &self,
-    ) -> impl Iterator<Item = (&str, &graph_search_types::js_module::JsModule)> {
-        self.records.iter().filter_map(|(path, record)| {
-            record.module.as_ref().map(|module| (path.as_str(), module))
-        })
-    }
-
-    /// Whether the index holds a record for `path`.
+    /// The record of `path`.
     #[must_use]
-    pub fn has_record(&self, path: &str) -> bool {
-        self.records.contains_key(path)
+    pub fn get(&self, path: &str) -> Option<&DependencyRecord> {
+        self.records.get(path)
+    }
+}
+
+impl DependencyLookup for DependencyIndex {
+    fn paths(&self) -> crate::Result<BTreeSet<String>> {
+        Ok(self.records.keys().cloned().collect())
     }
 
-    /// Whether the generation has a cached extraction, including an empty one.
-    #[must_use]
-    pub fn has_facts(&self, path: &str) -> bool {
-        self.records
+    fn record(&self, path: &str) -> crate::Result<Option<DependencyRecord>> {
+        Ok(self.records.get(path).cloned())
+    }
+
+    fn consumers(&self, name: &str) -> crate::Result<Vec<String>> {
+        Ok(self
+            .consumers
+            .get(name)
+            .into_iter()
+            .flatten()
+            .cloned()
+            .collect())
+    }
+
+    fn incoming(&self, target: &str) -> crate::Result<Vec<String>> {
+        Ok(self
+            .incoming
+            .get(target)
+            .into_iter()
+            .flatten()
+            .cloned()
+            .collect())
+    }
+
+    fn selected(&self, target: &str) -> crate::Result<Vec<String>> {
+        Ok(self
+            .selected_modules
+            .get(target)
+            .into_iter()
+            .flatten()
+            .cloned()
+            .collect())
+    }
+
+    fn candidates(&self, path: &str) -> crate::Result<Vec<String>> {
+        Ok(self
+            .candidates
             .get(path)
-            .is_some_and(|record| record.facts_available)
+            .into_iter()
+            .flatten()
+            .cloned()
+            .collect())
     }
 
-    /// Checks header identity, cache availability and reproducible reverse maps.
-    /// Artifact authentication must separately bind this index to its graph.
-    #[must_use]
-    pub fn validates(&self, header: &Manifest, available: &BTreeSet<String>) -> bool {
-        if self.format != FORMAT || self.records.keys().ne(header.entries.keys()) {
-            return false;
-        }
-        let known: BTreeSet<_> = self.records.keys().cloned().collect();
-        if !available.is_subset(&known) {
-            return false;
-        }
-        let mut consumers = Postings::new();
-        let mut selected = Postings::new();
-        for (path, record) in &self.records {
-            if header.get(path) != Some(&record.header)
-                || record.header.extraction.is_some()
-                || record.facts_available != available.contains(path)
-            {
-                return false;
-            }
-            for name in &record.references {
-                consumers
-                    .entry(name.clone())
-                    .or_default()
-                    .insert(path.clone());
-            }
-            for specifier in &record.imports {
-                if let Some(target) =
-                    crate::resolve::resolve_specifier(path, specifier, &known, record.language)
-                {
-                    selected.entry(target).or_default().insert(path.clone());
-                }
-            }
-        }
-        self.consumers == consumers
-            && self.selected_modules == selected
-            && self.links.keys().all(|path| known.contains(path))
-            && self.incoming == incoming(&self.links, &known)
+    fn flagged(&self, flag: Flag) -> crate::Result<BTreeSet<String>> {
+        Ok(self.flags.get(&flag).cloned().unwrap_or_default())
     }
 
-    /// Whether this changed file retains the cached outward binding surface.
-    #[must_use]
-    pub fn surface_unchanged(
-        &self,
-        path: &str,
-        header: &FileEntry,
-        nodes: &[Node],
-        facts: &graph_search_types::extraction::Extraction,
-        language: Language,
-    ) -> bool {
-        self.records.get(path).is_some_and(|record| {
-            record.header == header.header()
-                && record.surface.is_some()
-                && record.surface == crate::binding_surface::fingerprint(nodes, facts, language)
-        })
-    }
-
-    /// Computes conservative repair closure without reading raw parser payloads.
-    /// `changed` contains binding edits/removals; `new_names` contains names from
-    /// their new projections. Physically changed files are independently upserted.
-    /// # Errors
-    /// Propagates cancellation or work-budget errors from `check`.
-    pub fn repair_paths(
-        &self,
-        mut changed: BTreeSet<String>,
-        new_names: &BTreeSet<String>,
-        new_files: &BTreeSet<String>,
-        boundary_changed: bool,
-        mut check: impl FnMut() -> crate::Result<()>,
-    ) -> crate::Result<BTreeSet<String>> {
-        if boundary_changed
-            || changed
-                .iter()
-                .any(|path| crate::packages::manifest_family(path).is_some())
-        {
-            changed.extend(new_files.iter().cloned());
-        }
-        let old_files: BTreeSet<_> = self.records.keys().cloned().collect();
-        let presence_changed = old_files != *new_files;
-        let rust_changed = presence_changed
-            || changed.iter().any(|path| {
-                std::path::Path::new(path)
-                    .extension()
-                    .is_some_and(|ext| ext == "rs")
-            });
-        for (path, record) in &self.records {
-            check()?;
-            if (rust_changed && record.rust_sensitive) || (presence_changed && record.bare_import) {
-                changed.insert(path.clone());
-            }
-        }
-        let mut names = new_names.clone();
-        for path in &changed {
-            check()?;
-            if let Some(record) = self.records.get(path) {
-                names.extend(record.names.iter().cloned());
-            }
-        }
-        for (path, record) in &self.records {
-            check()?;
-            if !record.facts_available && record.header.quarantine.is_none() {
-                changed.extend(new_files.iter().cloned());
-            }
-            if matches!(record.language, Language::Html | Language::Css) {
-                changed.insert(path.clone());
-            }
-            if presence_changed {
-                for specifier in &record.imports {
-                    check()?;
-                    if crate::resolve::resolve_specifier(
-                        path,
-                        specifier,
-                        &old_files,
-                        record.language,
-                    ) != crate::resolve::resolve_specifier(
-                        path,
-                        specifier,
-                        new_files,
-                        record.language,
-                    ) {
-                        changed.insert(path.clone());
-                    }
-                }
-            }
-        }
-        for name in names {
-            check()?;
-            if let Some(paths) = self.consumers.get(&name) {
-                changed.extend(paths.iter().cloned());
-            }
-        }
-        let mut queue: VecDeque<_> = changed.iter().cloned().collect();
-        while let Some(target) = queue.pop_front() {
-            check()?;
-            for source in self
-                .incoming
-                .get(&target)
-                .into_iter()
-                .chain(self.selected_modules.get(&target))
-                .flatten()
-            {
-                // Rebinding an unchanged OKF document leaves its symbols as they
-                // were, so nothing that links to it can bind differently: its
-                // dependents are not followed (`SPEC.md` §7.6).
-                if changed.insert(source.clone())
-                    && self
-                        .records
-                        .get(source)
-                        .is_none_or(|record| record.language != Language::Okf)
-                {
-                    queue.push_back(source.clone());
-                }
-            }
-        }
-        Ok(changed)
+    fn modules(&self) -> crate::Result<Vec<(String, JsModule)>> {
+        Ok(self
+            .records
+            .iter()
+            .filter_map(|(path, record)| record.module.clone().map(|module| (path.clone(), module)))
+            .collect())
     }
 }
 
@@ -612,26 +824,19 @@ mod tests {
         );
         let index = DependencyIndex::build(&manifest, &nodes, &[]).unwrap();
         let paths = manifest.entries.keys().cloned().collect();
-        let affected = index
-            .repair_paths(
-                BTreeSet::from(["a.js".into()]),
-                &BTreeSet::from(["new_export".into()]),
-                &paths,
-                false,
-                || Ok(()),
-            )
-            .unwrap();
+        let affected = repair_paths(
+            &index,
+            BTreeSet::from(["a.js".into()]),
+            &BTreeSet::from(["new_export".into()]),
+            &paths,
+            false,
+            || Ok(()),
+        )
+        .unwrap();
         assert_eq!(
             affected,
             BTreeSet::from(["a.js".into(), "b.js".into(), "c.js".into()])
         );
-        let bytes = serde_json::to_vec(&index).unwrap();
-        let decoded: DependencyIndex = serde_json::from_slice(&bytes).unwrap();
-        assert_eq!(decoded, index);
-        assert!(decoded.validates(&manifest.header(), &paths));
-        let mut invalid = decoded;
-        invalid.consumers.clear();
-        assert!(!invalid.validates(&manifest.header(), &paths));
     }
 
     #[test]
@@ -648,15 +853,15 @@ mod tests {
         let index = DependencyIndex::build(&manifest, &nodes, &[]).unwrap();
         let mut paths: BTreeSet<_> = manifest.entries.keys().cloned().collect();
         paths.insert("new.js".into());
-        let affected = index
-            .repair_paths(
-                BTreeSet::from(["new.js".into()]),
-                &BTreeSet::new(),
-                &paths,
-                false,
-                || Ok(()),
-            )
-            .unwrap();
+        let affected = repair_paths(
+            &index,
+            BTreeSet::from(["new.js".into()]),
+            &BTreeSet::new(),
+            &paths,
+            false,
+            || Ok(()),
+        )
+        .unwrap();
         assert_eq!(affected, BTreeSet::from(["new.js".into(), "b.js".into()]));
     }
 
@@ -667,21 +872,30 @@ mod tests {
         let paths: BTreeSet<_> = manifest.entries.keys().cloned().collect();
         let index = DependencyIndex::build(&manifest, &nodes, &[]).unwrap();
         assert_eq!(
-            index
-                .repair_paths(BTreeSet::new(), &BTreeSet::new(), &paths, false, || Ok(()))
-                .unwrap(),
+            repair_paths(
+                &index,
+                BTreeSet::new(),
+                &BTreeSet::new(),
+                &paths,
+                false,
+                || Ok(())
+            )
+            .unwrap(),
             paths
         );
-        assert!(!index.validates(&manifest.header(), &paths));
-        let available = paths.iter().filter(|p| *p != "cold.js").cloned().collect();
-        assert!(index.validates(&manifest.header(), &available));
         manifest.entries.get_mut("cold.js").unwrap().quarantine = Some("parse failure".into());
         let index = DependencyIndex::build(&manifest, &nodes, &[]).unwrap();
         assert!(
-            index
-                .repair_paths(BTreeSet::new(), &BTreeSet::new(), &paths, false, || Ok(()))
-                .unwrap()
-                .is_empty()
+            repair_paths(
+                &index,
+                BTreeSet::new(),
+                &BTreeSet::new(),
+                &paths,
+                false,
+                || Ok(())
+            )
+            .unwrap()
+            .is_empty()
         );
     }
 
@@ -713,14 +927,28 @@ mod tests {
         symbol.span = Some(Span::new(2, 4, 10, 42));
         symbol.signature = Some("async function f(a,b)".into());
         symbol.is_async = true;
-        assert!(index.surface_unchanged(
-            "a.js",
-            entry,
-            &[symbol.clone()],
-            facts,
-            Language::JavaScript
-        ));
+        assert!(
+            surface_unchanged(
+                &index,
+                "a.js",
+                entry,
+                &[symbol.clone()],
+                facts,
+                Language::JavaScript
+            )
+            .unwrap()
+        );
         symbol.name = Some("renamed".into());
-        assert!(!index.surface_unchanged("a.js", entry, &[symbol], facts, Language::JavaScript));
+        assert!(
+            !surface_unchanged(
+                &index,
+                "a.js",
+                entry,
+                &[symbol],
+                facts,
+                Language::JavaScript
+            )
+            .unwrap()
+        );
     }
 }

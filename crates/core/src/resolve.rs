@@ -291,7 +291,7 @@ impl SymbolTable {
 }
 
 /// Resolves an import specifier to a workspace-relative file path, when it
-/// names a file in the walked set.
+/// names a file in the walked set: the first of its candidates that exists.
 #[must_use]
 pub fn resolve_specifier(
     from_path: &str,
@@ -299,14 +299,30 @@ pub fn resolve_specifier(
     known_files: &BTreeSet<String>,
     language: Language,
 ) -> Option<String> {
+    specifier_candidates(from_path, specifier, known_files, language)
+        .into_iter()
+        .find(|candidate| known_files.contains(candidate))
+}
+
+/// Every file [`resolve_specifier`] may select, in preference order. Which of
+/// them exist decides the resolution, so a file appearing or vanishing can
+/// change it only when it is one of these. `known_files` matters only for OKF,
+/// whose bundle root it locates.
+#[must_use]
+pub fn specifier_candidates(
+    from_path: &str,
+    specifier: &str,
+    known_files: &BTreeSet<String>,
+    language: Language,
+) -> Vec<String> {
     if specifier.starts_with("http://")
         || specifier.starts_with("https://")
         || specifier.starts_with("mailto:")
         || specifier.starts_with('#')
     {
-        return None;
+        return Vec::new();
     }
-    let candidates: Vec<String> = match language {
+    match language {
         Language::Rust => rust_candidates(from_path, specifier),
         Language::TypeScript
         | Language::JavaScript
@@ -318,14 +334,9 @@ pub fn resolve_specifier(
         // Dependency tracking only: with the bundle-root fallback this selects a
         // superset of what a `links_to` path can resolve to, so any change in a
         // link's or a citation's target is still observed.
-        Language::Okf => {
-            return crate::okf::resolve_path(from_path, specifier, known_files, true);
-        }
-        Language::Unknown => vec![],
-    };
-    candidates
-        .into_iter()
-        .find(|candidate| known_files.contains(candidate))
+        Language::Okf => crate::okf::candidate_paths(from_path, specifier, known_files, true),
+        Language::Unknown => Vec::new(),
+    }
 }
 
 /// `crate::a::b` and `mod foo` spellings, relative to the file and `src/`.

@@ -268,12 +268,13 @@ impl<'a> Projector<'a> {
 
     fn refresh_manifest_metadata(store: &mut dyn GraphStore, mut manifest: Manifest) -> Result<()> {
         if let Some(index) = store.dependency_index()? {
+            let facts = index.flagged(crate::dependencies::Flag::Facts)?;
             let retention = crate::retention::FactRetention {
                 generation: store.generation()?,
                 paths: manifest
                     .entries
                     .keys()
-                    .filter(|path| index.has_facts(path))
+                    .filter(|path| facts.contains(*path))
                     .cloned()
                     .collect(),
                 previous: store.manifest_header()?.unwrap_or_default(),
@@ -355,9 +356,11 @@ impl<'a> Projector<'a> {
         let config_sources = self.config_sources(store, &changed_paths, &removed, &pending)?;
         table.prepare_typescript_projects(&config_sources);
         if let Some(index) = store.dependency_index()? {
+            let modules = index.modules()?;
             table.prepare_js_surfaces(
-                index
-                    .modules()
+                modules
+                    .iter()
+                    .map(|(path, module)| (path.as_str(), module))
                     .filter(|(path, _)| {
                         known_files.contains(*path) && !changed_paths.contains(*path)
                     })
@@ -500,24 +503,25 @@ impl<'a> Projector<'a> {
             batch.upserts.push(item.projection);
         }
 
-        let retention = store
-            .dependency_index()?
-            .filter(|_| !reindexed_all)
-            .map(|index| crate::retention::FactRetention {
-                generation: None,
-                previous: previous.header(),
-                paths: batch
-                    .manifest
-                    .entries
-                    .iter()
-                    .filter(|(path, entry)| {
-                        entry.extraction.is_none()
-                            && !changed_paths.contains(*path)
-                            && index.has_facts(path)
-                    })
-                    .map(|(path, _)| path.clone())
-                    .collect(),
-            });
+        let facts = match store.dependency_index()?.filter(|_| !reindexed_all) {
+            Some(index) => Some(index.flagged(crate::dependencies::Flag::Facts)?),
+            None => None,
+        };
+        let retention = facts.map(|facts| crate::retention::FactRetention {
+            generation: None,
+            previous: previous.header(),
+            paths: batch
+                .manifest
+                .entries
+                .iter()
+                .filter(|(path, entry)| {
+                    entry.extraction.is_none()
+                        && !changed_paths.contains(*path)
+                        && facts.contains(*path)
+                })
+                .map(|(path, _)| path.clone())
+                .collect(),
+        });
         let retention = retention
             .map(|mut retention| {
                 retention.generation = store.generation()?;
@@ -663,19 +667,20 @@ impl<'a> Projector<'a> {
             let mut names = BTreeSet::new();
             for item in pending.iter() {
                 self.check_work()?;
-                let unchanged = item.projection.quarantine.is_none()
-                    && previous
-                        .get(&item.entry.rel)
-                        .zip(item.extraction.as_ref())
-                        .is_some_and(|(header, facts)| {
-                            index.surface_unchanged(
-                                &item.entry.rel,
-                                header,
-                                &item.projection.symbols,
-                                facts,
-                                item.entry.language.unwrap_or(Language::Unknown),
-                            )
-                        });
+                let unchanged = match (
+                    item.projection.quarantine.is_none(),
+                    previous.get(&item.entry.rel).zip(item.extraction.as_ref()),
+                ) {
+                    (true, Some((header, facts))) => crate::dependencies::surface_unchanged(
+                        index,
+                        &item.entry.rel,
+                        header,
+                        &item.projection.symbols,
+                        facts,
+                        item.entry.language.unwrap_or(Language::Unknown),
+                    )?,
+                    _ => false,
+                };
                 if !unchanged {
                     changed.insert(item.entry.rel.clone());
                     for node in &item.projection.symbols {
@@ -706,9 +711,14 @@ impl<'a> Projector<'a> {
                         .cloned(),
                 );
             }
-            index.repair_paths(changed, &names, &new_files, boundary_changed, || {
-                self.check_work()
-            })?
+            crate::dependencies::repair_paths(
+                index,
+                changed,
+                &names,
+                &new_files,
+                boundary_changed,
+                || self.check_work(),
+            )?
         } else {
             let mut old_nodes: BTreeMap<&str, Vec<&Node>> = BTreeMap::new();
             for node in &nodes {

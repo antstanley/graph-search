@@ -182,8 +182,11 @@ impl GraphStore for MemoryStore {
         Ok(())
     }
 
-    fn dependency_index(&self) -> Result<Option<&crate::dependencies::DependencyIndex>> {
-        Ok(self.dependencies.as_ref())
+    fn dependency_index(&self) -> Result<Option<&dyn crate::dependencies::DependencyLookup>> {
+        Ok(self
+            .dependencies
+            .as_ref()
+            .map(|index| index as &dyn crate::dependencies::DependencyLookup))
     }
 }
 

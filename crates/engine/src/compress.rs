@@ -43,6 +43,7 @@ pub(crate) fn frame_size(header: &[u8]) -> io::Result<u64> {
 
 /// Inflates a sidecar by streaming, so memory tracks actual content rather
 /// than a size claimed by the header.
+#[cfg(test)]
 pub(crate) fn inflate_sidecar(file: &[u8]) -> io::Result<Vec<u8>> {
     zstd::stream::decode_all(file)
 }

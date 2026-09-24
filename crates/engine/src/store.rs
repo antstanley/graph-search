@@ -18,9 +18,10 @@ use crate::shards::{EDGE_COUNTS, FOREIGN, INCOMING, NODES, Shard};
 use crate::source_records::{Index, SOURCE_LAYOUT};
 use crate::{generation, sidecar};
 use graph_search_core::Result;
-use graph_search_core::dependencies::{Contribution, DependencyIndex};
+use graph_search_core::dependencies::{DependencyLookup, DependencyRecord, Flag};
 use graph_search_core::error::Error;
 use graph_search_core::ports::{GraphSnapshot, GraphStore};
+use graph_search_types::js_module::JsModule;
 use graph_search_types::kind::{Direction, NodeKind};
 use graph_search_types::manifest::Manifest;
 use graph_search_types::node::Node;
@@ -39,6 +40,28 @@ const TYPESCRIPT_CONFIGS: &str = "typescript_configs";
 const PACKAGE_MANIFESTS: &str = "package_manifests";
 /// Tables owned by source facts; their rows are replaced with a file's source.
 const SOURCE_TABLES: [&str; 3] = [PACKAGE_MEMBERS, TYPESCRIPT_CONFIGS, PACKAGE_MANIFESTS];
+/// Dependency postings, owned by the file whose record produced them.
+const DEP_CONSUMERS: &str = "dep_consumers";
+const DEP_SELECTED: &str = "dep_selected";
+const DEP_CANDIDATES: &str = "dep_candidates";
+const DEP_INCOMING: &str = "dep_incoming";
+const DEP_FLAGS: &str = "dep_flags";
+const JS_MODULES: &str = "js_modules";
+/// Tables owned by dependency records: their rows are replaced with a file's record.
+const DEPENDENCY_TABLES: [&str; 6] = [
+    DEP_CONSUMERS,
+    DEP_SELECTED,
+    DEP_CANDIDATES,
+    DEP_INCOMING,
+    DEP_FLAGS,
+    JS_MODULES,
+];
+/// Every file's dependency record, read one file at a time.
+const DEPENDENCY_LAYOUT: crate::source_records::Layout = crate::source_records::Layout {
+    index: generation::DEPENDENCY_RECORDS,
+    directory: "dependency-records",
+    pack_bytes: 256 * 1024,
+};
 
 /// How the store is opened.
 #[derive(Clone, Debug, Default)]
@@ -114,7 +137,9 @@ pub struct NativeStore {
     sources: OnceLock<BTreeMap<String, SourceFileUnits>>,
     occurrence_files: OnceLock<BTreeMap<String, OccurrenceFile>>,
     extraction_records: OnceLock<Option<crate::manifest_records::Verified>>,
-    dependencies: OnceLock<Option<DependencyIndex>>,
+    dependency_index: OnceLock<Option<Index>>,
+    /// Dependency records read so far.
+    records: RwLock<HashMap<String, Arc<DependencyRecord>>>,
     /// Every node, sorted by id: the metadata index and bulk reads.
     nodes: OnceLock<Vec<Node>>,
     metadata: OnceLock<graph_search_core::metadata::MetadataIndex>,
@@ -166,7 +191,8 @@ impl NativeStore {
             sources: OnceLock::new(),
             occurrence_files: OnceLock::new(),
             extraction_records: OnceLock::new(),
-            dependencies: OnceLock::new(),
+            dependency_index: OnceLock::new(),
+            records: RwLock::new(HashMap::new()),
             nodes: OnceLock::new(),
             metadata: OnceLock::new(),
             body: OnceLock::new(),
@@ -252,6 +278,42 @@ impl NativeStore {
                 .transpose()
         })
         .map(Option::as_ref)
+    }
+
+    fn dependency_records(&self) -> Result<Option<&Index>> {
+        loaded(&self.dependency_index, || {
+            self.artifact(generation::DEPENDENCY_RECORDS)?
+                .map(|bytes| Index::decode_packed(&bytes).map_err(store_io))
+                .transpose()
+        })
+        .map(Option::as_ref)
+    }
+
+    /// One file's dependency record, verified on first read.
+    fn dependency_record(&self, path: &str) -> Result<Option<Arc<DependencyRecord>>> {
+        if let Some(record) = self.records.read().map_err(|_| poisoned())?.get(path) {
+            return Ok(Some(Arc::clone(record)));
+        }
+        let Some(index) = self.dependency_records()? else {
+            return Ok(None);
+        };
+        let Some(record) = index
+            .load_selected_verified::<DependencyRecord>(
+                &self.objects(),
+                DEPENDENCY_LAYOUT,
+                &BTreeSet::from([path.to_owned()]),
+            )
+            .map_err(store_io)?
+            .remove(path)
+        else {
+            return Ok(None);
+        };
+        let record = Arc::new(record);
+        self.records
+            .write()
+            .map_err(|_| poisoned())?
+            .insert(path.to_owned(), Arc::clone(&record));
+        Ok(Some(record))
     }
 
     fn table_refs(&self) -> Result<&Tables> {
@@ -506,32 +568,6 @@ impl NativeStore {
         .map(Option::as_ref)
     }
 
-    fn dependencies(&self) -> Result<Option<&DependencyIndex>> {
-        loaded(&self.dependencies, || {
-            let Some(bytes) = self.artifact(generation::DEPENDENCIES)? else {
-                return Ok(None);
-            };
-            let index: Option<DependencyIndex> = serde_json::from_slice(
-                &crate::compress::inflate_sidecar(&bytes).map_err(store_io)?,
-            )
-            .map_err(|error| Error::Store(error.to_string()))?;
-            if let Some(index) = &index {
-                let valid = self
-                    .manifest_header
-                    .as_ref()
-                    .zip(self.extraction_records()?)
-                    .is_some_and(|(header, facts)| index.validates(header, &facts.paths()));
-                if !valid {
-                    return Err(Error::Store(String::from(
-                        "dependency index does not match generation",
-                    )));
-                }
-            }
-            Ok(index)
-        })
-        .map(Option::as_ref)
-    }
-
     fn metadata(&self) -> Result<&graph_search_core::metadata::MetadataIndex> {
         loaded(&self.metadata, || {
             Ok(graph_search_core::metadata::MetadataIndex::new(
@@ -598,14 +634,17 @@ struct Plan {
     /// Source records the batch writes, and the files whose records it replaces.
     sources: BTreeMap<String, SourceFileUnits>,
     source_owners: BTreeSet<String>,
-    /// New posting rows, per table, and the owners every table replaces.
+    /// New posting rows, per table, and the owners the shard tables replace.
     rows: BTreeMap<&'static str, Vec<Row>>,
     owners: BTreeSet<String>,
+    /// New dependency records (all empty when they are not coherent) and the
+    /// owners whose records and dependency postings they replace.
+    records: BTreeMap<String, DependencyRecord>,
+    record_owners: BTreeSet<String>,
     /// New rows of the tables owned by source facts.
     source_rows: BTreeMap<&'static str, Vec<Row>>,
     summary: generation::Summary,
     outcome: ApplyOutcome,
-    dependencies: Option<DependencyIndex>,
 }
 
 impl NativeStore {
@@ -887,16 +926,6 @@ impl NativeStore {
             .filter(|path| !upserted.contains_key(*path))
             .map(|path| (*path).to_owned())
             .collect();
-        let mut owners_replaced: BTreeSet<String> = shards.keys().cloned().collect();
-        owners_replaced.extend(removed.iter().cloned());
-
-        let mut rows: BTreeMap<&'static str, Vec<Row>> = BTreeMap::new();
-        for (path, shard) in &shards {
-            for (table, table_rows) in shard.rows(path) {
-                rows.entry(table).or_default().extend(table_rows);
-            }
-        }
-
         // Source records: the batch replaces the facts of every file it touches.
         let sources: BTreeMap<String, SourceFileUnits> = upserted
             .iter()
@@ -971,17 +1000,36 @@ impl NativeStore {
                 sources.values(),
             ));
 
-        let dependencies = match manifest {
-            Some(manifest) => {
-                self.plan_dependencies(manifest, retained, &shards, &touched, &batch_nodes)?
-            }
+        // Dependency records: may add shards rewritten only to carry a record,
+        // whose graph facts (and so the summary) do not change.
+        let records = match manifest {
+            Some(manifest) => self.plan_dependencies(manifest, retained, &shards, &touched)?,
             None => None,
         };
-        if !retained.is_empty() && dependencies.is_none() {
+        summary.dependencies = records.is_some();
+        let records = records.unwrap_or_default();
+        if !retained.is_empty() && !summary.dependencies {
             return Err(Error::Store(
                 "retained dependencies do not match projection".into(),
             ));
         }
+
+        let mut owners_replaced: BTreeSet<String> = shards.keys().cloned().collect();
+        owners_replaced.extend(removed.iter().cloned());
+        let known: BTreeSet<String> = manifest
+            .map(|manifest| manifest.entries.keys().cloned().collect())
+            .unwrap_or_default();
+        let mut rows: BTreeMap<&'static str, Vec<Row>> = BTreeMap::new();
+        for (path, shard) in &shards {
+            for (table, table_rows) in shard.rows(path) {
+                rows.entry(table).or_default().extend(table_rows);
+            }
+        }
+        for (path, record) in &records {
+            dependency_rows(path, record, &known, &mut rows)?;
+        }
+        let mut record_owners: BTreeSet<String> = records.keys().cloned().collect();
+        record_owners.extend(removed.iter().cloned());
 
         Ok(Plan {
             removed,
@@ -989,6 +1037,8 @@ impl NativeStore {
             source_owners: touched,
             rows,
             owners: owners_replaced,
+            records,
+            record_owners,
             source_rows,
             summary,
             outcome: ApplyOutcome {
@@ -1002,92 +1052,106 @@ impl NativeStore {
                 files_touched: (batch.removed_files.len() as u64)
                     .saturating_add(batch.upserts.len() as u64),
             },
-            dependencies,
             shards,
         })
     }
 
-    /// The next dependency index: the rewritten files contribute their nodes and
-    /// links; files whose facts the manifest supplies are rebuilt too; the rest
-    /// keep their previous records. Without a previous index every file is read.
+    /// The dependency records this publication writes, or `None` when the
+    /// generation's records would not be coherent (a manifest file without
+    /// one). Records are rebuilt for the written shards, for files whose facts
+    /// the manifest supplies, and for every file when the previous generation's
+    /// records were not coherent; every other file keeps its record.
     fn plan_dependencies(
         &self,
         manifest: &Manifest,
         retained: &BTreeSet<String>,
         shards: &BTreeMap<String, Shard>,
         touched: &BTreeSet<String>,
-        batch_nodes: &HashMap<&NodeId, &Node>,
-    ) -> Result<Option<DependencyIndex>> {
-        let previous = self.dependencies()?;
+    ) -> Result<Option<BTreeMap<String, DependencyRecord>>> {
+        let previous_coherent = self.committed.is_some() && self.summary.dependencies;
+        let old_paths: BTreeSet<String> = self.paths()?.into_iter().collect();
+        if shards
+            .keys()
+            .any(|path| !manifest.entries.contains_key(path))
+            || manifest
+                .entries
+                .keys()
+                .any(|path| !shards.contains_key(path) && !old_paths.contains(path))
+        {
+            return Ok(None);
+        }
         let mut paths: BTreeSet<String> = shards.keys().cloned().collect();
         for (path, entry) in &manifest.entries {
-            let covered = previous.is_some_and(|index| index.has_record(path));
-            if entry.extraction.is_some() || !covered {
+            if entry.extraction.is_some() || !previous_coherent {
                 paths.insert(path.clone());
             }
         }
-        let unchanged: BTreeSet<String> = paths
+        let unwritten: BTreeSet<String> = paths
             .iter()
             .filter(|path| !shards.contains_key(*path))
             .cloned()
             .collect();
-        let loaded = self.shards_for(&unchanged)?;
+        let loaded = self.shards_for(&unwritten)?;
+        // Node owners of the written shards, then of everything else on demand.
         let mut path_of: HashMap<NodeId, Option<String>> = HashMap::new();
-        let mut contributions: BTreeMap<String, Contribution<'_>> = BTreeMap::new();
+        for (path, shard) in shards {
+            for node in &shard.nodes {
+                path_of.insert(node.id.clone(), Some(path.clone()));
+            }
+        }
+        let known = |candidate: &str| manifest.entries.contains_key(candidate);
+        let mut records = BTreeMap::new();
         for path in &paths {
             let shard: &Shard = match shards.get(path) {
                 Some(shard) => shard,
                 None => match loaded.get(path) {
                     Some(shard) => shard,
-                    None => continue,
+                    None => return Ok(None),
                 },
+            };
+            let Some(entry) = manifest.entries.get(path) else {
+                return Ok(None);
             };
             let mut links = BTreeSet::new();
             for edge in &shard.edges {
-                let mut resolve = |id: &NodeId| -> Option<String> {
-                    if let Some(node) = batch_nodes.get(id) {
-                        return Some(node.path.clone());
-                    }
-                    if let Some(known) = path_of.get(id) {
-                        return known.clone();
-                    }
-                    let found = shards
-                        .iter()
-                        .find_map(|(owner, shard)| shard.node(id).map(|_| owner.clone()))
-                        .or_else(|| {
-                            self.owner_of(id).ok().flatten().filter(|owner| {
-                                !touched.contains(owner) || shards.contains_key(owner)
-                            })
-                        });
-                    path_of.insert(id.clone(), found.clone());
-                    found
+                let Some(to) = &edge.to else {
+                    continue;
                 };
-                let from = resolve(&edge.from);
-                let to = edge.to.as_ref().and_then(&mut resolve);
-                let known = |candidate: &str| manifest.entries.contains_key(candidate);
-                if let Some(to) = to {
-                    if let Some(from) = from.filter(|from| known(from)) {
-                        links.insert((to.clone(), from));
+                let mut resolve = |store: &Self, id: &NodeId| -> Result<Option<String>> {
+                    if let Some(known) = path_of.get(id) {
+                        return Ok(known.clone());
                     }
-                    if let Some(owner) = edge.path.as_ref().filter(|owner| known(owner)) {
-                        links.insert((to, owner.clone()));
-                    }
+                    let found = store
+                        .owner_of(id)?
+                        .filter(|owner| !touched.contains(owner) || shards.contains_key(owner));
+                    path_of.insert(id.clone(), found.clone());
+                    Ok(found)
+                };
+                let Some(target) = resolve(self, to)? else {
+                    continue;
+                };
+                if let Some(from) = resolve(self, &edge.from)?.filter(|from| known(from)) {
+                    links.insert((target.clone(), from));
+                }
+                if let Some(owner) = edge.path.as_ref().filter(|owner| known(owner)) {
+                    links.insert((target, owner.clone()));
                 }
             }
-            contributions.insert(
-                path.clone(),
-                Contribution {
-                    nodes: shard.nodes.iter().collect(),
-                    links,
-                },
-            );
+            let record = if retained.contains(path) {
+                match self.dependency_record(path)? {
+                    Some(prior) => DependencyRecord::retain(&prior, entry, links),
+                    None => None,
+                }
+            } else {
+                let nodes: Vec<&Node> = shard.nodes.iter().collect();
+                DependencyRecord::build(entry, &nodes, links)
+            };
+            let Some(record) = record else {
+                return Ok(None);
+            };
+            records.insert(path.clone(), record);
         }
-        Ok(DependencyIndex::update(
-            manifest,
-            previous,
-            retained,
-            &contributions,
-        ))
+        Ok(Some(records))
     }
 
     /// Writes the planned generation and makes it current.
@@ -1138,10 +1202,47 @@ impl NativeStore {
     }
 }
 
+/// The dependency posting rows of one file's record.
+fn dependency_rows(
+    path: &str,
+    record: &DependencyRecord,
+    known: &BTreeSet<String>,
+    rows: &mut BTreeMap<&'static str, Vec<Row>>,
+) -> Result<()> {
+    let postings = record.postings(path, known);
+    let mut push = |table: &'static str, key: String, value: String| {
+        rows.entry(table)
+            .or_default()
+            .push(Row::new(key, path, value));
+    };
+    for name in postings.consumers {
+        push(DEP_CONSUMERS, name, String::new());
+    }
+    for target in postings.selected {
+        push(DEP_SELECTED, target, String::new());
+    }
+    for candidate in postings.candidates {
+        push(DEP_CANDIDATES, candidate, String::new());
+    }
+    for (target, source) in postings.incoming {
+        push(DEP_INCOMING, target, source);
+    }
+    for flag in postings.flags {
+        push(DEP_FLAGS, flag.as_str().to_owned(), String::new());
+    }
+    if let Some(module) = record.module() {
+        let value =
+            serde_json::to_string(module).map_err(|error| Error::Store(error.to_string()))?;
+        push(JS_MODULES, path.to_owned(), value);
+    }
+    Ok(())
+}
+
 /// The indexes a publish wrote, adopted without reading them back.
 struct Written {
     shards: Index,
     sources: Index,
+    dependencies: Index,
     tables: Tables,
     extraction: Option<crate::manifest_records::Verified>,
 }
@@ -1218,22 +1319,64 @@ impl NativeStore {
         crate::source_records::write_index(dir, SOURCE_LAYOUT, &sources).map_err(store_io)?;
         self.inject("after_source_persist")?;
 
+        // Dependency records: the planned ones, and every other file's while
+        // the records stay coherent.
+        let coherent = plan.summary.dependencies;
+        let old_records = self
+            .dependency_records()?
+            .filter(|_| coherent && self.summary.dependencies);
+        let carried: BTreeSet<String> = old_records
+            .map(|index| {
+                index
+                    .paths()
+                    .filter(|path| !plan.record_owners.contains(*path))
+                    .map(str::to_owned)
+                    .collect()
+            })
+            .unwrap_or_default();
+        let record_refs: BTreeMap<String, &DependencyRecord> = plan
+            .records
+            .iter()
+            .map(|(path, record)| (path.clone(), record))
+            .collect();
+        let dependencies = crate::source_records::save_packs(
+            &objects,
+            DEPENDENCY_LAYOUT,
+            &record_refs,
+            &objects,
+            old_records,
+            &carried,
+            |_, _| Ok(false),
+        )
+        .map_err(store_io)?;
+        crate::source_records::write_index(dir, DEPENDENCY_LAYOUT, &dependencies)
+            .map_err(store_io)?;
+
         // Posting tables: one delta each, compacted by policy.
         let old_tables = self.table_refs()?;
         let previous_dir = self.committed.as_ref().map(|_| objects.as_path());
         let mut tables = Tables::default();
-        for table in crate::shards::TABLES {
-            let rows = plan.rows.get(table).cloned().unwrap_or_default();
-            let reference = crate::segment::publish(
-                &objects,
-                table,
-                previous_dir,
-                old_tables.tables.get(table).unwrap_or(&TableRef::default()),
-                &plan.owners,
-                rows,
-            )
-            .map_err(store_io)?;
-            tables.tables.insert(table.to_owned(), reference);
+        let groups = [
+            (&crate::shards::TABLES[..], &plan.owners),
+            (&DEPENDENCY_TABLES[..], &plan.record_owners),
+        ];
+        for (group, owners) in groups {
+            for table in group {
+                let rows = plan.rows.get(table).cloned().unwrap_or_default();
+                let reference = crate::segment::publish(
+                    &objects,
+                    table,
+                    previous_dir,
+                    old_tables
+                        .tables
+                        .get(*table)
+                        .unwrap_or(&TableRef::default()),
+                    owners,
+                    rows,
+                )
+                .map_err(store_io)?;
+                tables.tables.insert((*table).to_owned(), reference);
+            }
         }
         for table in SOURCE_TABLES {
             let reference = crate::segment::publish(
@@ -1269,11 +1412,6 @@ impl NativeStore {
                 .map_err(store_io)?,
             );
             self.inject("after_extraction_persist")?;
-            let bytes = serde_json::to_vec(&plan.dependencies)
-                .map_err(|error| Error::Store(error.to_string()))?;
-            let bytes = crate::compress::deflate(&bytes).map_err(store_io)?;
-            generation::replace(&dir.join(generation::DEPENDENCIES), &bytes).map_err(store_io)?;
-            self.inject("after_dependencies_persist")?;
             sidecar::prepare_manifest(dir, &manifest.header()).map_err(store_io)?;
         }
         // The objects this generation keeps alive, for the collector.
@@ -1289,6 +1427,12 @@ impl NativeStore {
                 .pack_names()
                 .into_iter()
                 .map(|name| format!("{}/{name}", SOURCE_LAYOUT.directory)),
+        );
+        listed.extend(
+            dependencies
+                .pack_names()
+                .into_iter()
+                .map(|name| format!("{}/{name}", DEPENDENCY_LAYOUT.directory)),
         );
         if let Some(extraction) = &extraction {
             listed.extend(
@@ -1322,6 +1466,7 @@ impl NativeStore {
         Ok(Written {
             shards,
             sources,
+            dependencies,
             tables,
             extraction,
         })
@@ -1353,12 +1498,21 @@ impl NativeStore {
         self.manifest_header = manifest.map(Manifest::header);
         self.shard_index = OnceLock::from(Some(written.shards));
         self.source_index = OnceLock::from(Some(written.sources));
+        self.dependency_index = OnceLock::from(Some(written.dependencies));
+        {
+            let mut records = self.records.write().map_err(|_| poisoned())?;
+            for path in &plan.record_owners {
+                records.remove(path);
+            }
+            for (path, record) in plan.records {
+                records.insert(path, Arc::new(record));
+            }
+        }
         self.table_refs = OnceLock::from(written.tables);
         self.tables = OnceLock::new();
         self.sources = OnceLock::new();
         self.occurrence_files = OnceLock::new();
         self.extraction_records = OnceLock::from(written.extraction);
-        self.dependencies = OnceLock::from(plan.dependencies);
         self.nodes = OnceLock::new();
         self.metadata = OnceLock::new();
         self.body = OnceLock::new();
@@ -1386,7 +1540,7 @@ impl GraphStore for NativeStore {
     ) -> Result<ApplyOutcome> {
         retention.validate_batch(self, &batch)?;
         let mut retained = retention.paths.clone();
-        if self.extraction_records()?.is_none() || self.dependencies()?.is_none() {
+        if self.extraction_records()?.is_none() || self.dependency_index()?.is_none() {
             let facts = self.extraction_facts(&retained)?;
             if facts.len() != retained.len() {
                 return Err(Error::Store("missing retained extraction".into()));
@@ -1438,9 +1592,12 @@ impl GraphStore for NativeStore {
         Ok(Box::new(NativeSnapshot { store: self }))
     }
 
-    fn dependency_index(&self) -> Result<Option<&DependencyIndex>> {
+    fn dependency_index(&self) -> Result<Option<&dyn DependencyLookup>> {
         self.ensure_available()?;
-        self.dependencies()
+        Ok(
+            (self.summary.dependencies && self.manifest_header.is_some())
+                .then_some(self as &dyn DependencyLookup),
+        )
     }
 
     fn manifest(&self) -> Result<Option<Manifest>> {
@@ -1482,6 +1639,74 @@ impl GraphStore for NativeStore {
         // A standalone manifest change also publishes a generation.
         self.publish_generation(&WriteBatch::default(), Some(&manifest), &BTreeSet::new())
             .map(|_| ())
+    }
+}
+
+impl DependencyLookup for NativeStore {
+    fn paths(&self) -> Result<BTreeSet<String>> {
+        Ok(self.paths()?.into_iter().collect())
+    }
+
+    fn record(&self, path: &str) -> Result<Option<DependencyRecord>> {
+        Ok(self
+            .dependency_record(path)?
+            .map(|record| DependencyRecord::clone(&record)))
+    }
+
+    fn consumers(&self, name: &str) -> Result<Vec<String>> {
+        Ok(self
+            .postings(DEP_CONSUMERS, name)?
+            .into_iter()
+            .map(|row| row.owner)
+            .collect())
+    }
+
+    fn incoming(&self, target: &str) -> Result<Vec<String>> {
+        Ok(self
+            .postings(DEP_INCOMING, target)?
+            .into_iter()
+            .map(|row| row.value)
+            .collect())
+    }
+
+    fn selected(&self, target: &str) -> Result<Vec<String>> {
+        Ok(self
+            .postings(DEP_SELECTED, target)?
+            .into_iter()
+            .map(|row| row.owner)
+            .collect())
+    }
+
+    fn candidates(&self, path: &str) -> Result<Vec<String>> {
+        Ok(self
+            .postings(DEP_CANDIDATES, path)?
+            .into_iter()
+            .map(|row| row.owner)
+            .collect())
+    }
+
+    fn flagged(&self, flag: Flag) -> Result<BTreeSet<String>> {
+        Ok(self
+            .postings(DEP_FLAGS, flag.as_str())?
+            .into_iter()
+            .map(|row| row.owner)
+            .collect())
+    }
+
+    fn modules(&self) -> Result<Vec<(String, JsModule)>> {
+        let Some(table) = self.tables()?.get(JS_MODULES) else {
+            return Ok(Vec::new());
+        };
+        table
+            .rows()
+            .map_err(store_io)?
+            .into_iter()
+            .map(|row| {
+                serde_json::from_str(&row.value)
+                    .map(|module| (row.key, module))
+                    .map_err(|error| Error::Store(error.to_string()))
+            })
+            .collect()
     }
 }
 
@@ -1704,13 +1929,12 @@ mod publication_tests {
     use super::*;
 
     /// Every injected failure point before CURRENT changes, in commit order.
-    const PREPUBLICATION: [&str; 8] = [
+    const PREPUBLICATION: [&str; 7] = [
         "after_plan",
         "after_shard_persist",
         "after_source_persist",
         "after_table_persist",
         "after_extraction_persist",
-        "after_dependencies_persist",
         "after_manifest_persist",
         "after_generation_sync",
     ];
@@ -1756,7 +1980,7 @@ mod publication_tests {
             let root = tempfile::tempdir().unwrap();
             let mut store = NativeStore::open(root.path(), &StoreOptions::default()).unwrap();
             store.publish(complete_fact_fixture()).unwrap();
-            assert!(store.dependencies().unwrap().is_some());
+            assert!(store.dependency_index().unwrap().is_some());
             let old = state(&store);
             let header = store.manifest_header().unwrap().unwrap();
             let retention = graph_search_core::retention::FactRetention {
@@ -2044,7 +2268,7 @@ mod publication_tests {
         let older = NativeStore::open(root.path(), &StoreOptions::default()).unwrap();
         assert!(older.generation().unwrap().is_none());
         drop(older);
-        pointer["format"] = serde_json::json!(11);
+        pointer["format"] = serde_json::json!(12);
         pointer["files"]
             .as_object_mut()
             .unwrap()

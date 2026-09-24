@@ -108,8 +108,22 @@ pub fn resolve_path(
     known_files: &BTreeSet<String>,
     bundle_fallback: bool,
 ) -> Option<String> {
+    candidate_paths(from_path, destination, known_files, bundle_fallback)
+        .into_iter()
+        .find(|candidate| known_files.contains(candidate))
+}
+
+/// Every file [`resolve_path`] may select, in preference order. The bundle root
+/// comes from `known_files`; which of the candidates exist decides the rest.
+#[must_use]
+pub fn candidate_paths(
+    from_path: &str,
+    destination: &str,
+    known_files: &BTreeSet<String>,
+    bundle_fallback: bool,
+) -> Vec<String> {
     if is_external(destination) {
-        return None;
+        return Vec::new();
     }
     let cleaned = destination
         .trim()
@@ -132,7 +146,7 @@ pub fn resolve_path(
         .into_iter()
         .flatten()
         .flat_map(|base| candidates(&base))
-        .find(|candidate| known_files.contains(candidate))
+        .collect()
 }
 
 /// The files a normalized path may name.

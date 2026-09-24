@@ -191,7 +191,7 @@ pub trait GraphStore: Send {
     /// `None` selects conservative compatibility repair.
     /// # Errors
     /// When the selected generation is unavailable.
-    fn dependency_index(&self) -> Result<Option<&crate::dependencies::DependencyIndex>> {
+    fn dependency_index(&self) -> Result<Option<&dyn crate::dependencies::DependencyLookup>> {
         Ok(None)
     }
 

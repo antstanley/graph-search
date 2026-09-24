@@ -52,6 +52,19 @@ pub(crate) trait DecodeRecord: Sized {
     fn decode_record(bytes: &[u8]) -> io::Result<Self>;
 }
 
+// Dependency records are small sets of names and paths; they keep JSON.
+impl EncodeRecord for &graph_search_core::dependencies::DependencyRecord {
+    fn encode_record(&self, out: &mut Vec<u8>) -> io::Result<()> {
+        serde_json::to_writer(out, self).map_err(io::Error::other)
+    }
+}
+
+impl DecodeRecord for graph_search_core::dependencies::DependencyRecord {
+    fn decode_record(bytes: &[u8]) -> io::Result<Self> {
+        serde_json::from_slice(bytes).map_err(io::Error::other)
+    }
+}
+
 // Extraction facts are already compact graph records; they keep JSON.
 impl EncodeRecord for &FileEntry {
     fn encode_record(&self, out: &mut Vec<u8>) -> io::Result<()> {

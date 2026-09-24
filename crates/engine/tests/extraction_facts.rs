@@ -1,5 +1,7 @@
 //! Selective cold-fact reads must describe the handle's committed generation.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
+#[allow(unused_imports)]
+use graph_search_core::dependencies::DependencyLookup as _;
 use graph_search_core::{conformance, memory::MemoryStore, ports::GraphStore};
 use graph_search_engine::{NativeStore, StoreOptions};
 use graph_search_types::{
@@ -101,42 +103,36 @@ fn selected_reads_remain_pinned_across_publication_and_reopen() {
     );
 }
 #[test]
-fn dependency_records_are_pinned_and_authenticated_with_the_generation() {
+fn dependency_records_are_pinned_and_verified_with_the_generation() {
     let directory = tempfile::tempdir().unwrap();
     let options = StoreOptions::default();
+    let record = |store: &NativeStore| {
+        store
+            .dependency_index()
+            .unwrap()
+            .expect("coherent records")
+            .record("src/a.rs")
+    };
     let mut writer = NativeStore::open(directory.path(), &options).unwrap();
     writer.publish(fixture("first")).unwrap();
-    let first = writer.dependency_index().unwrap().unwrap().clone();
+    let first = record(&writer).unwrap();
+    assert!(first.is_some());
     let reader = NativeStore::open(directory.path(), &options).unwrap();
-    assert_eq!(reader.dependency_index().unwrap(), Some(&first));
+    assert_eq!(record(&reader).unwrap(), first);
     writer.publish(fixture("second")).unwrap();
-    assert_ne!(writer.dependency_index().unwrap(), Some(&first));
-    assert_eq!(reader.dependency_index().unwrap(), Some(&first));
-    let pointer_path = directory.path().join("CURRENT");
-    let mut pointer: serde_json::Value =
-        serde_json::from_slice(&std::fs::read(&pointer_path).unwrap()).unwrap();
+    assert_ne!(record(&writer).unwrap(), first);
+    assert_eq!(record(&reader).unwrap(), first);
+    // Records are verified by their first reader, not by open.
+    let pointer: serde_json::Value =
+        serde_json::from_slice(&std::fs::read(directory.path().join("CURRENT")).unwrap()).unwrap();
     let dir = directory
         .path()
         .join("generations")
         .join(pointer["id"].as_str().unwrap());
-    let path = dir.join("dependencies.json.zst");
-    let original = zstd::decode_all(std::fs::read(&path).unwrap().as_slice()).unwrap();
-    std::fs::write(&path, b"corrupt").unwrap();
-    // Artifacts are verified by their first reader, not by open.
+    std::fs::write(dir.join("dependencies.json"), b"corrupt").unwrap();
     let damaged = NativeStore::open(directory.path(), &options).unwrap();
-    assert!(damaged.dependency_index().is_err());
+    assert!(record(&damaged).is_err());
     drop(damaged);
-    // Even a rehashed artifact must match the authenticated manifest header.
-    let mut malformed: serde_json::Value = serde_json::from_slice(&original).unwrap();
-    malformed["records"]["src/a.rs"]["header"]["content_hash"] = "foreign".into();
-    let bytes = zstd::bulk::compress(&serde_json::to_vec(&malformed).unwrap(), 3).unwrap();
-    std::fs::write(&path, &bytes).unwrap();
-    pointer["files"]["dependencies.json.zst"] =
-        graph_search_core::hash::content_hash(&bytes).into();
-    std::fs::write(&pointer_path, serde_json::to_vec(&pointer).unwrap()).unwrap();
-    let damaged = NativeStore::open(directory.path(), &options).unwrap();
-    assert!(damaged.dependency_index().is_err());
-    drop(damaged);
-    // Old readers retain the admitted record set, independent of later artifacts.
-    assert_eq!(reader.dependency_index().unwrap(), Some(&first));
+    // Old readers retain their admitted records, independent of later artifacts.
+    assert_eq!(record(&reader).unwrap(), first);
 }

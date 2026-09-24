@@ -54,7 +54,7 @@ fn status_reads_only_the_header_and_each_fact_fails_on_first_use() {
         "source-units.json",
         "tables.json",
         "extractions.json",
-        "dependencies.json.zst",
+        "dependencies.json",
     ] {
         std::fs::write(generation.join(artifact), b"damaged").unwrap();
     }
@@ -73,7 +73,12 @@ fn status_reads_only_the_header_and_each_fact_fails_on_first_use() {
     mismatch(snapshot.source_files().map(drop));
     mismatch(snapshot.occurrence_files().map(drop));
     mismatch(snapshot.occurrence_count("any").map(drop));
-    mismatch(store.dependency_index().map(drop));
+    mismatch(
+        store
+            .dependency_index()
+            .and_then(|index| index.expect("coherent records").record("a.rs"))
+            .map(drop),
+    );
     mismatch(store.manifest().map(drop));
     // A failed load is not cached as an empty value.
     mismatch(snapshot.all_nodes().map(drop));

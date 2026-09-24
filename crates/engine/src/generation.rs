@@ -15,7 +15,9 @@ pub(crate) const CURRENT: &str = "CURRENT";
 /// and the whole-workspace sidecars (`research/16-proportional-sync.md`).
 /// Format 11: packs and segments live in one store-level object directory
 /// that every generation references, instead of being linked into each.
-const FORMAT: u32 = 11;
+/// Format 12: dependency records live in shards and their reverse maps in
+/// posting tables, replacing the whole-workspace dependency index artifact.
+const FORMAT: u32 = 12;
 /// The store-level directory of content-addressed packs and segments.
 pub(crate) const OBJECTS: &str = "objects";
 /// Every object a generation references, relative to [`OBJECTS`]: what the
@@ -26,23 +28,20 @@ pub(crate) const OBJECT_LIST: &str = "objects.json";
 pub(crate) const LEASE: &str = "lease";
 /// The posting tables' segment lists ([`crate::segment::Tables`]).
 pub(crate) const TABLES: &str = "tables.json";
-/// One zstd frame of the JSON dependency index.
-pub(crate) const DEPENDENCIES: &str = "dependencies.json.zst";
 /// Cached generation totals.
 pub(crate) const SUMMARY: &str = "summary.json";
 /// Artifacts every generation commits.
-const REQUIRED: [&str; 4] = [
+const REQUIRED: [&str; 5] = [
     SUMMARY,
     TABLES,
     crate::shards::FILE,
     crate::sidecar::SOURCE_FILE,
+    DEPENDENCY_RECORDS,
 ];
+/// The index of every file's dependency record.
+pub(crate) const DEPENDENCY_RECORDS: &str = "dependencies.json";
 /// Artifacts a generation may commit.
-const OPTIONAL: [&str; 3] = [
-    crate::sidecar::MANIFEST_FILE,
-    crate::manifest_records::FILE,
-    DEPENDENCIES,
-];
+const OPTIONAL: [&str; 2] = [crate::sidecar::MANIFEST_FILE, crate::manifest_records::FILE];
 static SERIAL: AtomicU64 = AtomicU64::new(0);
 
 #[derive(Serialize, Deserialize)]
@@ -59,6 +58,9 @@ struct Pointer {
 pub(crate) struct Summary {
     pub(crate) counts: graph_search_types::result::StoreCounts,
     pub(crate) source: graph_search_core::units::SourceCoverage,
+    /// Whether every file has a dependency record, so repair can use them.
+    #[serde(default)]
+    pub(crate) dependencies: bool,
 }
 
 /// The artifacts CURRENT commits for one generation. Selection verifies the
@@ -99,7 +101,7 @@ pub(crate) struct Selected {
 }
 
 /// The published generation, or `None` when nothing is published or the
-/// published generation predates format 11 (it is rebuilt, never migrated).
+/// published generation predates format 12 (it is rebuilt, never migrated).
 pub(crate) fn current(root: &Path) -> io::Result<Option<Selected>> {
     match read_current(root, |bytes| select(root, bytes)) {
         Err(error) if error.kind() == io::ErrorKind::Unsupported => Ok(None),
@@ -150,7 +152,7 @@ fn select(root: &Path, bytes: &[u8]) -> io::Result<Selected> {
     if pointer.format < FORMAT {
         return Err(io::Error::new(
             io::ErrorKind::Unsupported,
-            "generation predates format 11 and must be rebuilt",
+            "generation predates format 12 and must be rebuilt",
         ));
     }
     let dir = root.join("generations").join(pointer.id);
@@ -170,8 +172,7 @@ fn select(root: &Path, bytes: &[u8]) -> io::Result<Selected> {
     }
     let has_extractions = pointer.files.contains_key(crate::manifest_records::FILE);
     let has_manifest = pointer.files.contains_key(crate::sidecar::MANIFEST_FILE);
-    let has_dependencies = pointer.files.contains_key(DEPENDENCIES);
-    if has_extractions != has_manifest || has_dependencies != has_manifest {
+    if has_extractions != has_manifest {
         return Err(io::Error::other(
             "incomplete extraction generation descriptor",
         ));

@@ -209,7 +209,7 @@ Design notes:
 ### 4.3 The engine: a native generation store
 
 `graph-search-engine` implements core's `GraphStore` port with its own storage
-(format 10, `research/16-proportional-sync.md`). The store lives at
+(format 12, `research/16-proportional-sync.md`). The store lives at
 `<root>/.graph-search/index/` by default and is git-ignored. It replaced the
 embedded Grafeo database, as this section always allowed: an in-process
 adjacency map proved sufficient, and Grafeo rebuilt and re-serialized the whole
@@ -223,10 +223,16 @@ graph on every publish, so sync cost grew with the workspace.
   owners they replace, compacted into a new base when the deltas outgrow a
   quarter of it. `nodes` (id to owning file), `incoming` (edge and occurrence
   targets), `foreign` (edges stored away from their source node's file),
-  `edge_counts` and `package_members` are tables.
+  `edge_counts`, `package_members`, `typescript_configs`,
+  `package_manifests`, the dependency postings (`dep_consumers`,
+  `dep_selected`, `dep_candidates`, `dep_incoming`, `dep_flags`) and
+  `js_modules` are tables.
+- **Shared objects.** Packs and segments live in one store-level `objects/`
+  directory. Each generation lists the objects it references; objects no
+  remaining generation lists are collected.
 - **Publication writes what changed.** A publish writes the shards, source
-  records and posting rows of the files it replaces, links every other pack
-  and segment, and updates the summary and dependency index by delta.
+  records and posting rows of the files it replaces, references every other
+  object, and updates the summary by delta.
 
 Two properties hold:
 
@@ -847,14 +853,14 @@ Reconciliation calls `GraphStore::publish` with one `WriteBatch`. The native
 store plans the publication first: it validates the batch, decides which node
 identities survive, rewrites the untouched files that point at a removed node,
 and computes the new posting rows, summary and dependency index. Only then does
-it write, under `generations/<id>/`: the changed shards and source records (new
-packs; every other pack is hard-linked), one delta segment per posting table,
-the extraction records, the dependency index, the manifest header and the
+it write the changed shards and source records as new packs and one delta
+segment per posting table into `objects/`, and, under `generations/<id>/`, the
+pack indexes, the table list, the object list, the manifest header and the
 summary. It then publishes a small `CURRENT` descriptor by atomic rename. The
-descriptor records storage format 10 and BLAKE3 fingerprints of the small index
+descriptor records storage format 12 and BLAKE3 fingerprints of the small index
 artifacts (`shards.json`, `source-units.json`, `tables.json`, `summary.json`,
-`manifest.json`, `extractions.json`, `dependencies.json.zst`); packs and segments
-are committed transitively by their own content hashes. A missing or corrupt
+`manifest.json`, `extractions.json`); packs and segments are committed
+transitively by their own content hashes. A missing or corrupt
 committed artifact is an error, never a silently empty index. A generation from
 an earlier format is never read: the store opens unpublished and is rebuilt, not
 migrated (deleting the store directory is always a safe rebuild).
@@ -862,8 +868,8 @@ migrated (deleting the store directory is always a safe rebuild).
 Opening a generation is proportional to its header, not its size. Open validates
 the descriptor's completeness, rejects uncommitted artifacts, takes the reader lease,
 and verifies and parses only `manifest.json` and `summary.json`. Every other
-artifact (the shard, source and extraction indexes, the posting tables, the
-dependency index) is verified against its CURRENT fingerprint by its first reader,
+artifact (the shard, source and extraction indexes, the posting tables) is
+verified against its CURRENT fingerprint by its first reader,
 before any of its bytes are used; a shard or record is verified against its own
 hash when it is read, and a segment block against its segment's footer, whose
 hash the table list commits. The lease keeps
@@ -938,16 +944,16 @@ deduplicated. Repacking and removal preserve original per-file facts, and deleti
 older generations unlinks their references without deleting current packs.
 The pack directory is synced before committing its index and CURRENT.
 
-Generation format 7 additionally commits the dependency index (since format 8,
-`dependencies.json.zst`: one zstd frame of its JSON) whenever it commits a
-manifest. This compact version-1 index contains per-file header identities, raw
-non-dynamic reference names (including unresolved references), defined/exported
-names, authored module surfaces and specifiers, binding-surface fingerprints,
-selected module candidates and incoming file relationships. It is authenticated
-by CURRENT; its first reader checks header/cache availability and reproducible
-reverse maps before admitting it. Legacy generations or incoherent direct adapter batches have
-no dependency index and use conservative repair. Explicit JSON null denotes that
-fallback in new generations. Dependency publication occurs before CURRENT changes.
+Every file's dependency record lives in its shard (format 12). A record holds
+the file's header identity, raw non-dynamic reference names (including
+unresolved references), defined/exported names, authored module surface and
+specifiers, binding-surface fingerprint and the links of the edges it owns. Each
+record derives its posting rows: consumers by referenced name, selected import
+targets, every candidate path an import could select, incoming links, flag sets
+(Rust-sensitive, bare import, no facts, markup, facts) and its ECMAScript
+surface. A generation whose every file has a record marks `summary.json`
+`dependencies: true`; incoherent direct adapter batches leave it false and use
+conservative repair.
 
 Native reconciliation uses the cached dependency index to select consumer repair.
 Stable Rust/JS/TS binding surfaces do not seed repair merely because source display
@@ -955,10 +961,12 @@ coordinates or bodies changed. Missing extraction caches, package boundaries,
 Rust context changes and HTML/CSS retain conservative invalidation. Presence changes
 reconsider authored module choices; reverse raw names include previously unresolved
 references; graph and selected-module dependencies participate in transitive closure.
-The writer reuses per-file dependency records for explicitly retained extractions,
-recomputes changed records, and reconstructs reverse maps against the complete final
-graph/file set. Reconciliation still snapshots all nodes and edges, but does not
-hydrate raw facts for unchanged, unaffected files when native dependency records exist.
+The writer reuses per-file dependency records for explicitly retained extractions
+and recomputes records only for the files it writes. Repair reads keyed postings:
+a presence change rechecks only importers with a candidate among the appearing or
+vanishing files, since a selection depends on nothing else. Reconciliation does not
+read the whole graph or hydrate raw facts for unchanged, unaffected files when
+dependency records exist.
 
 Generation format 6 and later commit `extractions.json` whenever they commit a manifest.
 This version-2 record index uses the same native pack codec under `extraction-records/`.

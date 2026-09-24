@@ -53,7 +53,8 @@ impl GraphStore for Capture {
     }
     fn dependency_index(
         &self,
-    ) -> graph_search_core::Result<Option<&graph_search_core::dependencies::DependencyIndex>> {
+    ) -> graph_search_core::Result<Option<&dyn graph_search_core::dependencies::DependencyLookup>>
+    {
         self.inner.dependency_index()
     }
     fn commit_manifest(&mut self, manifest: Manifest) -> Result<()> {

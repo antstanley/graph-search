@@ -196,6 +196,34 @@ a clean rebuild, and is measured with Criterion (see `AGENTS.md`).
    | `storage_open/open_then_text` | 5.7 ms | 4.9 ms | −11.5% |
    | `storage_publish/reindex_full` | 527 ms | 506 ms | no change |
 
+1c. **Dependency index as keyed lookups (format 12). Done.** Each file's
+   `DependencyRecord` (names, references, imports, surface, links) is a record
+   in its own pack family; the reverse maps are posting tables (`dep_consumers`,
+   `dep_selected`, `dep_candidates`, `dep_incoming`, `dep_flags`, `js_modules`).
+   Repair (`dependencies::repair_paths`) reads only keyed lookups through the
+   `DependencyLookup` trait. A presence change rechecks only importers with a
+   candidate path among the files that appeared or vanished, since a
+   selection depends on nothing else. Nothing whole is serialized, loaded or
+   validated per sync. Records first lived inside shards; that made every
+   bulk shard read (explore's metadata index) decode them, a measured +50%
+   on `open_then_explore`, so they moved to their own packs.
+
+   Criterion against `432af1c`, separate target directories. Background load
+   was heavy and uneven (the baseline's own `rust_body_edit` read 65, 89 and
+   254 ms across three runs), so only the consistent results are listed:
+
+   | Benchmark | Format 11 | Format 12 | Change |
+   |---|---|---|---|
+   | `sync_scaling` 250 modules | 73 ms | 62 ms | −11.8% |
+   | `sync_scaling` 1,000 modules | 138 ms | 100 ms | −28.4% |
+   | `sync_scaling` 4,000 modules | 372 ms | 258 ms | −30.6% |
+   | `storage_open/open_then_explore` | 108 ms | 105 ms | no change |
+   | `storage_publish/reindex_full` | 512 ms | 554 ms | +8.1% (regression) |
+   | `storage_open/published_read_only` | 213 µs | 220 µs | +6.7% (regression) |
+
+   `storage_sync/json_edit` read +56% (p < 0.05) in one run and +16%
+   (p = 0.24, not significant) in a second; it needs a quiet re-measurement.
+
 2. **Posting tables.** `names`, `incoming`, `consumers`, `selected`, `cross` as
    base and delta segments. Delta summaries and edge counts. Publish writes one
    delta per table.
