@@ -288,6 +288,54 @@ pub trait GraphSnapshot {
         &self,
     ) -> Result<&std::collections::BTreeMap<String, graph_search_types::source::SourceFileUnits>>;
 
+    /// The source facts of one file, when it has any. Stores that can read one
+    /// file's facts without the rest override this.
+    ///
+    /// # Errors
+    /// When the facts cannot be read or fail verification.
+    fn source_file(
+        &self,
+        path: &str,
+    ) -> Result<Option<graph_search_types::source::SourceFileUnits>> {
+        Ok(self.source_files()?.get(path).cloned())
+    }
+
+    /// Every file's TypeScript configuration facts, reduced to what project
+    /// selection reads (the config, source hash and version).
+    ///
+    /// # Errors
+    /// When the facts cannot be read or fail verification.
+    fn typescript_configs(
+        &self,
+    ) -> Result<std::collections::BTreeMap<String, graph_search_types::source::SourceFileUnits>>
+    {
+        Ok(self
+            .source_files()?
+            .iter()
+            .filter_map(|(path, source)| {
+                crate::units::typescript_config_facts(source).map(|facts| (path.clone(), facts))
+            })
+            .collect())
+    }
+
+    /// Every package manifest's facts, reduced to what package context reads
+    /// (the definition and source hash).
+    ///
+    /// # Errors
+    /// When the facts cannot be read or fail verification.
+    fn package_manifests(
+        &self,
+    ) -> Result<std::collections::BTreeMap<String, graph_search_types::source::SourceFileUnits>>
+    {
+        Ok(self
+            .source_files()?
+            .iter()
+            .filter_map(|(path, source)| {
+                crate::units::package_manifest_facts(source).map(|facts| (path.clone(), facts))
+            })
+            .collect())
+    }
+
     /// Immutable native metadata retrieval structures owned by this generation.
     ///
     /// # Errors

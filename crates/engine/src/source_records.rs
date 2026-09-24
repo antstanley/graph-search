@@ -2,6 +2,7 @@
 //! CURRENT commits the index, which transitively commits pack and record bytes.
 
 use crate::record_codec::{DecodeRecord, EncodeRecord};
+#[cfg(test)]
 use graph_search_types::source::SourceFileUnits;
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use std::{
@@ -10,6 +11,7 @@ use std::{
     path::Path,
 };
 
+#[cfg(test)]
 type Files = BTreeMap<String, SourceFileUnits>;
 const DIRECTORY: &str = "source-records";
 pub(crate) const SOURCE_LAYOUT: Layout = Layout {
@@ -87,8 +89,13 @@ impl Reference {
 pub(crate) struct Index {
     format: u32,
     records: BTreeMap<String, Reference>,
+    /// Inflated size of every pack the writer produced or carried, so reuse
+    /// decisions never open a pack.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    packs: BTreeMap<String, u64>,
 }
 
+#[cfg(test)]
 #[derive(Deserialize)]
 #[serde(untagged)]
 enum Stored {
@@ -96,11 +103,13 @@ enum Stored {
     Legacy(Files),
 }
 
+#[cfg(test)]
 fn read_index(dir: &Path) -> io::Result<Stored> {
     let bytes = std::fs::read(dir.join(crate::sidecar::SOURCE_FILE))?;
     decode_index(&bytes)
 }
 
+#[cfg(test)]
 fn decode_index(bytes: &[u8]) -> io::Result<Stored> {
     let stored: Stored = serde_json::from_slice(bytes).map_err(io::Error::other)?;
     if let Stored::Index(index) = &stored {
@@ -387,10 +396,12 @@ fn live_bytes(pack_len: usize, group: &Group<'_>) -> io::Result<usize> {
         }))
 }
 
+#[cfg(test)]
 pub(crate) fn load(dir: &Path) -> io::Result<Files> {
     load_cached(dir).map(|(files, _)| files)
 }
 
+#[cfg(test)]
 /// Owns the exact source descriptor bytes authenticated by CURRENT, after parsing.
 /// Pack bytes are validated once, when this descriptor is consumed by the loader.
 pub(crate) struct Prepared(Stored);
@@ -413,6 +424,7 @@ pub(crate) fn prepare(bytes: &[u8], generation_format: u32) -> io::Result<Prepar
     Ok(Prepared(stored))
 }
 
+#[cfg(test)]
 pub(crate) fn load_cached(dir: &Path) -> io::Result<(Files, Option<Index>)> {
     match read_index(dir) {
         Ok(stored) => load_prepared(dir, Prepared(stored)),
@@ -426,6 +438,7 @@ pub(crate) fn load_cached(dir: &Path) -> io::Result<(Files, Option<Index>)> {
     }
 }
 
+#[cfg(test)]
 pub(crate) fn load_prepared(dir: &Path, prepared: Prepared) -> io::Result<(Files, Option<Index>)> {
     match prepared.0 {
         Stored::Legacy(files) => Ok((files, None)),
@@ -449,6 +462,8 @@ struct Pending {
 }
 struct Writer<'a> {
     directory: &'a Path,
+    /// Inflated sizes of the packs this index references.
+    sizes: BTreeMap<String, u64>,
     records: BTreeMap<String, Reference>,
     known: BTreeMap<String, Reference>,
     written: BTreeSet<String>,
@@ -460,6 +475,7 @@ impl<'a> Writer<'a> {
     fn new(directory: &'a Path, limit: usize) -> Self {
         Self {
             directory,
+            sizes: BTreeMap::new(),
             records: BTreeMap::new(),
             known: BTreeMap::new(),
             written: BTreeSet::new(),
@@ -526,8 +542,12 @@ impl<'a> Writer<'a> {
         }
         let file = crate::compress::deflate(&self.bytes)?;
         let pack = graph_search_core::hash::content_hash(&file);
-        if self.written.insert(pack.clone()) {
-            crate::generation::replace(&self.directory.join(&pack), &file)?;
+        self.sizes.insert(pack.clone(), self.bytes.len() as u64);
+        // Content-named: a pack already present in a shared directory is the
+        // same pack, committed by an earlier generation.
+        let target = self.directory.join(&pack);
+        if self.written.insert(pack.clone()) && !target.exists() {
+            crate::generation::replace(&target, &file)?;
         }
         for (hash, pending) in std::mem::take(&mut self.pending) {
             let reference = Reference::Packed(Packed {
@@ -613,10 +633,36 @@ pub(crate) fn save_records<T: EncodeRecord>(
     )
 }
 
+#[cfg(test)]
 /// `retained` is an explicit identity-validated set with no in-memory payloads.
 /// Repacking copies authenticated record bytes and does not deserialize them.
+/// Writes the packs and the index into `dir`.
 #[allow(clippy::too_many_arguments)]
 pub(crate) fn save_records_retaining<T: EncodeRecord>(
+    dir: &Path,
+    layout: Layout,
+    files: &BTreeMap<String, T>,
+    previous: &Path,
+    old_index: Option<&Index>,
+    retained: &BTreeSet<String>,
+    unchanged: impl Fn(&str, &T) -> io::Result<bool>,
+) -> io::Result<Index> {
+    let index = save_packs(dir, layout, files, previous, old_index, retained, unchanged)?;
+    write_index(dir, layout, &index)?;
+    Ok(index)
+}
+
+/// Writes `index` as the layout's index artifact in `dir`.
+pub(crate) fn write_index(dir: &Path, layout: Layout, index: &Index) -> io::Result<()> {
+    let bytes = serde_json::to_vec(index).map_err(io::Error::other)?;
+    crate::generation::replace(&dir.join(layout.index), &bytes)
+}
+
+/// Writes the packs of the next index into `dir` and returns the index. When
+/// `previous` is `dir` (a directory every generation shares), a healthy pack is
+/// carried forward by reference alone: nothing is read, linked or copied.
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn save_packs<T: EncodeRecord>(
     dir: &Path,
     layout: Layout,
     files: &BTreeMap<String, T>,
@@ -630,8 +676,13 @@ pub(crate) fn save_records_retaining<T: EncodeRecord>(
     }) {
         return Err(io::Error::other("invalid retained record set"));
     }
+    let shared = dir == previous;
     let directory = dir.join(layout.directory);
-    std::fs::create_dir(&directory)?;
+    if shared {
+        std::fs::create_dir_all(&directory)?;
+    } else {
+        std::fs::create_dir(&directory)?;
+    }
     let mut writer = Writer::new(&directory, layout.pack_bytes);
     let mut reusable: BTreeMap<&str, Group<'_>> = BTreeMap::new();
     // Older JSON-record generations are rebuilt, never mixed into a native index.
@@ -655,9 +706,17 @@ pub(crate) fn save_records_retaining<T: EncodeRecord>(
             }
         }
     }
+    // Pack sizes come from the index; only an index that predates recording
+    // them reads a frame header.
+    let size = |hash: &str| -> io::Result<u64> {
+        match old_index.and_then(|index| index.packs.get(hash)) {
+            Some(size) => Ok(*size),
+            None => raw_len(&previous.join(layout.directory).join(hash)),
+        }
+    };
     let mut small = 0usize;
     for hash in reusable.keys() {
-        if raw_len(&previous.join(layout.directory).join(hash))? < layout.small_pack_bytes() {
+        if size(hash)? < layout.small_pack_bytes() {
             small = small.saturating_add(1);
         }
     }
@@ -667,11 +726,11 @@ pub(crate) fn save_records_retaining<T: EncodeRecord>(
         let packed = group
             .iter()
             .all(|(_, reference)| matches!(reference, Reference::Packed(_)));
-        // A healthy pack is carried over from its frame header and the index
-        // alone: its name is its content hash, so every reader still verifies it
-        // before use, and publishing never reads bytes it does not rewrite.
+        // A healthy pack is carried over from its size and the index alone: its
+        // name is its content hash, so every reader still verifies it before
+        // use, and publishing never reads bytes it does not rewrite.
         let len = if packed {
-            usize::try_from(raw_len(&source)?).map_err(io::Error::other)?
+            usize::try_from(size(hash)?).map_err(io::Error::other)?
         } else {
             0
         };
@@ -686,9 +745,11 @@ pub(crate) fn save_records_retaining<T: EncodeRecord>(
             }
             continue;
         }
-        let target = directory.join(hash);
-        link_or_copy(&source, &target, hash)?;
+        if !shared {
+            link_or_copy(&source, &directory.join(hash), hash)?;
+        }
         writer.written.insert(hash.to_owned());
+        writer.sizes.insert(hash.to_owned(), len as u64);
         for (path, reference) in group {
             writer.retain(path, reference);
         }
@@ -700,13 +761,24 @@ pub(crate) fn save_records_retaining<T: EncodeRecord>(
     }
     writer.flush()?;
     crate::generation::sync_dir(&directory)?;
-    let index = Index {
+    let referenced: BTreeSet<&str> = writer.records.values().map(Reference::pack).collect();
+    let packs = writer
+        .sizes
+        .into_iter()
+        .filter(|(hash, _)| referenced.contains(hash.as_str()))
+        .collect();
+    Ok(Index {
         format: NATIVE_FORMAT,
         records: writer.records,
-    };
-    let bytes = serde_json::to_vec(&index).map_err(io::Error::other)?;
-    crate::generation::replace(&dir.join(layout.index), &bytes)?;
-    Ok(index)
+        packs,
+    })
+}
+
+impl Index {
+    /// Every pack this index references, by file name.
+    pub(crate) fn pack_names(&self) -> BTreeSet<&str> {
+        self.records.values().map(Reference::pack).collect()
+    }
 }
 
 #[cfg(test)]
@@ -772,6 +844,7 @@ mod tests {
         let index = Index {
             format: NATIVE_FORMAT,
             records: writer.records,
+            packs: BTreeMap::new(),
         };
         index.verify(root.path(), SOURCE_LAYOUT).unwrap();
         assert_eq!(index.records["a"].pack(), index.records["b"].pack());
@@ -831,6 +904,7 @@ mod tests {
         let index = Index {
             format: NATIVE_FORMAT,
             records: writer.records,
+            packs: BTreeMap::new(),
         };
         index.verify(root.path(), SOURCE_LAYOUT).unwrap();
         assert_eq!(index.records["a"], index.records["a-copy"]);
@@ -942,18 +1016,19 @@ mod tests {
         std::fs::write(&blob, b"{}").unwrap();
         assert!(load(root.path()).is_err());
         assert!(verify(root.path(), 5).is_err());
+        // A pack carried forward is not read when publishing: the corrupt pack
+        // reaches the new generation and its first reader fails.
         let destination = tempfile::tempdir().unwrap();
-        assert!(
-            save_cached(
-                destination.path(),
-                &files,
-                root.path(),
-                &files,
-                Some(&index),
-                None
-            )
-            .is_err()
-        );
+        save_cached(
+            destination.path(),
+            &files,
+            root.path(),
+            &files,
+            Some(&index),
+            None,
+        )
+        .unwrap();
+        assert!(load(destination.path()).is_err());
         std::fs::remove_file(blob).unwrap();
         assert!(load(root.path()).is_err());
         let Reference::Packed(reference) = index.records.get_mut("a.rs").unwrap() else {
@@ -1089,34 +1164,6 @@ mod tests {
     }
 
     #[test]
-    fn legacy_maps_and_individual_records_upgrade_to_packs() {
-        let old = tempfile::tempdir().unwrap();
-        let new = tempfile::tempdir().unwrap();
-        assert!(load(old.path()).unwrap().is_empty());
-        let files = Files::from([("format".into(), record("a"))]);
-        crate::sidecar::save_sources(old.path(), &files).unwrap();
-        assert_eq!(load(old.path()).unwrap(), files);
-        save(new.path(), &files, old.path(), &files);
-        assert_eq!(load(new.path()).unwrap(), files);
-        let singles = tempfile::tempdir().unwrap();
-        std::fs::create_dir(singles.path().join(DIRECTORY)).unwrap();
-        let bytes = serde_json::to_vec(&files["format"]).unwrap();
-        let hash = graph_search_core::hash::content_hash(&bytes);
-        std::fs::write(singles.path().join(DIRECTORY).join(&hash), bytes).unwrap();
-        let legacy = Index {
-            format: 1,
-            records: BTreeMap::from([("format".into(), Reference::Single(hash))]),
-        };
-        write_index(singles.path(), &legacy);
-        verify(singles.path(), 4).unwrap();
-        assert_eq!(load(singles.path()).unwrap(), files);
-        let upgraded = tempfile::tempdir().unwrap();
-        let index = save(upgraded.path(), &files, singles.path(), &files);
-        assert_eq!(index.format, NATIVE_FORMAT);
-        assert_eq!(load(upgraded.path()).unwrap(), files);
-    }
-
-    #[test]
     fn pack_rollover_dedup_and_oversized_records_preserve_exact_bytes() {
         let root = tempfile::tempdir().unwrap();
         let directory = root.path().join(DIRECTORY);
@@ -1138,6 +1185,7 @@ mod tests {
         let index = Index {
             format: NATIVE_FORMAT,
             records: writer.records,
+            packs: BTreeMap::new(),
         };
         assert_eq!(groups(&index).len(), 2);
         assert_eq!(index.records["a"], index.records["duplicate"]);

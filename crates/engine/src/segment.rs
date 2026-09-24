@@ -349,6 +349,13 @@ impl Segment {
     }
 }
 
+impl TableRef {
+    /// Every segment file this table references.
+    pub(crate) fn files(&self) -> impl Iterator<Item = &str> {
+        self.segments.iter().map(|segment| segment.file.as_str())
+    }
+}
+
 /// A committed table: base first, then deltas oldest to newest.
 #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -458,15 +465,21 @@ pub(crate) fn publish(
         )?);
         let rows = Table { segments: opened }.rows()?;
         let base = write(&target, name, rows, &BTreeSet::new())?;
+        // The superseded delta is unreferenced; a shared directory's collector
+        // removes it with the other superseded segments.
         let delta_file = target.join(&segments[segments.len().saturating_sub(1)].file);
-        if delta_file != target.join(&base.file) {
+        if source != target && delta_file != target.join(&base.file) {
             let _ = std::fs::remove_file(delta_file);
         }
         return Ok(TableRef {
             segments: vec![base],
         });
     }
-    for segment in &segments[..segments.len().saturating_sub(1)] {
+    // A directory every generation shares already holds the earlier segments.
+    for segment in segments[..segments.len().saturating_sub(1)]
+        .iter()
+        .filter(|_| source != target)
+    {
         let to = target.join(&segment.file);
         if !to.exists() && std::fs::hard_link(source.join(&segment.file), &to).is_err() {
             let bytes = std::fs::read(source.join(&segment.file))?;

@@ -174,6 +174,28 @@ a clean rebuild, and is measured with Criterion (see `AGENTS.md`).
    table, which phases 3 and 4 remove. A full re-index is slower because every
    shard, table row and dependency record is written through the per-file
    paths.
+1b. **Shared objects and keyed reconciliation reads (format 11). Done.** Packs
+   and segments live in one store-level `objects/` directory; a publish writes
+   new objects and references the rest, instead of hard-linking every pack into
+   every generation (a 4,000-module store has 447 shard packs). Each generation
+   lists its objects, and a collector removes objects no remaining generation
+   lists. Pack indexes record inflated pack sizes, so reuse opens no pack.
+   Reconciliation no longer reads the whole graph when a dependency index
+   exists, reads single source records through `GraphSnapshot::source_file`,
+   takes TypeScript configurations and package manifests from their own posting
+   tables, and computes coverage by delta. Criterion against `05b17e5`, each
+   revision in its own target directory:
+
+   | Benchmark | Phase 1 | Now | Change |
+   |---|---|---|---|
+   | `sync_scaling` 250 modules | 117 ms | 68 ms | −40.7% |
+   | `sync_scaling` 1,000 modules | 271 ms | 125 ms | −56.4% |
+   | `sync_scaling` 4,000 modules | 902 ms | 321 ms | −64.4% |
+   | `storage_sync/rust_body_edit` | 136 ms | 59 ms | −58.0% |
+   | `storage_sync/json_edit` | 179 ms | 60 ms | −64.3% |
+   | `storage_open/open_then_text` | 5.7 ms | 4.9 ms | −11.5% |
+   | `storage_publish/reindex_full` | 527 ms | 506 ms | no change |
+
 2. **Posting tables.** `names`, `incoming`, `consumers`, `selected`, `cross` as
    base and delta segments. Delta summaries and edge counts. Publish writes one
    delta per table.

@@ -393,7 +393,7 @@ fn noop_sync_needs_only_the_header_and_timestamp_refresh_keeps_raw_facts() {
         .unwrap()
         .unwrap();
     assert!(before.entries["a.rs"].extraction.is_some());
-    let pack = std::fs::read_dir(generation.join("extraction-records"))
+    let pack = std::fs::read_dir(index.store_dir().join("objects").join("extraction-records"))
         .unwrap()
         .next()
         .unwrap()

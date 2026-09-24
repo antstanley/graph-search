@@ -719,6 +719,34 @@ pub fn validate_batch<'a>(
     Ok(())
 }
 
+/// A source's TypeScript configuration facts alone, when it has any.
+#[must_use]
+pub fn typescript_config_facts(source: &SourceFileUnits) -> Option<SourceFileUnits> {
+    source
+        .typescript_config
+        .as_ref()
+        .map(|config| SourceFileUnits {
+            typescript_config: Some(config.clone()),
+            source_hash: source.source_hash.clone(),
+            version: source.version,
+            ..SourceFileUnits::default()
+        })
+}
+
+/// A source's package manifest facts alone, when it has any.
+#[must_use]
+pub fn package_manifest_facts(source: &SourceFileUnits) -> Option<SourceFileUnits> {
+    source
+        .package_manifest
+        .as_ref()
+        .map(|definition| SourceFileUnits {
+            package_manifest: Some(definition.clone()),
+            source_hash: source.source_hash.clone(),
+            version: source.version,
+            ..SourceFileUnits::default()
+        })
+}
+
 /// Whether `path` is a recognized package manifest (`Cargo.toml`,
 /// `package.json`, `pnpm-workspace.yaml`, `pyproject.toml`).
 #[must_use]

@@ -471,19 +471,22 @@ impl<'a> Projector<'a> {
             .filter(|e| e.quarantine.is_some())
             .count() as u64;
         {
+            // The generation's coverage, less the replaced files' old facts,
+            // plus their new ones.
             let snapshot = store.snapshot()?;
-            let removed_paths: BTreeSet<_> = removed.iter().map(String::as_str).collect();
-            let retained = snapshot
-                .source_files()?
-                .iter()
-                .filter(|(path, _)| {
-                    !changed_paths.contains(*path) && !removed_paths.contains(path.as_str())
-                })
-                .map(|(_, source)| source);
-            let replaced = pending
-                .iter()
-                .filter_map(|item| item.projection.source.as_ref());
-            crate::units::coverage_from(retained.chain(replaced), &mut report.coverage);
+            let mut coverage = *snapshot.source_coverage();
+            let mut old = Vec::new();
+            for path in changed_paths.iter().chain(removed.iter()) {
+                self.check_work()?;
+                old.extend(snapshot.source_file(path)?);
+            }
+            coverage.subtract(&crate::units::SourceCoverage::summarize(old.iter()));
+            coverage.add(&crate::units::SourceCoverage::summarize(
+                pending
+                    .iter()
+                    .filter_map(|item| item.projection.source.as_ref()),
+            ));
+            coverage.apply(&mut report.coverage);
         }
 
         let mut batch = WriteBatch::with_manifest(manifest);
@@ -566,37 +569,21 @@ impl<'a> Projector<'a> {
         pending: &[Pending],
     ) -> Result<BTreeMap<String, graph_search_types::source::SourceFileUnits>> {
         let snapshot = store.snapshot()?;
-        let mut sources = BTreeMap::new();
-        for (path, source) in snapshot.source_files()? {
-            self.check_work()?;
-            if changed_paths.contains(path) || removed.iter().any(|removed| removed == path) {
-                continue;
-            }
-            if source.typescript_config.is_some() {
-                sources.insert(
-                    path.clone(),
-                    graph_search_types::source::SourceFileUnits {
-                        typescript_config: source.typescript_config.clone(),
-                        source_hash: source.source_hash.clone(),
-                        version: source.version,
-                        ..graph_search_types::source::SourceFileUnits::default()
-                    },
-                );
-            }
-        }
+        let removed: BTreeSet<&str> = removed.iter().map(String::as_str).collect();
+        let mut sources: BTreeMap<_, _> = snapshot
+            .typescript_configs()?
+            .into_iter()
+            .filter(|(path, _)| !changed_paths.contains(path) && !removed.contains(path.as_str()))
+            .collect();
         for item in pending {
-            if let Some(source) = &item.projection.source
-                && source.typescript_config.is_some()
+            self.check_work()?;
+            if let Some(facts) = item
+                .projection
+                .source
+                .as_ref()
+                .and_then(crate::units::typescript_config_facts)
             {
-                sources.insert(
-                    item.entry.rel.clone(),
-                    graph_search_types::source::SourceFileUnits {
-                        typescript_config: source.typescript_config.clone(),
-                        source_hash: source.source_hash.clone(),
-                        version: source.version,
-                        ..graph_search_types::source::SourceFileUnits::default()
-                    },
-                );
+                sources.insert(item.entry.rel.clone(), facts);
             }
         }
         Ok(sources)
@@ -616,10 +603,10 @@ impl<'a> Projector<'a> {
             .collect();
         let snapshot = store.snapshot()?;
         let mut catalog = crate::packages::Catalog::new(known);
-        for (path, source) in snapshot.source_files()? {
+        for (path, source) in snapshot.package_manifests()? {
             self.check_work()?;
             if !replaced.contains(path.as_str()) {
-                catalog.add(path, source);
+                catalog.add(&path, &source);
             }
         }
         for item in pending.iter() {
@@ -650,8 +637,19 @@ impl<'a> Projector<'a> {
         boundary_changed: bool,
     ) -> Result<()> {
         let snapshot = store.snapshot()?;
-        let nodes = snapshot.all_nodes()?;
-        let edges = snapshot.all_edges()?;
+        // With a dependency index, repair reads only the index and the file
+        // nodes of the paths it rebinds; the whole graph is read only for the
+        // conservative fallback.
+        let indexed = store.dependency_index()?.is_some();
+        let (nodes, edges) = if indexed {
+            (Vec::new(), Vec::new())
+        } else {
+            (snapshot.all_nodes()?, snapshot.all_edges()?)
+        };
+        let languages: BTreeMap<&str, Language> = entries
+            .iter()
+            .filter_map(|entry| Some((entry.rel.as_str(), entry.language?)))
+            .collect();
         let paths: BTreeMap<_, _> = nodes.iter().map(|n| (&n.id, n.path.as_str())).collect();
         let files: BTreeMap<_, _> = nodes
             .iter()
@@ -699,9 +697,9 @@ impl<'a> Projector<'a> {
                         .keys()
                         .filter(|path| new_files.contains(*path))
                         .filter(|path| {
-                            files
+                            languages
                                 .get(path.as_str())
-                                .and_then(|node| node.language)
+                                .copied()
                                 .or_else(|| self.policy.language_for(Path::new(path)))
                                 .is_some_and(crate::resolve::js_family)
                         })
@@ -948,7 +946,12 @@ impl<'a> Projector<'a> {
             .filter(|e| dirty.contains(&e.rel) && !parsed.contains(&e.rel))
         {
             self.check_work()?;
-            let cached = previous.get(&entry.rel).zip(files.get(entry.rel.as_str()));
+            let file = if indexed {
+                snapshot.node_by_id(&graph_search_types::NodeId::file(&entry.rel))?
+            } else {
+                files.get(entry.rel.as_str()).map(|node| (*node).clone())
+            };
+            let cached = previous.get(&entry.rel).zip(file);
             if let Some((stored, file)) = cached {
                 let facts = selected
                     .as_ref()
@@ -962,8 +965,8 @@ impl<'a> Projector<'a> {
                     entry: entry.clone(),
                     hash: stored.content_hash.clone(),
                     projection: FileProjection {
-                        file: (*file).clone(),
-                        source: snapshot.source_files()?.get(&entry.rel).cloned(),
+                        file,
+                        source: snapshot.source_file(&entry.rel)?,
                         quarantine: if facts.is_none() {
                             stored
                                 .quarantine

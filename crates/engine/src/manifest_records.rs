@@ -32,6 +32,11 @@ impl Verified {
     pub(crate) fn paths(&self) -> BTreeSet<String> {
         self.0.paths().map(str::to_owned).collect()
     }
+
+    /// Every pack the index references, by file name.
+    pub(crate) fn pack_names(&self) -> BTreeSet<&str> {
+        self.0.pack_names()
+    }
 }
 
 fn identities(manifest: &Manifest) -> Identities {
@@ -155,9 +160,11 @@ fn hydrate_records(
 
 /// Standalone sidecar compatibility helper. Published stores use the index
 /// authenticated and cached during generation selection instead.
-pub(crate) fn load(dir: &Path, header: Manifest) -> io::Result<Manifest> {
+/// The manifest with the extraction records `dir`'s index commits, read from
+/// the packs in `packs`.
+pub(crate) fn load(dir: &Path, packs: &Path, header: Manifest) -> io::Result<Manifest> {
     match std::fs::read(dir.join(FILE)) {
-        Ok(bytes) => hydrate_records(&header, prepare(&bytes, &header)?.load(dir, LAYOUT)?),
+        Ok(bytes) => hydrate_records(&header, prepare(&bytes, &header)?.load(packs, LAYOUT)?),
         Err(error) if error.kind() == io::ErrorKind::NotFound => Ok(header),
         Err(error) => Err(error),
     }
@@ -173,10 +180,24 @@ pub(crate) fn save(
     save_retaining(dir, manifest, previous, old, &BTreeSet::new())
 }
 
+#[cfg(test)]
 pub(crate) fn save_retaining(
     dir: &Path,
     manifest: &Manifest,
     previous: &Path,
+    old: Option<&Verified>,
+    retained: &BTreeSet<String>,
+) -> io::Result<Verified> {
+    save_into(dir, dir, previous, manifest, old, retained)
+}
+
+/// Writes the index into `dir` and the packs into `packs`, reusing packs from
+/// `previous` (the same directory when every generation shares one).
+pub(crate) fn save_into(
+    dir: &Path,
+    packs: &Path,
+    previous: &Path,
+    manifest: &Manifest,
     old: Option<&Verified>,
     retained: &BTreeSet<String>,
 ) -> io::Result<Verified> {
@@ -194,8 +215,8 @@ pub(crate) fn save_retaining(
                 .map_err(|_| io::Error::other("extraction identity lock poisoned"))
         })
         .transpose()?;
-    let index = crate::source_records::save_records_retaining(
-        dir,
+    let index = crate::source_records::save_packs(
+        packs,
         LAYOUT,
         &files,
         previous,
@@ -218,6 +239,7 @@ pub(crate) fn save_retaining(
             old.map_or(Ok(false), |index| index.0.matches(path, entry))
         },
     )?;
+    crate::source_records::write_index(dir, LAYOUT, &index)?;
     // New slices are hashed by the writer; retained references came from Verified.
     Ok(Verified(
         index,
@@ -453,7 +475,7 @@ mod tests {
         assert!(hydrate(dir.path(), &wrong_hash, &index).is_err());
         std::fs::write(dir.path().join(FILE), b"invalid index").unwrap();
         assert_eq!(hydrate(dir.path(), &header, &index).unwrap(), manifest);
-        assert!(load(dir.path(), header.clone()).is_err());
+        assert!(load(dir.path(), dir.path(), header.clone()).is_err());
         let pack = std::fs::read_dir(dir.path().join(LAYOUT.directory))
             .unwrap()
             .next()

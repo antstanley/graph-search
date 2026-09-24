@@ -13,7 +13,14 @@ use std::sync::atomic::{AtomicU64, Ordering};
 pub(crate) const CURRENT: &str = "CURRENT";
 /// Format 10: per-file shards and posting tables replace the Grafeo graph file
 /// and the whole-workspace sidecars (`research/16-proportional-sync.md`).
-const FORMAT: u32 = 10;
+/// Format 11: packs and segments live in one store-level object directory
+/// that every generation references, instead of being linked into each.
+const FORMAT: u32 = 11;
+/// The store-level directory of content-addressed packs and segments.
+pub(crate) const OBJECTS: &str = "objects";
+/// Every object a generation references, relative to [`OBJECTS`]: what the
+/// collector keeps alive for as long as the generation exists.
+pub(crate) const OBJECT_LIST: &str = "objects.json";
 /// An empty file every generation holds: readers pin it with a shared lock and
 /// reclamation takes it exclusively.
 pub(crate) const LEASE: &str = "lease";
@@ -92,7 +99,7 @@ pub(crate) struct Selected {
 }
 
 /// The published generation, or `None` when nothing is published or the
-/// published generation predates format 10 (it is rebuilt, never migrated).
+/// published generation predates format 11 (it is rebuilt, never migrated).
 pub(crate) fn current(root: &Path) -> io::Result<Option<Selected>> {
     match read_current(root, |bytes| select(root, bytes)) {
         Err(error) if error.kind() == io::ErrorKind::Unsupported => Ok(None),
@@ -143,7 +150,7 @@ fn select(root: &Path, bytes: &[u8]) -> io::Result<Selected> {
     if pointer.format < FORMAT {
         return Err(io::Error::new(
             io::ErrorKind::Unsupported,
-            "generation predates format 10 and must be rebuilt",
+            "generation predates format 11 and must be rebuilt",
         ));
     }
     let dir = root.join("generations").join(pointer.id);
@@ -285,6 +292,47 @@ pub(crate) fn committed(dir: &Path, files: BTreeMap<String, String>) -> Committe
     Committed {
         dir: dir.to_path_buf(),
         files,
+    }
+}
+
+/// Removes every object no remaining generation lists. Runs under the writer
+/// lock after reclamation; a generation directory without an object list (an
+/// unfinished publication) makes it keep everything until that directory goes.
+pub(crate) fn collect(root: &Path) {
+    let Ok(entries) = std::fs::read_dir(root.join("generations")) else {
+        return;
+    };
+    let mut live: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
+    for entry in entries.flatten() {
+        if !entry.file_name().to_str().is_some_and(valid_id) {
+            continue;
+        }
+        let Ok(bytes) = std::fs::read(entry.path().join(OBJECT_LIST)) else {
+            return;
+        };
+        let Ok(names) = serde_json::from_slice::<Vec<String>>(&bytes) else {
+            return;
+        };
+        live.extend(names);
+    }
+    let Ok(families) = std::fs::read_dir(root.join(OBJECTS)) else {
+        return;
+    };
+    for family in families.flatten() {
+        let Some(family_name) = family.file_name().to_str().map(str::to_owned) else {
+            continue;
+        };
+        let Ok(objects) = std::fs::read_dir(family.path()) else {
+            continue;
+        };
+        for object in objects.flatten() {
+            let Some(name) = object.file_name().to_str().map(str::to_owned) else {
+                continue;
+            };
+            if !live.contains(&format!("{family_name}/{name}")) {
+                let _ = std::fs::remove_file(object.path());
+            }
+        }
     }
 }
 

@@ -23,7 +23,17 @@ pub fn load_manifest(store_dir: &Path) -> std::io::Result<Option<Manifest>> {
     };
     let manifest = serde_json::from_str(&text)
         .map_err(|error| std::io::Error::new(std::io::ErrorKind::InvalidData, error.to_string()))?;
-    crate::manifest_records::load(store_dir, manifest).map(Some)
+    // A generation keeps its packs in the store's object directory; a bare
+    // directory keeps them beside its index.
+    let packs = if store_dir
+        .join(crate::manifest_records::LAYOUT.directory)
+        .is_dir()
+    {
+        store_dir.to_path_buf()
+    } else {
+        objects_of(store_dir)
+    };
+    crate::manifest_records::load(store_dir, &packs, manifest).map(Some)
 }
 
 /// Writes the manifest atomically.
@@ -51,39 +61,49 @@ pub(crate) fn prepare_manifest(store_dir: &Path, manifest: &Manifest) -> std::io
 
 /// Source retrieval facts published and checksummed with the graph generation.
 pub const SOURCE_FILE: &str = "source-units.json";
-/// Reads native source facts. Missing legacy sidecars have no source coverage.
+/// The store-level object directory of a generation directory
+/// (`<store>/generations/<id>`).
+fn objects_of(generation: &Path) -> std::path::PathBuf {
+    generation.parent().and_then(Path::parent).map_or_else(
+        || generation.to_path_buf(),
+        |store| store.join(crate::generation::OBJECTS),
+    )
+}
+
+/// Reads the native source facts a generation directory commits.
 /// # Errors
 /// On unreadable or malformed data.
 pub fn load_sources(
-    dir: &Path,
+    generation: &Path,
 ) -> std::io::Result<std::collections::BTreeMap<String, graph_search_types::source::SourceFileUnits>>
 {
-    crate::source_records::load(dir)
+    let bytes = std::fs::read(generation.join(SOURCE_FILE))?;
+    crate::source_records::Index::decode_packed(&bytes)?.load(
+        &objects_of(generation),
+        crate::source_records::SOURCE_LAYOUT,
+    )
 }
 
-/// Writes native source facts into `dir`, replacing any it holds: a fresh
-/// pack index and packs. The caller commits the index artifact.
+/// Replaces the native source facts a generation directory commits: new packs
+/// in the store's object directory and a fresh index. The caller commits the
+/// index artifact.
 /// # Errors
 /// On serialization, write or sync failure.
 pub fn save_sources(
-    dir: &Path,
+    generation: &Path,
     sources: &std::collections::BTreeMap<String, graph_search_types::source::SourceFileUnits>,
 ) -> std::io::Result<()> {
-    let records = dir.join(crate::source_records::SOURCE_LAYOUT.directory);
-    match std::fs::remove_dir_all(&records) {
-        Err(error) if error.kind() != std::io::ErrorKind::NotFound => return Err(error),
-        _ => {}
-    }
-    crate::source_records::save_records_retaining(
-        dir,
+    let objects = objects_of(generation);
+    let index = crate::source_records::save_packs(
+        &objects,
         crate::source_records::SOURCE_LAYOUT,
         sources,
-        Path::new(""),
+        &objects,
         None,
         &std::collections::BTreeSet::new(),
         |_, _| Ok(false),
-    )
-    .map(drop)
+    )?;
+    crate::source_records::write_index(generation, crate::source_records::SOURCE_LAYOUT, &index)
 }
 
 #[cfg(test)]

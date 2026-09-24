@@ -33,6 +33,12 @@ use std::sync::{Arc, OnceLock, RwLock};
 
 /// Maps each package manifest path to the files whose source facts name it.
 const PACKAGE_MEMBERS: &str = "package_members";
+/// Each file's TypeScript configuration facts, keyed by its path.
+const TYPESCRIPT_CONFIGS: &str = "typescript_configs";
+/// Each package manifest's facts, keyed by its path.
+const PACKAGE_MANIFESTS: &str = "package_manifests";
+/// Tables owned by source facts; their rows are replaced with a file's source.
+const SOURCE_TABLES: [&str; 3] = [PACKAGE_MEMBERS, TYPESCRIPT_CONFIGS, PACKAGE_MANIFESTS];
 
 /// How the store is opened.
 #[derive(Clone, Debug, Default)]
@@ -192,6 +198,11 @@ impl NativeStore {
         &self.store_dir
     }
 
+    /// The store-level directory of packs and segments every generation shares.
+    fn objects(&self) -> PathBuf {
+        self.store_dir.join(generation::OBJECTS)
+    }
+
     fn ensure_available(&self) -> Result<()> {
         if self.unavailable {
             return Err(Error::Store(String::from(
@@ -260,7 +271,7 @@ impl NativeStore {
                 .tables
                 .iter()
                 .map(|(name, reference)| {
-                    Table::open(&self.data_dir, reference)
+                    Table::open(&self.objects(), reference)
                         .map(|table| (name.clone(), table))
                         .map_err(store_io)
                 })
@@ -317,7 +328,7 @@ impl NativeStore {
             return Ok(out);
         };
         let loaded: BTreeMap<String, Shard> = index
-            .load_selected_verified(&self.data_dir, crate::shards::LAYOUT, &missing)
+            .load_selected_verified(&self.objects(), crate::shards::LAYOUT, &missing)
             .map_err(store_io)?;
         let mut cache = self.shards.write().map_err(|_| poisoned())?;
         for (path, shard) in loaded {
@@ -385,7 +396,7 @@ impl NativeStore {
                 return Ok(BTreeMap::new());
             };
             let files: BTreeMap<String, SourceFileUnits> = index
-                .load(&self.data_dir, SOURCE_LAYOUT)
+                .load(&self.objects(), SOURCE_LAYOUT)
                 .map_err(store_io)?;
             if !files.is_empty() {
                 let nodes = self.nodes()?;
@@ -400,6 +411,58 @@ impl NativeStore {
             }
             Ok(files)
         })
+    }
+
+    /// One file's source facts, validated against its file's nodes and, for
+    /// package facts, its manifest's file node.
+    fn source(&self, path: &str) -> Result<Option<SourceFileUnits>> {
+        if let Some(all) = self.sources.get() {
+            return Ok(all.get(path).cloned());
+        }
+        let Some(index) = self.source_index()? else {
+            return Ok(None);
+        };
+        let wanted = BTreeSet::from([path.to_owned()]);
+        let Some(source) = index
+            .load_selected_verified::<SourceFileUnits>(&self.objects(), SOURCE_LAYOUT, &wanted)
+            .map_err(store_io)?
+            .remove(path)
+        else {
+            return Ok(None);
+        };
+        let shard = self
+            .shard(path)?
+            .ok_or_else(|| Error::Store(format!("source facts without file owner: {path}")))?;
+        let file = shard
+            .file()
+            .ok_or_else(|| Error::Store(format!("source facts without file owner: {path}")))?;
+        let manifest = match source.package.as_ref() {
+            Some(package) => self.node(&NodeId::file(&package.manifest_path))?,
+            None => None,
+        };
+        graph_search_core::units::validate(file, &source, |id| {
+            shard
+                .node(id)
+                .or_else(|| manifest.as_ref().filter(|node| &node.id == id))
+        })?;
+        Ok(Some(source))
+    }
+
+    /// Every row of a source-owned facts table, decoded.
+    fn source_facts(&self, table: &str) -> Result<BTreeMap<String, SourceFileUnits>> {
+        let Some(table) = self.tables()?.get(table) else {
+            return Ok(BTreeMap::new());
+        };
+        table
+            .rows()
+            .map_err(store_io)?
+            .into_iter()
+            .map(|row| {
+                serde_json::from_str(&row.value)
+                    .map(|facts| (row.key, facts))
+                    .map_err(|error| Error::Store(error.to_string()))
+            })
+            .collect()
     }
 
     fn occurrence_files(&self) -> Result<&BTreeMap<String, OccurrenceFile>> {
@@ -538,7 +601,8 @@ struct Plan {
     /// New posting rows, per table, and the owners every table replaces.
     rows: BTreeMap<&'static str, Vec<Row>>,
     owners: BTreeSet<String>,
-    member_rows: Vec<Row>,
+    /// New rows of the tables owned by source facts.
+    source_rows: BTreeMap<&'static str, Vec<Row>>,
     summary: generation::Summary,
     outcome: ApplyOutcome,
     dependencies: Option<DependencyIndex>,
@@ -677,7 +741,7 @@ impl NativeStore {
         if !members.is_empty() {
             let sources: BTreeMap<String, SourceFileUnits> = match self.source_index()? {
                 Some(index) => index
-                    .load_selected_verified(&self.data_dir, SOURCE_LAYOUT, &members)
+                    .load_selected_verified(&self.objects(), SOURCE_LAYOUT, &members)
                     .map_err(store_io)?,
                 None => BTreeMap::new(),
             };
@@ -842,15 +906,35 @@ impl NativeStore {
                     .map(|source| ((*path).to_owned(), source))
             })
             .collect();
-        let member_rows: Vec<Row> = sources
-            .iter()
-            .filter_map(|(path, source)| {
-                source
-                    .package
-                    .as_ref()
-                    .map(|package| Row::new(package.manifest_path.clone(), path.clone(), ""))
-            })
-            .collect();
+        let mut source_rows: BTreeMap<&'static str, Vec<Row>> = BTreeMap::new();
+        for (path, source) in &sources {
+            if let Some(package) = &source.package {
+                source_rows
+                    .entry(PACKAGE_MEMBERS)
+                    .or_default()
+                    .push(Row::new(package.manifest_path.clone(), path.clone(), ""));
+            }
+            for (table, facts) in [
+                (
+                    TYPESCRIPT_CONFIGS,
+                    graph_search_core::units::typescript_config_facts(source),
+                ),
+                (
+                    PACKAGE_MANIFESTS,
+                    graph_search_core::units::package_manifest_facts(source),
+                ),
+            ] {
+                if let Some(facts) = facts {
+                    let value = serde_json::to_string(&facts)
+                        .map_err(|error| Error::Store(error.to_string()))?;
+                    source_rows.entry(table).or_default().push(Row::new(
+                        path.clone(),
+                        path.clone(),
+                        value,
+                    ));
+                }
+            }
+        }
 
         // Summary by delta: remove what the replaced shards and sources
         // counted, add what their replacements count.
@@ -872,7 +956,7 @@ impl NativeStore {
         );
         let old_sources: BTreeMap<String, SourceFileUnits> = match self.source_index()? {
             Some(index) => index
-                .load_selected_verified(&self.data_dir, SOURCE_LAYOUT, &touched)
+                .load_selected_verified(&self.objects(), SOURCE_LAYOUT, &touched)
                 .map_err(store_io)?,
             None => BTreeMap::new(),
         };
@@ -905,7 +989,7 @@ impl NativeStore {
             source_owners: touched,
             rows,
             owners: owners_replaced,
-            member_rows,
+            source_rows,
             summary,
             outcome: ApplyOutcome {
                 nodes_upserted: batch
@@ -1049,6 +1133,7 @@ impl NativeStore {
         let previous = std::mem::replace(&mut self.data_dir, dir.clone());
         let outcome = self.adopt(&dir, files, plan, written, manifest)?;
         generation::reclaim(&self.store_dir, &self.data_dir, &previous);
+        generation::collect(&self.store_dir);
         Ok(outcome)
     }
 }
@@ -1075,7 +1160,7 @@ impl NativeStore {
         std::fs::File::create(dir.join(generation::LEASE))
             .and_then(|file| file.sync_all())
             .map_err(store_io)?;
-        let previous = self.data_dir.as_path();
+        let objects = self.objects();
 
         // Shards: write the planned ones, carry every other by reference.
         let old_shards = self.shard_index()?;
@@ -1095,16 +1180,18 @@ impl NativeStore {
             .iter()
             .map(|(path, shard)| (path.clone(), shard))
             .collect();
-        let shards = crate::source_records::save_records_retaining(
-            dir,
+        let shards = crate::source_records::save_packs(
+            &objects,
             crate::shards::LAYOUT,
             &shard_records,
-            previous,
+            &objects,
             old_shards,
             &carried,
             |_, _| Ok(false),
         )
         .map_err(store_io)?;
+        crate::source_records::write_index(dir, crate::shards::LAYOUT, &shards)
+            .map_err(store_io)?;
         self.inject("after_shard_persist")?;
 
         // Source records: every touched file's record is replaced or removed.
@@ -1118,26 +1205,27 @@ impl NativeStore {
                     .collect()
             })
             .unwrap_or_default();
-        let sources = crate::source_records::save_records_retaining(
-            dir,
+        let sources = crate::source_records::save_packs(
+            &objects,
             SOURCE_LAYOUT,
             &plan.sources,
-            previous,
+            &objects,
             old_sources,
             &carried,
             |_, _| Ok(false),
         )
         .map_err(store_io)?;
+        crate::source_records::write_index(dir, SOURCE_LAYOUT, &sources).map_err(store_io)?;
         self.inject("after_source_persist")?;
 
         // Posting tables: one delta each, compacted by policy.
         let old_tables = self.table_refs()?;
-        let previous_dir = self.committed.as_ref().map(|_| previous);
+        let previous_dir = self.committed.as_ref().map(|_| objects.as_path());
         let mut tables = Tables::default();
         for table in crate::shards::TABLES {
             let rows = plan.rows.get(table).cloned().unwrap_or_default();
             let reference = crate::segment::publish(
-                dir,
+                &objects,
                 table,
                 previous_dir,
                 old_tables.tables.get(table).unwrap_or(&TableRef::default()),
@@ -1147,20 +1235,19 @@ impl NativeStore {
             .map_err(store_io)?;
             tables.tables.insert(table.to_owned(), reference);
         }
-        let members = crate::segment::publish(
-            dir,
-            PACKAGE_MEMBERS,
-            previous_dir,
-            old_tables
-                .tables
-                .get(PACKAGE_MEMBERS)
-                .unwrap_or(&TableRef::default()),
-            &plan.source_owners,
-            plan.member_rows.clone(),
-        )
-        .map_err(store_io)?;
-        tables.tables.insert(PACKAGE_MEMBERS.to_owned(), members);
-        generation::sync_dir(&dir.join(crate::segment::DIRECTORY)).map_err(store_io)?;
+        for table in SOURCE_TABLES {
+            let reference = crate::segment::publish(
+                &objects,
+                table,
+                previous_dir,
+                old_tables.tables.get(table).unwrap_or(&TableRef::default()),
+                &plan.source_owners,
+                plan.source_rows.get(table).cloned().unwrap_or_default(),
+            )
+            .map_err(store_io)?;
+            tables.tables.insert(table.to_owned(), reference);
+        }
+        generation::sync_dir(&objects.join(crate::segment::DIRECTORY)).map_err(store_io)?;
         generation::replace(
             &dir.join(generation::TABLES),
             &serde_json::to_vec(&tables).map_err(|error| Error::Store(error.to_string()))?,
@@ -1171,10 +1258,11 @@ impl NativeStore {
         let mut extraction = None;
         if let Some(manifest) = manifest {
             extraction = Some(
-                crate::manifest_records::save_retaining(
+                crate::manifest_records::save_into(
                     dir,
+                    &objects,
+                    &objects,
                     manifest,
-                    previous,
                     self.extraction_records()?,
                     retained,
                 )
@@ -1188,6 +1276,40 @@ impl NativeStore {
             self.inject("after_dependencies_persist")?;
             sidecar::prepare_manifest(dir, &manifest.header()).map_err(store_io)?;
         }
+        // The objects this generation keeps alive, for the collector.
+        let mut listed: Vec<String> = Vec::new();
+        listed.extend(
+            shards
+                .pack_names()
+                .into_iter()
+                .map(|name| format!("{}/{name}", crate::shards::LAYOUT.directory)),
+        );
+        listed.extend(
+            sources
+                .pack_names()
+                .into_iter()
+                .map(|name| format!("{}/{name}", SOURCE_LAYOUT.directory)),
+        );
+        if let Some(extraction) = &extraction {
+            listed.extend(
+                extraction
+                    .pack_names()
+                    .into_iter()
+                    .map(|name| format!("{}/{name}", crate::manifest_records::LAYOUT.directory)),
+            );
+        }
+        for table in tables.tables.values() {
+            listed.extend(
+                table
+                    .files()
+                    .map(|file| format!("{}/{file}", crate::segment::DIRECTORY)),
+            );
+        }
+        generation::replace(
+            &dir.join(generation::OBJECT_LIST),
+            &serde_json::to_vec(&listed).map_err(|error| Error::Store(error.to_string()))?,
+        )
+        .map_err(store_io)?;
         generation::replace(
             &dir.join(generation::SUMMARY),
             &serde_json::to_vec(&plan.summary).map_err(|error| Error::Store(error.to_string()))?,
@@ -1325,7 +1447,7 @@ impl GraphStore for NativeStore {
         self.ensure_available()?;
         match (&self.manifest_header, self.extraction_records()?) {
             (Some(header), Some(index)) => {
-                crate::manifest_records::hydrate(&self.data_dir, header, index)
+                crate::manifest_records::hydrate(&self.objects(), header, index)
                     .map(Some)
                     .map_err(store_io)
             }
@@ -1344,7 +1466,7 @@ impl GraphStore for NativeStore {
         }
         match (&self.manifest_header, self.extraction_records()?) {
             (Some(header), Some(index)) => {
-                crate::manifest_records::selected(&self.data_dir, header, index, paths)
+                crate::manifest_records::selected(&self.objects(), header, index, paths)
                     .map_err(store_io)
             }
             _ => Ok(BTreeMap::new()),
@@ -1420,6 +1542,18 @@ impl GraphSnapshot for NativeSnapshot<'_> {
 
     fn source_files(&self) -> Result<&BTreeMap<String, SourceFileUnits>> {
         self.store.sources()
+    }
+
+    fn source_file(&self, path: &str) -> Result<Option<SourceFileUnits>> {
+        self.store.source(path)
+    }
+
+    fn typescript_configs(&self) -> Result<BTreeMap<String, SourceFileUnits>> {
+        self.store.source_facts(TYPESCRIPT_CONFIGS)
+    }
+
+    fn package_manifests(&self) -> Result<BTreeMap<String, SourceFileUnits>> {
+        self.store.source_facts(PACKAGE_MANIFESTS)
     }
 
     fn node_by_id(&self, id: &NodeId) -> Result<Option<Node>> {
@@ -1668,7 +1802,9 @@ mod publication_tests {
         for (path, record) in records.iter_mut() {
             let old = crate::compress::inflate_pack(
                 &std::fs::read(
-                    dir.join("extraction-records")
+                    root.path()
+                        .join(generation::OBJECTS)
+                        .join("extraction-records")
                         .join(record["pack"].as_str().unwrap()),
                 )
                 .unwrap(),
@@ -1694,7 +1830,14 @@ mod publication_tests {
         for record in records.values_mut() {
             record["pack"] = hash.clone().into();
         }
-        std::fs::write(dir.join("extraction-records").join(hash), pack).unwrap();
+        std::fs::write(
+            root.path()
+                .join(generation::OBJECTS)
+                .join("extraction-records")
+                .join(hash),
+            pack,
+        )
+        .unwrap();
         let bytes = serde_json::to_vec(&index).unwrap();
         std::fs::write(&index_path, &bytes).unwrap();
         let pointer_path = root.path().join(generation::CURRENT);
@@ -1866,12 +2009,16 @@ mod publication_tests {
         let mut store = NativeStore::open(root.path(), &StoreOptions::default()).unwrap();
         store.publish(fixture_batch()).unwrap();
         let dir = store.data_dir.clone();
-        let pack = std::fs::read_dir(dir.join(crate::manifest_records::LAYOUT.directory))
-            .unwrap()
-            .next()
-            .unwrap()
-            .unwrap()
-            .path();
+        let pack = std::fs::read_dir(
+            root.path()
+                .join(generation::OBJECTS)
+                .join(crate::manifest_records::LAYOUT.directory),
+        )
+        .unwrap()
+        .next()
+        .unwrap()
+        .unwrap()
+        .path();
         let original = std::fs::read(&pack).unwrap();
         std::fs::write(&pack, b"corrupt").unwrap();
         assert!(
@@ -1897,7 +2044,7 @@ mod publication_tests {
         let older = NativeStore::open(root.path(), &StoreOptions::default()).unwrap();
         assert!(older.generation().unwrap().is_none());
         drop(older);
-        pointer["format"] = serde_json::json!(10);
+        pointer["format"] = serde_json::json!(11);
         pointer["files"]
             .as_object_mut()
             .unwrap()
@@ -2081,6 +2228,56 @@ mod publication_tests {
     }
 
     #[test]
+    fn superseded_objects_are_collected_and_listed_objects_survive() {
+        let root = tempfile::tempdir().unwrap();
+        let mut store = NativeStore::open(root.path(), &StoreOptions::default()).unwrap();
+        let count = || walk_objects(&root.path().join(generation::OBJECTS)).len();
+        store.publish(fixture_batch()).unwrap();
+        store.publish(replacement()).unwrap();
+        let steady = count();
+        for stamp in 0..12 {
+            let mut batch = if stamp % 2 == 0 {
+                fixture_batch()
+            } else {
+                replacement()
+            };
+            batch.manifest.indexed_at_ms = 1_000 + stamp;
+            store.publish(batch).unwrap();
+        }
+        // Two live generations, however many publishes: the object set is bounded.
+        assert!(
+            count() <= steady.saturating_mul(2),
+            "{} > 2 × {steady}",
+            count()
+        );
+        for generation_dir in std::fs::read_dir(root.path().join("generations")).unwrap() {
+            let listed: Vec<String> = serde_json::from_slice(
+                &std::fs::read(generation_dir.unwrap().path().join(generation::OBJECT_LIST))
+                    .unwrap(),
+            )
+            .unwrap();
+            for object in listed {
+                assert!(
+                    root.path().join(generation::OBJECTS).join(&object).exists(),
+                    "{object}"
+                );
+            }
+        }
+        let reopened = open_and_read(root.path()).unwrap();
+        assert_eq!(state(&reopened), state(&store));
+    }
+
+    fn walk_objects(dir: &Path) -> Vec<PathBuf> {
+        let mut out = Vec::new();
+        for family in std::fs::read_dir(dir).unwrap() {
+            for object in std::fs::read_dir(family.unwrap().path()).unwrap() {
+                out.push(object.unwrap().path());
+            }
+        }
+        out
+    }
+
+    #[test]
     fn projection_ownership_does_not_parse_hashes_from_paths() {
         let root = tempfile::tempdir().unwrap();
         let mut store = NativeStore::open(root.path(), &StoreOptions::default()).unwrap();
@@ -2191,16 +2388,23 @@ mod publication_tests {
         store.failure = None;
         store.publish(make("replacement body\n")).unwrap();
         assert_ne!(store.sources().unwrap().clone(), original);
-        let pack = std::fs::read_dir(store.data_dir.join("source-records"))
-            .unwrap()
-            .next()
-            .unwrap()
-            .unwrap()
-            .path();
-        let bytes = std::fs::read(&pack).unwrap();
-        std::fs::write(&pack, b"corrupt pack").unwrap();
+        // Every live generation's packs share one directory: damage them all.
+        let packs: Vec<_> =
+            std::fs::read_dir(root.path().join(generation::OBJECTS).join("source-records"))
+                .unwrap()
+                .map(|entry| entry.unwrap().path())
+                .map(|path| {
+                    let bytes = std::fs::read(&path).unwrap();
+                    (path, bytes)
+                })
+                .collect();
+        for (path, _) in &packs {
+            std::fs::write(path, b"corrupt pack").unwrap();
+        }
         assert!(open_and_read(root.path()).is_err());
-        std::fs::write(pack, bytes).unwrap();
+        for (path, bytes) in packs {
+            std::fs::write(path, bytes).unwrap();
+        }
         std::fs::write(store.data_dir.join(sidecar::SOURCE_FILE), b"{}").unwrap();
         assert!(open_and_read(root.path()).is_err());
     }
