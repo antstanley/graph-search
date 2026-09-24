@@ -1,0 +1,173 @@
+# Proportional sync: design and plan
+
+**Date:** 2026-09-24 · **Subject:** `main` `7e46a12` · **Goal:** a sync after an
+edit costs in proportion to what the edit touches, not to the workspace.
+
+Storage format 10. Existing stores must be rebuilt (`graph-search index`). There
+is no migration and no backwards compatibility: the project is in early
+development.
+
+## 1. Where a one-file sync goes today (format 9)
+
+A `sync` after editing one file in a 1,000-file workspace costs about the same as
+a full re-index. This is true for OKF and Rust alike (`okf` Criterion bench:
+Rust 735 ms against a full re-index of about 1 s). Only extraction, per-reference
+resolution and hashing the changed file are proportional to the edit. Everything
+else reads, rebuilds or rewrites the whole workspace.
+
+| Stage | What it touches | Where |
+|---|---|---|
+| Walk, stat, manifest diff | every path (stat only) | `walk.rs`, `manifest.rs` |
+| Dependency index load | inflate + parse all records; `validates()` rebuilds `consumers`/`selected_modules` | `store.rs` `dependencies()`, `dependencies.rs` |
+| `extend_dependents` | `all_nodes()` + `all_edges()` unconditionally, two full passes over records | `reconcile.rs` |
+| `annotate_packages`, `config_sources`, coverage | decode every source record, three times | `reconcile.rs` |
+| Symbol table | third `all_nodes()`, every node cloned into 6-8 maps | `reconcile.rs`, `resolve.rs` |
+| Rust module catalog and paths, JS surfaces, CSS/HTML cross tables | every node / every JS module | `resolve.rs`, `rust_modules.rs`, `rust_paths.rs` |
+| Publish | load every fact, build a fresh in-memory Grafeo from the complete projection, re-validate everything, rebuild summary and dependency index, rewrite `graph.grafeo`, occurrences, dangling, dependencies in full, re-read and inflate every reused pack | `store.rs` `publish_generation`, `persist_prepared` |
+
+Grafeo is the biggest single cost: the whole graph is rebuilt in memory and
+re-serialized every publish, and rebuilt again (`open_read_only`) by every
+reader. Grafeo's WAL does not help: it is a single-process, write-in-place log,
+and the store's model is immutable generations read concurrently by several
+processes under reader leases.
+
+## 2. Target
+
+For an edit touching `c` files whose facts total `f`, with `d` dependents to
+rebind:
+
+- **Sync work is O(f + d·log n)** in facts read, resolved and written.
+- **Per-path bookkeeping stays O(F)** with a small constant: the walk and stat
+  are inherently O(F), and a generation still carries a path → record index.
+  These are bytes per path, not facts per path.
+- **No full-graph read, rebuild or rewrite on the sync path.** `all_nodes` and
+  `all_edges` become bulk operations for tests and conformance only.
+- **Readers pay only for what they ask.** Opening a generation stays O(1) (format
+  9's lazy open); a query loads only the shards and posting ranges it touches.
+
+The integrity contract is kept: no byte is used before it is verified against the
+generation's committed fingerprints, generations are immutable and published
+atomically, and readers keep their generation under a lease.
+
+## 3. Design (format 10)
+
+### 3.1 Per-file shards replace Grafeo
+
+Every fact a file owns lives in one **shard record**: its file node, its symbol
+nodes, every edge it owns (resolved and dangling), its occurrence facts and its
+source units. Shards are stored in the existing content-addressed pack format
+(`source_records`: BLAKE3-named zstd packs, per-record hashes, hard-link reuse).
+A sync writes new shards only for changed and rebound files; every other shard is
+carried over by reference.
+
+Node identity already encodes its owning path (`file:<path>`,
+`sym:<path>#…`), so `node_by_id` needs no global map: it loads one shard.
+`edges_from(id, Out)` reads the owning shard. Incoming edges come from the
+posting tables below.
+
+The graph port is served by native structures: an id-sorted node list per shard
+and the adjacency postings. Grafeo is removed from `engine` (SPEC §4.3 is
+updated; it already anticipated an in-process adjacency map).
+
+### 3.2 Posting tables: sorted segments plus deltas
+
+Global lookups become **posting tables**: sorted `(key, owner path, value)` rows
+in immutable, binary-searchable segments. A generation references a **base**
+segment and up to a few **delta** segments. A publish writes one new delta
+containing:
+
+- a tombstone for every path it replaces or removes, and
+- the new rows those paths contribute.
+
+A lookup merges base and deltas, newest first, dropping rows whose owner path is
+tombstoned in a newer segment. When the deltas exceed a fraction of the base
+(about 25%) or a count (about 8), the publish compacts them into a new base.
+Compaction is O(table), so it is amortized over the O(changed) publishes that
+made it necessary.
+
+Tables:
+
+| Table | Key | Value | Replaces |
+|---|---|---|---|
+| `names` | bare name, qualified name | node id, kind | `SymbolTable.by_name`, `qualified_candidates`, `MetadataIndex` name maps |
+| `incoming` | target node id / target path | source node id, edge kind | adjacency incoming, `DependencyIndex.incoming` |
+| `consumers` | referenced name | consumer path | `DependencyIndex.consumers` |
+| `selected` | selected target path | importing path | `DependencyIndex.selected_modules` |
+| `cross` | CSS class / element id | rule or element id | `CrossTables` |
+
+Per-file dependency **records** (references, imports, JS surface, flags) move
+into the shard. `DependencyIndex` becomes a view over shards and posting tables,
+so it is updated rather than rebuilt.
+
+### 3.3 Small catalogs and delta summaries
+
+- **Catalogs** hold what reconciliation needs globally but is small:
+  - package manifests and TypeScript configs (today found by decoding every
+    source record);
+  - the Rust module catalog, crate roots and reachability, recomputed per crate
+    only when a `mod` declaration, a Cargo manifest or the set of `.rs` paths
+    changes;
+  - OKF bundle roots.
+- **Summary counts and source coverage** are updated by delta: subtract the
+  replaced shards' contributions and add the new ones. The same goes for
+  edge-occurrence counts.
+
+### 3.4 Core reconciliation reads keyed lookups
+
+`SymbolTable` becomes a lazy view over snapshot lookups: name → candidates, id →
+node, per-file maps loaded from shards on demand. It is no longer built from
+`all_nodes()`. Resolution already needs only keyed lookups (every rule in §7.4
+asks for a name, a path or a module). `extend_dependents` uses only the
+dependency view on the native path. The HTML/CSS "always rebind" rule becomes a
+`cross` table lookup.
+
+`GraphSnapshot` gains keyed accessors (`named`, `qualified`, `in_file`,
+`incoming`, `consumers_of`, `selectors_of`) with default implementations over the
+existing bulk methods, so the in-memory store and conformance tests keep working
+unchanged.
+
+## 4. Phases
+
+Each phase is a separate commit that passes the whole suite, keeps sync equal to
+a clean rebuild, and is measured with Criterion (see `AGENTS.md`).
+
+0. **Scaling bench.** `sync_scaling` (`cargo bench -p graph-search --bench
+   sync`) measures the same one-file body edit in Rust workspaces of 250, 1,000
+   and 4,000 modules. Proportional sync means the time stays flat as the
+   workspace grows. Format 9 (`7e46a12`, baseline `format9`) is roughly linear:
+
+   | Modules | Criterion estimate | Interval |
+   |---|---|---|
+   | 250 | 452 ms | 292–709 ms |
+   | 1,000 | 1.70 s | 1.29–2.17 s |
+   | 4,000 | 5.43 s | 4.52–6.87 s |
+
+   The intervals are wide because unrelated processes were using the CPU during
+   the run. Each phase re-measures against this baseline, back to back.
+1. **Shards replace Grafeo (format 10).** Engine only. Nodes, edges, dangling
+   edges and occurrences become per-file shard records in packs. The graph port
+   is served natively. Publish writes changed shards and reuses the rest. The
+   in-memory incoming index and derived query indexes still build lazily from
+   shards.
+2. **Posting tables.** `names`, `incoming`, `consumers`, `selected`, `cross` as
+   base and delta segments. Delta summaries and edge counts. Publish writes one
+   delta per table.
+3. **Core on keyed lookups.** Lazy `SymbolTable`, a dependency view without
+   `all_nodes`/`all_edges`, catalogs instead of source-record scans, delta
+   coverage, and HTML/CSS through `cross`.
+4. **Rust catalog per crate** and **JS surfaces on demand**, removing the last
+   whole-workspace passes from resolution.
+
+After phase 3 the `sync_scaling` bench should show a one-file sync nearly flat
+from 250 to 4,000 files, apart from the stat walk.
+
+## 5. Risks
+
+- **Compaction must never be on a reader's path.** It runs inside a publish,
+  which already holds the writer lock.
+- **Delta merges cost query time.** Bounding the number of deltas bounds the
+  merge. The evaluation benches (`evaluation`, `search`) guard query latency and
+  must not regress.
+- **Correctness.** The sync-equals-clean-rebuild tests (`selective_sync`,
+  `okf_sync`, `binding_invalidation`, `retrieval_incremental`) are the guard,
+  plus the storage atomicity, crash and corruption tests, ported to format 10.

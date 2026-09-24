@@ -10,7 +10,7 @@ measure.
 - Benchmarks live in `crates/graph-search/benches/` and are registered as
   `[[bench]]` targets with `harness = false` in
   `crates/graph-search/Cargo.toml` (see `storage.rs`, `search.rs`,
-  `evaluation.rs`, `okf.rs` for the pattern). Criterion is a dev-dependency
+  `evaluation.rs`, `okf.rs`, `sync.rs` for the pattern). Criterion is a dev-dependency
   only.
 - Run one with `cargo bench -p graph-search --bench <name>`.
 - To measure a change, save a baseline on the old revision and compare the new
