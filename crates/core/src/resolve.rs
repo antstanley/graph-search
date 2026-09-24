@@ -101,6 +101,8 @@ pub struct SymbolTable {
     pub exports_by_file: BTreeMap<String, BTreeMap<String, NodeId>>,
     /// Every symbol node, by id.
     pub symbols: BTreeMap<NodeId, Node>,
+    /// Per OKF document: its concept, the target of links into the file.
+    pub(crate) okf_concepts: BTreeMap<String, NodeId>,
     /// Nearest selected TypeScript projects for declared path aliases.
     ts_projects: crate::typescript_project::Projects,
 }
@@ -220,6 +222,11 @@ impl SymbolTable {
             .or_default()
             .entry(qualified)
             .or_insert(node.id.clone());
+        if node.kind == NodeKind::Concept {
+            self.okf_concepts
+                .entry(node.path.clone())
+                .or_insert(node.id.clone());
+        }
         if matches!(node.kind, NodeKind::Export) {
             self.exports_by_file
                 .entry(node.path.clone())
@@ -308,8 +315,11 @@ pub fn resolve_specifier(
         | Language::Astro => js_candidates(from_path, specifier),
         Language::Css | Language::Html => vec![relative(from_path, specifier)],
         Language::Python => python_candidates(from_path, specifier),
+        // Dependency tracking only: with the bundle-root fallback this selects a
+        // superset of what a `links_to` path can resolve to, so any change in a
+        // link's or a citation's target is still observed.
         Language::Okf => {
-            return crate::okf::resolve_path(from_path, specifier, known_files, false);
+            return crate::okf::resolve_path(from_path, specifier, known_files, true);
         }
         Language::Unknown => vec![],
     };
@@ -479,6 +489,12 @@ pub(crate) fn import_specifiers(fact: &ReferenceFact, language: Language) -> Vec
         ],
         Some(specifier) => vec![specifier.clone()],
         None if module_import(fact, language) => vec![fact.name.clone()],
+        // An OKF link or citation depends on the file its path selects.
+        None if language == Language::Okf
+            && matches!(fact.kind, EdgeKind::LinksTo | EdgeKind::Cites) =>
+        {
+            vec![fact.name.clone()]
+        }
         None => Vec::new(),
     }
 }

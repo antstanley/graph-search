@@ -1341,7 +1341,8 @@ directory or an ancestor holds an admitted `index.md`. Every other `.md` file
 stays unknown-language prose, chunked as Markdown as before. Binding `.md` to
 `okf` in `[extensions]` claims every Markdown file instead. Because membership is
 not a per-file diff input, `sync` rebuilds the index when the set of
-`index.md` directories changes (while `okf` is enabled). Language filters and
+`index.md` directories changes. With `okf` disabled no membership is decided,
+so no file is walked as `okf` and no such rebuild happens. Language filters and
 live search use this walked language, not the extension table.
 
 The rule is deliberately path-only, and it over-claims in one known way. The
@@ -1353,17 +1354,26 @@ is not consulted.
 
 | Node | Capture |
 |---|---|
-| `concept` | the document, unless it is a reserved `index.md` or `log.md`; named by frontmatter `title`, else the file stem; signature `type: description`; `okf_type`, `okf_status`, `okf_tags`, `okf_description`, `okf_resource`, `okf_stale_after`, `okf_trust` (OKF §5.3) and `concept_stem` attributes |
-| `section` | each ATX/setext heading `section`, qualified `Concept > Heading > Subheading` |
+| `concept` | the document, unless it is a reserved `index.md` or `log.md`; named by frontmatter `title`, else the file stem; signature `type: description`; `okf_type`, `okf_status`, `okf_tags`, `okf_description`, `okf_resource`, `okf_stale_after`, `okf_trust` (OKF §5.3: `unverified` without a mapping entry) and `concept_stem` attributes |
+| `section` | each ATX/setext heading `section`, qualified `Concept > Heading > Subheading`, named by the heading's reader-visible text: link and image text without destinations, no emphasis or code delimiters, escapes and character references decoded, footnote markers, raw HTML and an ATX closing `#` run dropped |
 
 | Edge | Source |
 |---|---|
 | `contains` | file → concept → section → nested section |
-| `links_to` | inline, image and reference links (through their definitions), from the innermost section (else the concept, else the file) |
-| `cites` | concept → every `sources[].resource`; section → the resource of each `[^id]` footnote naming a `sources[].id` |
+| `links_to` | inline links and images, and full, collapsed and shortcut reference links and images (through their definitions), from the innermost section (else the concept, else the file); a link inside a footnote definition belongs to the first section citing that footnote |
+| `cites` | concept → every `sources[].resource` that names a path; section → the resource of each `[^id]` footnote naming such a `sources[].id` |
 
-A URI with a scheme and a fragment-only destination is not a bundle path and
-produces no reference; links inside code are not links. A destination beginning
+Frontmatter is a block or flow mapping. Scalars are strings: double-quoted
+escapes (YAML 1.2 §5.7) are decoded and folded lines joined. An unterminated
+frontmatter block leaves the grammar no body, so such a document has its
+concept but no sections or links. A `sources[].resource` with whitespace, or
+with neither a `/` nor a file extension, is a scope descriptor (OKF §5.1),
+not a path, and is not cited.
+
+A URI with a scheme, a scheme-relative `//host` path, and a fragment- or
+query-only destination are not bundle paths and produce no reference; links
+inside code are not links. Destination backslash escapes and character
+references are decoded as `CommonMark` does. A destination beginning
 with `/` is bundle-relative, the bundle root being the outermost ancestor
 holding an `index.md`; any other destination is relative to the document. A
 path-valued field (`sources[].resource`) also tries the bundle root, as
@@ -1372,9 +1382,13 @@ fragment are dropped and `%XX` escapes decoded; a directory names its
 `index.md` and an extensionless path names a concept id (`x` → `x.md`). The
 target is the document's concept when it has one, else its file node. A path
 naming no walked file is dangling with `okf_link_target_missing` (OKF §6.1:
-broken links are not malformed). OKF documents are rebound on every change,
-like HTML/CSS. A heading repeated under the same parent keeps one qualified
-name. Its fact key gains `@line`, so containment stays exact.
+broken links are not malformed). Each link or citation path is a dependency
+specifier: a document is rebound when a file it may select appears, vanishes
+or changes (a retitled concept), never on unrelated edits. Tracking resolves
+paths with the bundle-root fallback for every kind, a superset of what a
+`links_to` path can select. A heading repeated under the same parent keeps one
+qualified name; its fact key gains `@line` (and `#n` while that is still
+taken), so containment stays exact.
 
 `neighbors` is the query for OKF relationships. `deps` reads only edges
 incident to the file node. For an OKF document those are its incoming links to
@@ -3450,7 +3464,7 @@ that is itself a reexport is followed at the terminal segment of any path.
 The `okf` language, the `concept` and `section` node kinds and the `cites` edge
 kind (projection schema 5) and the tree-sitter-okf adapter (§7.6) replace
 indexing bundle `.md` files as `unknown`. Parser policy 27 forces projection
-refresh. The OKF extractor serves only files walked as `okf`, so the `.md`
-extension alone never selects it. Every other extractor still claims files by
+refresh. The OKF extractor serves only files walked as `okf` (it accepts `.md`
+and `.markdown`), so the extension alone never selects it. Every other extractor still claims files by
 path. `deps` includes `cites` among its file relationship kinds. The grammar is
 the only new dependency. Scalars are read as strings, never typed.

@@ -877,9 +877,8 @@ impl<'a> Projector<'a> {
                     .or_else(|| self.policy.language_for(Path::new(path)))
                     .unwrap_or(Language::Unknown);
                 // Cross-language HTML/CSS matching has bidirectional generated edges
-                // and file links, and OKF links name files and their concepts.
-                // Conservatively rebind these families on every change.
-                if matches!(language, Language::Html | Language::Css | Language::Okf) {
+                // and file links. Conservatively rebind this family on every change.
+                if matches!(language, Language::Html | Language::Css) {
                     dirty.insert(path.clone());
                 }
                 for fact in &facts.references {

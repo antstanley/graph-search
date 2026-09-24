@@ -270,16 +270,18 @@ fn walk_report_checked(
     entries.sort_by(|a, b| a.rel.cmp(&b.rel).then_with(|| a.path.cmp(&b.path)));
     check()?;
     // OKF bundle membership depends on the whole admitted set: an unclaimed
-    // `.md` file under an `index.md` is an OKF document (`SPEC.md` §7.6).
-    let okf_dirs = crate::okf::index_dirs(entries.iter().map(|entry| entry.rel.as_str()));
+    // `.md` file under an `index.md` is an OKF document (`SPEC.md` §7.6). With
+    // `okf` disabled membership is never decided, so the language cannot drift
+    // between a sync (which then skips the bundle-change reindex) and a rebuild.
+    let okf_dirs = if policy.is_enabled(Language::Okf) {
+        crate::okf::index_dirs(entries.iter().map(|entry| entry.rel.as_str()))
+    } else {
+        std::collections::BTreeSet::new()
+    };
     for entry in &mut entries {
         if entry.language.is_none() && crate::okf::is_member(&entry.rel, &okf_dirs) {
             entry.language = Some(Language::Okf);
             coverage.unsupported_files = coverage.unsupported_files.saturating_sub(1);
-            if !policy.is_enabled(Language::Okf) {
-                coverage.disabled_language_files =
-                    coverage.disabled_language_files.saturating_add(1);
-            }
         }
     }
     coverage.admitted_files = entries.len() as u64;

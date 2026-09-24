@@ -9,7 +9,7 @@
 use crate::resolve::{Resolution, SymbolTable};
 use graph_search_types::NodeId;
 use graph_search_types::extraction::ReferenceFact;
-use graph_search_types::kind::{EdgeKind, NodeKind};
+use graph_search_types::kind::EdgeKind;
 use graph_search_types::occurrence::ResolutionClass;
 use std::collections::BTreeSet;
 
@@ -69,12 +69,16 @@ fn join(dir: &str, tail: &str) -> String {
 }
 
 /// Whether a destination names something outside the workspace (a URI with a
-/// scheme) or only a place in the same document (a fragment). Neither is a
-/// bundle path, so neither becomes a reference.
+/// scheme, or a scheme-relative `//host`) or only the same document (a
+/// fragment or query). None is a bundle path, so none becomes a reference.
 #[must_use]
 pub fn is_external(destination: &str) -> bool {
     let destination = destination.trim_start_matches('<');
-    if destination.is_empty() || destination.starts_with('#') {
+    // `#frag` and `?query` stay in this document; `//host/x` is another host.
+    if destination.is_empty()
+        || destination.starts_with(['#', '?'])
+        || destination.starts_with("//")
+    {
         return true;
     }
     let scheme_len = destination
@@ -224,14 +228,10 @@ pub(crate) fn resolve(
             to_name: crate::resolve::canonical_dangling_name(&fact.name),
         };
     };
-    // Qualified names are unique per file where bare names are not: a section
-    // may share the concept's title, but its qualified name is `Title > …`.
-    let concept = table.by_file_qualified.get(&target).and_then(|names| {
-        names
-            .values()
-            .filter_map(|id| table.symbols.get(id))
-            .find(|node| node.kind == NodeKind::Concept)
-    });
+    let concept = table
+        .okf_concepts
+        .get(&target)
+        .and_then(|id| table.symbols.get(id));
     let (to, to_name) = match concept {
         Some(node) => (
             node.id.clone(),
@@ -331,5 +331,7 @@ mod tests {
         assert!(!is_external("./a.md"));
         assert!(!is_external("/a.md"));
         assert!(!is_external("a.md"));
+        assert!(is_external("?x=1"));
+        assert!(is_external("//host/b.md"));
     }
 }
