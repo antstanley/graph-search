@@ -512,9 +512,13 @@ impl GrafeoStore {
 
     /// Exact totals of the current state, for the published summary.
     fn summarize(&self) -> Result<generation::Summary> {
-        let edges = GrafeoSnapshot::new(self).all_edges()?;
+        self.summarize_with(&GrafeoSnapshot::new(self).all_edges()?)
+    }
+
+    /// [`Self::summarize`] over an edge set the caller already materialized.
+    fn summarize_with(&self, edges: &[Edge]) -> Result<generation::Summary> {
         Ok(generation::Summary {
-            counts: graph_search_core::counts::summarize(self.nodes()?, &edges),
+            counts: graph_search_core::counts::summarize(self.nodes()?, edges),
             source: graph_search_core::units::SourceCoverage::summarize(
                 self.sources()?.files.values(),
             ),
@@ -534,16 +538,18 @@ impl GrafeoStore {
 
     /// After a mutation: derived indexes are rebuilt on demand, except metadata
     /// that can share unchanged postings with the previous generation's.
+    /// `edges` is the complete post-mutation edge set.
     fn refresh_indexes(
         &mut self,
         previous: Option<&graph_search_core::metadata::MetadataIndex>,
+        edges: &[Edge],
     ) -> Result<()> {
         self.nodes = OnceLock::new();
         self.metadata = OnceLock::new();
         self.body = OnceLock::new();
         self.occurrences = OnceLock::new();
         self.adjacency = OnceLock::new();
-        self.summary = self.summarize()?;
+        self.summary = self.summarize_with(edges)?;
         if let Some(previous) = previous {
             self.metadata = OnceLock::from(previous.updated(self.nodes()?.clone()));
         }
@@ -642,6 +648,86 @@ impl GrafeoStore {
         })
     }
 
+    /// The complete projection after `batch`: untouched files as stored, the
+    /// batch's files as given, and only the stored edges `Mutation` keeps.
+    /// Applying it to an empty store equals applying `batch` on top of the
+    /// current state, without the second pass that scans every stored edge
+    /// for removals. The outcome counts the batch itself, as that pass did;
+    /// `edges_upserted` is completed once endpoints are known.
+    fn merged_projection(&self, batch: &WriteBatch) -> Result<(WriteBatch, ApplyOutcome)> {
+        let complete = self.complete_projection()?;
+        let mutation = graph_search_core::mutation::Mutation::new(
+            batch,
+            complete
+                .upserts
+                .iter()
+                .flat_map(|file| std::iter::once(&file.file).chain(&file.symbols)),
+        );
+        let touched: BTreeSet<&str> = batch
+            .removed_files
+            .iter()
+            .map(String::as_str)
+            .chain(batch.upserts.iter().map(|file| file.file.path.as_str()))
+            .collect();
+        // Ids carry their path, so a batch node never shadows an untouched
+        // one; the filter only keeps that invariant from creating twins.
+        let replaced: BTreeSet<&NodeId> = batch
+            .upserts
+            .iter()
+            .flat_map(|file| {
+                std::iter::once(&file.file.id).chain(file.symbols.iter().map(|n| &n.id))
+            })
+            .collect();
+        let mut upserts = Vec::with_capacity(complete.upserts.len());
+        for mut file in complete.upserts {
+            if touched.contains(file.file.path.as_str()) {
+                continue;
+            }
+            file.symbols.retain(|node| !replaced.contains(&node.id));
+            file.edges.retain(|edge| !mutation.removes_edge(edge));
+            upserts.push(file);
+        }
+        upserts.extend(batch.upserts.iter().cloned());
+        let outcome = ApplyOutcome {
+            nodes_upserted: batch
+                .upserts
+                .iter()
+                .map(|file| file.symbols.len().saturating_add(1) as u64)
+                .sum(),
+            edges_upserted: 0,
+            nodes_deleted: mutation.removed.len() as u64,
+            files_touched: (batch.removed_files.len() as u64)
+                .saturating_add(batch.upserts.len() as u64),
+        };
+        Ok((
+            WriteBatch {
+                upserts,
+                ..WriteBatch::default()
+            },
+            outcome,
+        ))
+    }
+
+    /// Resolved batch edges whose endpoints both exist after publication: the
+    /// edges an in-place apply would have created as graph edges.
+    fn count_batch_edges(&self, batch: &WriteBatch) -> Result<u64> {
+        let graph = self.graph()?;
+        let maps = graph.maps.read().map_err(|_| poisoned())?;
+        Ok(batch
+            .upserts
+            .iter()
+            .flat_map(|file| &file.edges)
+            .filter(|edge| {
+                edge.resolved
+                    && maps.forward.contains_key(edge.from.as_str())
+                    && edge
+                        .to
+                        .as_ref()
+                        .is_some_and(|to| maps.forward.contains_key(to.as_str()))
+            })
+            .count() as u64)
+    }
+
     fn publish_generation(
         &mut self,
         batch: &WriteBatch,
@@ -659,19 +745,22 @@ impl GrafeoStore {
                 ..StoreOptions::default()
             },
         )?;
-        prepared.apply_prepared(&self.complete_projection()?)?;
         #[cfg(test)]
         {
             prepared.failure = self.failure;
             prepared.crash = self.crash;
         }
-        let outcome = prepared.apply_prepared(batch)?;
-        // No reader observes the intermediate projection. Mutation uses the
-        // graph and ID maps, so build retrieval indexes only for the final state.
-        prepared.refresh_indexes(self.metadata.get())?;
+        // One pass: the stored projection with the batch already applied.
+        let (merged, mut outcome) = self.merged_projection(batch)?;
+        prepared.apply_prepared(&merged)?;
+        drop(merged);
+        outcome.edges_upserted = prepared.count_batch_edges(batch)?;
+        // Build retrieval indexes only for the final state; the summary and the
+        // dependency index share one materialized edge set.
+        let edges = prepared.snapshot()?.all_edges()?;
+        prepared.refresh_indexes(self.metadata.get(), &edges)?;
         prepared.manifest_header = manifest.map(Manifest::header);
         if let Some(manifest) = manifest {
-            let edges = prepared.snapshot()?.all_edges()?;
             let dependencies = graph_search_core::dependencies::DependencyIndex::build_retaining(
                 manifest,
                 prepared.nodes()?,
