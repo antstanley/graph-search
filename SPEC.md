@@ -1384,7 +1384,9 @@ target is the document's concept when it has one, else its file node. A path
 naming no walked file is dangling with `okf_link_target_missing` (OKF §6.1:
 broken links are not malformed). Each link or citation path is a dependency
 specifier: a document is rebound when a file it may select appears, vanishes
-or changes (a retitled concept), never on unrelated edits. Tracking resolves
+or changes (a retitled concept), never on unrelated edits. Only direct linkers
+are rebound: rebinding an unchanged document leaves its symbols as they were,
+so repair does not follow links on from it. Tracking resolves
 paths with the bundle-root fallback for every kind, a superset of what a
 `links_to` path can select. A heading repeated under the same parent keeps one
 qualified name; its fact key gains `@line` (and `#n` while that is still

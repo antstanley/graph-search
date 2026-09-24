@@ -919,7 +919,12 @@ impl<'a> Projector<'a> {
                 self.check_work()?;
                 if let Some(sources) = incoming.get(target.as_str()) {
                     for source in sources {
-                        if dirty.insert((*source).to_owned()) {
+                        // A rebound, unchanged OKF document keeps its symbols, so
+                        // its own dependents cannot bind differently.
+                        let okf = files
+                            .get(source)
+                            .is_some_and(|file| file.language == Some(Language::Okf));
+                        if dirty.insert((*source).to_owned()) && !okf {
                             queue.push_back((*source).to_owned());
                         }
                     }

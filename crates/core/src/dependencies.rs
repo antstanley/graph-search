@@ -384,7 +384,15 @@ impl DependencyIndex {
                 .chain(self.selected_modules.get(&target))
                 .flatten()
             {
-                if changed.insert(source.clone()) {
+                // Rebinding an unchanged OKF document leaves its symbols as they
+                // were, so nothing that links to it can bind differently: its
+                // dependents are not followed (`SPEC.md` §7.6).
+                if changed.insert(source.clone())
+                    && self
+                        .records
+                        .get(source)
+                        .is_none_or(|record| record.language != Language::Okf)
+                {
                     queue.push_back(source.clone());
                 }
             }

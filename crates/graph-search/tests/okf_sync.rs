@@ -115,6 +115,12 @@ fn okf_sync_matches_a_clean_rebuild_and_rebinds_only_dependents() {
             "---\ntitle: Cold\n---\nNo links.\n",
         );
         write(root, "kb/policies/p.md", "---\ntitle: Policy\n---\n");
+        // Links to `gross.md` only: a change behind `gross.md` never reaches it.
+        write(
+            root,
+            "kb/metrics/chain.md",
+            "---\ntitle: Chain\n---\nSee [Gross](gross.md).\n",
+        );
         write(root, "src/lib.rs", "pub fn f() {}\n");
         let registry = ListRegistry::new(graph_search_langs::all_extractors());
         let policy = WalkPolicy::default();
@@ -156,6 +162,10 @@ fn okf_sync_matches_a_clean_rebuild_and_rebinds_only_dependents() {
             if persistent {
                 let reads = actual.reads.borrow();
                 assert!(!reads.contains("kb/metrics/cold.md"), "{step}: {reads:?}");
+                if step == "retitle a link target" {
+                    assert!(reads.contains("kb/metrics/gross.md"), "{step}: {reads:?}");
+                    assert!(!reads.contains("kb/metrics/chain.md"), "{step}: {reads:?}");
+                }
                 if step == "edit unrelated code" {
                     assert!(
                         reads
