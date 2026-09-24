@@ -353,6 +353,32 @@ a clean rebuild, and is measured with Criterion (see `AGENTS.md`).
 
    A first, noisier run read −31% at 4,000 modules against a 70 ms baseline.
 
+1h. **Parallel walk metadata; two full flushes per publish. Done.** After 1g,
+   the walk was 28% of a one-file sync at 4,000 modules, `stat` alone about
+   12.5%, and three `F_FULLFSYNC`s about 12%. The walk still enumerates
+   directories serially in sorted order (caps and truncation depend on it),
+   then reads the collected files' metadata on up to eight scoped threads
+   (256 files or more) and admits them in enumeration order, so every cap,
+   count and coverage field is unchanged. `CURRENT`'s replacement is now
+   written and flushed before the barrier, so one `F_FULLFSYNC` covers the
+   generation and the pointer's bytes before the rename; the store root's
+   full sync after the rename is the second.
+
+   Criterion against `50d40e2`. The machine's load moved during an A/B/A run
+   (the repeated baseline read 21% faster than the first at 4,000 modules),
+   so the results below are a fresh back-to-back pair, with the 4,000-module
+   case settled by alternating base and new twice (a single pair read +9.6%
+   there with a wide interval):
+
+   | Benchmark | Base | New | Change |
+   |---|---|---|---|
+   | `sync_scaling` 250 modules | 18.8 ms | 15.2 ms | −15.3% |
+   | `sync_scaling` 1,000 modules | 23.2 ms | 19.8 ms | −12.4% |
+   | `sync_scaling` 4,000 modules | 47.8 / 47.1 ms | 41.1 / 43.7 ms | −11.1% / −11.0% |
+   | `storage_sync/rust_body_edit` | 17.9 ms | 15.7 ms | −16.0% |
+   | `storage_sync/json_edit` | 20.5 ms | 17.3 ms | −16.6% |
+   | `storage_publish/reindex_full` | 362 ms | 359 ms | −0.9% |
+
 2. **Posting tables.** `names`, `incoming`, `consumers`, `selected`, `cross` as
    base and delta segments. Delta summaries and edge counts. Publish writes one
    delta per table.

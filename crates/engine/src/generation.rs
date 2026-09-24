@@ -258,12 +258,16 @@ pub(crate) fn replace(path: &Path, bytes: &[u8]) -> io::Result<()> {
     std::fs::rename(tmp, path)
 }
 
-/// [`replace`] with a full sync: the commit point, durable on return.
-fn commit(path: &Path, bytes: &[u8]) -> io::Result<()> {
+/// Commits `bytes` as `path` after `dir`'s artifacts: the pointer's own
+/// bytes are flushed first, so one barrier makes both it and everything it
+/// commits durable before the rename can expose it. The caller syncs the
+/// rename's directory in full.
+fn commit(dir: &Path, path: &Path, bytes: &[u8]) -> io::Result<()> {
     let tmp = path.with_extension("tmp");
     let mut file = std::fs::File::create(&tmp)?;
     file.write_all(bytes)?;
-    crate::durable::sync(&file)?;
+    crate::durable::flush(&file)?;
+    crate::durable::barrier(dir)?;
     std::fs::rename(tmp, path)
 }
 
@@ -295,8 +299,7 @@ pub(crate) fn prepare_pointer(root: &Path, dir: &Path) -> io::Result<BTreeMap<St
     })
     .map_err(io::Error::other)?;
     // Everything the pointer commits is durable before the pointer is.
-    crate::durable::barrier(dir)?;
-    commit(&root.join(CURRENT), &pointer)?;
+    commit(dir, &root.join(CURRENT), &pointer)?;
     Ok(files)
 }
 

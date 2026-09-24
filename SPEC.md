@@ -1056,9 +1056,9 @@ synced before its rename. During generation preparation, manifest and dangling
 writers defer their parent-directory sync to the generation owner; standalone
 sidecar writes retain their own directory sync. Pack subdirectories are still
 synced separately. After all artifacts are ready, the generation directory and
-its parent are synced, then one barrier makes every earlier sync durable before
-CURRENT is replaced; CURRENT and the store root are synced in full after that
-replacement. On Apple platforms an artifact sync is `fsync(2)`, which hands data
+its parent are synced, CURRENT's replacement is written and synced beside it,
+and one barrier makes all of that durable before the rename exposes it; the
+store root is synced in full after the rename. On Apple platforms an artifact sync is `fsync(2)`, which hands data
 to the drive without flushing its cache, and the barrier is one `F_FULLFSYNC`,
 which flushes it; elsewhere every sync is already durable. No unpublished intermediate state needs a separate directory
 commit. File contents and containing directories are synced before durable acknowledgement. If syncing

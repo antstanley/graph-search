@@ -1,8 +1,9 @@
 //! Durability for a publication: many flushes, then one barrier.
 //!
 //! A generation writes dozens of files and directories before its `CURRENT`
-//! pointer. Each is [`flush`]ed as it is written, and one [`barrier`] makes
-//! all of them durable before the pointer that commits them is written.
+//! pointer. Each is [`flush`]ed as it is written, the pointer's own bytes
+//! included, and one [`barrier`] makes all of them durable before the rename
+//! that exposes the pointer; that rename's directory is then [`sync`]ed.
 //!
 //! On Apple platforms `fsync(2)` hands data to the drive without flushing the
 //! drive's cache, and std's `sync_all` is `F_FULLFSYNC`, which flushes the whole

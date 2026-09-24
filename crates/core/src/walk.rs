@@ -184,8 +184,8 @@ fn walk_report_checked(
             && !is_skipped_dir(entry.path(), kind, &excludes)
     });
 
-    let mut entries: Vec<WalkEntry> = Vec::new();
-    let mut package_boundaries = std::collections::BTreeSet::new();
+    // Enumerate in the walker's sorted order, which decides what a cap cuts.
+    let mut files: Vec<PathBuf> = Vec::new();
     let mut walker = builder.build();
     loop {
         check()?;
@@ -213,12 +213,20 @@ fn walk_report_checked(
         if entry.depth() == 0 {
             continue; // the search root itself
         }
-        let is_file = entry.file_type().is_some_and(|kind| kind.is_file());
-        if !is_file {
-            continue;
+        if entry.file_type().is_some_and(|kind| kind.is_file()) {
+            files.push(entry.into_path());
         }
-        let path = entry.into_path();
-        let Ok(metadata) = std::fs::metadata(&path) else {
+    }
+    check()?;
+
+    // Each file's metadata is independent of the others: read it in parallel,
+    // then admit files in enumeration order.
+    let metadata = metadata_of(&files);
+    let mut entries: Vec<WalkEntry> = Vec::new();
+    let mut package_boundaries = std::collections::BTreeSet::new();
+    for (path, metadata) in files.into_iter().zip(metadata) {
+        check()?;
+        let Some(metadata) = metadata else {
             coverage.unreadable_entries = coverage.unreadable_entries.saturating_add(1);
             coverage.enumeration_complete = Some(false);
             continue;
@@ -289,6 +297,44 @@ fn walk_report_checked(
         package_boundaries,
         entries,
         coverage,
+    })
+}
+
+/// Below this many files, reading metadata on the calling thread is cheaper
+/// than starting others.
+const PARALLEL_METADATA_FILES: usize = 256;
+
+/// The metadata of each of `files` (following symlinks), in order; `None`
+/// where it cannot be read. Large sets are read by a few scoped threads.
+fn metadata_of(files: &[PathBuf]) -> Vec<Option<std::fs::Metadata>> {
+    let read = |chunk: &[PathBuf]| -> Vec<Option<std::fs::Metadata>> {
+        chunk
+            .iter()
+            .map(|path| std::fs::metadata(path).ok())
+            .collect()
+    };
+    let threads = std::thread::available_parallelism()
+        .map_or(1, std::num::NonZeroUsize::get)
+        .min(8);
+    if threads < 2 || files.len() < PARALLEL_METADATA_FILES {
+        return read(files);
+    }
+    let chunk = files.len().div_ceil(threads);
+    std::thread::scope(|scope| {
+        let handles: Vec<_> = files
+            .chunks(chunk)
+            .map(|part| (part.len(), scope.spawn(move || read(part))))
+            .collect();
+        handles
+            .into_iter()
+            .flat_map(|(len, handle)| {
+                // A panicking reader loses only its own files' metadata, which
+                // then counts as unreadable; order is kept either way.
+                handle
+                    .join()
+                    .unwrap_or_else(|_| std::iter::repeat_with(|| None).take(len).collect())
+            })
+            .collect()
     })
 }
 
