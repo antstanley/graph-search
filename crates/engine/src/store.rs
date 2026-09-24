@@ -1784,7 +1784,10 @@ mod publication_tests {
             store.manifest().is_err(),
             "requested facts must verify their bytes"
         );
-        assert!(open_and_read(root.path()).is_err());
+        // Reopening reads no pack; reading the facts verifies them.
+        let reopened = open_and_read(root.path()).unwrap();
+        assert!(reopened.manifest().is_err());
+        drop(reopened);
         std::fs::write(&pack, original).unwrap();
         let pointer_path = root.path().join(generation::CURRENT);
         let original_pointer = std::fs::read(&pointer_path).unwrap();

@@ -46,13 +46,15 @@ fn identities(manifest: &Manifest) -> Identities {
         .collect()
 }
 
+/// The index is verified against CURRENT by the caller and against the
+/// manifest here. Record bytes are verified by their own hashes when they are
+/// read, so opening the index never reads a pack.
 pub(crate) fn prepare_verified(
     bytes: &[u8],
     header: &Manifest,
-    dir: &Path,
+    _dir: &Path,
 ) -> io::Result<Verified> {
     let index = prepare(bytes, header)?;
-    index.verify(dir, LAYOUT)?;
     Ok(Verified(index, std::sync::RwLock::new(BTreeMap::new())))
 }
 
@@ -72,7 +74,8 @@ fn prepare(bytes: &[u8], header: &Manifest) -> io::Result<Index> {
 }
 
 pub(crate) fn hydrate(dir: &Path, header: &Manifest, index: &Verified) -> io::Result<Manifest> {
-    let manifest = hydrate_records(header, index.0.load_verified(dir, LAYOUT)?)?;
+    // Opening the index read no pack, so every record hash is checked here.
+    let manifest = hydrate_records(header, index.0.load(dir, LAYOUT)?)?;
     *index
         .1
         .write()
@@ -430,11 +433,13 @@ mod tests {
         let bytes = std::fs::read(dir.path().join(FILE)).unwrap();
         let verified = prepare_verified(&bytes, &header, dir.path()).unwrap();
         assert_eq!(hydrate(dir.path(), &header, &verified).unwrap(), manifest);
+        // A record whose committed hash does not match its bytes opens, and
+        // fails when it is read: records are verified on use.
         let mut bad_hash: serde_json::Value = serde_json::from_slice(&bytes).unwrap();
         bad_hash["records"]["0.rs"]["hash"] = serde_json::json!("0".repeat(64));
-        assert!(
-            prepare_verified(&serde_json::to_vec(&bad_hash).unwrap(), &header, dir.path()).is_err()
-        );
+        let bad =
+            prepare_verified(&serde_json::to_vec(&bad_hash).unwrap(), &header, dir.path()).unwrap();
+        assert!(hydrate(dir.path(), &header, &bad).is_err());
         assert!(
             prepare(&bytes, &manifest).is_err(),
             "mixed embedded and packed facts are ambiguous"

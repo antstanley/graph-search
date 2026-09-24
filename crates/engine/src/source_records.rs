@@ -145,6 +145,7 @@ impl Index {
     }
 
     /// Verify committed bytes without eagerly deserializing cold record values.
+    #[cfg(test)]
     pub(crate) fn verify(&self, dir: &Path, layout: Layout) -> io::Result<()> {
         for (hash, group) in groups(self) {
             let pack = read_pack(&dir.join(layout.directory), hash, self.format)?;
@@ -161,18 +162,7 @@ impl Index {
         Self::load_groups(dir, layout, self.format, true, groups(self))
     }
 
-    /// Caller must hold an immutable index already verified against all record
-    /// bytes, or constructed by the writer from new/verified records. A matching
-    /// complete pack hash then preserves every previously verified record slice.
-    pub(crate) fn load_verified<T: DecodeRecord + DeserializeOwned>(
-        &self,
-        dir: &Path,
-        layout: Layout,
-    ) -> io::Result<BTreeMap<String, T>> {
-        Self::load_groups(dir, layout, self.format, false, groups(self))
-    }
-
-    /// Same verified-descriptor precondition as `load_verified`. Only requested
+    /// The index must be verified against its committed hash. Only requested
     /// records are decoded and each record hash is verified; packs without
     /// selected records are not opened. Uncompressed (format 1-2) packs are read
     /// by byte range; a compressed pack is inflated whole (at most one ~8 MiB
@@ -549,9 +539,15 @@ fn minimum_live(bytes: usize) -> usize {
     bytes.saturating_sub(bytes / 4)
 }
 
-fn link_or_copy(source: &Path, target: &Path, verified_bytes: &[u8]) -> io::Result<()> {
+/// Share a pack by hard link. Where links are unavailable, copy it, verifying
+/// the copied bytes against the pack's content hash first.
+fn link_or_copy(source: &Path, target: &Path, hash: &str) -> io::Result<()> {
     if std::fs::hard_link(source, target).is_err() {
-        crate::generation::replace(target, verified_bytes)?;
+        let bytes = std::fs::read(source)?;
+        if graph_search_core::hash::content_hash(&bytes) != hash {
+            return Err(io::Error::other("source pack checksum mismatch"));
+        }
+        crate::generation::replace(target, &bytes)?;
     }
     Ok(())
 }
@@ -653,14 +649,22 @@ pub(crate) fn save_records_retaining<T: EncodeRecord>(
     }
     let mut copied = BTreeSet::new();
     for (hash, group) in reusable {
-        let pack = read_pack(&previous.join(layout.directory), hash, NATIVE_FORMAT)?;
-        let bytes = pack.bytes();
-        let live = live_bytes(bytes.len(), &group)?;
+        let source = previous.join(layout.directory).join(hash);
         let packed = group
             .iter()
             .all(|(_, reference)| matches!(reference, Reference::Packed(_)));
-        let compact_small = small > 1 && (bytes.len() as u64) < SMALL_PACK_BYTES;
-        if !packed || compact_small || live < minimum_live(bytes.len()) {
+        // A healthy pack is carried over from its frame header and the index
+        // alone: its name is its content hash, so every reader still verifies it
+        // before use, and publishing never reads bytes it does not rewrite.
+        let len = if packed {
+            usize::try_from(raw_len(&source)?).map_err(io::Error::other)?
+        } else {
+            0
+        };
+        let compact_small = small > 1 && (len as u64) < SMALL_PACK_BYTES;
+        if !packed || compact_small || live_bytes(len, &group)? < minimum_live(len) {
+            let pack = read_pack(&previous.join(layout.directory), hash, NATIVE_FORMAT)?;
+            let bytes = pack.bytes();
             for (path, reference) in group {
                 let (start, end) = reference.range(bytes.len())?;
                 writer.add_encoded(path, bytes.get(start..end).unwrap_or_default())?;
@@ -669,11 +673,7 @@ pub(crate) fn save_records_retaining<T: EncodeRecord>(
             continue;
         }
         let target = directory.join(hash);
-        link_or_copy(
-            &previous.join(layout.directory).join(hash),
-            &target,
-            &pack.file,
-        )?;
+        link_or_copy(&source, &target, hash)?;
         writer.written.insert(hash.to_owned());
         for (path, reference) in group {
             writer.retain(path, reference);
@@ -832,7 +832,7 @@ mod tests {
         );
         assert!(
             index
-                .load_verified::<SourceFileUnits>(root.path(), SOURCE_LAYOUT)
+                .load::<SourceFileUnits>(root.path(), SOURCE_LAYOUT)
                 .is_err()
         );
         assert!(
@@ -1138,13 +1138,24 @@ mod tests {
     }
 
     #[test]
-    fn unsupported_links_fall_back_to_a_synced_copy() {
+    fn unsupported_links_fall_back_to_a_verified_synced_copy() {
         let root = tempfile::tempdir().unwrap();
+        let source = root.path().join("pack");
+        let bytes = b"pack bytes named by their hash";
+        std::fs::write(&source, bytes).unwrap();
+        let hash = graph_search_core::hash::content_hash(bytes);
+        // An existing target makes the hard link fail, as on a filesystem
+        // without links.
         let target = root.path().join("copy");
-        let bytes = b"already verified pack bytes";
-        link_or_copy(&root.path().join("unavailable-link-source"), &target, bytes).unwrap();
-        assert_eq!(std::fs::read(target).unwrap(), bytes);
+        std::fs::write(&target, b"stale").unwrap();
+        link_or_copy(&source, &target, &hash).unwrap();
+        assert_eq!(std::fs::read(&target).unwrap(), bytes);
         assert!(!root.path().join("copy.tmp").exists());
+        // A pack whose bytes no longer match its name is never copied.
+        std::fs::write(&source, b"corrupted").unwrap();
+        std::fs::write(&target, b"stale").unwrap();
+        assert!(link_or_copy(&source, &target, &hash).is_err());
+        assert_eq!(std::fs::read(&target).unwrap(), b"stale");
     }
 
     #[test]
