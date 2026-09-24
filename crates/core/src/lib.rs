@@ -52,6 +52,7 @@ pub mod source;
 mod source_capture;
 pub mod stale;
 pub mod symbols;
+pub mod sync_cache;
 pub mod text_search;
 pub mod typescript;
 pub mod typescript_aliases;

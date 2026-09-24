@@ -125,6 +125,8 @@ pub struct Index {
     /// Whether the index has been verified fresh *in this process* — the
     /// resident fast path for `files` (`SPEC.md` §4.6).
     fresh: AtomicBool,
+    /// State this index's syncs keep between them.
+    cache: graph_search_core::sync_cache::SyncCache,
 }
 
 impl Index {
@@ -175,6 +177,7 @@ impl Index {
             read_only: options.read_only,
             store: RwLock::new(Box::new(store)),
             fresh: AtomicBool::new(false),
+            cache: graph_search_core::sync_cache::SyncCache::default(),
         })
     }
 
@@ -262,7 +265,7 @@ impl Index {
         let list = LIST.get_or_init(|| RegistryList {
             extractors: REGISTRY.get_or_init(all_extractors).as_slice(),
         });
-        Projector::new(list, &self.policy)
+        Projector::new(list, &self.policy).with_cache(&self.cache)
     }
 
     /// Full build: parse everything, build from scratch (`SPEC.md` §6.5.1).

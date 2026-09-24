@@ -31,6 +31,7 @@ pub struct Projector<'a> {
     /// The walk and extraction policy.
     pub policy: &'a WalkPolicy,
     work: Option<std::cell::RefCell<&'a mut crate::work::WorkBudget>>,
+    cache: Option<&'a crate::sync_cache::SyncCache>,
 }
 
 /// One file's in-flight projection, between extraction and edge resolution.
@@ -50,7 +51,16 @@ impl<'a> Projector<'a> {
             registry,
             policy,
             work: None,
+            cache: None,
         }
+    }
+
+    /// Keeps state between syncs in `cache`, which the caller holds across
+    /// them (see [`crate::sync_cache`]).
+    #[must_use]
+    pub const fn with_cache(mut self, cache: &'a crate::sync_cache::SyncCache) -> Self {
+        self.cache = Some(cache);
+        self
     }
 
     /// Shares automatic maintenance reads and walks with a caller's query budget.
@@ -334,6 +344,7 @@ impl<'a> Projector<'a> {
         // files from the batch, untouched files read from the store only as
         // resolution names them.
         let changed_paths: BTreeSet<String> = pending.iter().map(|p| p.entry.rel.clone()).collect();
+        let generation = store.generation()?;
         let snapshot = store.snapshot()?;
         let mut table = SymbolTable::over(
             snapshot.as_ref(),
@@ -347,7 +358,16 @@ impl<'a> Projector<'a> {
             }
         }
 
-        table.prepare_rust_modules(&known_files, package_boundaries);
+        match self.cache {
+            Some(cache) => cache.prepare_rust_modules(
+                &mut table,
+                generation.as_deref(),
+                &known_files,
+                package_boundaries,
+                &changed_paths.iter().chain(&removed).cloned().collect(),
+            ),
+            None => table.prepare_rust_modules(&known_files, package_boundaries),
+        }
         table.prepare_node_packages(package_boundaries);
         let config_sources = self.config_sources(store, &changed_paths, &removed, &pending)?;
         table.prepare_typescript_projects(&config_sources);
@@ -571,6 +591,9 @@ impl<'a> Projector<'a> {
             store.publish_retaining(batch, &retention)?;
         } else {
             store.publish(batch)?;
+        }
+        if let Some(cache) = self.cache {
+            cache.published(store.generation()?);
         }
         report.elapsed_ms = u64::try_from(started.elapsed().as_millis()).unwrap_or(u64::MAX);
         Ok(report)

@@ -257,11 +257,54 @@ impl<'s> SymbolTable<'s> {
         known: &BTreeSet<String>,
         boundaries: &BTreeSet<String>,
     ) {
+        self.build_rust_modules(known, boundaries);
+    }
+
+    /// [`Self::prepare_rust_modules`], returning the module declarations it
+    /// was built from.
+    pub(crate) fn build_rust_modules(
+        &mut self,
+        known: &BTreeSet<String>,
+        boundaries: &BTreeSet<String>,
+    ) -> Rc<[Rc<Node>]> {
         let mut catalog = crate::rust_modules::Catalog::build(&self.files, known, boundaries);
         let modules = self.structure(Structure::RustModules);
         catalog.populate(&modules, &|id| self.get(id), known);
         self.rust_paths = crate::rust_paths::Paths::build(&modules, &catalog);
         self.rust_roots = catalog;
+        modules
+    }
+
+    /// Installs Rust module paths built by an earlier sync.
+    pub(crate) fn install_rust_modules(
+        &mut self,
+        catalog: crate::rust_modules::Catalog,
+        paths: crate::rust_paths::Paths,
+    ) {
+        self.rust_roots = catalog;
+        self.rust_paths = paths;
+    }
+
+    /// The package manifest nodes, by path.
+    pub(crate) const fn manifests(&self) -> &BTreeMap<String, Node> {
+        &self.files
+    }
+
+    /// The Rust module declarations added for `path`, sorted by id.
+    pub(crate) fn added_modules(&self, path: &str) -> Vec<Node> {
+        let mut nodes: Vec<Node> = self
+            .added
+            .paths
+            .get(path)
+            .into_iter()
+            .flatten()
+            .filter_map(|id| self.added.nodes.get(id))
+            .filter(|node| crate::symbols::structure(node) == Some(Structure::RustModules))
+            .map(|node| Node::clone(node))
+            .collect();
+        nodes.sort_by(|a, b| a.id.cmp(&b.id));
+        nodes.dedup_by(|a, b| a.id == b.id);
+        nodes
     }
 
     /// Adds a file or symbol node; files never enter symbol-name lookup.

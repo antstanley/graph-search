@@ -986,7 +986,13 @@ holds the batch's symbols and reads stored ones on demand, excluding the
 changed and removed files: a name lookup reads its postings, a same-file or
 module-member lookup reads one shard, and a symbol by id reads its owner's
 shard. The global unique-name rule decides from the postings alone. Markup is
-read only when a changed file has elements or CSS rules.
+read only when a changed file has elements or CSS rules. A long-lived index
+keeps its Rust module paths (the Cargo catalog and module tree) between its own
+syncs (`crates/core/src/sync_cache.rs`) and reuses them when the store is still
+at the generation they were published into and the walked file set, package
+boundaries, Cargo manifests and every changed or removed file's module
+declarations are unchanged; anything else, including another writer's
+publication or a failed one, rebuilds them.
 
 Generation format 6 and later commit `extractions.json` whenever they commit a manifest.
 This version-2 record index uses the same native pack codec under `extraction-records/`.

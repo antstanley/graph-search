@@ -7,6 +7,7 @@ use graph_search_types::{Node, NodeId, NodeKind, Span};
 use std::cell::RefCell;
 use std::collections::{BTreeMap, BTreeSet, VecDeque};
 use std::rc::Rc;
+use std::sync::Arc;
 
 /// Maximum `pub use` hops followed for one anchored path.
 const MAX_REEXPORT_DEPTH: usize = 16;
@@ -15,7 +16,7 @@ const MAX_REEXPORT_DEPTH: usize = 16;
 /// it), each name's symbols.
 type FileMembers = BTreeMap<NodeId, BTreeMap<String, Vec<NodeId>>>;
 
-#[derive(Debug, Default)]
+#[derive(Clone, Debug, Default)]
 pub(crate) struct Paths {
     interiors: BTreeMap<NodeId, Result<NodeId, &'static str>>,
     parents: BTreeMap<NodeId, BTreeSet<NodeId>>,
@@ -27,7 +28,7 @@ pub(crate) struct Paths {
     /// Workspace library crate roots by crate name (see [`Catalog::libraries`]).
     crates: BTreeMap<String, Result<NodeId, &'static str>>,
     /// Module members, indexed one file at a time as paths walk into it.
-    members: RefCell<BTreeMap<String, Rc<FileMembers>>>,
+    members: RefCell<BTreeMap<String, Arc<FileMembers>>>,
     incomplete: bool,
 }
 
@@ -100,6 +101,15 @@ impl Paths {
         result
     }
 
+    /// This structure with no file's members indexed yet, for reuse by a
+    /// later sync whose files may have changed.
+    pub(crate) fn without_members(&self) -> Self {
+        Self {
+            members: RefCell::default(),
+            ..self.clone()
+        }
+    }
+
     /// The symbols named `name` directly in `scope`.
     fn members(&self, scope: &NodeId, name: &str, table: &SymbolTable<'_>) -> Option<Vec<NodeId>> {
         let path = match scope.as_str().strip_prefix("file:") {
@@ -113,9 +123,9 @@ impl Paths {
     }
 
     /// Every scope's members in the file `path`.
-    fn file_members(&self, path: &str, table: &SymbolTable<'_>) -> Rc<FileMembers> {
+    fn file_members(&self, path: &str, table: &SymbolTable<'_>) -> Arc<FileMembers> {
         if let Some(members) = self.members.borrow().get(path) {
-            return Rc::clone(members);
+            return Arc::clone(members);
         }
         let mut members = FileMembers::new();
         for node in table.in_path(path).iter() {
@@ -133,10 +143,10 @@ impl Paths {
                     .push(node.id.clone());
             }
         }
-        let members = Rc::new(members);
+        let members = Arc::new(members);
         self.members
             .borrow_mut()
-            .insert(path.to_owned(), Rc::clone(&members));
+            .insert(path.to_owned(), Arc::clone(&members));
         members
     }
 

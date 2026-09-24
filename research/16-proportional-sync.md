@@ -326,6 +326,33 @@ a clean rebuild, and is measured with Criterion (see `AGENTS.md`).
    without the two follow-ups measured −14.2% at 4,000 modules, with +4% on
    the open benches from reopening every table after each publish.
 
+1g. **Rust module paths kept between syncs. Done.** After 1f, building the
+   Rust module catalog and paths from every module declaration was 18% of a
+   one-file sync at 4,000 modules (reading and parsing the declarations about
+   5%, the catalog and path computation about 12%), and an edit inside a
+   function builds exactly what the previous sync built. A long-lived `Index`
+   now keeps the built paths in a `SyncCache` (`crates/core/src/sync_cache.rs`)
+   with the inputs they came from: the walked file set, package boundaries,
+   Cargo manifests and each file's module declarations. They are reused when
+   the store is still at the generation they were published into and every
+   changed or removed file declares exactly what it did; anything else,
+   including another writer's publication or a failed one, rebuilds them.
+   A unit test counts builds across those cases, and an integration test
+   checks a body edit, a new file, a new declaration and a removal against
+   clean builds of a separate workspace.
+
+   Criterion against `6bf6daa`, run base, new, base again (the machine was
+   loaded; the repeated baseline shows the noise):
+
+   | Benchmark | Base | New | Change | Base again vs base |
+   |---|---|---|---|---|
+   | `sync_scaling` 250 modules | 19.3 ms | 18.7 ms | no change | no change |
+   | `sync_scaling` 1,000 modules | 28.4 ms | 25.1 ms | −9.5% | +13.3% (noise) |
+   | `sync_scaling` 4,000 modules | 59.3 ms | 50.2 ms | −14.1% | no change |
+   | `storage_publish/reindex_full` | 374 ms | 373 ms | no change | +10.2% (noise) |
+
+   A first, noisier run read −31% at 4,000 modules against a 70 ms baseline.
+
 2. **Posting tables.** `names`, `incoming`, `consumers`, `selected`, `cross` as
    base and delta segments. Delta summaries and edge counts. Publish writes one
    delta per table.

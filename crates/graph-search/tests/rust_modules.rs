@@ -799,3 +799,84 @@ fn workspace_crate_paths_reexports_and_associated_items_resolve_across_crates() 
         "rust_associated_member_missing",
     );
 }
+
+/// A long-lived index reuses its Rust module paths across syncs that declare
+/// no module (`SyncCache`); a sync that adds or removes one rebuilds them.
+/// Each state must match a clean build by a fresh index.
+#[test]
+fn reused_module_paths_track_body_edits_new_modules_and_removals() {
+    let root = tempfile::tempdir().unwrap();
+    write(
+        root.path(),
+        "Cargo.toml",
+        "[package]\nname='p'\nedition='2021'\n",
+    );
+    write(root.path(), "src/lib.rs", "pub mod a;\npub mod user;\n");
+    write(root.path(), "src/a.rs", "pub fn run() {}\n");
+    write(
+        root.path(),
+        "src/user.rs",
+        "pub fn go() { crate::a::run(); crate::b::later(); }\n",
+    );
+    let index = open(root.path());
+    index.reindex().unwrap();
+    let call = |source: &BTreeMap<String, OccurrenceFile>, name: &str| {
+        source["src/user.rs"]
+            .records
+            .iter()
+            .find(|fact| fact.kind == EdgeKind::Calls && fact.name == name)
+            .and_then(|fact| fact.target.as_ref())
+            .map(|target| target.as_str().to_owned())
+    };
+    // A clean build of the same files in a separate workspace, so the
+    // long-lived index's store (and its memo) is left alone.
+    let clean = || {
+        let copy = tempfile::tempdir().unwrap();
+        for path in [
+            "Cargo.toml",
+            "src/lib.rs",
+            "src/a.rs",
+            "src/b.rs",
+            "src/user.rs",
+        ] {
+            if let Ok(text) = std::fs::read_to_string(root.path().join(path)) {
+                write(copy.path(), path, &text);
+            }
+        }
+        let fresh = open(copy.path());
+        fresh.reindex().unwrap();
+        facts(&fresh)
+    };
+    let steps: [(&str, Option<&str>); 4] = [
+        // A body edit declares no module: the paths are reused.
+        ("src/a.rs", Some("pub fn run() { let _ = 1; }\n")),
+        // A new file alone declares nothing either.
+        ("src/b.rs", Some("pub fn later() {}\n")),
+        // A new declaration must rebuild the paths.
+        (
+            "src/lib.rs",
+            Some("pub mod a;\npub mod b;\npub mod user;\n"),
+        ),
+        // So must removing one.
+        ("src/lib.rs", Some("pub mod a;\npub mod user;\n")),
+    ];
+    let expected = [None, None, Some("sym:src/b.rs#function:later"), None];
+    for ((path, text), later) in steps.into_iter().zip(expected) {
+        if let Some(text) = text {
+            write(root.path(), path, text);
+        }
+        index.sync().unwrap();
+        let synced = facts(&index);
+        assert_eq!(
+            call(&synced, "crate::a::run").as_deref(),
+            Some("sym:src/a.rs#function:run"),
+            "after {path}"
+        );
+        assert_eq!(
+            call(&synced, "crate::b::later").as_deref(),
+            later,
+            "after {path}"
+        );
+        assert_eq!(synced, clean(), "after {path}");
+    }
+}
