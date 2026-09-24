@@ -15,6 +15,7 @@ mod durable;
 mod generation;
 mod manifest_records;
 mod record_codec;
+mod record_tables;
 mod segment;
 mod shards;
 pub mod sidecar;

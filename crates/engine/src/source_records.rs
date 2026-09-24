@@ -34,23 +34,23 @@ pub(crate) const PACK_BYTES: usize = 8 * 1024 * 1024;
 
 impl Layout {
     /// Packs below this size are combined when more than one is reused.
-    fn small_pack_bytes(self) -> u64 {
+    pub(crate) fn small_pack_bytes(self) -> u64 {
         (self.pack_bytes >> 3) as u64
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
-struct Packed {
-    pack: String,
-    hash: String,
-    offset: u64,
-    len: u64,
+pub(crate) struct Packed {
+    pub(crate) pack: String,
+    pub(crate) hash: String,
+    pub(crate) offset: u64,
+    pub(crate) len: u64,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(untagged)]
-enum Reference {
+pub(crate) enum Reference {
     Single(String),
     Packed(Packed),
 }
@@ -286,7 +286,10 @@ fn read_selected_group<T: DecodeRecord + DeserializeOwned>(
 /// encoding. Formats 1 and 2 hold JSON records.
 pub(crate) const NATIVE_FORMAT: u32 = 3;
 
-fn decode<T: DecodeRecord + DeserializeOwned>(format: u32, bytes: &[u8]) -> io::Result<T> {
+pub(crate) fn decode<T: DecodeRecord + DeserializeOwned>(
+    format: u32,
+    bytes: &[u8],
+) -> io::Result<T> {
     if format >= NATIVE_FORMAT {
         T::decode_record(bytes)
     } else {
@@ -294,7 +297,7 @@ fn decode<T: DecodeRecord + DeserializeOwned>(format: u32, bytes: &[u8]) -> io::
     }
 }
 
-fn valid_hash(hash: &str) -> bool {
+pub(crate) fn valid_hash(hash: &str) -> bool {
     hash.len() == 64
         && hash
             .bytes()
@@ -460,11 +463,11 @@ struct Pending {
     len: u64,
     paths: Vec<String>,
 }
-struct Writer<'a> {
+pub(crate) struct Writer<'a> {
     directory: &'a Path,
     /// Inflated sizes of the packs this index references.
-    sizes: BTreeMap<String, u64>,
-    records: BTreeMap<String, Reference>,
+    pub(crate) sizes: BTreeMap<String, u64>,
+    pub(crate) records: BTreeMap<String, Reference>,
     known: BTreeMap<String, Reference>,
     written: BTreeSet<String>,
     bytes: Vec<u8>,
@@ -472,7 +475,7 @@ struct Writer<'a> {
     limit: usize,
 }
 impl<'a> Writer<'a> {
-    fn new(directory: &'a Path, limit: usize) -> Self {
+    pub(crate) fn new(directory: &'a Path, limit: usize) -> Self {
         Self {
             directory,
             sizes: BTreeMap::new(),
@@ -489,7 +492,7 @@ impl<'a> Writer<'a> {
             .insert(reference.hash().to_owned(), reference.clone());
         self.records.insert(path.to_owned(), reference.clone());
     }
-    fn add<T: EncodeRecord>(&mut self, path: &str, record: &T) -> io::Result<()> {
+    pub(crate) fn add<T: EncodeRecord>(&mut self, path: &str, record: &T) -> io::Result<()> {
         // Encode directly into the pack buffer. Only a boundary-crossing
         // record needs a separate allocation while the preceding pack is flushed.
         let start = self.bytes.len();
@@ -497,7 +500,7 @@ impl<'a> Writer<'a> {
         self.finish_record(path, start)
     }
 
-    fn add_encoded(&mut self, path: &str, bytes: &[u8]) -> io::Result<()> {
+    pub(crate) fn add_encoded(&mut self, path: &str, bytes: &[u8]) -> io::Result<()> {
         let start = self.bytes.len();
         self.bytes.extend_from_slice(bytes);
         self.finish_record(path, start)
@@ -536,7 +539,7 @@ impl<'a> Writer<'a> {
         }
         Ok(())
     }
-    fn flush(&mut self) -> io::Result<()> {
+    pub(crate) fn flush(&mut self) -> io::Result<()> {
         if self.bytes.is_empty() {
             return Ok(());
         }
@@ -567,7 +570,7 @@ impl<'a> Writer<'a> {
 }
 
 #[allow(clippy::integer_division)] // Round the allowed dead quarter down, retaining at least 75% live.
-fn minimum_live(bytes: usize) -> usize {
+pub(crate) fn minimum_live(bytes: usize) -> usize {
     bytes.saturating_sub(bytes / 4)
 }
 

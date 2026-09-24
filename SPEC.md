@@ -209,7 +209,7 @@ Design notes:
 ### 4.3 The engine: a native generation store
 
 `graph-search-engine` implements core's `GraphStore` port with its own storage
-(format 13, `research/16-proportional-sync.md`). The store lives at
+(format 14, `research/16-proportional-sync.md`). The store lives at
 `<root>/.graph-search/index/` by default and is git-ignored. It replaced the
 embedded Grafeo database, as this section always allowed: an in-process
 adjacency map proved sufficient, and Grafeo rebuilt and re-serialized the whole
@@ -556,7 +556,7 @@ Binary (NUL in the first 8 KiB) and invalid UTF-8 source is quarantined before
 parsing, with an explicit coverage status when encountered by live search.
 A source read error aborts reconciliation rather than projecting an empty file.
 
-Reconciliation also records native source retrieval facts through `source-units.json`.
+Reconciliation also records native source retrieval facts as per-file source records.
 It partitions valid UTF-8 using declaration byte boundaries, chooses the smallest
 containing declaration, and creates windows of at most 80 lines with eight-line
 overlap inside long regions. Regions carry original half-open byte bounds,
@@ -856,11 +856,11 @@ identities survive, rewrites the untouched files that point at a removed node,
 and computes the new posting rows, summary and dependency index. Only then does
 it write the changed shards and source records as new packs and one delta
 segment per posting table into `objects/`, and, under `generations/<id>/`, the
-pack indexes, the table list, the object list, the manifest header and the
+table list, the object list, the extraction index, the manifest header and the
 summary. It then publishes a small `CURRENT` descriptor by atomic rename. The
-descriptor records storage format 13 and BLAKE3 fingerprints of the small index
-artifacts (`shards.json`, `source-units.json`, `tables.json`, `summary.json`,
-`manifest.json`, `extractions.json`); packs and segments are committed
+descriptor records storage format 14 and BLAKE3 fingerprints of the small
+artifacts (`tables.json`, `summary.json`, `manifest.json`, `extractions.json`);
+packs and segments are committed
 transitively by their own content hashes. A missing or corrupt
 committed artifact is an error, never a silently empty index. A generation from
 an earlier format is never read: the store opens unpublished and is rebuilt, not
@@ -902,8 +902,16 @@ rewrites, plus posting lookups for the identities it removes. Retrieval indexes
 on their next use, not on the write path. Publication borrows the batch's
 manifest instead of cloning its raw extraction cache.
 
-Source facts use a version-3 per-file index in `source-units.json`. Each entry
-contains a pack fingerprint, record fingerprint, byte offset and nonzero length.
+Shards, source facts and dependency records are each a pack family whose index
+is three posting tables (format 14, `crates/engine/src/record_tables.rs`):
+`<family>_paths` maps a path to its entry, `<family>_packs` lists each pack's
+entries by pack, and `<family>_small` lists the packs below the family's
+small-pack size. An entry holds the pack fingerprint, record fingerprint, byte
+offset, nonzero length and the pack's inflated size. A publish writes one delta
+per table for the changed files and the packs they lived in, so nothing
+proportional to the workspace is written; the object list is updated by the
+packs a publish writes and retires. The extraction index remains a version-3
+JSON index in `extractions.json`, tied to the manifest header.
 Each immutable pack under `source-records/` is one zstd frame (level 3, with its
 content size) of concatenated records; offsets and lengths address the inflated
 bytes, and the pack fingerprint covers the compressed file, so corruption is
@@ -933,15 +941,15 @@ pack reader, but publication never reuses their records; a version-3 index requi
 generation format 8. Source representation
 and chunker revisions are independent of this layout.
 
-Publication uses its cached, validated record index for reuse. Surviving source
-facts outside the batch upsert/removal paths are unchanged by construction;
-touched facts compare the complete representation with the previous generation. It verifies each retained pack once,
-then shares it by hard link or synced-copy fallback. New/changed records become
-small delta packs; publication never overwrites a shared inode. Packs below 75%
-live bytes are repacked from current facts, and multiple existing packs smaller
-than 1 MiB are combined. At most two sub-MiB packs survive a publication; other
-retained packs carry at least 75% live bytes. Identical serialized records are
-deduplicated. Repacking and removal preserve original per-file facts, and deleting
+Records outside the batch's upsert and removal paths are unchanged by
+construction and are never read or rewritten: their packs stay where every
+generation shares them. New and changed records become small delta packs;
+publication never overwrites a shared inode. A pack the batch leaves below 75%
+live bytes has its surviving records copied, verified, into the new packs, and
+so has every small pack once two or more would survive. At most two small packs
+survive a publication; other packs carry at least 75% live bytes. Identical
+serialized records are deduplicated within a batch (a full reindex writes one
+batch, so it deduplicates the workspace). Repacking and removal preserve original per-file facts, and deleting
 older generations unlinks their references without deleting current packs.
 The pack directory is synced before committing its index and CURRENT.
 

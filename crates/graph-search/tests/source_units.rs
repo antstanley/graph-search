@@ -148,7 +148,7 @@ fn reopening_rejects_hash_consistent_facts_with_a_foreign_owner() {
     let source_path = store_dir
         .join("generations")
         .join(pointer["id"].as_str().unwrap())
-        .join("source-units.json");
+        .join("tables.json");
     let mut sources: BTreeMap<String, SourceFileUnits> =
         graph_search_engine::sidecar::load_sources(source_path.parent().unwrap()).unwrap();
     sources.get_mut("a.rs").unwrap().units[0].owner =
@@ -156,7 +156,7 @@ fn reopening_rejects_hash_consistent_facts_with_a_foreign_owner() {
     graph_search_engine::sidecar::save_sources(source_path.parent().unwrap(), &sources).unwrap();
     // Recompute the artifact checksum to exercise semantic validation itself.
     let bytes = std::fs::read(&source_path).unwrap();
-    pointer["files"]["source-units.json"] =
+    pointer["files"]["tables.json"] =
         serde_json::json!(graph_search_core::hash::content_hash(&bytes));
     std::fs::write(pointer_path, serde_json::to_vec(&pointer).unwrap()).unwrap();
     // Source facts are verified when first read, so opening succeeds and the
@@ -197,8 +197,8 @@ fn legacy_identifier_facts_upgrade_without_blocking_reopen_or_using_old_analysis
         }
     }
     graph_search_engine::sidecar::save_sources(&generation, &sources).unwrap();
-    let bytes = std::fs::read(generation.join("source-units.json")).unwrap();
-    pointer["files"]["source-units.json"] =
+    let bytes = std::fs::read(generation.join("tables.json")).unwrap();
+    pointer["files"]["tables.json"] =
         serde_json::json!(graph_search_core::hash::content_hash(&bytes));
     let manifest_path = generation.join("manifest.json");
     let mut manifest: serde_json::Value =

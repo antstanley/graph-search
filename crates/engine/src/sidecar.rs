@@ -1,5 +1,5 @@
-//! The small files of a generation: the manifest header (`SPEC.md` §6.3) and
-//! the source-record index. The manifest is one JSON document, written
+//! The small files of a generation: the manifest header (`SPEC.md` §6.3), and
+//! access to a generation's source records. The manifest is one JSON document, written
 //! atomically (temporary file, then rename) and only ever *after* a successful
 //! apply.
 
@@ -60,7 +60,8 @@ pub(crate) fn prepare_manifest(store_dir: &Path, manifest: &Manifest) -> std::io
     std::fs::rename(&tmp, &target)
 }
 
-/// Source retrieval facts published and checksummed with the graph generation.
+/// The name source-record layouts carry; since format 14 the source index is
+/// a set of posting tables in `tables.json`, not an artifact of its own.
 pub const SOURCE_FILE: &str = "source-units.json";
 /// The store-level object directory of a generation directory
 /// (`<store>/generations/<id>`).
@@ -71,6 +72,12 @@ fn objects_of(generation: &Path) -> std::path::PathBuf {
     )
 }
 
+/// The table references a generation directory commits.
+fn table_refs(generation: &Path) -> std::io::Result<crate::segment::Tables> {
+    serde_json::from_slice(&std::fs::read(generation.join(crate::generation::TABLES))?)
+        .map_err(std::io::Error::other)
+}
+
 /// Reads the native source facts a generation directory commits.
 /// # Errors
 /// On unreadable or malformed data.
@@ -78,16 +85,23 @@ pub fn load_sources(
     generation: &Path,
 ) -> std::io::Result<std::collections::BTreeMap<String, graph_search_types::source::SourceFileUnits>>
 {
-    let bytes = std::fs::read(generation.join(SOURCE_FILE))?;
-    crate::source_records::Index::decode_packed(&bytes)?.load(
-        &objects_of(generation),
-        crate::source_records::SOURCE_LAYOUT,
-    )
+    let objects = objects_of(generation);
+    let tables = table_refs(generation)?
+        .tables
+        .iter()
+        .map(|(name, reference)| {
+            crate::segment::Table::open(&objects, reference).map(|table| (name.clone(), table))
+        })
+        .collect::<std::io::Result<std::collections::BTreeMap<_, _>>>()?;
+    match crate::record_tables::Records::open(crate::store::SOURCE_RECORDS, &tables) {
+        Some(records) => records.load(&objects),
+        None => Ok(std::collections::BTreeMap::new()),
+    }
 }
 
 /// Replaces the native source facts a generation directory commits: new packs
-/// in the store's object directory and a fresh index. The caller commits the
-/// index artifact.
+/// and tables in the store's object directory and a rewritten `tables.json`.
+/// The caller commits that artifact.
 /// # Errors
 /// On serialization, write or sync failure.
 pub fn save_sources(
@@ -95,16 +109,33 @@ pub fn save_sources(
     sources: &std::collections::BTreeMap<String, graph_search_types::source::SourceFileUnits>,
 ) -> std::io::Result<()> {
     let objects = objects_of(generation);
-    let index = crate::source_records::save_packs(
+    let family = crate::store::SOURCE_RECORDS;
+    let delta = crate::record_tables::update(
         &objects,
-        crate::source_records::SOURCE_LAYOUT,
-        sources,
-        &objects,
+        family,
         None,
+        sources,
         &std::collections::BTreeSet::new(),
-        |_, _| Ok(false),
     )?;
-    crate::source_records::write_index(generation, crate::source_records::SOURCE_LAYOUT, &index)
+    let mut refs = table_refs(generation)?;
+    for table in family.tables() {
+        let reference = crate::segment::publish(
+            &objects,
+            table,
+            None,
+            &crate::segment::TableRef::default(),
+            delta
+                .owners
+                .get(table)
+                .unwrap_or(&std::collections::BTreeSet::new()),
+            delta.rows.get(table).cloned().unwrap_or_default(),
+        )?;
+        refs.tables.insert(table.to_owned(), reference);
+    }
+    crate::generation::replace(
+        &generation.join(crate::generation::TABLES),
+        &serde_json::to_vec(&refs).map_err(std::io::Error::other)?,
+    )
 }
 
 #[cfg(test)]

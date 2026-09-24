@@ -123,13 +123,11 @@ fn dependency_records_are_pinned_and_verified_with_the_generation() {
     assert_ne!(record(&writer).unwrap(), first);
     assert_eq!(record(&reader).unwrap(), first);
     // Records are verified by their first reader, not by open.
-    let pointer: serde_json::Value =
-        serde_json::from_slice(&std::fs::read(directory.path().join("CURRENT")).unwrap()).unwrap();
-    let dir = directory
-        .path()
-        .join("generations")
-        .join(pointer["id"].as_str().unwrap());
-    std::fs::write(dir.join("dependencies.json"), b"corrupt").unwrap();
+    for pack in
+        std::fs::read_dir(directory.path().join("objects").join("dependency-records")).unwrap()
+    {
+        std::fs::write(pack.unwrap().path(), b"corrupt").unwrap();
+    }
     let damaged = NativeStore::open(directory.path(), &options).unwrap();
     assert!(record(&damaged).is_err());
     drop(damaged);

@@ -49,13 +49,7 @@ fn status_reads_only_the_header_and_each_fact_fails_on_first_use() {
     assert!(counts.total_nodes > 0 && counts.total_edges > 0);
     assert_eq!(coverage.source_indexed_files, 3);
     let generation = generation(&store_dir);
-    for artifact in [
-        "shards.json",
-        "source-units.json",
-        "tables.json",
-        "extractions.json",
-        "dependencies.json",
-    ] {
+    for artifact in ["tables.json", "extractions.json"] {
         std::fs::write(generation.join(artifact), b"damaged").unwrap();
     }
     let store = NativeStore::open(&store_dir, &StoreOptions::default()).unwrap();

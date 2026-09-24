@@ -382,6 +382,34 @@ impl Table {
         })
     }
 
+    /// Opens `reference`, reusing the segments of `previous` it still names:
+    /// segments are immutable and content-named, so an opened one (and any
+    /// blocks it has read) stays valid in every generation that lists it.
+    pub(crate) fn reopen(
+        dir: &Path,
+        reference: &TableRef,
+        previous: Option<Self>,
+    ) -> io::Result<Self> {
+        let mut opened: BTreeMap<std::ffi::OsString, Segment> = previous
+            .into_iter()
+            .flat_map(|table| table.segments)
+            .filter_map(|segment| Some((segment.path.file_name()?.to_owned(), segment)))
+            .collect();
+        let dir = dir.join(DIRECTORY);
+        Ok(Self {
+            segments: reference
+                .segments
+                .iter()
+                .map(
+                    |segment| match opened.remove(std::ffi::OsStr::new(&segment.file)) {
+                        Some(open) => Ok(open),
+                        None => Segment::open(&dir, segment),
+                    },
+                )
+                .collect::<io::Result<_>>()?,
+        })
+    }
+
     /// Whether a row of segment `index` is hidden by a newer tombstone.
     fn hidden(&self, index: usize, owner: &str) -> bool {
         self.segments

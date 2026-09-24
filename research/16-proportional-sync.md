@@ -290,6 +290,42 @@ a clean rebuild, and is measured with Criterion (see `AGENTS.md`).
    as expected: a freshly published store is one base segment and opening it
    syncs nothing.
 
+1f. **Pack indexes as posting tables (format 14). Done.** After 1e, a
+   quarter of a one-file sync at 4,000 modules still rewrote whole-workspace
+   JSON indexes (`shards.json`, `source-units.json`, `dependencies.json`) and
+   read them back to hash for `CURRENT`. Each pack family now indexes its
+   records in three posting tables (`crates/engine/src/record_tables.rs`):
+   `<family>_paths` (path to pack, record hash, offset, length, pack size),
+   `<family>_packs` (the same entries keyed by pack, for liveness and
+   repacking) and `<family>_small` (packs below the small-pack size). A
+   publish looks up only the replaced paths and the packs they lived in,
+   repacks a pack left below 75% live bytes and combines small packs as
+   before, and writes one delta per table. The object list is updated by the
+   packs a publish writes and retires. `CURRENT` now commits only
+   `tables.json`, `summary.json` and the manifest pair. Identical records are
+   deduplicated within a batch (a full reindex is one batch) instead of
+   against every stored record. Two follow-ups kept the win: a handle keeps
+   its indexed path set current across its own publications instead of
+   rescanning `shard_paths` (dependency repair asks for it every sync), and
+   adopting a publication reuses the segments it already opened.
+
+   Criterion against `d2b9bfd`, separate target directories:
+
+   | Benchmark | Before | After | Change |
+   |---|---|---|---|
+   | `sync_scaling` 250 modules | 21.6 ms | 18.4 ms | −13.0% |
+   | `sync_scaling` 1,000 modules | 31.2 ms | 26.2 ms | no change (wide interval) |
+   | `sync_scaling` 4,000 modules | 81.5 ms | 58.6 ms | −25.8% |
+   | `storage_sync/json_edit` | 22.9 ms | 20.7 ms | −9.6% |
+   | `storage_sync/rust_body_edit` | 20.8 ms | 19.8 ms | no change |
+   | `storage_open/open_then_explore` | 103 ms | 99 ms | −4.2% |
+   | `storage_open/published_read_only` | 223 µs | 211 µs | −4.8% |
+   | `storage_publish/reindex_full` | 409 ms | 369 ms | −9.9% (the baseline read 363 ms in an earlier run) |
+
+   The store shrinks 2.5% (2,239,604 to 2,182,917 bytes). A first run
+   without the two follow-ups measured −14.2% at 4,000 modules, with +4% on
+   the open benches from reopening every table after each publish.
+
 2. **Posting tables.** `names`, `incoming`, `consumers`, `selected`, `cross` as
    base and delta segments. Delta summaries and edge counts. Publish writes one
    delta per table.

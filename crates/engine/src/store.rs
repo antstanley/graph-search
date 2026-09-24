@@ -13,9 +13,10 @@
 //! committed hashes when first read, and bulk views (every node, every source
 //! file, the retrieval indexes) are built only when a query asks for them.
 
+use crate::record_tables::{self, Family, Records};
 use crate::segment::{Row, Table, TableRef, Tables};
 use crate::shards::{EDGE_COUNTS, FOREIGN, INCOMING, NODES, Shard};
-use crate::source_records::{Index, SOURCE_LAYOUT};
+use crate::source_records::SOURCE_LAYOUT;
 use crate::{generation, sidecar};
 use graph_search_core::Result;
 use graph_search_core::dependencies::{DependencyLookup, DependencyRecord, Flag};
@@ -62,6 +63,27 @@ const DEPENDENCY_LAYOUT: crate::source_records::Layout = crate::source_records::
     index: generation::DEPENDENCY_RECORDS,
     directory: "dependency-records",
     pack_bytes: 256 * 1024,
+};
+/// Every file's shard, by path.
+const SHARD_RECORDS: Family = Family {
+    layout: crate::shards::LAYOUT,
+    paths: "shard_paths",
+    packs: "shard_packs",
+    small: "shard_small",
+};
+/// Every file's source facts, by path.
+pub(crate) const SOURCE_RECORDS: Family = Family {
+    layout: SOURCE_LAYOUT,
+    paths: "source_paths",
+    packs: "source_packs",
+    small: "source_small",
+};
+/// Every file's dependency record, by path.
+const DEPENDENCY_RECORDS: Family = Family {
+    layout: DEPENDENCY_LAYOUT,
+    paths: "dependency_paths",
+    packs: "dependency_packs",
+    small: "dependency_small",
 };
 
 /// How the store is opened.
@@ -128,17 +150,15 @@ pub struct NativeStore {
     committed: Option<generation::Committed>,
     summary: generation::Summary,
     manifest_header: Option<Manifest>,
-    shard_index: OnceLock<Option<Index>>,
-    source_index: OnceLock<Option<Index>>,
     table_refs: OnceLock<Tables>,
     tables: OnceLock<BTreeMap<String, Table>>,
+    shard_paths: OnceLock<BTreeSet<String>>,
     /// Shards read so far; immutable, so they stay valid across publications
     /// of other files.
     shards: RwLock<HashMap<String, Arc<Shard>>>,
     sources: OnceLock<BTreeMap<String, SourceFileUnits>>,
     occurrence_files: OnceLock<BTreeMap<String, OccurrenceFile>>,
     extraction_records: OnceLock<Option<crate::manifest_records::Verified>>,
-    dependency_index: OnceLock<Option<Index>>,
     /// Dependency records read so far.
     records: RwLock<HashMap<String, Arc<DependencyRecord>>>,
     /// Every node, sorted by id: the metadata index and bulk reads.
@@ -184,15 +204,13 @@ impl NativeStore {
             committed: None,
             summary: generation::Summary::default(),
             manifest_header: None,
-            shard_index: OnceLock::new(),
-            source_index: OnceLock::new(),
             table_refs: OnceLock::new(),
             tables: OnceLock::new(),
+            shard_paths: OnceLock::new(),
             shards: RwLock::new(HashMap::new()),
             sources: OnceLock::new(),
             occurrence_files: OnceLock::new(),
             extraction_records: OnceLock::new(),
-            dependency_index: OnceLock::new(),
             records: RwLock::new(HashMap::new()),
             nodes: OnceLock::new(),
             metadata: OnceLock::new(),
@@ -263,31 +281,21 @@ impl NativeStore {
         }
     }
 
-    fn shard_index(&self) -> Result<Option<&Index>> {
-        loaded(&self.shard_index, || {
-            self.artifact(crate::shards::FILE)?
-                .map(|bytes| Index::decode_packed(&bytes).map_err(store_io))
-                .transpose()
-        })
-        .map(Option::as_ref)
+    /// A pack family's records in this generation, when it has any.
+    fn family(&self, family: Family) -> Result<Option<Records<'_>>> {
+        Ok(Records::open(family, self.tables()?))
     }
 
-    fn source_index(&self) -> Result<Option<&Index>> {
-        loaded(&self.source_index, || {
-            self.artifact(sidecar::SOURCE_FILE)?
-                .map(|bytes| Index::decode_packed(&bytes).map_err(store_io))
-                .transpose()
-        })
-        .map(Option::as_ref)
+    fn shard_index(&self) -> Result<Option<Records<'_>>> {
+        self.family(SHARD_RECORDS)
     }
 
-    fn dependency_records(&self) -> Result<Option<&Index>> {
-        loaded(&self.dependency_index, || {
-            self.artifact(generation::DEPENDENCY_RECORDS)?
-                .map(|bytes| Index::decode_packed(&bytes).map_err(store_io))
-                .transpose()
-        })
-        .map(Option::as_ref)
+    fn source_index(&self) -> Result<Option<Records<'_>>> {
+        self.family(SOURCE_RECORDS)
+    }
+
+    fn dependency_records(&self) -> Result<Option<Records<'_>>> {
+        self.family(DEPENDENCY_RECORDS)
     }
 
     /// One file's dependency record, verified on first read.
@@ -299,11 +307,7 @@ impl NativeStore {
             return Ok(None);
         };
         let Some(record) = index
-            .load_selected_verified::<DependencyRecord>(
-                &self.objects(),
-                DEPENDENCY_LAYOUT,
-                &BTreeSet::from([path.to_owned()]),
-            )
+            .load_selected::<DependencyRecord>(&self.objects(), &BTreeSet::from([path.to_owned()]))
             .map_err(store_io)?
             .remove(path)
         else {
@@ -359,12 +363,19 @@ impl NativeStore {
             .map(|row| row.owner))
     }
 
-    /// Every file path with a shard, sorted.
-    fn paths(&self) -> Result<Vec<String>> {
-        Ok(self
-            .shard_index()?
-            .map(|index| index.paths().map(str::to_owned).collect())
-            .unwrap_or_default())
+    /// Every file path with a shard, read once per handle and kept current
+    /// across its own publications.
+    fn paths(&self) -> Result<&BTreeSet<String>> {
+        loaded(&self.shard_paths, || {
+            Ok(self
+                .shard_index()?
+                .map(|index| index.paths())
+                .transpose()
+                .map_err(store_io)?
+                .unwrap_or_default()
+                .into_iter()
+                .collect())
+        })
     }
 
     /// The shards of `paths` that exist, verified and validated on first read.
@@ -391,7 +402,7 @@ impl NativeStore {
             return Ok(out);
         };
         let loaded: BTreeMap<String, Shard> = index
-            .load_selected_verified(&self.objects(), crate::shards::LAYOUT, &missing)
+            .load_selected(&self.objects(), &missing)
             .map_err(store_io)?;
         let mut cache = self.shards.write().map_err(|_| poisoned())?;
         for (path, shard) in loaded {
@@ -411,7 +422,7 @@ impl NativeStore {
     }
 
     fn all_shards(&self) -> Result<BTreeMap<String, Arc<Shard>>> {
-        self.shards_for(&self.paths()?.into_iter().collect())
+        self.shards_for(self.paths()?)
     }
 
     fn node(&self, id: &NodeId) -> Result<Option<Node>> {
@@ -458,9 +469,8 @@ impl NativeStore {
             let Some(index) = self.source_index()? else {
                 return Ok(BTreeMap::new());
             };
-            let files: BTreeMap<String, SourceFileUnits> = index
-                .load(&self.objects(), SOURCE_LAYOUT)
-                .map_err(store_io)?;
+            let files: BTreeMap<String, SourceFileUnits> =
+                index.load(&self.objects()).map_err(store_io)?;
             if !files.is_empty() {
                 let nodes = self.nodes()?;
                 for (path, source) in &files {
@@ -487,7 +497,7 @@ impl NativeStore {
         };
         let wanted = BTreeSet::from([path.to_owned()]);
         let Some(source) = index
-            .load_selected_verified::<SourceFileUnits>(&self.objects(), SOURCE_LAYOUT, &wanted)
+            .load_selected::<SourceFileUnits>(&self.objects(), &wanted)
             .map_err(store_io)?
             .remove(path)
         else {
@@ -781,7 +791,7 @@ impl NativeStore {
         if !members.is_empty() {
             let sources: BTreeMap<String, SourceFileUnits> = match self.source_index()? {
                 Some(index) => index
-                    .load_selected_verified(&self.objects(), SOURCE_LAYOUT, &members)
+                    .load_selected(&self.objects(), &members)
                     .map_err(store_io)?,
                 None => BTreeMap::new(),
             };
@@ -986,7 +996,7 @@ impl NativeStore {
         );
         let old_sources: BTreeMap<String, SourceFileUnits> = match self.source_index()? {
             Some(index) => index
-                .load_selected_verified(&self.objects(), SOURCE_LAYOUT, &touched)
+                .load_selected(&self.objects(), &touched)
                 .map_err(store_io)?,
             None => BTreeMap::new(),
         };
@@ -1070,7 +1080,7 @@ impl NativeStore {
         touched: &BTreeSet<String>,
     ) -> Result<Option<BTreeMap<String, DependencyRecord>>> {
         let previous_coherent = self.committed.is_some() && self.summary.dependencies;
-        let old_paths: BTreeSet<String> = self.paths()?.into_iter().collect();
+        let old_paths: &BTreeSet<String> = self.paths()?;
         if shards
             .keys()
             .any(|path| !manifest.entries.contains_key(path))
@@ -1242,9 +1252,6 @@ fn dependency_rows(
 
 /// The indexes a publish wrote, adopted without reading them back.
 struct Written {
-    shards: Index,
-    sources: Index,
-    dependencies: Index,
     tables: Tables,
     extraction: Option<crate::manifest_records::Verified>,
 }
@@ -1265,94 +1272,53 @@ impl NativeStore {
             .map_err(store_io)?;
         let objects = self.objects();
 
-        // Shards: write the planned ones, carry every other by reference.
-        let old_shards = self.shard_index()?;
-        let carried: BTreeSet<String> = old_shards
-            .map(|index| {
-                index
-                    .paths()
-                    .filter(|path| {
-                        !plan.shards.contains_key(*path) && !plan.removed.contains(*path)
-                    })
-                    .map(str::to_owned)
-                    .collect()
-            })
-            .unwrap_or_default();
+        // Pack families: new records for the planned files, each family's
+        // tables changed only for them and the packs they lived in.
         let shard_records: BTreeMap<String, &Shard> = plan
             .shards
             .iter()
             .map(|(path, shard)| (path.clone(), shard))
             .collect();
-        let shards = crate::source_records::save_packs(
+        let shards = record_tables::update(
             &objects,
-            crate::shards::LAYOUT,
+            SHARD_RECORDS,
+            self.shard_index()?.as_ref(),
             &shard_records,
-            &objects,
-            old_shards,
-            &carried,
-            |_, _| Ok(false),
+            &plan.removed,
         )
         .map_err(store_io)?;
-        crate::source_records::write_index(dir, crate::shards::LAYOUT, &shards)
-            .map_err(store_io)?;
         self.inject("after_shard_persist")?;
-
-        // Source records: every touched file's record is replaced or removed.
-        let old_sources = self.source_index()?;
-        let carried: BTreeSet<String> = old_sources
-            .map(|index| {
-                index
-                    .paths()
-                    .filter(|path| !plan.source_owners.contains(*path))
-                    .map(str::to_owned)
-                    .collect()
-            })
-            .unwrap_or_default();
-        let sources = crate::source_records::save_packs(
+        let sources = record_tables::update(
             &objects,
-            SOURCE_LAYOUT,
+            SOURCE_RECORDS,
+            self.source_index()?.as_ref(),
             &plan.sources,
-            &objects,
-            old_sources,
-            &carried,
-            |_, _| Ok(false),
+            &plan.source_owners,
         )
         .map_err(store_io)?;
-        crate::source_records::write_index(dir, SOURCE_LAYOUT, &sources).map_err(store_io)?;
         self.inject("after_source_persist")?;
-
-        // Dependency records: the planned ones, and every other file's while
-        // the records stay coherent.
-        let coherent = plan.summary.dependencies;
-        let old_records = self
-            .dependency_records()?
-            .filter(|_| coherent && self.summary.dependencies);
-        let carried: BTreeSet<String> = old_records
-            .map(|index| {
-                index
-                    .paths()
-                    .filter(|path| !plan.record_owners.contains(*path))
-                    .map(str::to_owned)
-                    .collect()
-            })
-            .unwrap_or_default();
+        // Dependency records carry forward only while every file has one;
+        // otherwise the family starts over from the planned records.
+        let coherent = plan.summary.dependencies && self.summary.dependencies;
         let record_refs: BTreeMap<String, &DependencyRecord> = plan
             .records
             .iter()
             .map(|(path, record)| (path.clone(), record))
             .collect();
-        let dependencies = crate::source_records::save_packs(
+        let old_records = self.dependency_records()?.filter(|_| coherent);
+        let dependencies = record_tables::update(
             &objects,
-            DEPENDENCY_LAYOUT,
+            DEPENDENCY_RECORDS,
+            old_records.as_ref(),
             &record_refs,
-            &objects,
-            old_records,
-            &carried,
-            |_, _| Ok(false),
+            &plan.record_owners,
         )
         .map_err(store_io)?;
-        crate::source_records::write_index(dir, DEPENDENCY_LAYOUT, &dependencies)
-            .map_err(store_io)?;
+        let families = [
+            (SHARD_RECORDS, &shards, true),
+            (SOURCE_RECORDS, &sources, true),
+            (DEPENDENCY_RECORDS, &dependencies, coherent),
+        ];
 
         // Posting tables: one delta each, compacted by policy.
         let old_tables = self.table_refs()?;
@@ -1378,6 +1344,24 @@ impl NativeStore {
                 )
                 .map_err(store_io)?;
                 tables.tables.insert((*table).to_owned(), reference);
+            }
+        }
+        for (family, delta, carried) in families {
+            for table in family.tables() {
+                let reference = crate::segment::publish(
+                    &objects,
+                    table,
+                    previous_dir.filter(|_| carried),
+                    old_tables
+                        .tables
+                        .get(table)
+                        .filter(|_| carried)
+                        .unwrap_or(&TableRef::default()),
+                    delta.owners.get(table).unwrap_or(&BTreeSet::new()),
+                    delta.rows.get(table).cloned().unwrap_or_default(),
+                )
+                .map_err(store_io)?;
+                tables.tables.insert(table.to_owned(), reference);
             }
         }
         for table in SOURCE_TABLES {
@@ -1416,26 +1400,41 @@ impl NativeStore {
             self.inject("after_extraction_persist")?;
             sidecar::prepare_manifest(dir, &manifest.header()).map_err(store_io)?;
         }
-        // The objects this generation keeps alive, for the collector.
-        let mut listed: Vec<String> = Vec::new();
-        listed.extend(
-            shards
-                .pack_names()
-                .into_iter()
-                .map(|name| format!("{}/{name}", crate::shards::LAYOUT.directory)),
-        );
-        listed.extend(
-            sources
-                .pack_names()
-                .into_iter()
-                .map(|name| format!("{}/{name}", SOURCE_LAYOUT.directory)),
-        );
-        listed.extend(
-            dependencies
-                .pack_names()
-                .into_iter()
-                .map(|name| format!("{}/{name}", DEPENDENCY_LAYOUT.directory)),
-        );
+        // The objects this generation keeps alive, for the collector: the
+        // previous list, less what this publish retired, plus what it wrote.
+        let mut listed: BTreeSet<String> = match &self.committed {
+            Some(_) => serde_json::from_slice::<Vec<String>>(
+                &std::fs::read(self.data_dir.join(generation::OBJECT_LIST)).map_err(store_io)?,
+            )
+            .map_err(|error| Error::Store(error.to_string()))?
+            .into_iter()
+            .collect(),
+            None => BTreeSet::new(),
+        };
+        let within = |directory: &str, name: &String| {
+            name.strip_prefix(directory)
+                .is_some_and(|rest| rest.starts_with('/'))
+        };
+        listed.retain(|name| {
+            !within(crate::segment::DIRECTORY, name)
+                && !within(crate::manifest_records::LAYOUT.directory, name)
+        });
+        for (family, delta, carried) in families {
+            let directory = family.layout.directory;
+            if carried {
+                for pack in &delta.retired {
+                    listed.remove(&format!("{directory}/{pack}"));
+                }
+            } else {
+                listed.retain(|name| !within(directory, name));
+            }
+            listed.extend(
+                delta
+                    .written
+                    .iter()
+                    .map(|pack| format!("{directory}/{pack}")),
+            );
+        }
         if let Some(extraction) = &extraction {
             listed.extend(
                 extraction
@@ -1451,6 +1450,7 @@ impl NativeStore {
                     .map(|file| format!("{}/{file}", crate::segment::DIRECTORY)),
             );
         }
+        let listed: Vec<String> = listed.into_iter().collect();
         generation::replace(
             &dir.join(generation::OBJECT_LIST),
             &serde_json::to_vec(&listed).map_err(|error| Error::Store(error.to_string()))?,
@@ -1465,13 +1465,7 @@ impl NativeStore {
         generation::sync_dir(dir).map_err(store_io)?;
         generation::sync_dir(&self.store_dir.join("generations")).map_err(store_io)?;
         self.inject("after_generation_sync")?;
-        Ok(Written {
-            shards,
-            sources,
-            dependencies,
-            tables,
-            extraction,
-        })
+        Ok(Written { tables, extraction })
     }
 
     /// Switches this handle to the generation it just published. Shards it
@@ -1486,6 +1480,12 @@ impl NativeStore {
         manifest: Option<&Manifest>,
     ) -> Result<ApplyOutcome> {
         let lease = generation::pin(dir).map_err(store_io)?;
+        if let Some(paths) = self.shard_paths.get_mut() {
+            for path in &plan.removed {
+                paths.remove(path);
+            }
+            paths.extend(plan.shards.keys().cloned());
+        }
         {
             let mut cache = self.shards.write().map_err(|_| poisoned())?;
             for path in &plan.removed {
@@ -1498,9 +1498,6 @@ impl NativeStore {
         self.committed = Some(generation::committed(dir, files));
         self.summary = plan.summary;
         self.manifest_header = manifest.map(Manifest::header);
-        self.shard_index = OnceLock::from(Some(written.shards));
-        self.source_index = OnceLock::from(Some(written.sources));
-        self.dependency_index = OnceLock::from(Some(written.dependencies));
         {
             let mut records = self.records.write().map_err(|_| poisoned())?;
             for path in &plan.record_owners {
@@ -1510,8 +1507,21 @@ impl NativeStore {
                 records.insert(path, Arc::new(record));
             }
         }
+        // Tables and the path set carry over, changed only by this publish.
+        let mut previous = self.tables.take().unwrap_or_default();
+        let tables = written
+            .tables
+            .tables
+            .iter()
+            .map(|(name, reference)| {
+                Table::reopen(&self.objects(), reference, previous.remove(name))
+                    .map(|table| (name.clone(), table))
+                    .map_err(store_io)
+            })
+            .collect::<Result<BTreeMap<_, _>>>()?;
+        self.tables = OnceLock::from(tables);
         self.table_refs = OnceLock::from(written.tables);
-        self.tables = OnceLock::new();
+
         self.sources = OnceLock::new();
         self.occurrence_files = OnceLock::new();
         self.extraction_records = OnceLock::from(written.extraction);
@@ -1646,7 +1656,7 @@ impl GraphStore for NativeStore {
 
 impl DependencyLookup for NativeStore {
     fn paths(&self) -> Result<BTreeSet<String>> {
-        Ok(self.paths()?.into_iter().collect())
+        Ok(self.paths()?.clone())
     }
 
     fn record(&self, path: &str) -> Result<Option<DependencyRecord>> {
@@ -1938,9 +1948,10 @@ impl GraphSnapshot for NativeSnapshot<'_> {
         let matching: BTreeSet<String> = self
             .store
             .paths()?
-            .into_iter()
+            .iter()
             .filter(|path| set.is_match(path))
             .take(k)
+            .cloned()
             .collect();
         Ok(self
             .store
@@ -2303,7 +2314,7 @@ mod publication_tests {
         let older = NativeStore::open(root.path(), &StoreOptions::default()).unwrap();
         assert!(older.generation().unwrap().is_none());
         drop(older);
-        pointer["format"] = serde_json::json!(13);
+        pointer["format"] = serde_json::json!(14);
         pointer["files"]
             .as_object_mut()
             .unwrap()
@@ -2475,7 +2486,7 @@ mod publication_tests {
         );
         let active = store.data_dir.clone();
         drop(store);
-        std::fs::write(active.join(crate::shards::FILE), b"corrupt").unwrap();
+        std::fs::write(active.join(generation::TABLES), b"corrupt").unwrap();
         // Status-level reads never touch the shards; their first reader fails.
         let store = NativeStore::open(root.path(), &StoreOptions::default()).unwrap();
         assert!(store.manifest_header().unwrap().is_some());
@@ -2613,7 +2624,7 @@ mod publication_tests {
             store.occurrence_files().unwrap()
         );
         drop(reopened);
-        std::fs::write(store.data_dir.join(crate::shards::FILE), b"{}").unwrap();
+        std::fs::write(store.data_dir.join(generation::TABLES), b"{}").unwrap();
         assert!(open_and_read(root.path()).is_err());
     }
 
@@ -2664,7 +2675,7 @@ mod publication_tests {
         for (path, bytes) in packs {
             std::fs::write(path, bytes).unwrap();
         }
-        std::fs::write(store.data_dir.join(sidecar::SOURCE_FILE), b"{}").unwrap();
+        std::fs::write(store.data_dir.join(generation::TABLES), b"{}").unwrap();
         assert!(open_and_read(root.path()).is_err());
     }
 }

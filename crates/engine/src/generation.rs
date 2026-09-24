@@ -19,7 +19,9 @@ pub(crate) const CURRENT: &str = "CURRENT";
 /// posting tables, replacing the whole-workspace dependency index artifact.
 /// Format 13: shards also index symbols by name, qualified name and
 /// structure, so a sync reads only the symbols its references name.
-const FORMAT: u32 = 13;
+/// Format 14: the shard, source and dependency pack indexes are posting
+/// tables (`record_tables`), so a publish writes nothing per unchanged file.
+const FORMAT: u32 = 14;
 /// The store-level directory of content-addressed packs and segments.
 pub(crate) const OBJECTS: &str = "objects";
 /// Every object a generation references, relative to [`OBJECTS`]: what the
@@ -33,14 +35,9 @@ pub(crate) const TABLES: &str = "tables.json";
 /// Cached generation totals.
 pub(crate) const SUMMARY: &str = "summary.json";
 /// Artifacts every generation commits.
-const REQUIRED: [&str; 5] = [
-    SUMMARY,
-    TABLES,
-    crate::shards::FILE,
-    crate::sidecar::SOURCE_FILE,
-    DEPENDENCY_RECORDS,
-];
-/// The index of every file's dependency record.
+const REQUIRED: [&str; 2] = [SUMMARY, TABLES];
+/// The name the dependency-record layout carries; since format 14 its index
+/// is a set of posting tables, not an artifact.
 pub(crate) const DEPENDENCY_RECORDS: &str = "dependencies.json";
 /// Artifacts a generation may commit.
 const OPTIONAL: [&str; 2] = [crate::sidecar::MANIFEST_FILE, crate::manifest_records::FILE];
