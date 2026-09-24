@@ -1,4 +1,4 @@
-//! The Grafeo adapter against core's conformance suite, plus persistence
+//! The native store against core's conformance suite, plus persistence
 //! (`SPEC.md` §15.4).
 
 #![forbid(unsafe_code)]
@@ -8,13 +8,13 @@
 use graph_search_core::conformance;
 use graph_search_core::memory::MemoryStore;
 use graph_search_core::ports::GraphStore;
-use graph_search_engine::{GrafeoStore, StoreOptions};
+use graph_search_engine::{NativeStore, StoreOptions};
 use graph_search_types::NodeId;
 use graph_search_types::kind::{EdgeKind, NodeKind};
 use tempfile::TempDir;
 
-fn open(dir: &std::path::Path) -> GrafeoStore {
-    GrafeoStore::open(dir, &StoreOptions::default()).unwrap_or_else(|e| panic!("open: {e}"))
+fn open(dir: &std::path::Path) -> NativeStore {
+    NativeStore::open(dir, &StoreOptions::default()).unwrap_or_else(|e| panic!("open: {e}"))
 }
 
 #[test]
@@ -24,7 +24,7 @@ fn the_conformance_suite_passes_against_memory() {
 }
 
 #[test]
-fn the_conformance_suite_passes_against_grafeo() {
+fn the_conformance_suite_passes_against_the_native_store() {
     let tmp = TempDir::new().unwrap_or_else(|e| panic!("tmp: {e}"));
     let mut store = open(tmp.path());
     conformance::run_all(&mut store);
@@ -147,7 +147,7 @@ fn the_store_persists_across_open() {
         store
             .commit_manifest(manifest)
             .unwrap_or_else(|e| panic!("commit: {e}"));
-    } // closed here: Grafeo flushes on drop
+    } // closed here
 
     let store = open(tmp.path());
     let snapshot = store.snapshot().unwrap_or_else(|e| panic!("snapshot: {e}"));

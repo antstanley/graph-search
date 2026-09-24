@@ -1,7 +1,7 @@
 //! The ports: the projected store, its read view, and one language's
 //! extraction (`SPEC.md` §4.2).
 //!
-//! Vendor-free in their signatures: no Grafeo type and no tree-sitter type
+//! Vendor-free in their signatures: no storage type and no tree-sitter type
 //! crosses either trait. The read/write split is at the type level — `apply`
 //! is the only mutator, and every read goes through a snapshot taken from the
 //! store; a snapshot taken before an `apply` never sees that batch.

@@ -2,13 +2,13 @@
 #![allow(clippy::unwrap_used)]
 use graph_search::{Index, OpenOptions};
 use graph_search_core::ports::GraphStore;
-use graph_search_engine::{GrafeoStore, StoreOptions};
+use graph_search_engine::{NativeStore, StoreOptions};
 use graph_search_types::source::SourceFileUnits;
 use graph_search_types::{ExploreQuery, Language, NodeKind, SymbolQuery};
 use std::{collections::BTreeMap, path::Path};
 
 fn facts(store: &Path) -> BTreeMap<String, SourceFileUnits> {
-    let store = GrafeoStore::open(store, &StoreOptions::default()).unwrap();
+    let store = NativeStore::open(store, &StoreOptions::default()).unwrap();
     store.snapshot().unwrap().source_files().unwrap().clone()
 }
 
@@ -44,7 +44,7 @@ fn svelte_regions_are_searchable_offset_and_reported() {
         );
     }
     // The file node reports the framework language, not `unknown`.
-    let store_handle = GrafeoStore::open(store.path(), &StoreOptions::default()).unwrap();
+    let store_handle = NativeStore::open(store.path(), &StoreOptions::default()).unwrap();
     let snapshot = store_handle.snapshot().unwrap();
     let file = snapshot
         .find_by_name("Widget.svelte", &[NodeKind::File], 1)

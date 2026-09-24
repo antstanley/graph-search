@@ -21,7 +21,7 @@ fn open(root: &Path) -> Index {
 }
 
 fn facts(index: &Index) -> BTreeMap<String, OccurrenceFile> {
-    let store = graph_search_engine::GrafeoStore::open(
+    let store = graph_search_engine::NativeStore::open(
         index.store_dir(),
         &graph_search_engine::StoreOptions::default(),
     )

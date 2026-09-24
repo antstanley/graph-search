@@ -4,7 +4,7 @@
 
 use graph_search::{Index, OpenOptions, Reconcile};
 use graph_search_core::GraphStore;
-use graph_search_engine::{GrafeoStore, StoreOptions};
+use graph_search_engine::{NativeStore, StoreOptions};
 use std::path::{Path, PathBuf};
 
 fn indexed(root: &Path) -> PathBuf {
@@ -38,7 +38,7 @@ fn status_reads_only_the_header_and_each_fact_fails_on_first_use() {
     let root = tempfile::tempdir().unwrap();
     let store_dir = indexed(root.path());
     let (counts, coverage, header) = {
-        let store = GrafeoStore::open(&store_dir, &StoreOptions::default()).unwrap();
+        let store = NativeStore::open(&store_dir, &StoreOptions::default()).unwrap();
         let snapshot = store.snapshot().unwrap();
         (
             snapshot.counts().clone(),
@@ -50,17 +50,15 @@ fn status_reads_only_the_header_and_each_fact_fails_on_first_use() {
     assert_eq!(coverage.source_indexed_files, 3);
     let generation = generation(&store_dir);
     for artifact in [
-        "graph.grafeo",
-        "dangling.jsonl.zst",
+        "shards.json",
         "source-units.json",
-        "occurrences.json.zst",
+        "tables.json",
         "extractions.json",
         "dependencies.json.zst",
-        "edge-occurrences.bin",
     ] {
         std::fs::write(generation.join(artifact), b"damaged").unwrap();
     }
-    let store = GrafeoStore::open(&store_dir, &StoreOptions::default()).unwrap();
+    let store = NativeStore::open(&store_dir, &StoreOptions::default()).unwrap();
     assert_eq!(store.manifest_header().unwrap(), header);
     assert!(store.generation().unwrap().is_some());
     let snapshot = store.snapshot().unwrap();
@@ -102,7 +100,7 @@ fn status_reads_only_the_header_and_each_fact_fails_on_first_use() {
 fn published_edge_counts_match_the_occurrence_index() {
     let root = tempfile::tempdir().unwrap();
     let store_dir = indexed(root.path());
-    let store = GrafeoStore::open(&store_dir, &StoreOptions::default()).unwrap();
+    let store = NativeStore::open(&store_dir, &StoreOptions::default()).unwrap();
     let snapshot = store.snapshot().unwrap();
     // Answer every edge from the published table before the facts load.
     let edges = snapshot.all_edges().unwrap();

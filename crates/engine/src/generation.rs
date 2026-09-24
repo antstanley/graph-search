@@ -1,5 +1,8 @@
-//! Native publication of complete graph generations. Unpublished directories
-//! are never opened by readers; CURRENT is the sole visibility boundary.
+//! Native publication of graph generations (format 10). Unpublished
+//! directories are never opened by readers; CURRENT is the sole visibility
+//! boundary. A generation commits small index artifacts by hash; the packs and
+//! posting segments they reference are committed transitively by their own
+//! content hashes and verified when read.
 
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
@@ -8,12 +11,31 @@ use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
 
 pub(crate) const CURRENT: &str = "CURRENT";
-pub(crate) const GRAPH: &str = "graph.grafeo";
-const FORMAT: u32 = 9;
+/// Format 10: per-file shards and posting tables replace the Grafeo graph file
+/// and the whole-workspace sidecars (`research/16-proportional-sync.md`).
+const FORMAT: u32 = 10;
+/// An empty file every generation holds: readers pin it with a shared lock and
+/// reclamation takes it exclusively.
+pub(crate) const LEASE: &str = "lease";
+/// The posting tables' segment lists ([`crate::segment::Tables`]).
+pub(crate) const TABLES: &str = "tables.json";
 /// One zstd frame of the JSON dependency index.
 pub(crate) const DEPENDENCIES: &str = "dependencies.json.zst";
-/// Cached generation totals (format 9+, with [`crate::edge_counts::FILE`]).
+/// Cached generation totals.
 pub(crate) const SUMMARY: &str = "summary.json";
+/// Artifacts every generation commits.
+const REQUIRED: [&str; 4] = [
+    SUMMARY,
+    TABLES,
+    crate::shards::FILE,
+    crate::sidecar::SOURCE_FILE,
+];
+/// Artifacts a generation may commit.
+const OPTIONAL: [&str; 3] = [
+    crate::sidecar::MANIFEST_FILE,
+    crate::manifest_records::FILE,
+    DEPENDENCIES,
+];
 static SERIAL: AtomicU64 = AtomicU64::new(0);
 
 #[derive(Serialize, Deserialize)]
@@ -37,17 +59,12 @@ pub(crate) struct Summary {
 /// committed hash when it is first read, before any of its bytes are used.
 pub(crate) struct Committed {
     dir: PathBuf,
-    format: u32,
     files: BTreeMap<String, String>,
 }
 
 impl Committed {
     pub(crate) fn dir(&self) -> &Path {
         &self.dir
-    }
-
-    pub(crate) const fn format(&self) -> u32 {
-        self.format
     }
 
     /// The committed bytes of `name`, verified against CURRENT; `None` when the
@@ -74,8 +91,13 @@ pub(crate) struct Selected {
     pub(crate) lease: std::fs::File,
 }
 
+/// The published generation, or `None` when nothing is published or the
+/// published generation predates format 10 (it is rebuilt, never migrated).
 pub(crate) fn current(root: &Path) -> io::Result<Option<Selected>> {
-    read_current(root, |bytes| select(root, bytes))
+    match read_current(root, |bytes| select(root, bytes)) {
+        Err(error) if error.kind() == io::ErrorKind::Unsupported => Ok(None),
+        other => other,
+    }
 }
 
 fn read_current(
@@ -112,34 +134,27 @@ fn read_current(
 /// the lease keeps their paths alive for as long as the store holds it.
 fn select(root: &Path, bytes: &[u8]) -> io::Result<Selected> {
     let pointer: Pointer = serde_json::from_slice(bytes).map_err(io::Error::other)?;
-    if !(1..=FORMAT).contains(&pointer.format) || !valid_id(&pointer.id) {
+    if !valid_id(&pointer.id) || pointer.format > FORMAT || pointer.format == 0 {
         return Err(io::Error::new(
             io::ErrorKind::InvalidData,
             "invalid generation pointer",
         ));
     }
+    if pointer.format < FORMAT {
+        return Err(io::Error::new(
+            io::ErrorKind::Unsupported,
+            "generation predates format 10 and must be rebuilt",
+        ));
+    }
     let dir = root.join("generations").join(pointer.id);
     let lease = pin(&dir)?;
-    if !pointer.files.contains_key(GRAPH)
-        || !pointer.files.contains_key(crate::sidecar::DANGLING_FILE)
-        || (pointer.format >= 2 && !pointer.files.contains_key(crate::sidecar::SOURCE_FILE))
-        || (pointer.format >= 3 && !pointer.files.contains_key(crate::sidecar::OCCURRENCE_FILE))
-        || (pointer.format >= 9) != pointer.files.contains_key(SUMMARY)
-        || (pointer.format >= 9) != pointer.files.contains_key(crate::edge_counts::FILE)
-        || pointer.files.keys().any(|name| {
-            ![
-                GRAPH,
-                crate::sidecar::DANGLING_FILE,
-                crate::sidecar::MANIFEST_FILE,
-                crate::sidecar::SOURCE_FILE,
-                crate::sidecar::OCCURRENCE_FILE,
-                crate::manifest_records::FILE,
-                DEPENDENCIES,
-                SUMMARY,
-                crate::edge_counts::FILE,
-            ]
-            .contains(&name.as_str())
-        })
+    if REQUIRED
+        .iter()
+        .any(|name| !pointer.files.contains_key(*name))
+        || pointer
+            .files
+            .keys()
+            .any(|name| !REQUIRED.contains(&name.as_str()) && !OPTIONAL.contains(&name.as_str()))
     {
         return Err(io::Error::new(
             io::ErrorKind::InvalidData,
@@ -148,30 +163,13 @@ fn select(root: &Path, bytes: &[u8]) -> io::Result<Selected> {
     }
     let has_extractions = pointer.files.contains_key(crate::manifest_records::FILE);
     let has_manifest = pointer.files.contains_key(crate::sidecar::MANIFEST_FILE);
-    if (has_extractions && (pointer.format < 6 || !has_manifest))
-        || (pointer.format >= 6 && has_manifest && !has_extractions)
-    {
+    let has_dependencies = pointer.files.contains_key(DEPENDENCIES);
+    if has_extractions != has_manifest || has_dependencies != has_manifest {
         return Err(io::Error::other(
             "incomplete extraction generation descriptor",
         ));
     }
-    let has_dependencies = pointer.files.contains_key(DEPENDENCIES);
-    if (has_dependencies && (pointer.format < 7 || !has_manifest))
-        || (pointer.format >= 7 && has_manifest && !has_dependencies)
-    {
-        return Err(io::Error::other(
-            "incomplete dependency generation descriptor",
-        ));
-    }
-    for name in [
-        crate::sidecar::MANIFEST_FILE,
-        crate::sidecar::SOURCE_FILE,
-        crate::sidecar::OCCURRENCE_FILE,
-        crate::manifest_records::FILE,
-        DEPENDENCIES,
-        SUMMARY,
-        crate::edge_counts::FILE,
-    ] {
+    for name in OPTIONAL {
         if !pointer.files.contains_key(name) && dir.join(name).exists() {
             return Err(io::Error::new(
                 io::ErrorKind::InvalidData,
@@ -181,7 +179,6 @@ fn select(root: &Path, bytes: &[u8]) -> io::Result<Selected> {
     }
     let committed = Committed {
         dir,
-        format: pointer.format,
         files: pointer.files,
     };
     let manifest = committed
@@ -205,11 +202,11 @@ fn select(root: &Path, bytes: &[u8]) -> io::Result<Selected> {
     })
 }
 
-/// Pin an immutable generation using an existing mandatory sidecar. No new file
-/// or write permission is needed by readers. Keep the distinct handle alive for
-/// as long as lazy records can be opened from this generation's paths.
+/// Pin an immutable generation by its lease file. No new file or write
+/// permission is needed by readers. Keep the handle alive for as long as lazy
+/// records can be opened from this generation's paths.
 pub(crate) fn pin(dir: &Path) -> io::Result<std::fs::File> {
-    let file = std::fs::File::open(dir.join(crate::sidecar::DANGLING_FILE))?;
+    let file = std::fs::File::open(dir.join(LEASE))?;
     file.try_lock_shared().map_err(io::Error::from)?;
     Ok(file)
 }
@@ -252,50 +249,43 @@ pub(crate) fn replace(path: &Path, bytes: &[u8]) -> io::Result<()> {
     std::fs::rename(tmp, path)
 }
 
-pub(crate) fn prepare_pointer(root: &Path, dir: &Path) -> io::Result<()> {
+/// Commits every written artifact of `dir` by hash and makes it CURRENT.
+/// Returns the committed hashes, so the publisher can adopt the generation
+/// without reading it back.
+pub(crate) fn prepare_pointer(root: &Path, dir: &Path) -> io::Result<BTreeMap<String, String>> {
     let id = dir
         .file_name()
         .and_then(|s| s.to_str())
         .ok_or_else(|| io::Error::other("invalid generation name"))?;
     let mut files = BTreeMap::new();
-    for name in [
-        GRAPH,
-        crate::sidecar::DANGLING_FILE,
-        crate::sidecar::MANIFEST_FILE,
-        crate::sidecar::SOURCE_FILE,
-        crate::sidecar::OCCURRENCE_FILE,
-        crate::manifest_records::FILE,
-        DEPENDENCIES,
-        SUMMARY,
-        crate::edge_counts::FILE,
-    ] {
+    for name in REQUIRED.iter().chain(OPTIONAL.iter()) {
         match std::fs::read(dir.join(name)) {
             Ok(bytes) => {
                 files.insert(
-                    name.to_owned(),
+                    (*name).to_owned(),
                     graph_search_core::hash::content_hash(&bytes),
                 );
             }
-            Err(error)
-                if [
-                    crate::sidecar::MANIFEST_FILE,
-                    crate::manifest_records::FILE,
-                    DEPENDENCIES,
-                ]
-                .contains(&name)
-                    && error.kind() == io::ErrorKind::NotFound => {}
+            Err(error) if OPTIONAL.contains(name) && error.kind() == io::ErrorKind::NotFound => {}
             Err(error) => return Err(error),
         }
     }
-    // Record hashes come from the synced writer, which verifies reused bytes.
-    // Re-reading every blob here repeats that work; readers verify on open.
     let pointer = serde_json::to_vec(&Pointer {
         format: FORMAT,
         id: id.to_owned(),
-        files,
+        files: files.clone(),
     })
     .map_err(io::Error::other)?;
-    replace(&root.join(CURRENT), &pointer)
+    replace(&root.join(CURRENT), &pointer)?;
+    Ok(files)
+}
+
+/// A committed descriptor for a generation this process just published.
+pub(crate) fn committed(dir: &Path, files: BTreeMap<String, String>) -> Committed {
+    Committed {
+        dir: dir.to_path_buf(),
+        files,
+    }
 }
 
 pub(crate) fn sync_dir(dir: &Path) -> io::Result<()> {
@@ -315,7 +305,7 @@ pub(crate) fn reclaim(root: &Path, current: &Path, previous: &Path) {
             && entry.file_type().is_ok_and(|kind| kind.is_dir())
             && entry.file_name().to_str().is_some_and(valid_id)
         {
-            match std::fs::File::open(path.join(crate::sidecar::DANGLING_FILE)) {
+            match std::fs::File::open(path.join(LEASE)) {
                 Ok(file) => {
                     if file.try_lock().is_ok() {
                         // Hold the exclusive lease until all paths are removed.
@@ -342,7 +332,7 @@ mod tests {
     fn selection_retries_a_retired_pointer_and_pins_before_loading_the_store() {
         let root = tempfile::tempdir().unwrap();
         let mut writer =
-            crate::GrafeoStore::open(root.path(), &crate::StoreOptions::default()).unwrap();
+            crate::NativeStore::open(root.path(), &crate::StoreOptions::default()).unwrap();
         writer
             .publish(graph_search_core::conformance::fixture_batch())
             .unwrap();

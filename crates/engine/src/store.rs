@@ -1,155 +1,49 @@
-//! The Grafeo-backed [`GraphStore`]: the one adapter that owns a Grafeo type
-//! (`SPEC.md` §4.3).
+//! The native [`GraphStore`] (storage format 10,
+//! `research/16-proportional-sync.md`).
 //!
-//! Reads go through snapshots; reconciliation publishes graph and manifest as
-//! one prepared generation. Ids are converted at the boundary and
-//! kept in an in-memory map, so no Grafeo id ever appears in a result.
+//! Every graph fact a file owns lives in its **shard** ([`crate::shards`]),
+//! stored in content-addressed packs that every generation shares. Global
+//! lookups (which file owns a node, which files point at it) are **posting
+//! tables** ([`crate::segment`]): a base segment plus small per-publish deltas.
+//! A publish therefore writes the shards, source records and posting rows of the
+//! files it changes and carries everything else forward by reference.
 //!
 //! Opening a published generation reads only its pointer, manifest header and
-//! summary. The graph, each fact family and every derived index are loaded on
-//! first use: artifacts are verified against their committed hashes before
-//! any byte is used, and facts are validated against the graph when they load,
-//! so a damaged generation fails the first query that touches it.
+//! summary. Shards, records and segment blocks are verified against their
+//! committed hashes when first read, and bulk views (every node, every source
+//! file, the retrieval indexes) are built only when a query asks for them.
 
-use crate::value::{
-    LABEL, PROP_ID, Props, edge_from_stored, edge_to_props, kind_label, node_from_props,
-    node_to_props,
-};
+use crate::segment::{Row, Table, TableRef, Tables};
+use crate::shards::{EDGE_COUNTS, FOREIGN, INCOMING, NODES, Shard};
+use crate::source_records::{Index, SOURCE_LAYOUT};
 use crate::{generation, sidecar};
-use grafeo::GrafeoDB;
-use grafeo::GraphStore as GrafeoRead;
-use grafeo_common::types::Value;
 use graph_search_core::Result;
+use graph_search_core::dependencies::{Contribution, DependencyIndex};
 use graph_search_core::error::Error;
 use graph_search_core::ports::{GraphSnapshot, GraphStore};
-use graph_search_types::Subgraph;
 use graph_search_types::kind::{Direction, NodeKind};
 use graph_search_types::manifest::Manifest;
 use graph_search_types::node::Node;
-use graph_search_types::occurrence::OccurrenceFile;
+use graph_search_types::occurrence::{OccurrenceFile, ResolutionClass};
 use graph_search_types::source::SourceFileUnits;
-use graph_search_types::{ApplyOutcome, Edge, FileProjection, NodeId, Scored, WriteBatch};
+use graph_search_types::{ApplyOutcome, Edge, NodeId, Scored, Subgraph, WriteBatch};
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, OnceLock, RwLock};
 
+/// Maps each package manifest path to the files whose source facts name it.
+const PACKAGE_MEMBERS: &str = "package_members";
+
 /// How the store is opened.
 #[derive(Clone, Debug, Default)]
 pub struct StoreOptions {
-    /// Open an in-memory database instead of a file-backed one (tests and
-    /// throwaway reads).
+    /// Keep the store in a private temporary directory, removed when the store
+    /// is dropped (tests and throwaway indexes).
     pub in_memory: bool,
     /// The caller only intends to read. Before any generation is published
-    /// there is nothing to attach to, so a read-only open must not create or
-    /// take a writable on-disk database; it exposes an empty in-memory store
-    /// instead (`SPEC.md` §6.6).
+    /// there is nothing to attach to, so a read-only open exposes an empty
+    /// store and never creates anything on disk (`SPEC.md` §6.6).
     pub read_only: bool,
-}
-
-/// Stable id strings to and from the store's own node ids.
-#[derive(Default)]
-struct IdMaps {
-    forward: HashMap<String, grafeo::NodeId>,
-    reverse: HashMap<u64, String>,
-}
-
-/// The graph database with its id maps.
-struct Graph {
-    db: GrafeoDB,
-    /// The read trait object: every read goes through it, so no concrete
-    /// store type is named past this point.
-    read: Arc<dyn GrafeoRead>,
-    maps: RwLock<IdMaps>,
-}
-
-impl Graph {
-    fn new(db: GrafeoDB) -> Result<Self> {
-        let read = db.graph_store();
-        let graph = Self {
-            db,
-            read,
-            maps: RwLock::new(IdMaps::default()),
-        };
-        graph.rebuild_maps()?;
-        Ok(graph)
-    }
-
-    fn rebuild_maps(&self) -> Result<()> {
-        let mut maps = self.maps.write().map_err(|_| poisoned())?;
-        maps.forward.clear();
-        maps.reverse.clear();
-        for gid in self.read.all_node_ids() {
-            let Some(props) = self.props_of(gid) else {
-                continue;
-            };
-            let Some(id) = props.get(PROP_ID).and_then(Value::as_str) else {
-                continue;
-            };
-            maps.forward.insert(id.to_owned(), gid);
-            maps.reverse.insert(gid.as_u64(), id.to_owned());
-        }
-        Ok(())
-    }
-
-    fn props_of(&self, gid: grafeo::NodeId) -> Option<Props> {
-        let node = self.read.get_node(gid)?;
-        let mut props = Props::new();
-        for (key, value) in node.properties.to_btree_map() {
-            props.insert(key.as_str().to_owned(), value);
-        }
-        Some(props)
-    }
-
-    fn node_of(&self, gid: grafeo::NodeId) -> Option<Node> {
-        let node = self.read.get_node(gid)?;
-        let labels: Vec<&str> = node
-            .labels
-            .iter()
-            .map(grafeo_common::types::ArcStr::as_str)
-            .collect();
-        let props = self.props_of(gid)?;
-        node_from_props(labels, &props)
-    }
-
-    fn resolve_gid(&self, id: &NodeId) -> Result<grafeo::NodeId> {
-        self.maps
-            .read()
-            .map_err(|_| poisoned())?
-            .forward
-            .get(id.as_str())
-            .copied()
-            .ok_or_else(|| Error::Store(format!("unknown node id {id}")))
-    }
-
-    fn resolve_string(&self, gid: grafeo::NodeId) -> Option<String> {
-        self.maps
-            .read()
-            .ok()
-            .and_then(|maps| maps.reverse.get(&gid.as_u64()).cloned())
-    }
-
-    /// Converts one stored edge. The record is authoritative for endpoints.
-    fn edge_record(&self, edge_gid: grafeo::EdgeId) -> Option<Edge> {
-        let edge = self.read.get_edge(edge_gid)?;
-        let mut props = Props::new();
-        for (key, value) in edge.properties.to_btree_map() {
-            props.insert(key.as_str().to_owned(), value);
-        }
-        let mut built =
-            edge_from_stored(edge.src, edge.dst, edge.edge_type.as_str(), &props, &|g| {
-                self.resolve_string(g)
-            })?;
-        built.from = NodeId::new(self.resolve_string(edge.src)?);
-        built.to = Some(NodeId::new(self.resolve_string(edge.dst)?));
-        Some(built)
-    }
-}
-
-/// Native source facts and the record index their packs were read through.
-#[derive(Default)]
-struct Sources {
-    files: BTreeMap<String, SourceFileUnits>,
-    records: Option<crate::source_records::Index>,
 }
 
 /// The value of `cell`, loading it on first use. A failed load is not cached:
@@ -162,81 +56,111 @@ fn loaded<T>(cell: &OnceLock<T>, load: impl FnOnce() -> Result<T>) -> Result<&T>
     Ok(cell.get_or_init(|| value))
 }
 
-/// Writers mutate only resident state; `load_resident` makes it so.
-fn resident<T>(cell: &mut OnceLock<T>) -> Result<&mut T> {
-    cell.get_mut().ok_or_else(not_resident)
+#[allow(clippy::needless_pass_by_value)] // map_err consumes its error
+fn store_io(error: std::io::Error) -> Error {
+    Error::Store(error.to_string())
 }
 
-fn not_resident() -> Error {
-    Error::Store(String::from("generation state is not resident"))
+fn poisoned() -> Error {
+    Error::Store(String::from("store cache lock poisoned"))
 }
 
-/// The Grafeo-backed store.
-pub struct GrafeoStore {
-    graph: OnceLock<Graph>,
+/// The root directory of an `in_memory` store, removed with the store.
+struct Temporary(PathBuf);
+
+impl Drop for Temporary {
+    fn drop(&mut self) {
+        let _ = std::fs::remove_dir_all(&self.0);
+    }
+}
+
+fn temporary_root() -> Result<Temporary> {
+    static SERIAL: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+    let serial = SERIAL.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+    let nanos = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map_or(0, |elapsed| elapsed.as_nanos());
+    let dir = std::env::temp_dir().join(format!(
+        "graph-search-store-{:x}-{nanos:x}-{serial:x}",
+        std::process::id()
+    ));
+    std::fs::create_dir_all(&dir).map_err(store_io)?;
+    Ok(Temporary(dir))
+}
+
+/// The native store.
+pub struct NativeStore {
     store_dir: PathBuf,
     data_dir: PathBuf,
     unavailable: bool,
-    /// The published generation lazily read from, or `None` when every fact
-    /// is resident (unpublished and freshly prepared stores).
+    read_only: bool,
+    /// The published generation lazily read from; `None` before the first publish.
     committed: Option<generation::Committed>,
     summary: generation::Summary,
-    dangling: OnceLock<Vec<Edge>>,
-    sources: OnceLock<Sources>,
-    occurrence_files: OnceLock<BTreeMap<String, OccurrenceFile>>,
-    /// Per-relationship occurrence counts; `None` for generations before format 9.
-    edge_counts: OnceLock<Option<crate::edge_counts::EdgeCounts>>,
-    extraction_records: OnceLock<Option<crate::manifest_records::Verified>>,
-    dependencies: OnceLock<Option<graph_search_core::dependencies::DependencyIndex>>,
     manifest_header: Option<Manifest>,
-    transient_manifest: Option<Manifest>,
-    /// Every node, sorted by id: validation lookups and the metadata index.
+    shard_index: OnceLock<Option<Index>>,
+    source_index: OnceLock<Option<Index>>,
+    table_refs: OnceLock<Tables>,
+    tables: OnceLock<BTreeMap<String, Table>>,
+    /// Shards read so far; immutable, so they stay valid across publications
+    /// of other files.
+    shards: RwLock<HashMap<String, Arc<Shard>>>,
+    sources: OnceLock<BTreeMap<String, SourceFileUnits>>,
+    occurrence_files: OnceLock<BTreeMap<String, OccurrenceFile>>,
+    extraction_records: OnceLock<Option<crate::manifest_records::Verified>>,
+    dependencies: OnceLock<Option<DependencyIndex>>,
+    /// Every node, sorted by id: the metadata index and bulk reads.
     nodes: OnceLock<Vec<Node>>,
     metadata: OnceLock<graph_search_core::metadata::MetadataIndex>,
     body: OnceLock<graph_search_core::body::BodyIndex>,
     occurrences: OnceLock<graph_search_core::occurrences::OccurrenceIndex>,
     adjacency: OnceLock<graph_search_core::adjacency::AdjacencyIndex>,
-    /// Dropped after the graph/fact fields; prevents reclaiming lazy record paths.
+    /// Keeps this generation's paths from being reclaimed.
     generation_lease: Option<std::fs::File>,
     #[cfg(test)]
     failure: Option<&'static str>,
     #[cfg(test)]
     crash: bool,
+    /// Dropped last: an `in_memory` store's directory outlives every handle.
+    temporary: Option<Temporary>,
 }
 
-impl GrafeoStore {
-    /// Opens (creating if needed) the store at `store_dir`.
+impl NativeStore {
+    /// Opens the store at `store_dir`.
     ///
     /// # Errors
-    /// When Grafeo cannot open or create the database.
+    /// When the published generation cannot be selected.
     pub fn open(store_dir: &Path, options: &StoreOptions) -> Result<Self> {
-        let selected = if options.in_memory {
-            None
-        } else {
-            generation::current(store_dir).map_err(|error| Error::Store(error.to_string()))?
-        };
-        match selected {
-            Some(selected) => Self::open_generation(store_dir, selected),
-            None => Self::open_unpublished(store_dir, options),
+        if options.in_memory {
+            let temporary = temporary_root()?;
+            let mut store = Self::empty(&temporary.0, false);
+            store.temporary = Some(temporary);
+            return Ok(store);
+        }
+        match generation::current(store_dir).map_err(store_io)? {
+            Some(selected) => Ok(Self::open_generation(store_dir, selected)),
+            None => Ok(Self::empty(store_dir, options.read_only)),
         }
     }
 
-    fn empty(store_dir: &Path, data_dir: PathBuf) -> Self {
+    fn empty(store_dir: &Path, read_only: bool) -> Self {
         Self {
-            graph: OnceLock::new(),
             store_dir: store_dir.to_path_buf(),
-            data_dir,
+            data_dir: PathBuf::new(),
             unavailable: false,
+            read_only,
             committed: None,
             summary: generation::Summary::default(),
-            dangling: OnceLock::new(),
+            manifest_header: None,
+            shard_index: OnceLock::new(),
+            source_index: OnceLock::new(),
+            table_refs: OnceLock::new(),
+            tables: OnceLock::new(),
+            shards: RwLock::new(HashMap::new()),
             sources: OnceLock::new(),
             occurrence_files: OnceLock::new(),
-            edge_counts: OnceLock::new(),
             extraction_records: OnceLock::new(),
             dependencies: OnceLock::new(),
-            manifest_header: None,
-            transient_manifest: None,
             nodes: OnceLock::new(),
             metadata: OnceLock::new(),
             body: OnceLock::new(),
@@ -247,148 +171,268 @@ impl GrafeoStore {
             failure: None,
             #[cfg(test)]
             crash: false,
+            temporary: None,
         }
     }
 
     /// A published generation: only the header and summary are read here.
-    fn open_generation(store_dir: &Path, selected: generation::Selected) -> Result<Self> {
-        let mut store = Self::empty(store_dir, selected.committed.dir().to_path_buf());
+    fn open_generation(store_dir: &Path, selected: generation::Selected) -> Self {
+        let mut store = Self::empty(store_dir, false);
+        store.data_dir = selected.committed.dir().to_path_buf();
         store.manifest_header = selected.manifest;
+        store.summary = selected.summary.unwrap_or_default();
         store.committed = Some(selected.committed);
         store.generation_lease = Some(selected.lease);
-        store.summary = match selected.summary {
-            Some(summary) => summary,
-            // Generations before format 9 carry no summary.
-            None => store.summarize()?,
-        };
-        Ok(store)
+        store
     }
 
-    /// No published generation: an empty in-memory store, or the legacy
-    /// writable layout, loaded and validated whole.
-    fn open_unpublished(store_dir: &Path, options: &StoreOptions) -> Result<Self> {
-        // A read-only caller on a not-yet-published store has nothing on disk to
-        // attach to: expose an empty in-memory store rather than creating or
-        // locking a writable database (`SPEC.md` §6.6). Real in-memory opens are
-        // unaffected.
-        let in_memory = options.in_memory || options.read_only;
-        let mut store = Self::empty(store_dir, store_dir.to_path_buf());
-        let db = if in_memory {
-            GrafeoDB::new_in_memory()
-        } else {
-            store.manifest_header = sidecar::load_manifest(store_dir)
-                .map_err(store_io)?
-                .as_ref()
-                .map(Manifest::header);
-            GrafeoDB::open(store_dir)
-                .map_err(|error| Error::Store(format!("open {}: {error}", store_dir.display())))?
-        };
-        store.graph = OnceLock::from(Graph::new(db)?);
-        let (dangling, (files, records), occurrences) = if in_memory {
-            (Vec::new(), (BTreeMap::new(), None), BTreeMap::new())
-        } else {
-            (
-                sidecar::load_dangling(store_dir).map_err(store_io)?,
-                crate::source_records::load_cached(store_dir).map_err(store_io)?,
-                sidecar::load_occurrences(store_dir).map_err(store_io)?,
+    /// The store directory (for the lock file and `status`).
+    #[must_use]
+    pub fn path(&self) -> &Path {
+        &self.store_dir
+    }
+
+    fn ensure_available(&self) -> Result<()> {
+        if self.unavailable {
+            return Err(Error::Store(String::from(
+                "generation publication durability is uncertain; close and reopen the index",
+            )));
+        }
+        Ok(())
+    }
+
+    #[allow(clippy::unused_self, clippy::unnecessary_wraps)] // per-store test fault injection
+    fn inject(&self, point: &str) -> Result<()> {
+        #[cfg(test)]
+        if self.failure == Some(point) {
+            if self.crash {
+                std::process::exit(86);
+            }
+            return Err(Error::Store(format!(
+                "injected preparation failure: {point}"
+            )));
+        }
+        let _ = point;
+        Ok(())
+    }
+
+    /// The committed bytes of `name`, or `None` before the first publish or
+    /// when the generation does not commit it.
+    fn artifact(&self, name: &str) -> Result<Option<Vec<u8>>> {
+        match &self.committed {
+            Some(committed) => committed.read(name).map_err(store_io),
+            None => Ok(None),
+        }
+    }
+
+    fn shard_index(&self) -> Result<Option<&Index>> {
+        loaded(&self.shard_index, || {
+            self.artifact(crate::shards::FILE)?
+                .map(|bytes| Index::decode_packed(&bytes).map_err(store_io))
+                .transpose()
+        })
+        .map(Option::as_ref)
+    }
+
+    fn source_index(&self) -> Result<Option<&Index>> {
+        loaded(&self.source_index, || {
+            self.artifact(sidecar::SOURCE_FILE)?
+                .map(|bytes| Index::decode_packed(&bytes).map_err(store_io))
+                .transpose()
+        })
+        .map(Option::as_ref)
+    }
+
+    fn table_refs(&self) -> Result<&Tables> {
+        loaded(&self.table_refs, || {
+            self.artifact(generation::TABLES)?.map_or_else(
+                || Ok(Tables::default()),
+                |bytes| {
+                    serde_json::from_slice(&bytes).map_err(|error| Error::Store(error.to_string()))
+                },
             )
+        })
+    }
+
+    fn tables(&self) -> Result<&BTreeMap<String, Table>> {
+        loaded(&self.tables, || {
+            self.table_refs()?
+                .tables
+                .iter()
+                .map(|(name, reference)| {
+                    Table::open(&self.data_dir, reference)
+                        .map(|table| (name.clone(), table))
+                        .map_err(store_io)
+                })
+                .collect()
+        })
+    }
+
+    /// Every visible row of `key` in `table`.
+    fn postings(&self, table: &str, key: &str) -> Result<Vec<Row>> {
+        match self.tables()?.get(table) {
+            Some(table) => table.get(key).map_err(store_io),
+            None => Ok(Vec::new()),
+        }
+    }
+
+    /// The file that owns node `id`.
+    fn owner_of(&self, id: &NodeId) -> Result<Option<String>> {
+        Ok(self
+            .postings(NODES, id.as_str())?
+            .into_iter()
+            .next()
+            .map(|row| row.owner))
+    }
+
+    /// Every file path with a shard, sorted.
+    fn paths(&self) -> Result<Vec<String>> {
+        Ok(self
+            .shard_index()?
+            .map(|index| index.paths().map(str::to_owned).collect())
+            .unwrap_or_default())
+    }
+
+    /// The shards of `paths` that exist, verified and validated on first read.
+    fn shards_for(&self, paths: &BTreeSet<String>) -> Result<BTreeMap<String, Arc<Shard>>> {
+        let mut out = BTreeMap::new();
+        let mut missing = BTreeSet::new();
+        {
+            let cache = self.shards.read().map_err(|_| poisoned())?;
+            for path in paths {
+                match cache.get(path) {
+                    Some(shard) => {
+                        out.insert(path.clone(), Arc::clone(shard));
+                    }
+                    None => {
+                        missing.insert(path.clone());
+                    }
+                }
+            }
+        }
+        if missing.is_empty() {
+            return Ok(out);
+        }
+        let Some(index) = self.shard_index()? else {
+            return Ok(out);
         };
-        store.dangling = OnceLock::from(dangling);
-        store.sources = OnceLock::from(Sources { files, records });
-        store.occurrence_files = OnceLock::from(occurrences);
-        store.extraction_records = OnceLock::from(None);
-        store.dependencies = OnceLock::from(None);
-        store.validate_sources(&store.sources()?.files)?;
-        store.validate_occurrences(store.occurrence_files()?)?;
-        store.summary = store.summarize()?;
-        Ok(store)
+        let loaded: BTreeMap<String, Shard> = index
+            .load_selected_verified(&self.data_dir, crate::shards::LAYOUT, &missing)
+            .map_err(store_io)?;
+        let mut cache = self.shards.write().map_err(|_| poisoned())?;
+        for (path, shard) in loaded {
+            validate_shard(&path, &shard)?;
+            let shard = Arc::new(shard);
+            cache.insert(path.clone(), Arc::clone(&shard));
+            out.insert(path, shard);
+        }
+        Ok(out)
     }
 
-    fn committed(&self) -> Result<&generation::Committed> {
-        self.committed.as_ref().ok_or_else(not_resident)
+    fn shard(&self, path: &str) -> Result<Option<Arc<Shard>>> {
+        Ok(self
+            .shards_for(&BTreeSet::from([path.to_owned()]))?
+            .into_values()
+            .next())
     }
 
-    fn graph(&self) -> Result<&Graph> {
-        loaded(&self.graph, || {
-            self.committed()?
-                .read(generation::GRAPH)
-                .map_err(store_io)?
-                .ok_or_else(|| Error::Store(String::from("generation has no graph")))?;
-            // Verified above; Grafeo reads the same immutable, leased file.
-            let db = GrafeoDB::open_read_only(self.data_dir.join(generation::GRAPH))
-                .map_err(|error| Error::Store(format!("open generation: {error}")))?;
-            Graph::new(db)
+    fn all_shards(&self) -> Result<BTreeMap<String, Arc<Shard>>> {
+        self.shards_for(&self.paths()?.into_iter().collect())
+    }
+
+    fn node(&self, id: &NodeId) -> Result<Option<Node>> {
+        let Some(owner) = self.owner_of(id)? else {
+            return Ok(None);
+        };
+        Ok(self
+            .shard(&owner)?
+            .and_then(|shard| shard.node(id).cloned()))
+    }
+
+    fn nodes(&self) -> Result<&Vec<Node>> {
+        loaded(&self.nodes, || {
+            let mut nodes: Vec<Node> = self
+                .all_shards()?
+                .values()
+                .flat_map(|shard| shard.nodes.iter().cloned())
+                .collect();
+            nodes.sort_by(|a, b| a.id.cmp(&b.id));
+            Ok(nodes)
         })
     }
 
-    fn dangling(&self) -> Result<&Vec<Edge>> {
-        loaded(&self.dangling, || {
-            let bytes = self
-                .committed()?
-                .read(sidecar::DANGLING_FILE)
-                .map_err(store_io)?
-                .ok_or_else(|| Error::Store(String::from("generation has no dangling sidecar")))?;
-            sidecar::decode_dangling(&bytes).map_err(store_io)
-        })
+    fn find_node<'n>(nodes: &'n [Node], id: &NodeId) -> Option<&'n Node> {
+        nodes
+            .binary_search_by(|node| node.id.cmp(id))
+            .ok()
+            .and_then(|index| nodes.get(index))
     }
 
-    fn sources(&self) -> Result<&Sources> {
+    fn all_edges(&self) -> Result<Vec<Edge>> {
+        let mut edges: Vec<Edge> = self
+            .all_shards()?
+            .values()
+            .flat_map(|shard| shard.edges.iter().cloned())
+            .collect();
+        edges.sort_by(crate::shards::edge_order);
+        edges.dedup_by(|a, b| a.id == b.id);
+        Ok(edges)
+    }
+
+    fn sources(&self) -> Result<&BTreeMap<String, SourceFileUnits>> {
         loaded(&self.sources, || {
-            let committed = self.committed()?;
-            let (files, records) = match committed.read(sidecar::SOURCE_FILE).map_err(store_io)? {
-                Some(bytes) => crate::source_records::load_prepared(
-                    &self.data_dir,
-                    crate::source_records::prepare(&bytes, committed.format()).map_err(store_io)?,
-                )
-                .map_err(store_io)?,
-                None => (BTreeMap::new(), None),
+            let Some(index) = self.source_index()? else {
+                return Ok(BTreeMap::new());
             };
-            self.validate_sources(&files)?;
-            Ok(Sources { files, records })
+            let files: BTreeMap<String, SourceFileUnits> = index
+                .load(&self.data_dir, SOURCE_LAYOUT)
+                .map_err(store_io)?;
+            if !files.is_empty() {
+                let nodes = self.nodes()?;
+                for (path, source) in &files {
+                    let file = Self::find_node(nodes, &NodeId::file(path)).ok_or_else(|| {
+                        Error::Store(format!("source facts without file owner: {path}"))
+                    })?;
+                    graph_search_core::units::validate(file, source, |id| {
+                        Self::find_node(nodes, id)
+                    })?;
+                }
+            }
+            Ok(files)
         })
     }
 
     fn occurrence_files(&self) -> Result<&BTreeMap<String, OccurrenceFile>> {
         loaded(&self.occurrence_files, || {
-            let files = match self
-                .committed()?
-                .read(sidecar::OCCURRENCE_FILE)
-                .map_err(store_io)?
-            {
-                Some(bytes) => sidecar::decode_occurrences(&bytes).map_err(store_io)?,
-                None => BTreeMap::new(),
-            };
-            self.validate_occurrences(&files)?;
-            Ok(files)
+            Ok(self
+                .all_shards()?
+                .into_iter()
+                .filter_map(|(path, shard)| shard.occurrences.clone().map(|facts| (path, facts)))
+                .collect())
         })
     }
 
-    /// The occurrence count of one relationship, from the published table when
-    /// the occurrence facts are not already resident.
     fn occurrence_count(&self, edge_id: &str) -> Result<Option<usize>> {
-        if self.occurrences.get().is_none() && self.committed.is_some() {
-            let table = loaded(&self.edge_counts, || {
-                self.committed()?
-                    .read(crate::edge_counts::FILE)
-                    .map_err(store_io)?
-                    .map(crate::edge_counts::EdgeCounts::decode)
-                    .transpose()
-                    .map_err(store_io)
-            })?;
-            if let Some(table) = table {
-                return Ok(table.get(edge_id));
-            }
+        if let Some(index) = self.occurrences.get() {
+            return Ok(index.count_for_edge(edge_id));
         }
-        Ok(self.occurrences()?.count_for_edge(edge_id))
+        let mut total = 0usize;
+        for row in self.postings(EDGE_COUNTS, edge_id)? {
+            let count: usize = row
+                .value
+                .parse()
+                .map_err(|_| Error::Store(String::from("invalid edge occurrence count")))?;
+            total = total.saturating_add(count);
+        }
+        Ok((total > 0).then_some(total))
     }
 
     fn extraction_records(&self) -> Result<Option<&crate::manifest_records::Verified>> {
         loaded(&self.extraction_records, || {
-            let bytes = self
-                .committed()?
-                .read(crate::manifest_records::FILE)
-                .map_err(store_io)?;
-            match (bytes, self.manifest_header.as_ref()) {
+            match (
+                self.artifact(crate::manifest_records::FILE)?,
+                self.manifest_header.as_ref(),
+            ) {
                 (Some(bytes), Some(header)) => Ok(Some(
                     crate::manifest_records::prepare_verified(&bytes, header, &self.data_dir)
                         .map_err(store_io)?,
@@ -399,20 +443,15 @@ impl GrafeoStore {
         .map(Option::as_ref)
     }
 
-    fn dependencies(&self) -> Result<Option<&graph_search_core::dependencies::DependencyIndex>> {
+    fn dependencies(&self) -> Result<Option<&DependencyIndex>> {
         loaded(&self.dependencies, || {
-            let Some(bytes) = self
-                .committed()?
-                .read(generation::DEPENDENCIES)
-                .map_err(store_io)?
-            else {
+            let Some(bytes) = self.artifact(generation::DEPENDENCIES)? else {
                 return Ok(None);
             };
-            let index: Option<graph_search_core::dependencies::DependencyIndex> =
-                serde_json::from_slice(
-                    &crate::compress::inflate_sidecar(&bytes).map_err(store_io)?,
-                )
-                .map_err(|error| Error::Store(error.to_string()))?;
+            let index: Option<DependencyIndex> = serde_json::from_slice(
+                &crate::compress::inflate_sidecar(&bytes).map_err(store_io)?,
+            )
+            .map_err(|error| Error::Store(error.to_string()))?;
             if let Some(index) = &index {
                 let valid = self
                     .manifest_header
@@ -430,17 +469,6 @@ impl GrafeoStore {
         .map(Option::as_ref)
     }
 
-    fn nodes(&self) -> Result<&Vec<Node>> {
-        loaded(&self.nodes, || GrafeoSnapshot::new(self).all_nodes())
-    }
-
-    fn find_node<'n>(nodes: &'n [Node], id: &NodeId) -> Option<&'n Node> {
-        nodes
-            .binary_search_by(|node| node.id.cmp(id))
-            .ok()
-            .map(|index| &nodes[index])
-    }
-
     fn metadata(&self) -> Result<&graph_search_core::metadata::MetadataIndex> {
         loaded(&self.metadata, || {
             Ok(graph_search_core::metadata::MetadataIndex::new(
@@ -451,9 +479,7 @@ impl GrafeoStore {
 
     fn body(&self) -> Result<&graph_search_core::body::BodyIndex> {
         loaded(&self.body, || {
-            Ok(graph_search_core::body::BodyIndex::new(
-                &self.sources()?.files,
-            ))
+            Ok(graph_search_core::body::BodyIndex::new(self.sources()?))
         })
     }
 
@@ -468,266 +494,520 @@ impl GrafeoStore {
     fn adjacency(&self) -> Result<&graph_search_core::adjacency::AdjacencyIndex> {
         loaded(&self.adjacency, || {
             Ok(graph_search_core::adjacency::AdjacencyIndex::new(
-                GrafeoSnapshot::new(self).all_edges()?,
+                self.all_edges()?,
             ))
         })
     }
-
-    /// Source facts must belong to their file's projected version and owners.
-    fn validate_sources(&self, files: &BTreeMap<String, SourceFileUnits>) -> Result<()> {
-        if files.is_empty() {
-            return Ok(());
-        }
-        let nodes = self.nodes()?;
-        for (path, source) in files {
-            let file = Self::find_node(nodes, &NodeId::file(path))
-                .ok_or_else(|| Error::Store(format!("source facts without file owner: {path}")))?;
-            graph_search_core::units::validate(file, source, |id| Self::find_node(nodes, id))?;
-        }
-        Ok(())
-    }
-
-    /// Occurrences must belong to their file, and bound targets must exist.
-    fn validate_occurrences(&self, files: &BTreeMap<String, OccurrenceFile>) -> Result<()> {
-        if files.is_empty() {
-            return Ok(());
-        }
-        let nodes = self.nodes()?;
-        for (path, facts) in files {
-            let file = Self::find_node(nodes, &NodeId::file(path))
-                .ok_or_else(|| Error::Store(format!("occurrences without file owner: {path}")))?;
-            graph_search_core::occurrences::validate(file, facts, |id| Self::find_node(nodes, id))?;
-            if facts.records.iter().any(|r| {
-                r.target
-                    .as_ref()
-                    .is_some_and(|id| Self::find_node(nodes, id).is_none())
-            }) {
-                return Err(Error::Store(format!(
-                    "occurrence target absent from generation: {path}"
-                )));
-            }
-        }
-        Ok(())
-    }
-
-    /// Exact totals of the current state, for the published summary.
-    fn summarize(&self) -> Result<generation::Summary> {
-        self.summarize_with(&GrafeoSnapshot::new(self).all_edges()?)
-    }
-
-    /// [`Self::summarize`] over an edge set the caller already materialized.
-    fn summarize_with(&self, edges: &[Edge]) -> Result<generation::Summary> {
-        Ok(generation::Summary {
-            counts: graph_search_core::counts::summarize(self.nodes()?, edges),
-            source: graph_search_core::units::SourceCoverage::summarize(
-                self.sources()?.files.values(),
-            ),
-        })
-    }
-
-    /// Makes every base fact resident, as writers need.
-    fn load_resident(&self) -> Result<()> {
-        self.graph()?;
-        self.dangling()?;
-        self.sources()?;
-        self.occurrence_files()?;
-        self.extraction_records()?;
-        self.dependencies()?;
-        Ok(())
-    }
-
-    /// After a mutation: derived indexes are rebuilt on demand, except metadata
-    /// that can share unchanged postings with the previous generation's.
-    /// `edges` is the complete post-mutation edge set.
-    fn refresh_indexes(
-        &mut self,
-        previous: Option<&graph_search_core::metadata::MetadataIndex>,
-        edges: &[Edge],
-    ) -> Result<()> {
-        self.nodes = OnceLock::new();
-        self.metadata = OnceLock::new();
-        self.body = OnceLock::new();
-        self.occurrences = OnceLock::new();
-        self.adjacency = OnceLock::new();
-        self.summary = self.summarize_with(edges)?;
-        if let Some(previous) = previous {
-            self.metadata = OnceLock::from(previous.updated(self.nodes()?.clone()));
-        }
-        Ok(())
-    }
-
-    /// The store directory (for the lock file and `status`).
-    #[must_use]
-    pub fn path(&self) -> &Path {
-        &self.store_dir
-    }
 }
 
-#[allow(clippy::needless_pass_by_value)] // map_err consumes its error
-fn store_io(error: std::io::Error) -> Error {
-    Error::Store(error.to_string())
+/// A shard must be owned by its path and hold exactly one file node, its own.
+fn validate_shard(path: &str, shard: &Shard) -> Result<()> {
+    let file_id = NodeId::file(path);
+    let files: Vec<_> = shard.nodes.iter().filter(|node| node.is_file()).collect();
+    if shard.nodes.iter().any(|node| node.path != path)
+        || files.len() != 1
+        || files.first().is_none_or(|file| file.id != file_id)
+    {
+        return Err(Error::Store(format!("shard does not own its file: {path}")));
+    }
+    if let (Some(facts), Some(file)) = (&shard.occurrences, shard.file()) {
+        graph_search_core::occurrences::validate(file, facts, |id| shard.node(id))?;
+    }
+    Ok(())
 }
 
-fn poisoned() -> Error {
-    Error::Store(String::from("store id map lock poisoned"))
+/// Clears an occurrence's binding to a node that no longer exists, exactly as
+/// replacing its target's file always has.
+fn clear_target(record: &mut graph_search_types::occurrence::ReferenceOccurrence) {
+    record.target = None;
+    record.target_name.clone_from(&record.name);
+    record.resolution = ResolutionClass::Unresolved;
+    record.reason = Some("target_removed".into());
 }
 
-impl GrafeoStore {
-    #[allow(clippy::unused_self, clippy::unnecessary_wraps)] // per-store test fault injection
-    fn inject(&self, point: &str) -> Result<()> {
-        #[cfg(test)]
-        if self.failure == Some(point) {
-            if self.crash {
-                std::process::exit(86);
-            }
-            return Err(Error::Store(format!(
-                "injected preparation failure: {point}"
-            )));
-        }
-        let _ = point;
-        Ok(())
-    }
+/// Everything one publish writes, computed and validated before any byte of
+/// the new generation is written.
+struct Plan {
+    /// New shards: the batch's files and the untouched files it rewrote.
+    shards: BTreeMap<String, Shard>,
+    /// Files whose shards are deleted.
+    removed: BTreeSet<String>,
+    /// Source records the batch writes, and the files whose records it replaces.
+    sources: BTreeMap<String, SourceFileUnits>,
+    source_owners: BTreeSet<String>,
+    /// New posting rows, per table, and the owners every table replaces.
+    rows: BTreeMap<&'static str, Vec<Row>>,
+    owners: BTreeSet<String>,
+    member_rows: Vec<Row>,
+    summary: generation::Summary,
+    outcome: ApplyOutcome,
+    dependencies: Option<DependencyIndex>,
+}
 
-    fn ensure_available(&self) -> Result<()> {
-        if self.unavailable {
-            return Err(Error::Store(String::from(
-                "generation publication durability is uncertain; close and reopen the index",
-            )));
-        }
-        Ok(())
-    }
-
-    /// Reconstruct a complete batch using explicit path ownership. This is the
-    /// correctness baseline; later deltas can avoid copying unchanged nodes.
-    fn complete_projection(&self) -> Result<WriteBatch> {
-        let snapshot = self.snapshot()?;
-        let nodes = snapshot.all_nodes()?;
-        let sources = &self.sources()?.files;
-        let occurrences = self.occurrence_files()?;
-        let owners: HashMap<NodeId, String> = nodes
-            .iter()
-            .map(|node| (node.id.clone(), node.path.clone()))
-            .collect();
-        let mut files: BTreeMap<String, FileProjection> = nodes
-            .iter()
-            .filter(|node| node.is_file())
-            .map(|node| {
-                (
-                    node.path.clone(),
-                    FileProjection {
-                        file: node.clone(),
-                        source: sources.get(&node.path).cloned(),
-                        occurrences: occurrences.get(&node.path).cloned(),
-                        ..FileProjection::default()
-                    },
-                )
-            })
-            .collect();
-        for node in nodes.into_iter().filter(|node| !node.is_file()) {
-            files
-                .get_mut(&node.path)
-                .ok_or_else(|| Error::Store(format!("missing file owner for {}", node.id)))?
-                .symbols
-                .push(node);
-        }
-        for edge in snapshot.all_edges()? {
-            let path = edge
-                .path
-                .as_ref()
-                .or_else(|| owners.get(&edge.from))
-                .ok_or_else(|| Error::Store(format!("missing source owner for {}", edge.id)))?;
-            files
-                .get_mut(path)
-                .ok_or_else(|| Error::Store(format!("missing file {path} for {}", edge.id)))?
-                .edges
-                .push(edge);
-        }
-        Ok(WriteBatch {
-            upserts: files.into_values().collect(),
-            ..WriteBatch::default()
-        })
-    }
-
-    /// The complete projection after `batch`: untouched files as stored, the
-    /// batch's files as given, and only the stored edges `Mutation` keeps.
-    /// Applying it to an empty store equals applying `batch` on top of the
-    /// current state, without the second pass that scans every stored edge
-    /// for removals. The outcome counts the batch itself, as that pass did;
-    /// `edges_upserted` is completed once endpoints are known.
-    fn merged_projection(&self, batch: &WriteBatch) -> Result<(WriteBatch, ApplyOutcome)> {
-        let complete = self.complete_projection()?;
-        let mutation = graph_search_core::mutation::Mutation::new(
-            batch,
-            complete
-                .upserts
-                .iter()
-                .flat_map(|file| std::iter::once(&file.file).chain(&file.symbols)),
-        );
-        let touched: BTreeSet<&str> = batch
-            .removed_files
-            .iter()
-            .map(String::as_str)
-            .chain(batch.upserts.iter().map(|file| file.file.path.as_str()))
-            .collect();
-        // Ids carry their path, so a batch node never shadows an untouched
-        // one; the filter only keeps that invariant from creating twins.
-        let replaced: BTreeSet<&NodeId> = batch
+impl NativeStore {
+    /// Computes and validates one publication (`SPEC.md` §6.4): the batch's
+    /// files replace their shards; nodes that do not survive are removed, with
+    /// every edge into or out of them and every binding to them, wherever those
+    /// live; the summary, posting rows and dependency index follow by delta.
+    #[allow(clippy::too_many_lines)] // one pass per replacement rule, in order
+    fn plan(
+        &self,
+        batch: &WriteBatch,
+        manifest: Option<&Manifest>,
+        retained: &BTreeSet<String>,
+    ) -> Result<Plan> {
+        let explicit: BTreeSet<&str> = batch.removed_files.iter().map(String::as_str).collect();
+        let upserted: BTreeMap<&str, &graph_search_types::FileProjection> = batch
             .upserts
             .iter()
-            .flat_map(|file| {
-                std::iter::once(&file.file.id).chain(file.symbols.iter().map(|n| &n.id))
+            .map(|file| (file.file.path.as_str(), file))
+            .collect();
+        let touched: BTreeSet<String> = explicit
+            .iter()
+            .chain(upserted.keys())
+            .map(|path| (*path).to_owned())
+            .collect();
+        let old = self.shards_for(&touched)?;
+
+        // A batch file owns exactly its own nodes, one of them its file node.
+        let mut batch_nodes: HashMap<&NodeId, &Node> = HashMap::new();
+        for (path, file) in &upserted {
+            if file.file.id != NodeId::file(path) || !file.file.is_file() {
+                return Err(Error::Store(format!("invalid file node for {path}")));
+            }
+            for node in &file.symbols {
+                if node.path != *path || node.is_file() {
+                    return Err(Error::Store(format!(
+                        "symbol {} is not owned by {path}",
+                        node.id
+                    )));
+                }
+            }
+            for node in std::iter::once(&file.file).chain(&file.symbols) {
+                batch_nodes.insert(&node.id, node);
+            }
+        }
+
+        // Identities survive only where id, path and kind agree without removal.
+        let mut removed_ids: BTreeSet<NodeId> = BTreeSet::new();
+        for (path, shard) in &old {
+            for node in &shard.nodes {
+                let survives = !explicit.contains(path.as_str())
+                    && batch_nodes
+                        .get(&node.id)
+                        .is_some_and(|new| new.path == node.path && new.kind == node.kind);
+                if !survives {
+                    removed_ids.insert(node.id.clone());
+                }
+            }
+        }
+
+        // Owners of nodes outside the batch, memoized.
+        let mut owners: HashMap<NodeId, Option<String>> = HashMap::new();
+        let mut owner = |store: &Self, id: &NodeId| -> Result<Option<String>> {
+            if let Some(node) = batch_nodes.get(id) {
+                return Ok(Some(node.path.clone()));
+            }
+            if let Some(known) = owners.get(id) {
+                return Ok(known.clone());
+            }
+            let found = store.owner_of(id)?;
+            owners.insert(id.clone(), found.clone());
+            Ok(found)
+        };
+        let exists = |owner: &Option<String>, id: &NodeId| {
+            batch_nodes.contains_key(id)
+                || owner
+                    .as_ref()
+                    .is_some_and(|path| !touched.contains(path) && !removed_ids.contains(id))
+        };
+
+        // Source facts must belong to their file; package facts are checked
+        // against the post-batch manifest nodes.
+        let mut manifest_nodes: HashMap<NodeId, Node> = HashMap::new();
+        for file in upserted.values() {
+            if let Some(package) = file
+                .source
+                .as_ref()
+                .and_then(|source| source.package.as_ref())
+            {
+                let id = NodeId::file(&package.manifest_path);
+                if !batch_nodes.contains_key(&id)
+                    && !touched.contains(&package.manifest_path)
+                    && let Some(node) = self.node(&id)?
+                {
+                    manifest_nodes.insert(id, node);
+                }
+            }
+        }
+        for file in upserted.values() {
+            let lookup = |id: &NodeId| {
+                batch_nodes
+                    .get(id)
+                    .copied()
+                    .or_else(|| manifest_nodes.get(id))
+            };
+            if let Some(source) = &file.source {
+                graph_search_core::units::validate(&file.file, source, lookup)?;
+            }
+            if let Some(facts) = &file.occurrences {
+                let local: BTreeMap<&NodeId, &Node> = std::iter::once(&file.file)
+                    .chain(&file.symbols)
+                    .map(|node| (&node.id, node))
+                    .collect();
+                graph_search_core::occurrences::validate(&file.file, facts, |id| {
+                    local.get(id).copied()
+                })?;
+            }
+        }
+        // A retained source whose package manifest the batch replaces or
+        // removes must still match it.
+        let manifests: BTreeSet<&String> = touched
+            .iter()
+            .filter(|path| graph_search_core::units::is_package_manifest(path))
+            .collect();
+        let mut members = BTreeSet::new();
+        for manifest_path in &manifests {
+            for row in self.postings(PACKAGE_MEMBERS, manifest_path)? {
+                if !touched.contains(&row.owner) {
+                    members.insert(row.owner);
+                }
+            }
+        }
+        if !members.is_empty() {
+            let sources: BTreeMap<String, SourceFileUnits> = match self.source_index()? {
+                Some(index) => index
+                    .load_selected_verified(&self.data_dir, SOURCE_LAYOUT, &members)
+                    .map_err(store_io)?,
+                None => BTreeMap::new(),
+            };
+            for (path, source) in &sources {
+                let file = self.node(&NodeId::file(path))?.ok_or_else(|| {
+                    Error::Store(format!("source facts without file owner: {path}"))
+                })?;
+                graph_search_core::units::validate_package(&file, source, |id| {
+                    batch_nodes.get(id).copied()
+                })?;
+            }
+        }
+
+        // New shards for the batch's files.
+        let mut shards: BTreeMap<String, Shard> = BTreeMap::new();
+        for (path, file) in &upserted {
+            let mut occurrences = file.occurrences.clone();
+            if let Some(facts) = occurrences.as_mut() {
+                for record in &mut facts.records {
+                    if let Some(target) = record.target.clone() {
+                        let target_owner = owner(self, &target)?;
+                        if !exists(&target_owner, &target) {
+                            clear_target(record);
+                        }
+                    }
+                }
+            }
+            shards.insert(
+                (*path).to_owned(),
+                Shard {
+                    nodes: std::iter::once(&file.file)
+                        .chain(&file.symbols)
+                        .cloned()
+                        .collect(),
+                    edges: Vec::new(),
+                    occurrences,
+                },
+            );
+        }
+
+        // Every batch edge goes to the file that owns it: its reference path,
+        // else its source node's file. An edge whose endpoints do not both
+        // exist is kept as a dangling reference, named and counted.
+        let mut contributed: BTreeMap<String, Vec<Edge>> = BTreeMap::new();
+        let mut edges_upserted = 0u64;
+        for file in &batch.upserts {
+            for edge in &file.edges {
+                let from_owner = owner(self, &edge.from)?;
+                let to_owner = match &edge.to {
+                    Some(to) => owner(self, to)?,
+                    None => None,
+                };
+                let resolved = edge.resolved
+                    && exists(&from_owner, &edge.from)
+                    && edge.to.as_ref().is_some_and(|to| exists(&to_owner, to));
+                let stored = match (&edge.to, resolved) {
+                    (Some(to), true) => {
+                        edges_upserted = edges_upserted.saturating_add(1);
+                        Edge::resolved(
+                            &edge.from,
+                            edge.kind,
+                            to,
+                            &edge.to_name,
+                            edge.path.as_deref(),
+                            edge.line,
+                        )
+                    }
+                    _ => Edge::dangling(
+                        &edge.from,
+                        edge.kind,
+                        &edge.to_name,
+                        edge.path.as_deref(),
+                        edge.line,
+                    ),
+                };
+                let owning = edge.path.clone().or(from_owner).filter(|path| {
+                    upserted.contains_key(path.as_str())
+                        || (!explicit.contains(path.as_str()) && !touched.contains(path))
+                });
+                match owning {
+                    Some(path) if shards.contains_key(&path) => {
+                        if let Some(shard) = shards.get_mut(&path) {
+                            shard.edges.push(stored);
+                        }
+                    }
+                    Some(path) if self.shard(&path)?.is_some() => {
+                        contributed.entry(path).or_default().push(stored);
+                    }
+                    _ => {
+                        if let Some(shard) = shards.get_mut(&file.file.path) {
+                            shard.edges.push(stored);
+                        }
+                    }
+                }
+            }
+        }
+
+        // Untouched files that point at a removed node, or that the batch
+        // added edges to, are rewritten.
+        let mut affected: BTreeSet<String> = contributed.keys().cloned().collect();
+        for id in &removed_ids {
+            for table in [INCOMING, FOREIGN] {
+                for row in self.postings(table, id.as_str())? {
+                    if !touched.contains(&row.owner) {
+                        affected.insert(row.owner);
+                    }
+                }
+            }
+        }
+        let rewritten = self.shards_for(&affected)?;
+        for (path, shard) in &rewritten {
+            let mut shard = Shard::clone(shard);
+            shard.edges.retain(|edge| {
+                !removed_ids.contains(&edge.from)
+                    && edge.to.as_ref().is_none_or(|to| !removed_ids.contains(to))
+            });
+            if let Some(facts) = shard.occurrences.as_mut() {
+                for record in &mut facts.records {
+                    if record
+                        .target
+                        .as_ref()
+                        .is_some_and(|id| removed_ids.contains(id))
+                    {
+                        clear_target(record);
+                    }
+                }
+            }
+            // An edge already present keeps its first value.
+            shard
+                .edges
+                .extend(contributed.remove(path).unwrap_or_default());
+            shards.insert(path.clone(), shard);
+        }
+        for shard in shards.values_mut() {
+            shard.normalize();
+        }
+        for (path, shard) in &shards {
+            validate_shard(path, shard)?;
+        }
+
+        let removed: BTreeSet<String> = explicit
+            .iter()
+            .filter(|path| !upserted.contains_key(*path))
+            .map(|path| (*path).to_owned())
+            .collect();
+        let mut owners_replaced: BTreeSet<String> = shards.keys().cloned().collect();
+        owners_replaced.extend(removed.iter().cloned());
+
+        let mut rows: BTreeMap<&'static str, Vec<Row>> = BTreeMap::new();
+        for (path, shard) in &shards {
+            for (table, table_rows) in shard.rows(path) {
+                rows.entry(table).or_default().extend(table_rows);
+            }
+        }
+
+        // Source records: the batch replaces the facts of every file it touches.
+        let sources: BTreeMap<String, SourceFileUnits> = upserted
+            .iter()
+            .filter_map(|(path, file)| {
+                file.source
+                    .clone()
+                    .map(|source| ((*path).to_owned(), source))
             })
             .collect();
-        let mut upserts = Vec::with_capacity(complete.upserts.len());
-        for mut file in complete.upserts {
-            if touched.contains(file.file.path.as_str()) {
-                continue;
-            }
-            file.symbols.retain(|node| !replaced.contains(&node.id));
-            file.edges.retain(|edge| !mutation.removes_edge(edge));
-            upserts.push(file);
-        }
-        upserts.extend(batch.upserts.iter().cloned());
-        let outcome = ApplyOutcome {
-            nodes_upserted: batch
-                .upserts
-                .iter()
-                .map(|file| file.symbols.len().saturating_add(1) as u64)
-                .sum(),
-            edges_upserted: 0,
-            nodes_deleted: mutation.removed.len() as u64,
-            files_touched: (batch.removed_files.len() as u64)
-                .saturating_add(batch.upserts.len() as u64),
+        let member_rows: Vec<Row> = sources
+            .iter()
+            .filter_map(|(path, source)| {
+                source
+                    .package
+                    .as_ref()
+                    .map(|package| Row::new(package.manifest_path.clone(), path.clone(), ""))
+            })
+            .collect();
+
+        // Summary by delta: remove what the replaced shards and sources
+        // counted, add what their replacements count.
+        let mut summary = self.summary.clone();
+        let replaced_old: Vec<&Arc<Shard>> = old.values().chain(rewritten.values()).collect();
+        graph_search_core::counts::subtract(
+            &mut summary.counts,
+            &graph_search_core::counts::summarize(
+                replaced_old.iter().flat_map(|shard| &shard.nodes),
+                replaced_old.iter().flat_map(|shard| &shard.edges),
+            ),
+        );
+        graph_search_core::counts::add(
+            &mut summary.counts,
+            &graph_search_core::counts::summarize(
+                shards.values().flat_map(|shard| &shard.nodes),
+                shards.values().flat_map(|shard| &shard.edges),
+            ),
+        );
+        let old_sources: BTreeMap<String, SourceFileUnits> = match self.source_index()? {
+            Some(index) => index
+                .load_selected_verified(&self.data_dir, SOURCE_LAYOUT, &touched)
+                .map_err(store_io)?,
+            None => BTreeMap::new(),
         };
-        Ok((
-            WriteBatch {
-                upserts,
-                ..WriteBatch::default()
+        summary
+            .source
+            .subtract(&graph_search_core::units::SourceCoverage::summarize(
+                old_sources.values(),
+            ));
+        summary
+            .source
+            .add(&graph_search_core::units::SourceCoverage::summarize(
+                sources.values(),
+            ));
+
+        let dependencies = match manifest {
+            Some(manifest) => {
+                self.plan_dependencies(manifest, retained, &shards, &touched, &batch_nodes)?
+            }
+            None => None,
+        };
+        if !retained.is_empty() && dependencies.is_none() {
+            return Err(Error::Store(
+                "retained dependencies do not match projection".into(),
+            ));
+        }
+
+        Ok(Plan {
+            removed,
+            sources,
+            source_owners: touched,
+            rows,
+            owners: owners_replaced,
+            member_rows,
+            summary,
+            outcome: ApplyOutcome {
+                nodes_upserted: batch
+                    .upserts
+                    .iter()
+                    .map(|file| file.symbols.len().saturating_add(1) as u64)
+                    .sum(),
+                edges_upserted,
+                nodes_deleted: removed_ids.len() as u64,
+                files_touched: (batch.removed_files.len() as u64)
+                    .saturating_add(batch.upserts.len() as u64),
             },
-            outcome,
+            dependencies,
+            shards,
+        })
+    }
+
+    /// The next dependency index: the rewritten files contribute their nodes and
+    /// links; files whose facts the manifest supplies are rebuilt too; the rest
+    /// keep their previous records. Without a previous index every file is read.
+    fn plan_dependencies(
+        &self,
+        manifest: &Manifest,
+        retained: &BTreeSet<String>,
+        shards: &BTreeMap<String, Shard>,
+        touched: &BTreeSet<String>,
+        batch_nodes: &HashMap<&NodeId, &Node>,
+    ) -> Result<Option<DependencyIndex>> {
+        let previous = self.dependencies()?;
+        let mut paths: BTreeSet<String> = shards.keys().cloned().collect();
+        for (path, entry) in &manifest.entries {
+            let covered = previous.is_some_and(|index| index.has_record(path));
+            if entry.extraction.is_some() || !covered {
+                paths.insert(path.clone());
+            }
+        }
+        let unchanged: BTreeSet<String> = paths
+            .iter()
+            .filter(|path| !shards.contains_key(*path))
+            .cloned()
+            .collect();
+        let loaded = self.shards_for(&unchanged)?;
+        let mut path_of: HashMap<NodeId, Option<String>> = HashMap::new();
+        let mut contributions: BTreeMap<String, Contribution<'_>> = BTreeMap::new();
+        for path in &paths {
+            let shard: &Shard = match shards.get(path) {
+                Some(shard) => shard,
+                None => match loaded.get(path) {
+                    Some(shard) => shard,
+                    None => continue,
+                },
+            };
+            let mut links = BTreeSet::new();
+            for edge in &shard.edges {
+                let mut resolve = |id: &NodeId| -> Option<String> {
+                    if let Some(node) = batch_nodes.get(id) {
+                        return Some(node.path.clone());
+                    }
+                    if let Some(known) = path_of.get(id) {
+                        return known.clone();
+                    }
+                    let found = shards
+                        .iter()
+                        .find_map(|(owner, shard)| shard.node(id).map(|_| owner.clone()))
+                        .or_else(|| {
+                            self.owner_of(id).ok().flatten().filter(|owner| {
+                                !touched.contains(owner) || shards.contains_key(owner)
+                            })
+                        });
+                    path_of.insert(id.clone(), found.clone());
+                    found
+                };
+                let from = resolve(&edge.from);
+                let to = edge.to.as_ref().and_then(&mut resolve);
+                let known = |candidate: &str| manifest.entries.contains_key(candidate);
+                if let Some(to) = to {
+                    if let Some(from) = from.filter(|from| known(from)) {
+                        links.insert((to.clone(), from));
+                    }
+                    if let Some(owner) = edge.path.as_ref().filter(|owner| known(owner)) {
+                        links.insert((to, owner.clone()));
+                    }
+                }
+            }
+            contributions.insert(
+                path.clone(),
+                Contribution {
+                    nodes: shard.nodes.iter().collect(),
+                    links,
+                },
+            );
+        }
+        Ok(DependencyIndex::update(
+            manifest,
+            previous,
+            retained,
+            &contributions,
         ))
     }
 
-    /// Resolved batch edges whose endpoints both exist after publication: the
-    /// edges an in-place apply would have created as graph edges.
-    fn count_batch_edges(&self, batch: &WriteBatch) -> Result<u64> {
-        let graph = self.graph()?;
-        let maps = graph.maps.read().map_err(|_| poisoned())?;
-        Ok(batch
-            .upserts
-            .iter()
-            .flat_map(|file| &file.edges)
-            .filter(|edge| {
-                edge.resolved
-                    && maps.forward.contains_key(edge.from.as_str())
-                    && edge
-                        .to
-                        .as_ref()
-                        .is_some_and(|to| maps.forward.contains_key(to.as_str()))
-            })
-            .count() as u64)
-    }
-
+    /// Writes the planned generation and makes it current.
+    #[allow(clippy::too_many_lines)] // one artifact family per step, in commit order
     fn publish_generation(
         &mut self,
         batch: &WriteBatch,
@@ -735,61 +1015,26 @@ impl GrafeoStore {
         retained: &BTreeSet<String>,
     ) -> Result<ApplyOutcome> {
         self.ensure_available()?;
-        // The projection and record reuse below read every current fact.
-        self.load_resident()?;
-        // No fallible work mutates the currently visible store.
-        let mut prepared = Self::open(
-            Path::new(""),
-            &StoreOptions {
-                in_memory: true,
-                ..StoreOptions::default()
-            },
-        )?;
-        #[cfg(test)]
-        {
-            prepared.failure = self.failure;
-            prepared.crash = self.crash;
+        if self.read_only {
+            return Err(Error::Store(String::from("the store was opened read-only")));
         }
-        // One pass: the stored projection with the batch already applied.
-        let (merged, mut outcome) = self.merged_projection(batch)?;
-        prepared.apply_prepared(&merged)?;
-        drop(merged);
-        outcome.edges_upserted = prepared.count_batch_edges(batch)?;
-        // Build retrieval indexes only for the final state; the summary and the
-        // dependency index share one materialized edge set.
-        let edges = prepared.snapshot()?.all_edges()?;
-        prepared.refresh_indexes(self.metadata.get(), &edges)?;
-        prepared.manifest_header = manifest.map(Manifest::header);
-        if let Some(manifest) = manifest {
-            let dependencies = graph_search_core::dependencies::DependencyIndex::build_retaining(
-                manifest,
-                prepared.nodes()?,
-                &edges,
-                self.dependencies()?,
-                retained,
-            );
-            if !retained.is_empty() && dependencies.is_none() {
-                return Err(Error::Store(
-                    "retained dependencies do not match projection".into(),
-                ));
-            }
-            prepared.dependencies = OnceLock::from(dependencies);
-        }
-        if self.store_dir.as_os_str().is_empty() {
-            // Internal transient stores deliberately have no persistence.
-            prepared.transient_manifest = manifest.cloned();
-            *self = prepared;
-            return Ok(outcome);
-        }
+        let plan = self.plan(batch, manifest, retained)?;
+        self.inject("after_plan")?;
         let dir = generation::allocate(&self.store_dir).map_err(store_io)?;
-        if let Err(error) = prepared.persist_prepared(&dir, manifest, self, batch, retained) {
-            let _ = std::fs::remove_dir_all(&dir);
-            return Err(error);
-        }
-        if let Err(error) = generation::prepare_pointer(&self.store_dir, &dir) {
-            let _ = std::fs::remove_dir_all(&dir);
-            return Err(store_io(error));
-        }
+        let written = match self.persist(&dir, &plan, manifest, retained) {
+            Ok(written) => written,
+            Err(error) => {
+                let _ = std::fs::remove_dir_all(&dir);
+                return Err(error);
+            }
+        };
+        let files = match generation::prepare_pointer(&self.store_dir, &dir) {
+            Ok(files) => files,
+            Err(error) => {
+                let _ = std::fs::remove_dir_all(&dir);
+                return Err(store_io(error));
+            }
+        };
         // Rename has made the new generation visible. A directory-sync error
         // cannot honestly be reported as a rollback: refuse reads until reopen.
         if let Err(error) = self
@@ -801,277 +1046,208 @@ impl GrafeoStore {
                 "generation published but directory sync failed: {error}; reopen required"
             )));
         }
-        let previous = self.data_dir.clone();
-        prepared.store_dir.clone_from(&self.store_dir);
-        prepared.data_dir = dir;
-        *self = prepared;
+        let previous = std::mem::replace(&mut self.data_dir, dir.clone());
+        let outcome = self.adopt(&dir, files, plan, written, manifest)?;
         generation::reclaim(&self.store_dir, &self.data_dir, &previous);
         Ok(outcome)
     }
+}
 
-    fn persist_prepared(
-        &mut self,
+/// The indexes a publish wrote, adopted without reading them back.
+struct Written {
+    shards: Index,
+    sources: Index,
+    tables: Tables,
+    extraction: Option<crate::manifest_records::Verified>,
+}
+
+impl NativeStore {
+    /// Writes every artifact of the planned generation into `dir`, in commit
+    /// order, reusing the previous generation's packs and segments.
+    #[allow(clippy::too_many_lines)] // one artifact family per step
+    fn persist(
+        &self,
         dir: &Path,
+        plan: &Plan,
         manifest: Option<&Manifest>,
-        previous: &Self,
-        batch: &WriteBatch,
         retained: &BTreeSet<String>,
-    ) -> Result<()> {
-        self.graph()?
-            .db
-            .save(dir.join(generation::GRAPH))
-            .map_err(|error| Error::Store(error.to_string()))?;
-        std::fs::File::open(dir.join(generation::GRAPH))
+    ) -> Result<Written> {
+        std::fs::File::create(dir.join(generation::LEASE))
             .and_then(|file| file.sync_all())
             .map_err(store_io)?;
-        self.inject("after_graph_persist")?;
-        sidecar::prepare_dangling(dir, self.dangling()?).map_err(store_io)?;
-        self.inject("after_dangling_persist")?;
-        // apply_prepared only removes or replaces source facts for these paths;
-        // surviving facts outside the set are exact clones of the previous store.
-        let touched: BTreeSet<&str> = batch
-            .upserts
+        let previous = self.data_dir.as_path();
+
+        // Shards: write the planned ones, carry every other by reference.
+        let old_shards = self.shard_index()?;
+        let carried: BTreeSet<String> = old_shards
+            .map(|index| {
+                index
+                    .paths()
+                    .filter(|path| {
+                        !plan.shards.contains_key(*path) && !plan.removed.contains(*path)
+                    })
+                    .map(str::to_owned)
+                    .collect()
+            })
+            .unwrap_or_default();
+        let shard_records: BTreeMap<String, &Shard> = plan
+            .shards
             .iter()
-            .map(|file| file.file.path.as_str())
-            .chain(batch.removed_files.iter().map(String::as_str))
+            .map(|(path, shard)| (path.clone(), shard))
             .collect();
-        let previous_sources = previous.sources()?;
-        let records = crate::source_records::save_cached(
+        let shards = crate::source_records::save_records_retaining(
             dir,
-            &self.sources()?.files,
-            &previous.data_dir,
-            &previous_sources.files,
-            previous_sources.records.as_ref(),
-            Some(&touched),
+            crate::shards::LAYOUT,
+            &shard_records,
+            previous,
+            old_shards,
+            &carried,
+            |_, _| Ok(false),
         )
         .map_err(store_io)?;
-        resident(&mut self.sources)?.records = Some(records);
+        self.inject("after_shard_persist")?;
+
+        // Source records: every touched file's record is replaced or removed.
+        let old_sources = self.source_index()?;
+        let carried: BTreeSet<String> = old_sources
+            .map(|index| {
+                index
+                    .paths()
+                    .filter(|path| !plan.source_owners.contains(*path))
+                    .map(str::to_owned)
+                    .collect()
+            })
+            .unwrap_or_default();
+        let sources = crate::source_records::save_records_retaining(
+            dir,
+            SOURCE_LAYOUT,
+            &plan.sources,
+            previous,
+            old_sources,
+            &carried,
+            |_, _| Ok(false),
+        )
+        .map_err(store_io)?;
         self.inject("after_source_persist")?;
-        sidecar::save_occurrences(dir, self.occurrence_files()?).map_err(store_io)?;
-        generation::replace(
-            &dir.join(crate::edge_counts::FILE),
-            &crate::edge_counts::encode(self.occurrence_files()?).map_err(store_io)?,
+
+        // Posting tables: one delta each, compacted by policy.
+        let old_tables = self.table_refs()?;
+        let previous_dir = self.committed.as_ref().map(|_| previous);
+        let mut tables = Tables::default();
+        for table in crate::shards::TABLES {
+            let rows = plan.rows.get(table).cloned().unwrap_or_default();
+            let reference = crate::segment::publish(
+                dir,
+                table,
+                previous_dir,
+                old_tables.tables.get(table).unwrap_or(&TableRef::default()),
+                &plan.owners,
+                rows,
+            )
+            .map_err(store_io)?;
+            tables.tables.insert(table.to_owned(), reference);
+        }
+        let members = crate::segment::publish(
+            dir,
+            PACKAGE_MEMBERS,
+            previous_dir,
+            old_tables
+                .tables
+                .get(PACKAGE_MEMBERS)
+                .unwrap_or(&TableRef::default()),
+            &plan.source_owners,
+            plan.member_rows.clone(),
         )
         .map_err(store_io)?;
-        self.inject("after_occurrence_persist")?;
+        tables.tables.insert(PACKAGE_MEMBERS.to_owned(), members);
+        generation::sync_dir(&dir.join(crate::segment::DIRECTORY)).map_err(store_io)?;
+        generation::replace(
+            &dir.join(generation::TABLES),
+            &serde_json::to_vec(&tables).map_err(|error| Error::Store(error.to_string()))?,
+        )
+        .map_err(store_io)?;
+        self.inject("after_table_persist")?;
+
+        let mut extraction = None;
         if let Some(manifest) = manifest {
-            self.extraction_records = OnceLock::from(Some(
+            extraction = Some(
                 crate::manifest_records::save_retaining(
                     dir,
                     manifest,
-                    &previous.data_dir,
-                    previous.extraction_records()?,
+                    previous,
+                    self.extraction_records()?,
                     retained,
                 )
                 .map_err(store_io)?,
-            ));
+            );
             self.inject("after_extraction_persist")?;
-            let bytes = serde_json::to_vec(&self.dependencies()?)
+            let bytes = serde_json::to_vec(&plan.dependencies)
                 .map_err(|error| Error::Store(error.to_string()))?;
             let bytes = crate::compress::deflate(&bytes).map_err(store_io)?;
             generation::replace(&dir.join(generation::DEPENDENCIES), &bytes).map_err(store_io)?;
             self.inject("after_dependencies_persist")?;
             sidecar::prepare_manifest(dir, &manifest.header()).map_err(store_io)?;
         }
-        self.inject("after_manifest_persist")?;
-        let summary =
-            serde_json::to_vec(&self.summary).map_err(|error| Error::Store(error.to_string()))?;
-        generation::replace(&dir.join(generation::SUMMARY), &summary).map_err(store_io)?;
-        // Acquire before CURRENT changes so failure still leaves the old store
-        // authoritative. Prepared stores keep their lazy records pinned too.
-        self.generation_lease = Some(generation::pin(dir).map_err(store_io)?);
-        generation::sync_dir(dir).map_err(store_io)?;
-        generation::sync_dir(
-            dir.parent()
-                .ok_or_else(|| Error::Store(String::from("missing generation parent")))?,
+        generation::replace(
+            &dir.join(generation::SUMMARY),
+            &serde_json::to_vec(&plan.summary).map_err(|error| Error::Store(error.to_string()))?,
         )
         .map_err(store_io)?;
-        self.inject("after_generation_sync")
+        self.inject("after_manifest_persist")?;
+        generation::sync_dir(dir).map_err(store_io)?;
+        generation::sync_dir(&self.store_dir.join("generations")).map_err(store_io)?;
+        self.inject("after_generation_sync")?;
+        Ok(Written {
+            shards,
+            sources,
+            tables,
+            extraction,
+        })
     }
 
-    // Private preparation only: derived retrieval indexes remain stale until
-    // publish_generation finishes all mutations and calls refresh_indexes.
-    #[allow(clippy::too_many_lines)] // isolated node deletion/insertion/edge preparation stages
-    fn apply_prepared(&mut self, batch: &WriteBatch) -> Result<ApplyOutcome> {
-        self.load_resident()?;
-        let source_nodes = self.snapshot()?.all_nodes()?;
-        graph_search_core::units::validate_batch(
-            batch,
-            source_nodes.iter(),
-            &self.sources()?.files,
-        )?;
-        for upsert in &batch.upserts {
-            if let Some(facts) = &upsert.occurrences {
-                let owners: BTreeMap<_, _> = std::iter::once(&upsert.file)
-                    .chain(&upsert.symbols)
-                    .map(|node| (&node.id, node))
-                    .collect();
-                graph_search_core::occurrences::validate(&upsert.file, facts, |id| {
-                    owners.get(id).copied()
-                })?;
-            }
-        }
-        let mut outcome = ApplyOutcome::default();
-        let graph = self.graph.get().ok_or_else(not_resident)?;
-
-        let mutation = graph_search_core::mutation::Mutation::new(batch, source_nodes.iter());
-        let removed_gids: Vec<_> = mutation
-            .removed
-            .iter()
-            .map(|id| graph.resolve_gid(id))
-            .collect::<Result<_>>()?;
-        let mut removed_edges = BTreeMap::new();
-        for gid in graph.read.all_node_ids() {
-            for (_, edge_gid) in graph
-                .read
-                .edges_from(gid, grafeo_core::graph::Direction::Both)
-            {
-                if graph
-                    .edge_record(edge_gid)
-                    .is_some_and(|edge| mutation.removes_edge(&edge))
-                {
-                    removed_edges.insert(edge_gid.as_u64(), edge_gid);
-                }
-            }
-        }
-        for gid in removed_edges.into_values() {
-            graph.db.delete_edge(gid);
-        }
-        outcome.files_touched = batch.removed_files.len() as u64;
-        let removed_set: BTreeSet<u64> = removed_gids.iter().map(grafeo::NodeId::as_u64).collect();
-        for gid in &removed_gids {
-            if graph.db.delete_node(*gid) {
-                outcome.nodes_deleted = outcome.nodes_deleted.saturating_add(1);
-            }
-        }
-
-        self.inject("after_delete")?;
-
-        // Drop stale id-map entries for removed paths.
+    /// Switches this handle to the generation it just published. Shards it
+    /// already read stay cached unless the publish replaced them; every bulk
+    /// view is rebuilt on its next use.
+    fn adopt(
+        &mut self,
+        dir: &Path,
+        files: BTreeMap<String, String>,
+        plan: Plan,
+        written: Written,
+        manifest: Option<&Manifest>,
+    ) -> Result<ApplyOutcome> {
+        let lease = generation::pin(dir).map_err(store_io)?;
         {
-            let mut maps = graph.maps.write().map_err(|_| poisoned())?;
-            let stale: Vec<String> = maps
-                .forward
-                .keys()
-                .filter(|id| {
-                    maps.forward
-                        .get(*id)
-                        .is_some_and(|gid| removed_set.contains(&gid.as_u64()))
-                })
-                .cloned()
-                .collect();
-            for id in stale {
-                if let Some(gid) = maps.forward.remove(&id) {
-                    maps.reverse.remove(&gid.as_u64());
-                }
+            let mut cache = self.shards.write().map_err(|_| poisoned())?;
+            for path in &plan.removed {
+                cache.remove(path);
+            }
+            for (path, shard) in plan.shards {
+                cache.insert(path, Arc::new(shard));
             }
         }
-
-        // Insertions: every node first, then every edge, so a forward
-        // reference inside one batch resolves (`SPEC.md` §6.4).
-        let mut side_dangling: BTreeMap<String, Vec<Edge>> = BTreeMap::new();
-        for upsert in &batch.upserts {
-            for node in std::iter::once(&upsert.file).chain(&upsert.symbols) {
-                let existing = graph
-                    .maps
-                    .read()
-                    .map_err(|_| poisoned())?
-                    .forward
-                    .get(node.id.as_str())
-                    .copied();
-                if let Some(gid) = existing {
-                    let props = node_to_props(node);
-                    if let Some(old) = graph.props_of(gid) {
-                        for key in old.keys() {
-                            if !props.iter().any(|(new, _)| new == key) {
-                                graph.db.remove_node_property(gid, key);
-                            }
-                        }
-                    }
-                    for (key, value) in props {
-                        graph.db.set_node_property(gid, &key, value);
-                    }
-                } else {
-                    let gid = graph.db.create_node_with_props(
-                        &[LABEL, kind_label(node.kind)],
-                        node_to_props(node),
-                    );
-                    let mut maps = graph.maps.write().map_err(|_| poisoned())?;
-                    maps.forward.insert(node.id.as_str().to_owned(), gid);
-                    maps.reverse
-                        .insert(gid.as_u64(), node.id.as_str().to_owned());
-                }
-                outcome.nodes_upserted = outcome.nodes_upserted.saturating_add(1);
-            }
-        }
-        self.inject("after_insert")?;
-        for upsert in &batch.upserts {
-            // Resolved edges become LPG edges; dangling ones go to the
-            // sidecar (`SPEC.md` §5.2).
-            let mut dangling: Vec<Edge> = Vec::new();
-            for edge in &upsert.edges {
-                if !edge.resolved {
-                    dangling.push(edge.clone());
-                    continue;
-                }
-                let maps = graph.maps.read().map_err(|_| poisoned())?;
-                let (Some(from_gid), Some(to_gid)) = (
-                    maps.forward.get(edge.from.as_str()).copied(),
-                    edge.to
-                        .as_ref()
-                        .and_then(|to| maps.forward.get(to.as_str()).copied()),
-                ) else {
-                    drop(maps);
-                    dangling.push(edge.clone());
-                    continue;
-                };
-                drop(maps);
-                let kind = edge.kind.as_str();
-                let _ =
-                    graph
-                        .db
-                        .create_edge_with_props(from_gid, to_gid, kind, edge_to_props(edge));
-                outcome.edges_upserted = outcome.edges_upserted.saturating_add(1);
-            }
-            side_dangling.insert(upsert.file.path.clone(), dangling);
-            outcome.files_touched = outcome.files_touched.saturating_add(1);
-        }
-
-        self.inject("after_edges")?;
-
-        // Rewrite the sidecar: keep dangles of untouched files, replace the
-        // touched ones, drop the removed ones.
-        let mut kept: Vec<Edge> = self
-            .dangling()?
-            .iter()
-            .filter(|edge| !mutation.removes_edge(edge))
-            .cloned()
-            .collect();
-        kept.extend(side_dangling.into_values().flatten());
-        *resident(&mut self.dangling)? = kept;
-        let sources = &mut resident(&mut self.sources)?.files;
-        for path in &batch.removed_files {
-            sources.remove(path);
-        }
-        for upsert in &batch.upserts {
-            sources.remove(&upsert.file.path);
-            if let Some(source) = &upsert.source {
-                sources.insert(upsert.file.path.clone(), source.clone());
-            }
-        }
-        {
-            let graph = self.graph.get().ok_or_else(not_resident)?;
-            let maps = graph.maps.read().map_err(|_| poisoned())?;
-            let occurrence_files = self.occurrence_files.get_mut().ok_or_else(not_resident)?;
-            graph_search_core::occurrences::apply(occurrence_files, batch, |id| {
-                maps.forward.contains_key(id.as_str())
-            });
-        }
-        Ok(outcome)
+        self.committed = Some(generation::committed(dir, files));
+        self.summary = plan.summary;
+        self.manifest_header = manifest.map(Manifest::header);
+        self.shard_index = OnceLock::from(Some(written.shards));
+        self.source_index = OnceLock::from(Some(written.sources));
+        self.table_refs = OnceLock::from(written.tables);
+        self.tables = OnceLock::new();
+        self.sources = OnceLock::new();
+        self.occurrence_files = OnceLock::new();
+        self.extraction_records = OnceLock::from(written.extraction);
+        self.dependencies = OnceLock::from(plan.dependencies);
+        self.nodes = OnceLock::new();
+        self.metadata = OnceLock::new();
+        self.body = OnceLock::new();
+        self.occurrences = OnceLock::new();
+        self.adjacency = OnceLock::new();
+        self.generation_lease = Some(lease);
+        Ok(plan.outcome)
     }
 }
 
-impl GraphStore for GrafeoStore {
+impl GraphStore for NativeStore {
     fn apply(&mut self, batch: WriteBatch) -> Result<ApplyOutcome> {
         let manifest = self.manifest()?;
         self.publish_generation(&batch, manifest.as_ref(), &BTreeSet::new())
@@ -1127,8 +1303,9 @@ impl GraphStore for GrafeoStore {
     fn generation(&self) -> Result<Option<String>> {
         self.ensure_available()?;
         Ok(self
-            .data_dir
-            .file_name()
+            .committed
+            .as_ref()
+            .and_then(|committed| committed.dir().file_name())
             .and_then(|name| name.to_str())
             .filter(|name| name.starts_with("g-"))
             .map(str::to_owned))
@@ -1136,28 +1313,24 @@ impl GraphStore for GrafeoStore {
 
     fn snapshot(&self) -> Result<Box<dyn GraphSnapshot + '_>> {
         self.ensure_available()?;
-        Ok(Box::new(GrafeoSnapshot::new(self)))
+        Ok(Box::new(NativeSnapshot { store: self }))
     }
 
-    fn dependency_index(
-        &self,
-    ) -> Result<Option<&graph_search_core::dependencies::DependencyIndex>> {
+    fn dependency_index(&self) -> Result<Option<&DependencyIndex>> {
         self.ensure_available()?;
         self.dependencies()
     }
 
     fn manifest(&self) -> Result<Option<Manifest>> {
         self.ensure_available()?;
-        if self.transient_manifest.is_some() {
-            return Ok(self.transient_manifest.clone());
-        }
         match (&self.manifest_header, self.extraction_records()?) {
             (Some(header), Some(index)) => {
                 crate::manifest_records::hydrate(&self.data_dir, header, index)
                     .map(Some)
                     .map_err(store_io)
             }
-            _ => sidecar::load_manifest(&self.data_dir).map_err(store_io),
+            (Some(header), None) => Ok(Some(header.clone())),
+            _ => Ok(None),
         }
     }
 
@@ -1169,25 +1342,13 @@ impl GraphStore for GrafeoStore {
         if paths.is_empty() {
             return Ok(BTreeMap::new());
         }
-        if let (Some(header), Some(index)) = (&self.manifest_header, self.extraction_records()?) {
-            return crate::manifest_records::selected(&self.data_dir, header, index, paths)
-                .map_err(store_io);
+        match (&self.manifest_header, self.extraction_records()?) {
+            (Some(header), Some(index)) => {
+                crate::manifest_records::selected(&self.data_dir, header, index, paths)
+                    .map_err(store_io)
+            }
+            _ => Ok(BTreeMap::new()),
         }
-        // Legacy embedded facts retain the compatibility path until publication
-        // migrates them into generation-local packed records.
-        let manifest = self.manifest()?;
-        Ok(paths
-            .iter()
-            .filter_map(|path| {
-                manifest
-                    .as_ref()?
-                    .entries
-                    .get(path)?
-                    .extraction
-                    .as_ref()
-                    .map(|facts| (path.clone(), facts.clone()))
-            })
-            .collect())
     }
 
     fn manifest_header(&self) -> Result<Option<Manifest>> {
@@ -1196,22 +1357,18 @@ impl GraphStore for GrafeoStore {
     }
 
     fn commit_manifest(&mut self, manifest: Manifest) -> Result<()> {
-        // Standalone manifest changes also publish a complete generation.
+        // A standalone manifest change also publishes a generation.
         self.publish_generation(&WriteBatch::default(), Some(&manifest), &BTreeSet::new())
             .map(|_| ())
     }
 }
 
-/// The read view over a [`GrafeoStore`].
-pub struct GrafeoSnapshot<'a> {
-    store: &'a GrafeoStore,
+/// The read view over a [`NativeStore`].
+pub struct NativeSnapshot<'a> {
+    store: &'a NativeStore,
 }
 
-impl<'a> GrafeoSnapshot<'a> {
-    const fn new(store: &'a GrafeoStore) -> Self {
-        Self { store }
-    }
-
+impl NativeSnapshot<'_> {
     fn edge_matches(
         edge: &Edge,
         kinds: &[graph_search_types::kind::EdgeKind],
@@ -1229,7 +1386,14 @@ impl<'a> GrafeoSnapshot<'a> {
     }
 }
 
-impl GraphSnapshot for GrafeoSnapshot<'_> {
+/// Sorts and drops duplicates by canonical edge id.
+fn dedupe(mut edges: Vec<Edge>) -> Vec<Edge> {
+    edges.sort_by(crate::shards::edge_order);
+    edges.dedup_by(|a, b| a.id == b.id);
+    edges
+}
+
+impl GraphSnapshot for NativeSnapshot<'_> {
     fn counts(&self) -> &graph_search_types::result::StoreCounts {
         &self.store.summary.counts
     }
@@ -1241,28 +1405,25 @@ impl GraphSnapshot for GrafeoSnapshot<'_> {
     fn occurrence_files(&self) -> Result<&BTreeMap<String, OccurrenceFile>> {
         self.store.occurrence_files()
     }
+
     fn occurrences(&self) -> Result<&graph_search_core::occurrences::OccurrenceIndex> {
         self.store.occurrences()
     }
+
     fn occurrence_count(&self, edge_id: &str) -> Result<Option<usize>> {
         self.store.occurrence_count(edge_id)
     }
+
     fn body(&self) -> Result<&graph_search_core::body::BodyIndex> {
         self.store.body()
     }
 
     fn source_files(&self) -> Result<&BTreeMap<String, SourceFileUnits>> {
-        Ok(&self.store.sources()?.files)
+        self.store.sources()
     }
 
     fn node_by_id(&self, id: &NodeId) -> Result<Option<Node>> {
-        let graph = self.store.graph()?;
-        let maps = graph.maps.read().map_err(|_| poisoned())?;
-        let Some(gid) = maps.forward.get(id.as_str()).copied() else {
-            return Ok(None);
-        };
-        drop(maps);
-        Ok(graph.node_of(gid))
+        self.store.node(id)
     }
 
     fn metadata(&self) -> Result<&graph_search_core::metadata::MetadataIndex> {
@@ -1279,45 +1440,34 @@ impl GraphSnapshot for GrafeoSnapshot<'_> {
         kinds: &[graph_search_types::kind::EdgeKind],
         dir: Direction,
     ) -> Result<Vec<Edge>> {
-        let mut out: Vec<Edge> = self
+        // Outgoing edges live with their owner, or with the files the foreign
+        // postings name; incoming ones with the files the incoming postings name.
+        let mut paths = BTreeSet::new();
+        if matches!(dir, Direction::Out | Direction::Both) {
+            paths.extend(self.store.owner_of(id)?);
+            paths.extend(
+                self.store
+                    .postings(FOREIGN, id.as_str())?
+                    .into_iter()
+                    .map(|row| row.owner),
+            );
+        }
+        if matches!(dir, Direction::In | Direction::Both) {
+            paths.extend(
+                self.store
+                    .postings(INCOMING, id.as_str())?
+                    .into_iter()
+                    .map(|row| row.owner),
+            );
+        }
+        let out = self
             .store
-            .dangling()?
-            .iter()
+            .shards_for(&paths)?
+            .values()
+            .flat_map(|shard| shard.edges.iter())
             .filter(|edge| Self::edge_matches(edge, kinds, dir, id))
             .cloned()
             .collect();
-        let graph = self.store.graph()?;
-        let Ok(gid) = graph.resolve_gid(id) else {
-            return Ok(dedupe(out));
-        };
-        // Grafeo's adjacency pairs mix endpoints by direction (the outgoing
-        // index pairs a target, the backward index pairs a source), so each
-        // pass enumerates candidates and takes endpoints from the edge record
-        // itself.
-        if matches!(dir, Direction::Out | Direction::Both) {
-            for (_, edge_gid) in graph
-                .read
-                .edges_from(gid, grafeo_core::graph::Direction::Outgoing)
-            {
-                if let Some(edge) = graph.edge_record(edge_gid)
-                    && Self::edge_matches(&edge, kinds, Direction::Out, id)
-                {
-                    out.push(edge);
-                }
-            }
-        }
-        if matches!(dir, Direction::In | Direction::Both) {
-            for (_, edge_gid) in graph
-                .read
-                .edges_from(gid, grafeo_core::graph::Direction::Incoming)
-            {
-                if let Some(edge) = graph.edge_record(edge_gid)
-                    && Self::edge_matches(&edge, kinds, Direction::In, id)
-                {
-                    out.push(edge);
-                }
-            }
-        }
         Ok(dedupe(out))
     }
 
@@ -1362,14 +1512,11 @@ impl GraphSnapshot for GrafeoSnapshot<'_> {
                     let onward = match (&edge.to, dir) {
                         (Some(to), Direction::Out) => Some(to.clone()),
                         (Some(to), Direction::In) => (*to == *id).then(|| edge.from.clone()),
-                        (Some(to), Direction::Both) => {
-                            let onward = if *to == *id {
-                                edge.from.clone()
-                            } else {
-                                to.clone()
-                            };
-                            Some(onward)
-                        }
+                        (Some(to), Direction::Both) => Some(if *to == *id {
+                            edge.from.clone()
+                        } else {
+                            to.clone()
+                        }),
                         (None, _) => None,
                     };
                     if let Some(onward) = onward
@@ -1394,88 +1541,60 @@ impl GraphSnapshot for GrafeoSnapshot<'_> {
 
     fn files_matching(&self, glob: &str, k: usize) -> Result<Vec<Node>> {
         let set = graph_search_core::files_search::compile_anchored_glob(glob)?;
-        let graph = self.store.graph()?;
-        let mut files: Vec<Node> = Vec::new();
-        for gid in graph.read.nodes_by_label(LABEL) {
-            let Some(props) = graph.props_of(gid) else {
-                continue;
-            };
-            let Some(path) = props.get("path").and_then(Value::as_str) else {
-                continue;
-            };
-            let Some(kind) = props.get("kind").and_then(Value::as_str) else {
-                continue;
-            };
-            if kind != "file" || !set.is_match(path) {
-                continue;
-            }
-            if let Some(node) = graph.node_of(gid) {
-                files.push(node);
-            }
-            if files.len() >= k {
-                break;
-            }
-        }
-        files.sort_by(|a, b| a.path.cmp(&b.path));
-        files.truncate(k);
-        Ok(files)
+        let matching: BTreeSet<String> = self
+            .store
+            .paths()?
+            .into_iter()
+            .filter(|path| set.is_match(path))
+            .take(k)
+            .collect();
+        Ok(self
+            .store
+            .shards_for(&matching)?
+            .values()
+            .filter_map(|shard| shard.file().cloned())
+            .collect())
     }
 
     fn all_nodes(&self) -> Result<Vec<Node>> {
-        let graph = self.store.graph()?;
-        let mut nodes = Vec::new();
-        for gid in graph.read.all_node_ids() {
-            if let Some(node) = graph.node_of(gid) {
-                nodes.push(node);
-            }
-        }
-        nodes.sort_by(|a, b| a.id.cmp(&b.id));
-        Ok(nodes)
+        Ok(self.store.nodes()?.clone())
     }
 
     fn all_edges(&self) -> Result<Vec<Edge>> {
-        let mut out: Vec<Edge> = self.store.dangling()?.clone();
-        // The read trait exposes adjacency, not an edge scan, so the edge set
-        // is the union of every node's incident edges, deduplicated.
-        let graph = self.store.graph()?;
-        let mut seen: BTreeSet<u64> = BTreeSet::new();
-        for gid in graph.read.all_node_ids() {
-            for (_, edge_gid) in graph
-                .read
-                .edges_from(gid, grafeo_core::graph::Direction::Both)
-            {
-                if !seen.insert(edge_gid.as_u64()) {
-                    continue;
-                }
-                if let Some(edge) = graph.edge_record(edge_gid) {
-                    out.push(edge);
-                }
-            }
-        }
-        Ok(dedupe(out))
+        self.store.all_edges()
     }
-}
-
-/// Sorts and drops duplicates by canonical edge id.
-fn dedupe(mut edges: Vec<Edge>) -> Vec<Edge> {
-    edges.sort_by(|a, b| {
-        a.from
-            .cmp(&b.from)
-            .then_with(|| a.kind.cmp(&b.kind))
-            .then_with(|| a.id.cmp(&b.id))
-    });
-    edges.dedup_by(|a, b| a.id == b.id);
-    edges
 }
 
 #[cfg(test)]
 mod publication_tests {
     use super::*;
 
+    /// Every injected failure point before CURRENT changes, in commit order.
+    const PREPUBLICATION: [&str; 8] = [
+        "after_plan",
+        "after_shard_persist",
+        "after_source_persist",
+        "after_table_persist",
+        "after_extraction_persist",
+        "after_dependencies_persist",
+        "after_manifest_persist",
+        "after_generation_sync",
+    ];
+
+    use graph_search_types::FileProjection;
+
     /// Opens and reads every fact: corruption surfaces at open or first read.
-    fn open_and_read(root: &Path) -> Result<GrafeoStore> {
-        let store = GrafeoStore::open(root, &StoreOptions::default())?;
-        store.load_resident()?;
+    fn open_and_read(root: &Path) -> Result<NativeStore> {
+        let store = NativeStore::open(root, &StoreOptions::default())?;
+        {
+            let snapshot = store.snapshot()?;
+            snapshot.all_nodes()?;
+            snapshot.all_edges()?;
+            snapshot.source_files()?;
+            snapshot.occurrence_files()?;
+        }
+        store.dependency_index()?;
+        store.manifest()?;
         Ok(store)
     }
     fn complete_fact_fixture() -> WriteBatch {
@@ -1499,18 +1618,9 @@ mod publication_tests {
 
     #[test]
     fn retained_publication_failures_leave_the_old_generation_and_allow_retry() {
-        for point in [
-            "after_graph_persist",
-            "after_dangling_persist",
-            "after_source_persist",
-            "after_occurrence_persist",
-            "after_extraction_persist",
-            "after_dependencies_persist",
-            "after_manifest_persist",
-            "after_generation_sync",
-        ] {
+        for point in PREPUBLICATION {
             let root = tempfile::tempdir().unwrap();
-            let mut store = GrafeoStore::open(root.path(), &StoreOptions::default()).unwrap();
+            let mut store = NativeStore::open(root.path(), &StoreOptions::default()).unwrap();
             store.publish(complete_fact_fixture()).unwrap();
             assert!(store.dependencies().unwrap().is_some());
             let old = state(&store);
@@ -1530,7 +1640,7 @@ mod publication_tests {
             );
             assert_eq!(state(&store), old, "{point}");
             assert_eq!(
-                state(&GrafeoStore::open(root.path(), &StoreOptions::default()).unwrap()),
+                state(&NativeStore::open(root.path(), &StoreOptions::default()).unwrap()),
                 old
             );
             store.failure = None;
@@ -1545,7 +1655,7 @@ mod publication_tests {
     #[test]
     fn retained_cold_records_are_compacted_without_decoding_their_values() {
         let root = tempfile::tempdir().unwrap();
-        let mut store = GrafeoStore::open(root.path(), &StoreOptions::default()).unwrap();
+        let mut store = NativeStore::open(root.path(), &StoreOptions::default()).unwrap();
         let original = complete_fact_fixture();
         store.publish(original.clone()).unwrap();
         let dir = store.data_dir.clone();
@@ -1593,7 +1703,7 @@ mod publication_tests {
         pointer["files"][crate::manifest_records::FILE] =
             graph_search_core::hash::content_hash(&bytes).into();
         std::fs::write(pointer_path, serde_json::to_vec(&pointer).unwrap()).unwrap();
-        let mut store = GrafeoStore::open(root.path(), &StoreOptions::default()).unwrap();
+        let mut store = NativeStore::open(root.path(), &StoreOptions::default()).unwrap();
         assert!(store.manifest().is_err());
         let header = store.manifest_header().unwrap().unwrap();
         let retention = graph_search_core::retention::FactRetention {
@@ -1607,7 +1717,7 @@ mod publication_tests {
         store
             .publish_retaining(WriteBatch::with_manifest(next), &retention)
             .unwrap();
-        let reopened = GrafeoStore::open(root.path(), &StoreOptions::default()).unwrap();
+        let reopened = NativeStore::open(root.path(), &StoreOptions::default()).unwrap();
         assert_eq!(
             reopened
                 .extraction_facts(&BTreeSet::from(["src/a.rs".into()]))
@@ -1640,7 +1750,7 @@ mod publication_tests {
         batch
     }
 
-    fn state(store: &GrafeoStore) -> (Vec<Node>, Vec<Edge>, Option<Manifest>) {
+    fn state(store: &NativeStore) -> (Vec<Node>, Vec<Edge>, Option<Manifest>) {
         let snapshot = store.snapshot().unwrap();
         let manifest = store.manifest().unwrap();
         assert_eq!(
@@ -1693,21 +1803,9 @@ mod publication_tests {
 
     #[test]
     fn every_prepublication_failure_preserves_old_generation_and_retry() {
-        for point in [
-            "after_delete",
-            "after_insert",
-            "after_edges",
-            "after_graph_persist",
-            "after_dangling_persist",
-            "after_source_persist",
-            "after_occurrence_persist",
-            "after_extraction_persist",
-            "after_dependencies_persist",
-            "after_manifest_persist",
-            "after_generation_sync",
-        ] {
+        for point in PREPUBLICATION {
             let root = tempfile::tempdir().unwrap();
-            let mut store = GrafeoStore::open(root.path(), &StoreOptions::default()).unwrap();
+            let mut store = NativeStore::open(root.path(), &StoreOptions::default()).unwrap();
             store.publish(fixture_batch()).unwrap();
             let old = state(&store);
             let pointer = std::fs::read(root.path().join(generation::CURRENT)).unwrap();
@@ -1719,14 +1817,14 @@ mod publication_tests {
                 pointer
             );
             drop(store);
-            let mut reopened = GrafeoStore::open(root.path(), &StoreOptions::default()).unwrap();
+            let mut reopened = NativeStore::open(root.path(), &StoreOptions::default()).unwrap();
             assert_eq!(state(&reopened), old, "reopen after {point}");
             // Source changes again before retry: only the new batch may appear.
             let mut latest = replacement();
             latest.manifest.indexed_at_ms = 300;
             reopened.publish(latest.clone()).unwrap();
             let clean_root = tempfile::tempdir().unwrap();
-            let mut clean = GrafeoStore::open(clean_root.path(), &StoreOptions::default()).unwrap();
+            let mut clean = NativeStore::open(clean_root.path(), &StoreOptions::default()).unwrap();
             clean.publish(latest).unwrap();
             assert_eq!(state(&reopened), state(&clean), "retry after {point}");
         }
@@ -1735,7 +1833,7 @@ mod publication_tests {
     #[test]
     fn generation_header_does_not_reparse_raw_facts_and_changes_only_on_publication() {
         let root = tempfile::tempdir().unwrap();
-        let mut store = GrafeoStore::open(root.path(), &StoreOptions::default()).unwrap();
+        let mut store = NativeStore::open(root.path(), &StoreOptions::default()).unwrap();
         assert!(store.manifest_header().unwrap().is_none());
         store.publish(fixture_batch()).unwrap();
         let first = store.manifest_header().unwrap();
@@ -1747,7 +1845,7 @@ mod publication_tests {
             Some(fixture_batch().manifest),
             "the opened header and record descriptor are pinned"
         );
-        assert!(GrafeoStore::open(root.path(), &StoreOptions::default()).is_err());
+        assert!(NativeStore::open(root.path(), &StoreOptions::default()).is_err());
         assert_eq!(
             store.manifest_header().unwrap(),
             first,
@@ -1758,14 +1856,14 @@ mod publication_tests {
         let current = store.manifest_header().unwrap();
         assert_ne!(current, first);
         drop(store);
-        let reopened = GrafeoStore::open(root.path(), &StoreOptions::default()).unwrap();
+        let reopened = NativeStore::open(root.path(), &StoreOptions::default()).unwrap();
         assert_eq!(reopened.manifest_header().unwrap(), current);
     }
 
     #[test]
     fn extraction_packs_are_committed_and_verified_before_use() {
         let root = tempfile::tempdir().unwrap();
-        let mut store = GrafeoStore::open(root.path(), &StoreOptions::default()).unwrap();
+        let mut store = NativeStore::open(root.path(), &StoreOptions::default()).unwrap();
         store.publish(fixture_batch()).unwrap();
         let dir = store.data_dir.clone();
         let pack = std::fs::read_dir(dir.join(crate::manifest_records::LAYOUT.directory))
@@ -1785,23 +1883,27 @@ mod publication_tests {
             "requested facts must verify their bytes"
         );
         // Reopening reads no pack; reading the facts verifies them.
-        let reopened = open_and_read(root.path()).unwrap();
+        let reopened = NativeStore::open(root.path(), &StoreOptions::default()).unwrap();
         assert!(reopened.manifest().is_err());
         drop(reopened);
         std::fs::write(&pack, original).unwrap();
         let pointer_path = root.path().join(generation::CURRENT);
         let original_pointer = std::fs::read(&pointer_path).unwrap();
         let mut pointer: serde_json::Value = serde_json::from_slice(&original_pointer).unwrap();
-        pointer["format"] = serde_json::json!(5);
+        // A generation from an older format is never read: the store opens
+        // unpublished and is rebuilt.
+        pointer["format"] = serde_json::json!(9);
         std::fs::write(&pointer_path, serde_json::to_vec(&pointer).unwrap()).unwrap();
-        assert!(GrafeoStore::open(root.path(), &StoreOptions::default()).is_err());
-        pointer["format"] = serde_json::json!(6);
+        let older = NativeStore::open(root.path(), &StoreOptions::default()).unwrap();
+        assert!(older.generation().unwrap().is_none());
+        drop(older);
+        pointer["format"] = serde_json::json!(10);
         pointer["files"]
             .as_object_mut()
             .unwrap()
             .remove(crate::manifest_records::FILE);
         std::fs::write(&pointer_path, serde_json::to_vec(&pointer).unwrap()).unwrap();
-        assert!(GrafeoStore::open(root.path(), &StoreOptions::default()).is_err());
+        assert!(NativeStore::open(root.path(), &StoreOptions::default()).is_err());
         std::fs::write(&pointer_path, original_pointer).unwrap();
         std::fs::remove_file(dir.join(crate::manifest_records::FILE)).unwrap();
         assert!(open_and_read(root.path()).is_err());
@@ -1810,7 +1912,7 @@ mod publication_tests {
     #[test]
     fn failed_pointer_write_preserves_graph_and_manifest() {
         let root = tempfile::tempdir().unwrap();
-        let mut store = GrafeoStore::open(root.path(), &StoreOptions::default()).unwrap();
+        let mut store = NativeStore::open(root.path(), &StoreOptions::default()).unwrap();
         store.publish(fixture_batch()).unwrap();
         let old = state(&store);
         std::fs::create_dir(root.path().join("CURRENT.tmp")).unwrap();
@@ -1819,14 +1921,14 @@ mod publication_tests {
         assert!(store.commit_manifest(Manifest::default()).is_err());
         assert_eq!(state(&store), old);
         drop(store);
-        let reopened = GrafeoStore::open(root.path(), &StoreOptions::default()).unwrap();
+        let reopened = NativeStore::open(root.path(), &StoreOptions::default()).unwrap();
         assert_eq!(state(&reopened), old);
     }
 
     #[test]
     fn postpublication_error_refuses_reads_until_reopen() {
         let root = tempfile::tempdir().unwrap();
-        let mut store = GrafeoStore::open(root.path(), &StoreOptions::default()).unwrap();
+        let mut store = NativeStore::open(root.path(), &StoreOptions::default()).unwrap();
         store.publish(fixture_batch()).unwrap();
         store.failure = Some("after_publish");
         assert!(store.publish(replacement()).is_err());
@@ -1840,7 +1942,7 @@ mod publication_tests {
         );
         assert!(store.extraction_facts(&BTreeSet::new()).is_err());
         drop(store);
-        let reopened = GrafeoStore::open(root.path(), &StoreOptions::default()).unwrap();
+        let reopened = NativeStore::open(root.path(), &StoreOptions::default()).unwrap();
         assert_eq!(reopened.manifest().unwrap().unwrap().indexed_at_ms, 200);
         assert_eq!(reopened.snapshot().unwrap().all_nodes().unwrap().len(), 3);
     }
@@ -1848,13 +1950,13 @@ mod publication_tests {
     #[test]
     fn orphan_and_invalid_generations_are_not_silently_opened() {
         let root = tempfile::tempdir().unwrap();
-        let mut store = GrafeoStore::open(root.path(), &StoreOptions::default()).unwrap();
+        let mut store = NativeStore::open(root.path(), &StoreOptions::default()).unwrap();
         store.publish(fixture_batch()).unwrap();
         let old = state(&store);
         let orphan = generation::allocate(root.path()).unwrap();
-        std::fs::write(orphan.join(generation::GRAPH), b"unfinished").unwrap();
+        std::fs::write(orphan.join(crate::shards::FILE), b"unfinished").unwrap();
         drop(store);
-        let reopened = GrafeoStore::open(root.path(), &StoreOptions::default()).unwrap();
+        let reopened = NativeStore::open(root.path(), &StoreOptions::default()).unwrap();
         assert_eq!(state(&reopened), old);
         drop(reopened);
         std::fs::write(
@@ -1862,39 +1964,7 @@ mod publication_tests {
             br#"{"format":1,"id":"../outside","files":{}}"#,
         )
         .unwrap();
-        assert!(GrafeoStore::open(root.path(), &StoreOptions::default()).is_err());
-    }
-
-    #[test]
-    fn legacy_graph_and_sidecars_migrate_without_losing_edges() {
-        let root = tempfile::tempdir().unwrap();
-        let mut legacy = GrafeoStore::open(root.path(), &StoreOptions::default()).unwrap();
-        let batch = fixture_batch();
-        legacy.apply_prepared(&batch).unwrap();
-        sidecar::save_manifest(root.path(), &batch.manifest).unwrap();
-        sidecar::save_dangling(root.path(), &[], &BTreeSet::new()).unwrap();
-        // This fixture writes sidecars outside publication; its open handle's
-        // header intentionally predates that write. Verify the header on reopen.
-        let old = {
-            let snapshot = legacy.snapshot().unwrap();
-            (
-                snapshot.all_nodes().unwrap(),
-                snapshot.all_edges().unwrap(),
-                Some(batch.manifest.clone()),
-            )
-        };
-        drop(legacy);
-        let mut reopened = GrafeoStore::open(root.path(), &StoreOptions::default()).unwrap();
-        assert_eq!(state(&reopened), old);
-        assert!(reopened.generation().unwrap().is_none());
-        reopened.publish(batch).unwrap();
-        assert_eq!(state(&reopened), old);
-        let generation = reopened.generation().unwrap();
-        assert!(generation.is_some());
-        drop(reopened);
-        let migrated = GrafeoStore::open(root.path(), &StoreOptions::default()).unwrap();
-        assert_eq!(state(&migrated), old);
-        assert_eq!(migrated.generation().unwrap(), generation);
+        assert!(NativeStore::open(root.path(), &StoreOptions::default()).is_err());
     }
 
     #[test]
@@ -1903,21 +1973,12 @@ mod publication_tests {
             return;
         };
         let point = std::env::var("GRAPH_SEARCH_CRASH_POINT").unwrap();
-        let point = match point.as_str() {
-            "after_delete" => "after_delete",
-            "after_insert" => "after_insert",
-            "after_graph_persist" => "after_graph_persist",
-            "after_dangling_persist" => "after_dangling_persist",
-            "after_source_persist" => "after_source_persist",
-            "after_occurrence_persist" => "after_occurrence_persist",
-            "after_extraction_persist" => "after_extraction_persist",
-            "after_dependencies_persist" => "after_dependencies_persist",
-            "after_manifest_persist" => "after_manifest_persist",
-            "after_generation_sync" => "after_generation_sync",
-            "after_publish" => "after_publish",
-            _ => panic!("unknown crash point"),
-        };
-        let mut store = GrafeoStore::open(Path::new(&root), &StoreOptions::default()).unwrap();
+        let point = PREPUBLICATION
+            .into_iter()
+            .chain(["after_publish"])
+            .find(|known| *known == point)
+            .expect("known crash point");
+        let mut store = NativeStore::open(Path::new(&root), &StoreOptions::default()).unwrap();
         store.failure = Some(point);
         store.crash = true;
         store.publish(replacement()).unwrap();
@@ -1926,21 +1987,9 @@ mod publication_tests {
 
     #[test]
     fn process_interruption_exposes_only_complete_generations() {
-        for point in [
-            "after_delete",
-            "after_insert",
-            "after_graph_persist",
-            "after_dangling_persist",
-            "after_source_persist",
-            "after_occurrence_persist",
-            "after_extraction_persist",
-            "after_dependencies_persist",
-            "after_manifest_persist",
-            "after_generation_sync",
-            "after_publish",
-        ] {
+        for point in PREPUBLICATION.into_iter().chain(["after_publish"]) {
             let root = tempfile::tempdir().unwrap();
-            let mut store = GrafeoStore::open(root.path(), &StoreOptions::default()).unwrap();
+            let mut store = NativeStore::open(root.path(), &StoreOptions::default()).unwrap();
             store.publish(fixture_batch()).unwrap();
             let old = state(&store);
             drop(store);
@@ -1956,7 +2005,7 @@ mod publication_tests {
                 "{point}: {}",
                 String::from_utf8_lossy(&output.stderr)
             );
-            let reopened = GrafeoStore::open(root.path(), &StoreOptions::default()).unwrap();
+            let reopened = NativeStore::open(root.path(), &StoreOptions::default()).unwrap();
             if point == "after_publish" {
                 assert_eq!(reopened.manifest().unwrap().unwrap().indexed_at_ms, 200);
                 assert_eq!(reopened.snapshot().unwrap().all_nodes().unwrap().len(), 3);
@@ -1969,13 +2018,13 @@ mod publication_tests {
     #[test]
     fn retained_readers_keep_lazy_facts_until_their_generation_is_released() {
         let root = tempfile::tempdir().unwrap();
-        let mut writer = GrafeoStore::open(root.path(), &StoreOptions::default()).unwrap();
+        let mut writer = NativeStore::open(root.path(), &StoreOptions::default()).unwrap();
         writer.publish(fixture_batch()).unwrap();
-        let reader = GrafeoStore::open(root.path(), &StoreOptions::default()).unwrap();
+        let reader = NativeStore::open(root.path(), &StoreOptions::default()).unwrap();
         let original = state(&reader);
         let retained = reader.data_dir.clone();
         let prepared_reader = writer;
-        let mut writer = GrafeoStore::open(root.path(), &StoreOptions::default()).unwrap();
+        let mut writer = NativeStore::open(root.path(), &StoreOptions::default()).unwrap();
         for stamp in 1..=5 {
             let mut batch = replacement();
             batch.manifest.indexed_at_ms = stamp;
@@ -1987,7 +2036,7 @@ mod publication_tests {
                 "prepared store also owns a lease"
             );
             assert!(retained.exists());
-            let latest = GrafeoStore::open(root.path(), &StoreOptions::default()).unwrap();
+            let latest = NativeStore::open(root.path(), &StoreOptions::default()).unwrap();
             assert_eq!(latest.manifest().unwrap().unwrap().indexed_at_ms, stamp);
         }
         drop(reader);
@@ -2008,7 +2057,7 @@ mod publication_tests {
     #[test]
     fn corrupted_committed_sidecar_is_an_error_and_old_generations_are_bounded() {
         let root = tempfile::tempdir().unwrap();
-        let mut store = GrafeoStore::open(root.path(), &StoreOptions::default()).unwrap();
+        let mut store = NativeStore::open(root.path(), &StoreOptions::default()).unwrap();
         for _ in 0..4 {
             store.publish(fixture_batch()).unwrap();
         }
@@ -2020,9 +2069,9 @@ mod publication_tests {
         );
         let active = store.data_dir.clone();
         drop(store);
-        std::fs::write(active.join(sidecar::DANGLING_FILE), b"corrupt").unwrap();
-        // Status-level reads never touch the sidecar; its first reader fails.
-        let store = GrafeoStore::open(root.path(), &StoreOptions::default()).unwrap();
+        std::fs::write(active.join(crate::shards::FILE), b"corrupt").unwrap();
+        // Status-level reads never touch the shards; their first reader fails.
+        let store = NativeStore::open(root.path(), &StoreOptions::default()).unwrap();
         assert!(store.manifest_header().unwrap().is_some());
         assert!(store.snapshot().unwrap().counts().total_nodes > 0);
         let snapshot = store.snapshot().unwrap();
@@ -2034,7 +2083,7 @@ mod publication_tests {
     #[test]
     fn projection_ownership_does_not_parse_hashes_from_paths() {
         let root = tempfile::tempdir().unwrap();
-        let mut store = GrafeoStore::open(root.path(), &StoreOptions::default()).unwrap();
+        let mut store = NativeStore::open(root.path(), &StoreOptions::default()).unwrap();
         let file = Node::file(
             "src/a#b.rs",
             graph_search_types::Language::Rust,
@@ -2090,25 +2139,25 @@ mod publication_tests {
             });
             batch
         };
-        let mut store = GrafeoStore::open(root.path(), &StoreOptions::default()).unwrap();
+        let mut store = NativeStore::open(root.path(), &StoreOptions::default()).unwrap();
         store.publish(make("original")).unwrap();
         let original = store.occurrence_files().unwrap().clone();
-        store.failure = Some("after_occurrence_persist");
+        store.failure = Some("after_shard_persist");
         assert!(store.publish(make("replacement")).is_err());
         assert_eq!(store.occurrence_files().unwrap(), &original);
-        let reopened = GrafeoStore::open(root.path(), &StoreOptions::default()).unwrap();
+        let reopened = NativeStore::open(root.path(), &StoreOptions::default()).unwrap();
         assert_eq!(reopened.occurrence_files().unwrap(), &original);
         drop(reopened);
         store.failure = None;
         store.publish(make("replacement")).unwrap();
         assert_ne!(store.occurrence_files().unwrap(), &original);
-        let reopened = GrafeoStore::open(root.path(), &StoreOptions::default()).unwrap();
+        let reopened = NativeStore::open(root.path(), &StoreOptions::default()).unwrap();
         assert_eq!(
             reopened.occurrence_files().unwrap(),
             store.occurrence_files().unwrap()
         );
         drop(reopened);
-        std::fs::write(store.data_dir.join(sidecar::OCCURRENCE_FILE), b"{}").unwrap();
+        std::fs::write(store.data_dir.join(crate::shards::FILE), b"{}").unwrap();
         assert!(open_and_read(root.path()).is_err());
     }
 
@@ -2130,18 +2179,18 @@ mod publication_tests {
             ));
             batch
         };
-        let mut store = GrafeoStore::open(root.path(), &StoreOptions::default()).unwrap();
+        let mut store = NativeStore::open(root.path(), &StoreOptions::default()).unwrap();
         store.publish(make("original body\n")).unwrap();
-        let original = store.sources().unwrap().files.clone();
+        let original = store.sources().unwrap().clone().clone();
         store.failure = Some("after_source_persist");
         assert!(store.publish(make("replacement body\n")).is_err());
-        assert_eq!(store.sources().unwrap().files, original);
-        let reopened = GrafeoStore::open(root.path(), &StoreOptions::default()).unwrap();
-        assert_eq!(reopened.sources().unwrap().files, original);
+        assert_eq!(store.sources().unwrap().clone(), original);
+        let reopened = NativeStore::open(root.path(), &StoreOptions::default()).unwrap();
+        assert_eq!(reopened.sources().unwrap().clone(), original);
         drop(reopened);
         store.failure = None;
         store.publish(make("replacement body\n")).unwrap();
-        assert_ne!(store.sources().unwrap().files, original);
+        assert_ne!(store.sources().unwrap().clone(), original);
         let pack = std::fs::read_dir(store.data_dir.join("source-records"))
             .unwrap()
             .next()

@@ -3,7 +3,7 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use graph_search_core::{conformance, ports::GraphStore};
-use graph_search_engine::{GrafeoStore, StoreOptions};
+use graph_search_engine::{NativeStore, StoreOptions};
 use graph_search_types::{
     EdgeKind, WriteBatch,
     extraction::{Extraction, ReferenceFact},
@@ -52,7 +52,7 @@ fn reader_child() {
     let Ok(root) = std::env::var("GRAPH_SEARCH_READER_ROOT") else {
         return;
     };
-    let reader = GrafeoStore::open(Path::new(&root), &StoreOptions::default()).unwrap();
+    let reader = NativeStore::open(Path::new(&root), &StoreOptions::default()).unwrap();
     let original = reader.manifest().unwrap();
     let nodes = reader.snapshot().unwrap().all_nodes().unwrap();
     println!("READER_READY");
@@ -132,7 +132,7 @@ impl Drop for Reader {
 #[test]
 fn multiple_process_readers_survive_churn_and_exit_releases_retention() {
     let root = tempfile::tempdir().unwrap();
-    let mut writer = GrafeoStore::open(root.path(), &StoreOptions::default()).unwrap();
+    let mut writer = NativeStore::open(root.path(), &StoreOptions::default()).unwrap();
     writer.publish(batch(0)).unwrap();
     let retained = root
         .path()

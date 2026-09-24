@@ -1,7 +1,7 @@
 //! Selective cold-fact reads must describe the handle's committed generation.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 use graph_search_core::{conformance, memory::MemoryStore, ports::GraphStore};
-use graph_search_engine::{GrafeoStore, StoreOptions};
+use graph_search_engine::{NativeStore, StoreOptions};
 use graph_search_types::{
     EdgeKind, WriteBatch,
     extraction::{Extraction, ReferenceFact},
@@ -38,7 +38,7 @@ fn native_adapters_select_facts_and_omit_absent_or_missing_caches() {
     let directory = tempfile::tempdir().unwrap();
     let mut stores: Vec<Box<dyn GraphStore>> = vec![
         Box::new(MemoryStore::new()),
-        Box::new(GrafeoStore::open(directory.path(), &StoreOptions::default()).unwrap()),
+        Box::new(NativeStore::open(directory.path(), &StoreOptions::default()).unwrap()),
     ];
     for store in &mut stores {
         let mut batch = fixture("initial");
@@ -75,10 +75,10 @@ fn native_adapters_select_facts_and_omit_absent_or_missing_caches() {
 fn selected_reads_remain_pinned_across_publication_and_reopen() {
     let directory = tempfile::tempdir().unwrap();
     let options = StoreOptions::default();
-    let mut writer = GrafeoStore::open(directory.path(), &options).unwrap();
+    let mut writer = NativeStore::open(directory.path(), &options).unwrap();
     let first = fixture("first");
     writer.publish(first.clone()).unwrap();
-    let reader = GrafeoStore::open(directory.path(), &options).unwrap();
+    let reader = NativeStore::open(directory.path(), &options).unwrap();
     let paths = BTreeSet::from([String::from("src/a.rs")]);
     for n in 0..4 {
         writer.publish(fixture(&format!("next-{n}"))).unwrap();
@@ -90,7 +90,7 @@ fn selected_reads_remain_pinned_across_publication_and_reopen() {
             .as_ref()
             .unwrap()
     );
-    let reopened = GrafeoStore::open(directory.path(), &options).unwrap();
+    let reopened = NativeStore::open(directory.path(), &options).unwrap();
     assert_eq!(
         reopened.extraction_facts(&paths).unwrap(),
         writer.extraction_facts(&paths).unwrap()
@@ -101,32 +101,13 @@ fn selected_reads_remain_pinned_across_publication_and_reopen() {
     );
 }
 #[test]
-fn legacy_embedded_facts_keep_compatible_selected_results() {
-    let directory = tempfile::tempdir().unwrap();
-    let batch = fixture("legacy");
-    graph_search_engine::sidecar::save_manifest(directory.path(), &batch.manifest).unwrap();
-    let reader = GrafeoStore::open(directory.path(), &StoreOptions::default()).unwrap();
-    let facts = reader
-        .extraction_facts(&BTreeSet::from([String::from("src/a.rs")]))
-        .unwrap();
-    assert_eq!(facts.len(), 1);
-    assert_eq!(
-        facts["src/a.rs"],
-        *batch.manifest.entries["src/a.rs"]
-            .extraction
-            .as_ref()
-            .unwrap()
-    );
-}
-
-#[test]
 fn dependency_records_are_pinned_and_authenticated_with_the_generation() {
     let directory = tempfile::tempdir().unwrap();
     let options = StoreOptions::default();
-    let mut writer = GrafeoStore::open(directory.path(), &options).unwrap();
+    let mut writer = NativeStore::open(directory.path(), &options).unwrap();
     writer.publish(fixture("first")).unwrap();
     let first = writer.dependency_index().unwrap().unwrap().clone();
-    let reader = GrafeoStore::open(directory.path(), &options).unwrap();
+    let reader = NativeStore::open(directory.path(), &options).unwrap();
     assert_eq!(reader.dependency_index().unwrap(), Some(&first));
     writer.publish(fixture("second")).unwrap();
     assert_ne!(writer.dependency_index().unwrap(), Some(&first));
@@ -142,7 +123,7 @@ fn dependency_records_are_pinned_and_authenticated_with_the_generation() {
     let original = zstd::decode_all(std::fs::read(&path).unwrap().as_slice()).unwrap();
     std::fs::write(&path, b"corrupt").unwrap();
     // Artifacts are verified by their first reader, not by open.
-    let damaged = GrafeoStore::open(directory.path(), &options).unwrap();
+    let damaged = NativeStore::open(directory.path(), &options).unwrap();
     assert!(damaged.dependency_index().is_err());
     drop(damaged);
     // Even a rehashed artifact must match the authenticated manifest header.
@@ -153,7 +134,7 @@ fn dependency_records_are_pinned_and_authenticated_with_the_generation() {
     pointer["files"]["dependencies.json.zst"] =
         graph_search_core::hash::content_hash(&bytes).into();
     std::fs::write(&pointer_path, serde_json::to_vec(&pointer).unwrap()).unwrap();
-    let damaged = GrafeoStore::open(directory.path(), &options).unwrap();
+    let damaged = NativeStore::open(directory.path(), &options).unwrap();
     assert!(damaged.dependency_index().is_err());
     drop(damaged);
     // Old readers retain the admitted record set, independent of later artifacts.

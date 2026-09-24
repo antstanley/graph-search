@@ -31,7 +31,7 @@ through `bash` before any integration.
 ## What it does
 
 - Index a workspace with **tree-sitter** for Rust, TypeScript/JavaScript, and
-  HTML/CSS; store the resulting graph in an embedded **Grafeo** database.
+  HTML/CSS; store the resulting graph in a native, per-file generation store.
 - Answer `files` (glob), `text` (grep), and `graph` (definitions, references,
   callers, callees, impact, imports, paths) queries, plus a bounded combined
   `explore` query — through one library API, and one CLI command.
@@ -137,7 +137,7 @@ crates/
   types/         canonical value types (ids, nodes, edges, requests, results)
   core/          the domain, ports, projector/reconcile, query engine — pure
   langs/         tree-sitter extractors (adapter)
-  engine/        the embedded Grafeo store (adapter)
+  engine/        the native generation store (adapter)
   graph-search/  THE LIBRARY: Index + SearchService; wires the adapters
   cli/           a thin client over the library: the `graph-search` binary
 ```
@@ -157,7 +157,7 @@ target/release/graph-search --help
 ## Trying it
 
 ```
-graph-search --root . index                     # full build (tree-sitter + Grafeo)
+graph-search --root . index                     # full build (tree-sitter + native store)
 graph-search --root . status                    # counts, staleness
 graph-search search files "crates/core/src/*.rs"
 graph-search search text "WriteBatch" --include "*.rs"

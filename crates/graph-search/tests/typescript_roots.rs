@@ -2,7 +2,7 @@
 #![allow(clippy::unwrap_used, clippy::panic)]
 use graph_search::{Index, OpenOptions};
 use graph_search_core::{ports::GraphStore, typescript::inherit, typescript_roots::enumerate};
-use graph_search_engine::{GrafeoStore, StoreOptions};
+use graph_search_engine::{NativeStore, StoreOptions};
 use std::{collections::BTreeSet, path::Path};
 
 fn open(root: &Path, store: &Path) -> Index {
@@ -14,7 +14,7 @@ fn open(root: &Path, store: &Path) -> Index {
     .unwrap()
 }
 fn roots(store: &Path) -> BTreeSet<String> {
-    let store = GrafeoStore::open(store, &StoreOptions::default()).unwrap();
+    let store = NativeStore::open(store, &StoreOptions::default()).unwrap();
     let snapshot = store.snapshot().unwrap();
     let config = inherit("app/tsconfig.json", snapshot.source_files().unwrap()).unwrap();
     enumerate(

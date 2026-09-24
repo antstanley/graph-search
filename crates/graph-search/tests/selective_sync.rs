@@ -8,7 +8,7 @@ use graph_search_core::{
     reconcile::Projector,
     retention::FactRetention,
 };
-use graph_search_engine::{GrafeoStore, StoreOptions};
+use graph_search_engine::{NativeStore, StoreOptions};
 use graph_search_types::{ApplyOutcome, Manifest, WriteBatch};
 use std::{cell::RefCell, collections::BTreeSet, path::Path};
 
@@ -96,7 +96,7 @@ fn body_binding_presence_and_timestamp_updates_load_only_affected_facts() {
         let projector = Projector::new(&registry, &policy);
         let mut store = SelectedOnly {
             inner: if persistent {
-                Box::new(GrafeoStore::open(db.path(), &StoreOptions::default()).unwrap())
+                Box::new(NativeStore::open(db.path(), &StoreOptions::default()).unwrap())
             } else {
                 Box::new(MemoryStore::new())
             },
@@ -130,7 +130,7 @@ fn body_binding_presence_and_timestamp_updates_load_only_affected_facts() {
             compare(store.inner.as_ref(), &clean);
             if persistent {
                 store.inner =
-                    Box::new(GrafeoStore::open(db.path(), &StoreOptions::default()).unwrap());
+                    Box::new(NativeStore::open(db.path(), &StoreOptions::default()).unwrap());
                 compare(store.inner.as_ref(), &clean);
             }
         }
@@ -153,7 +153,7 @@ fn body_binding_presence_and_timestamp_updates_load_only_affected_facts() {
         projector.reindex(root.path(), &mut clean).unwrap();
         compare(store.inner.as_ref(), &clean);
         if persistent {
-            store.inner = Box::new(GrafeoStore::open(db.path(), &StoreOptions::default()).unwrap());
+            store.inner = Box::new(NativeStore::open(db.path(), &StoreOptions::default()).unwrap());
             compare(store.inner.as_ref(), &clean);
         }
         let before = store.inner.manifest().unwrap();
@@ -170,7 +170,7 @@ fn transient_native_engine_keeps_facts_available_for_selective_sync() {
     let registry = ListRegistry::new(graph_search_langs::all_extractors());
     let policy = WalkPolicy::default();
     let projector = Projector::new(&registry, &policy);
-    let mut store = GrafeoStore::open(
+    let mut store = NativeStore::open(
         Path::new(""),
         &StoreOptions {
             in_memory: true,

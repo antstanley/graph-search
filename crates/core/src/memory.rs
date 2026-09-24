@@ -1,6 +1,6 @@
 //! The in-memory store: the reference [`GraphStore`] implementation.
 //!
-//! It is the fake the conformance suite also runs against the Grafeo adapter
+//! It is the fake the conformance suite also runs against the native store
 //! with (`SPEC.md` §15.4) — the port is the contract, the engine is
 //! swappable. Deterministic by construction: `BTreeMap`s everywhere.
 

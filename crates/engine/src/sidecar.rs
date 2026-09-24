@@ -1,34 +1,14 @@
-//! The files beside the graph store: the manifest and the dangling-reference
-//! sidecar (`SPEC.md` §5.2, §6.3).
-//!
-//! Dangling references are kept, named, and counted — but an LPG edge needs a
-//! target node, so they live in a JSON-lines sidecar the snapshot merges into
-//! its reads. The manifest is one JSON document, written atomically
-//! (temporary file, then rename) and only ever *after* a successful apply.
+//! The small files of a generation: the manifest header (`SPEC.md` §6.3) and
+//! the source-record index. The manifest is one JSON document, written
+//! atomically (temporary file, then rename) and only ever *after* a successful
+//! apply.
 
-use graph_search_types::NodeId;
-use graph_search_types::kind::EdgeKind;
 use graph_search_types::manifest::Manifest;
-use graph_search_types::node::Edge;
-use serde::{Deserialize, Serialize};
 use std::io::Write as _;
 use std::path::Path;
 
 /// The manifest file name inside the store directory.
 pub const MANIFEST_FILE: &str = "manifest.json";
-
-/// The dangling-reference sidecar file name: one zstd frame of JSON lines.
-pub const DANGLING_FILE: &str = "dangling.jsonl.zst";
-
-/// One sidecar record.
-#[derive(Clone, Debug, Serialize, Deserialize)]
-struct DanglingRecord {
-    from: String,
-    kind: String,
-    to_name: String,
-    path: Option<String>,
-    line: Option<u32>,
-}
 
 /// Reads the manifest, when one is committed.
 ///
@@ -69,137 +49,8 @@ pub(crate) fn prepare_manifest(store_dir: &Path, manifest: &Manifest) -> std::io
     std::fs::rename(&tmp, &target)
 }
 
-/// Loads every dangling reference.
-///
-/// # Errors
-/// When the sidecar exists but cannot be parsed.
-pub fn load_dangling(store_dir: &Path) -> std::io::Result<Vec<Edge>> {
-    match std::fs::read(store_dir.join(DANGLING_FILE)) {
-        Ok(bytes) => decode_dangling(&bytes),
-        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(Vec::new()),
-        Err(error) => Err(error),
-    }
-}
-
-/// Decodes the committed (compressed) dangling sidecar bytes.
-pub(crate) fn decode_dangling(bytes: &[u8]) -> std::io::Result<Vec<Edge>> {
-    let text = String::from_utf8(crate::compress::inflate_sidecar(bytes)?)
-        .map_err(|error| std::io::Error::new(std::io::ErrorKind::InvalidData, error))?;
-    let mut edges = Vec::new();
-    for line in text.lines() {
-        if line.trim().is_empty() {
-            continue;
-        }
-        let record: DanglingRecord = serde_json::from_str(line).map_err(|error| {
-            std::io::Error::new(std::io::ErrorKind::InvalidData, error.to_string())
-        })?;
-        let Some(kind) = EdgeKind::parse(&record.kind) else {
-            continue;
-        };
-        let from = NodeId::new(record.from);
-        edges.push(Edge::dangling(
-            &from,
-            kind,
-            &record.to_name,
-            record.path.as_deref(),
-            record.line,
-        ));
-    }
-    Ok(edges)
-}
-
-/// Rewrites the sidecar with `edges`, keeping the files in `keep_paths` and
-/// dropping everything else (the replaced files' dangles are gone).
-///
-/// # Errors
-/// When the store directory is unwritable.
-pub fn save_dangling(
-    store_dir: &Path,
-    edges: &[Edge],
-    keep_paths: &std::collections::BTreeSet<String>,
-) -> std::io::Result<()> {
-    let kept: Vec<_> = edges
-        .iter()
-        .filter(|edge| {
-            edge.path
-                .as_ref()
-                .is_some_and(|path| keep_paths.contains(path))
-        })
-        .cloned()
-        .collect();
-    prepare_dangling(store_dir, &kept)?;
-    crate::generation::sync_dir(store_dir)
-}
-
-/// Write the complete prepared edge set, including pathless references.
-/// The generation owner already applied source ownership filtering and must sync
-/// the directory before publishing CURRENT.
-pub(crate) fn prepare_dangling(store_dir: &Path, edges: &[Edge]) -> std::io::Result<()> {
-    std::fs::create_dir_all(store_dir)?;
-    let mut writer = Vec::new();
-    for edge in edges {
-        let record = DanglingRecord {
-            from: edge.from.to_string(),
-            kind: edge.kind.as_str().to_owned(),
-            to_name: edge.to_name.clone(),
-            path: edge.path.clone(),
-            line: edge.line,
-        };
-        serde_json::to_writer(&mut writer, &record).map_err(|error| {
-            std::io::Error::new(std::io::ErrorKind::InvalidData, error.to_string())
-        })?;
-        writer.push(b'\n');
-    }
-    let bytes = crate::compress::deflate(&writer)?;
-    crate::generation::replace(&store_dir.join(DANGLING_FILE), &bytes)
-}
-
 /// Source retrieval facts published and checksummed with the graph generation.
 pub const SOURCE_FILE: &str = "source-units.json";
-/// Source-owned references, stored separately from aggregate adjacency: one
-/// zstd frame of JSON.
-pub const OCCURRENCE_FILE: &str = "occurrences.json.zst";
-
-/// Reads source occurrences; missing legacy artifacts have unknown occurrence coverage.
-/// # Errors
-/// On unreadable or malformed data.
-pub fn load_occurrences(
-    dir: &Path,
-) -> std::io::Result<
-    std::collections::BTreeMap<String, graph_search_types::occurrence::OccurrenceFile>,
-> {
-    match std::fs::read(dir.join(OCCURRENCE_FILE)) {
-        Ok(bytes) => decode_occurrences(&bytes),
-        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
-            Ok(std::collections::BTreeMap::new())
-        }
-        Err(error) => Err(error),
-    }
-}
-
-/// Decodes the committed (compressed) occurrence sidecar bytes.
-pub(crate) fn decode_occurrences(
-    bytes: &[u8],
-) -> std::io::Result<
-    std::collections::BTreeMap<String, graph_search_types::occurrence::OccurrenceFile>,
-> {
-    serde_json::from_slice(&crate::compress::inflate_sidecar(bytes)?).map_err(std::io::Error::other)
-}
-
-/// Publishes and syncs occurrences inside an unpublished generation.
-/// # Errors
-/// On serialization, write or sync failure.
-pub fn save_occurrences(
-    dir: &Path,
-    files: &std::collections::BTreeMap<String, graph_search_types::occurrence::OccurrenceFile>,
-) -> std::io::Result<()> {
-    let bytes = serde_json::to_vec(files).map_err(std::io::Error::other)?;
-    crate::generation::replace(
-        &dir.join(OCCURRENCE_FILE),
-        &crate::compress::deflate(&bytes)?,
-    )
-}
-
 /// Reads native source facts. Missing legacy sidecars have no source coverage.
 /// # Errors
 /// On unreadable or malformed data.
@@ -210,15 +61,29 @@ pub fn load_sources(
     crate::source_records::load(dir)
 }
 
-/// Writes native source facts inside an unpublished generation.
+/// Writes native source facts into `dir`, replacing any it holds: a fresh
+/// pack index and packs. The caller commits the index artifact.
 /// # Errors
 /// On serialization, write or sync failure.
 pub fn save_sources(
     dir: &Path,
     sources: &std::collections::BTreeMap<String, graph_search_types::source::SourceFileUnits>,
 ) -> std::io::Result<()> {
-    let bytes = serde_json::to_vec(sources).map_err(std::io::Error::other)?;
-    crate::generation::replace(&dir.join(SOURCE_FILE), &bytes)
+    let records = dir.join(crate::source_records::SOURCE_LAYOUT.directory);
+    match std::fs::remove_dir_all(&records) {
+        Err(error) if error.kind() != std::io::ErrorKind::NotFound => return Err(error),
+        _ => {}
+    }
+    crate::source_records::save_records_retaining(
+        dir,
+        crate::source_records::SOURCE_LAYOUT,
+        sources,
+        Path::new(""),
+        None,
+        &std::collections::BTreeSet::new(),
+        |_, _| Ok(false),
+    )
+    .map(drop)
 }
 
 #[cfg(test)]
@@ -233,25 +98,5 @@ mod tests {
         save_manifest(tmp.path(), &manifest).unwrap_or_else(|e| panic!("save: {e}"));
         let loaded = load_manifest(tmp.path()).unwrap_or_else(|e| panic!("load: {e}"));
         assert_eq!(loaded, Some(manifest));
-    }
-
-    #[test]
-    fn dangling_references_round_trip_and_filter() {
-        let tmp = tempfile::TempDir::new().unwrap_or_else(|e| panic!("tmp: {e}"));
-        let from = NodeId::symbol(
-            "src/a.rs",
-            graph_search_types::kind::NodeKind::Function,
-            "f",
-            None,
-        );
-        let keep = Edge::dangling(&from, EdgeKind::Calls, "ghost", Some("src/a.rs"), Some(3));
-        let drop = Edge::dangling(&from, EdgeKind::Calls, "gone", Some("src/old.rs"), Some(1));
-        let mut all = vec![keep.clone(), drop];
-        let keep_paths = std::collections::BTreeSet::from([String::from("src/a.rs")]);
-        save_dangling(tmp.path(), &all, &keep_paths).unwrap_or_else(|e| panic!("save: {e}"));
-        all = load_dangling(tmp.path()).unwrap_or_else(|e| panic!("load: {e}"));
-        assert_eq!(all.len(), 1);
-        assert_eq!(all[0].to_name, "ghost");
-        assert_eq!(all[0].line, Some(3));
     }
 }

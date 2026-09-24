@@ -3,7 +3,7 @@
 
 use graph_search::{Index, OpenOptions, Reconcile};
 use graph_search_core::GraphStore;
-use graph_search_engine::{GrafeoStore, StoreOptions};
+use graph_search_engine::{NativeStore, StoreOptions};
 use graph_search_types::source::{SourceFileUnits, SourceUnitKind};
 use std::collections::BTreeMap;
 
@@ -16,7 +16,7 @@ fn open(root: &std::path::Path) -> Index {
     .unwrap()
 }
 fn facts(index: &Index) -> BTreeMap<String, SourceFileUnits> {
-    let store = GrafeoStore::open(index.store_dir(), &StoreOptions::default()).unwrap();
+    let store = NativeStore::open(index.store_dir(), &StoreOptions::default()).unwrap();
     store.snapshot().unwrap().source_files().unwrap().clone()
 }
 
@@ -113,45 +113,12 @@ fn a_legacy_generation_rebuilds_source_facts_before_automatic_queries() {
     index.reindex().unwrap();
     let store_dir = index.store_dir().to_path_buf();
     drop(index);
+    // A generation from before format 10 is never migrated: the store opens
+    // unpublished and the first automatic query rebuilds it.
     let pointer_path = store_dir.join("CURRENT");
     let mut pointer: serde_json::Value =
         serde_json::from_slice(&std::fs::read(&pointer_path).unwrap()).unwrap();
-    let generation = store_dir
-        .join("generations")
-        .join(pointer["id"].as_str().unwrap());
-    let manifest_path = generation.join("manifest.json");
-    let mut manifest: serde_json::Value = serde_json::to_value(
-        graph_search_engine::sidecar::load_manifest(&generation)
-            .unwrap()
-            .unwrap(),
-    )
-    .unwrap();
-    manifest.as_object_mut().unwrap().remove("source_version");
-    let bytes = serde_json::to_vec(&manifest).unwrap();
-    std::fs::write(manifest_path, &bytes).unwrap();
-    pointer["format"] = serde_json::json!(1);
-    pointer["files"]
-        .as_object_mut()
-        .unwrap()
-        .remove("dependencies.json.zst");
-    std::fs::remove_file(generation.join("dependencies.json.zst")).unwrap();
-    pointer["files"]
-        .as_object_mut()
-        .unwrap()
-        .remove("extractions.json");
-    std::fs::remove_file(generation.join("extractions.json")).unwrap();
-    pointer["files"]["manifest.json"] =
-        serde_json::json!(graph_search_core::hash::content_hash(&bytes));
-    pointer["files"]
-        .as_object_mut()
-        .unwrap()
-        .remove("source-units.json");
-    std::fs::remove_file(generation.join("source-units.json")).unwrap();
-    // Summaries and edge occurrence tables arrived with format 9.
-    for artifact in ["summary.json", "edge-occurrences.bin"] {
-        pointer["files"].as_object_mut().unwrap().remove(artifact);
-        std::fs::remove_file(generation.join(artifact)).unwrap();
-    }
+    pointer["format"] = serde_json::json!(9);
     std::fs::write(pointer_path, serde_json::to_vec(&pointer).unwrap()).unwrap();
     let index = Index::open(OpenOptions {
         root: root.path().into(),
@@ -186,15 +153,15 @@ fn reopening_rejects_hash_consistent_facts_with_a_foreign_owner() {
         graph_search_engine::sidecar::load_sources(source_path.parent().unwrap()).unwrap();
     sources.get_mut("a.rs").unwrap().units[0].owner =
         Some(graph_search_types::NodeId::new("absent-owner"));
-    let bytes = serde_json::to_vec(&sources).unwrap();
-    std::fs::write(source_path, &bytes).unwrap();
+    graph_search_engine::sidecar::save_sources(source_path.parent().unwrap(), &sources).unwrap();
     // Recompute the artifact checksum to exercise semantic validation itself.
+    let bytes = std::fs::read(&source_path).unwrap();
     pointer["files"]["source-units.json"] =
         serde_json::json!(graph_search_core::hash::content_hash(&bytes));
     std::fs::write(pointer_path, serde_json::to_vec(&pointer).unwrap()).unwrap();
     // Source facts are verified when first read, so opening succeeds and the
     // first reader of those facts fails loudly.
-    let store = GrafeoStore::open(&store_dir, &StoreOptions::default()).unwrap();
+    let store = NativeStore::open(&store_dir, &StoreOptions::default()).unwrap();
     let snapshot = store.snapshot().unwrap();
     let result = snapshot.source_files();
     assert!(matches!(result, Err(error) if error.to_string().contains("source retrieval facts")));
@@ -222,33 +189,30 @@ fn legacy_identifier_facts_upgrade_without_blocking_reopen_or_using_old_analysis
     let generation = store_dir
         .join("generations")
         .join(pointer["id"].as_str().unwrap());
-    for file in ["source-units.json", "manifest.json"] {
-        let path = generation.join(file);
-        let mut value: serde_json::Value = if file == "source-units.json" {
-            serde_json::to_value(graph_search_engine::sidecar::load_sources(&generation).unwrap())
-                .unwrap()
-        } else {
-            serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap()
-        };
-        if file == "source-units.json" {
-            for source in value.as_object_mut().unwrap().values_mut() {
-                source["version"] = serde_json::json!(1);
-                for unit in source["units"].as_array_mut().unwrap() {
-                    unit.as_object_mut().unwrap().remove("identifiers");
-                }
-            }
-        } else {
-            value["source_version"] = serde_json::json!(1);
-            value.as_object_mut().unwrap().remove("analyzer_version");
-            value
-                .as_object_mut()
-                .unwrap()
-                .remove("analyzer_unicode_version");
+    let mut sources = graph_search_engine::sidecar::load_sources(&generation).unwrap();
+    for source in sources.values_mut() {
+        source.version = 1;
+        for unit in &mut source.units {
+            unit.identifiers.clear();
         }
-        let bytes = serde_json::to_vec(&value).unwrap();
-        std::fs::write(path, &bytes).unwrap();
-        pointer["files"][file] = serde_json::json!(graph_search_core::hash::content_hash(&bytes));
     }
+    graph_search_engine::sidecar::save_sources(&generation, &sources).unwrap();
+    let bytes = std::fs::read(generation.join("source-units.json")).unwrap();
+    pointer["files"]["source-units.json"] =
+        serde_json::json!(graph_search_core::hash::content_hash(&bytes));
+    let manifest_path = generation.join("manifest.json");
+    let mut manifest: serde_json::Value =
+        serde_json::from_slice(&std::fs::read(&manifest_path).unwrap()).unwrap();
+    manifest["source_version"] = serde_json::json!(1);
+    manifest.as_object_mut().unwrap().remove("analyzer_version");
+    manifest
+        .as_object_mut()
+        .unwrap()
+        .remove("analyzer_unicode_version");
+    let bytes = serde_json::to_vec(&manifest).unwrap();
+    std::fs::write(&manifest_path, &bytes).unwrap();
+    pointer["files"]["manifest.json"] =
+        serde_json::json!(graph_search_core::hash::content_hash(&bytes));
     std::fs::write(&pointer_path, serde_json::to_vec(&pointer).unwrap()).unwrap();
     let legacy = open(root.path());
     let mut query = graph_search_types::ExploreQuery::new("where gethttpresponse");
@@ -286,7 +250,7 @@ fn legacy_identifier_facts_upgrade_without_blocking_reopen_or_using_old_analysis
             .iter()
             .any(|unit| unit.identifiers.contains_key("getHTTPResponse"))
     );
-    let store = GrafeoStore::open(&store_dir, &StoreOptions::default()).unwrap();
+    let store = NativeStore::open(&store_dir, &StoreOptions::default()).unwrap();
     let manifest = store.manifest().unwrap().unwrap();
     assert_eq!(
         manifest.analyzer_version,

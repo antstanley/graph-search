@@ -18,7 +18,7 @@ fn documentation_facts_survive_packs_reopen_and_independent_file_edits() {
     let store_path = index.store_dir().to_path_buf();
     drop(index);
     let facts = || {
-        let store = graph_search_engine::GrafeoStore::open(
+        let store = graph_search_engine::NativeStore::open(
             &store_path,
             &graph_search_engine::StoreOptions::default(),
         )
@@ -176,7 +176,7 @@ fn verify_live_documentation_transition(index: &Index, root: &std::path::Path) {
                 .is_some_and(|e| e.documentation.is_some())
     }));
     let source_facts = || {
-        let store = graph_search_engine::GrafeoStore::open(
+        let store = graph_search_engine::NativeStore::open(
             index.store_dir(),
             &graph_search_engine::StoreOptions::default(),
         )

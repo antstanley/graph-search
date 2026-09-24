@@ -3,7 +3,7 @@
 use graph_search_core::{
     conformance, memory::MemoryStore, ports::GraphStore, retention::FactRetention,
 };
-use graph_search_engine::{GrafeoStore, StoreOptions};
+use graph_search_engine::{NativeStore, StoreOptions};
 use graph_search_types::{WriteBatch, extraction::Extraction, manifest::FileEntry};
 use std::collections::BTreeSet;
 fn fixture() -> WriteBatch {
@@ -29,7 +29,7 @@ fn invalid_retention_is_atomic_and_absence_still_removes_the_cache() {
     let root = tempfile::tempdir().unwrap();
     let mut stores: Vec<Box<dyn GraphStore>> = vec![
         Box::new(MemoryStore::new()),
-        Box::new(GrafeoStore::open(root.path(), &StoreOptions::default()).unwrap()),
+        Box::new(NativeStore::open(root.path(), &StoreOptions::default()).unwrap()),
     ];
     for store in &mut stores {
         store.publish(fixture()).unwrap();

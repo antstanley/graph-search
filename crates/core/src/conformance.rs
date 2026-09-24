@@ -1,7 +1,7 @@
 //! The store conformance suite: the port as executable contract
 //! (`SPEC.md` §15.4).
 //!
-//! The same functions run against the in-memory fake and the Grafeo adapter,
+//! The same functions run against the in-memory fake and the native store,
 //! so the engine is provably swappable. Each check panics with a message on
 //! violation; callers run them in `#[test]`s — the panic-family lints are
 //! permitted here for the same reason they are in tests

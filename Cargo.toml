@@ -8,7 +8,7 @@
 #             adapter, never an engine, never tree-sitter.
 #   langs   — driven adapter: tree-sitter extractors implementing core's
 #             `LanguageExtractor` port. Depends on `core` + `types`.
-#   engine  — driven adapter: the embedded Grafeo engine behind core's `GraphStore`
+#   engine  — driven adapter: the native generation store behind core's `GraphStore`
 #             port. Depends on `core` + `types`. Confined so no engine type leaks.
 #   cli     — composition root: the `graph-search` binary. Depends on all.
 #
@@ -45,10 +45,6 @@ graph-search-engine = { path = "crates/engine" }
 graph-search = { path = "crates/graph-search" }
 graph-search-cli = { path = "crates/cli" }
 
-# Engine. Apache-2.0, pure-Rust, embeddable. The `embedded` profile is LPG + GQL
-# + AI(vector/text) + algos + parallel + file storage; the exact feature set is
-# pinned per milestone (see SPEC.md §4.4). Confined to `engine`.
-grafeo = { version = "0.5.42", default-features = false, features = ["edge", "wal", "grafeo-file"] }
 
 # Parsers. C under the bindings; confined to `langs`.
 tree-sitter = "0.27"
@@ -94,7 +90,7 @@ criterion = { version = "0.8", default-features = false, features = ["cargo_benc
 
 [workspace.lints.rust]
 # Mirrors nanus: no `unsafe` in this workspace's own crates. Dependencies (the
-# tree-sitter bindings, Grafeo) may use it internally; a lint on members is not a
+# tree-sitter bindings, zstd) may use it internally; a lint on members is not a
 # lint on the world.
 unsafe_code = "forbid"
 missing_docs = "warn"

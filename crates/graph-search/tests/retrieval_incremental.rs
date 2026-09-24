@@ -6,7 +6,7 @@ use graph_search_core::ports::{
     GraphStore, LanguageExtractor, ListRegistry, ParseError, SourceFile,
 };
 use graph_search_core::reconcile::Projector;
-use graph_search_engine::{GrafeoStore, StoreOptions};
+use graph_search_engine::{NativeStore, StoreOptions};
 use graph_search_types::{ExploreQuery, Language};
 use std::path::Path;
 use std::sync::{Arc, Mutex};
@@ -142,11 +142,11 @@ fn selective_sync_reuses_persisted_facts_and_tracks_unresolved_and_ambiguous_nam
     let policy = WalkPolicy::default();
     let projector = Projector::new(&registry, &policy);
     {
-        let mut store = GrafeoStore::open(db.path(), &StoreOptions::default()).unwrap();
+        let mut store = NativeStore::open(db.path(), &StoreOptions::default()).unwrap();
         projector.reindex(root.path(), &mut store).unwrap();
     }
     // Reopening ensures this isn't merely an in-process cache.
-    let mut store = GrafeoStore::open(db.path(), &StoreOptions::default()).unwrap();
+    let mut store = NativeStore::open(db.path(), &StoreOptions::default()).unwrap();
     parsed.lock().unwrap().clear();
     write(root.path(), "b.rs", "fn leaf() { /* changed body */ }");
     let report = projector.sync(root.path(), &mut store).unwrap();
@@ -194,7 +194,7 @@ fn import_precedence_and_cross_language_changes_match_clean_reindex() {
     let registry = ListRegistry::new(graph_search_langs::all_extractors());
     let policy = WalkPolicy::default();
     let projector = Projector::new(&registry, &policy);
-    let mut store = GrafeoStore::open(db.path(), &StoreOptions::default()).unwrap();
+    let mut store = NativeStore::open(db.path(), &StoreOptions::default()).unwrap();
     projector.reindex(root.path(), &mut store).unwrap();
     for (path, content) in [
         ("target.js", "export function leaf() {}"),

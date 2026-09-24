@@ -24,22 +24,168 @@ struct Record {
     bare_import: bool,
 }
 
+/// Format 2 adds per-path `links`, so an index is updated per path.
+const FORMAT: u32 = 2;
+
+impl Record {
+    /// A path's record from its nodes and, when present, its extraction facts.
+    /// `None` when the nodes do not own exactly the manifest's file version.
+    fn build(entry: &FileEntry, nodes: &[&Node]) -> Option<Self> {
+        let file = nodes.iter().find(|node| node.is_file())?;
+        if file.content_hash.as_deref() != Some(&entry.content_hash)
+            || file.parser_version != Some(entry.parser_version)
+            || file.bytes != Some(entry.size)
+        {
+            return None;
+        }
+        let language = file.language.unwrap_or(Language::Unknown);
+        let mut record = Self {
+            header: entry.header(),
+            language,
+            facts_available: entry.extraction.is_some(),
+            names: BTreeSet::new(),
+            references: BTreeSet::new(),
+            imports: BTreeSet::new(),
+            module: None,
+            surface: None,
+            rust_sensitive: false,
+            bare_import: false,
+        };
+        for node in nodes {
+            record.names.extend(node.name.iter().cloned());
+            record.names.extend(node.qualified_name.iter().cloned());
+        }
+        if let Some(facts) = &entry.extraction {
+            record.module = crate::binding_surface::module(facts);
+            if entry.quarantine.is_none() {
+                record.surface =
+                    crate::binding_surface::fingerprint(nodes.iter().copied(), facts, language);
+            }
+            for symbol in &facts.symbols {
+                record.names.insert(symbol.name.clone());
+                record.names.insert(symbol.qualified_name.clone());
+                record.rust_sensitive |= symbol
+                    .attributes
+                    .get("rust_module_form")
+                    .is_some_and(|form| form == "external");
+            }
+            for fact in &facts.references {
+                record.rust_sensitive |= fact.rust_use.is_some()
+                    || fact.receiver.is_some()
+                    || ["crate::", "self::", "super::"]
+                        .iter()
+                        .any(|prefix| fact.name.starts_with(prefix));
+                // A receiver call depends on its member and on the fields
+                // its receiver is reached through, wherever they are declared.
+                if let Some(receiver) = &fact.receiver {
+                    let raw = fact.raw_name.as_deref().unwrap_or(&fact.name);
+                    if let Some((_, member)) = raw.rsplit_once('.') {
+                        record.references.insert(
+                            member
+                                .split("::")
+                                .next()
+                                .unwrap_or(member)
+                                .trim()
+                                .to_owned(),
+                        );
+                    }
+                    record.references.extend(receiver_names(receiver));
+                }
+                if fact.dynamic {
+                    continue;
+                }
+                record.references.insert(fact.name.clone());
+                record
+                    .imports
+                    .extend(crate::resolve::import_specifiers(fact, language));
+            }
+            if let Some(module) = &record.module {
+                record
+                    .imports
+                    .extend(module.imports.iter().map(|import| import.source.clone()));
+                record.imports.extend(
+                    module
+                        .exports
+                        .iter()
+                        .filter_map(|export| export.source.clone()),
+                );
+                record.bare_import = record
+                    .imports
+                    .iter()
+                    .any(|specifier| !specifier.starts_with('.') && !specifier.starts_with('/'));
+            }
+        }
+        Some(record)
+    }
+}
+
+/// `incoming[target] = sources`, from every path's links, restricted to known paths.
+fn incoming(
+    links: &BTreeMap<String, BTreeSet<(String, String)>>,
+    known: &BTreeSet<String>,
+) -> Postings {
+    let mut incoming = Postings::new();
+    for (target, source) in links.values().flatten() {
+        if known.contains(target) && known.contains(source) {
+            incoming
+                .entry(target.clone())
+                .or_default()
+                .insert(source.clone());
+        }
+    }
+    incoming
+}
+
 /// Reverse binding dependencies belonging to one coherent graph/manifest pair.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct DependencyIndex {
     format: u32,
     records: BTreeMap<String, Record>,
+    /// Per owning path: the `(target path, source path)` links of its edges.
+    links: BTreeMap<String, BTreeSet<(String, String)>>,
     consumers: Postings,
     incoming: Postings,
     selected_modules: Postings,
+}
+
+/// One path's contribution to a [`DependencyIndex`]: the nodes it owns (its
+/// file node included) and the `(target path, source path)` links of the
+/// edges it owns (see [`edge_links`]).
+pub struct Contribution<'a> {
+    /// Every node the path owns, its file node included.
+    pub nodes: Vec<&'a Node>,
+    /// `(target path, source path)` pairs of the edges the path owns.
+    pub links: BTreeSet<(String, String)>,
+}
+
+/// The `(target path, source path)` links one edge contributes: its target's
+/// path paired with its source node's path and with its reference path, when
+/// each is a known file. `path_of` maps a node id to its owning path.
+pub fn edge_links(
+    edge: &Edge,
+    path_of: impl Fn(&graph_search_types::NodeId) -> Option<String>,
+    known: impl Fn(&str) -> bool,
+) -> Vec<(String, String)> {
+    let Some(target) = edge.to.as_ref().and_then(&path_of) else {
+        return Vec::new();
+    };
+    let mut links = Vec::new();
+    if let Some(source) = path_of(&edge.from) {
+        links.push((target.clone(), source));
+    }
+    if let Some(owner) = &edge.path
+        && known(owner)
+    {
+        links.push((target, owner.clone()));
+    }
+    links
 }
 
 impl DependencyIndex {
     /// Builds records only when graph files and manifest fingerprints agree.
     /// Incoherent or legacy adapter states return `None` for conservative repair.
     #[must_use]
-    #[allow(clippy::too_many_lines)] // one pass over each class of binding input
     pub fn build<'a>(
         manifest: &Manifest,
         nodes: impl IntoIterator<Item = &'a Node>,
@@ -52,7 +198,6 @@ impl DependencyIndex {
     /// Callers must validate retention against the old generation and forbid
     /// graph upserts/removals for retained owners before calling this method.
     #[must_use]
-    #[allow(clippy::too_many_lines)] // one pass over each class of binding input
     pub fn build_retaining<'a>(
         manifest: &Manifest,
         nodes: impl IntoIterator<Item = &'a Node>,
@@ -60,127 +205,108 @@ impl DependencyIndex {
         previous: Option<&Self>,
         retained: &BTreeSet<String>,
     ) -> Option<Self> {
-        let mut grouped: BTreeMap<&str, Vec<&Node>> = BTreeMap::new();
+        let mut contributions: BTreeMap<String, Contribution<'a>> = BTreeMap::new();
         let mut paths = BTreeMap::new();
-        let mut files = BTreeMap::new();
         for node in nodes {
-            grouped.entry(&node.path).or_default().push(node);
-            paths.insert(&node.id, &node.path);
-            if node.is_file() {
-                files.insert(node.path.clone(), node);
+            paths.insert(node.id.clone(), node.path.clone());
+            contributions
+                .entry(node.path.clone())
+                .or_insert_with(|| Contribution {
+                    nodes: Vec::new(),
+                    links: BTreeSet::new(),
+                })
+                .nodes
+                .push(node);
+        }
+        let known: BTreeSet<String> = contributions.keys().cloned().collect();
+        for edge in edges {
+            let links = edge_links(
+                edge,
+                |id| paths.get(id).cloned(),
+                |path| known.contains(path),
+            );
+            // A link belongs to the path that owns the edge.
+            let owner = edge
+                .path
+                .clone()
+                .filter(|path| known.contains(path))
+                .or_else(|| paths.get(&edge.from).cloned());
+            if let Some(contribution) = owner.and_then(|owner| contributions.get_mut(&owner)) {
+                contribution.links.extend(links);
             }
         }
-        if files.keys().ne(manifest.entries.keys())
-            || grouped.keys().any(|path| !files.contains_key(*path))
+        // Every manifest path is rebuilt from its own nodes; the previous index
+        // supplies only retained records.
+        if contributions.keys().ne(manifest.entries.keys()) {
+            return None;
+        }
+        Self::update(manifest, previous, retained, &contributions)
+    }
+
+    /// The next index: every path in `contributions` is rebuilt from its nodes
+    /// (or, when retained, from its previous record) with its new links; every
+    /// other manifest path keeps its previous record and links. Reverse maps are
+    /// rebuilt from the records. `None` when the inputs are incoherent: a path
+    /// with neither a contribution nor a matching previous record, a node set
+    /// that does not own its file, or a retained path without previous facts.
+    #[must_use]
+    #[allow(clippy::too_many_lines)] // one pass over each class of binding input
+    pub fn update(
+        manifest: &Manifest,
+        previous: Option<&Self>,
+        retained: &BTreeSet<String>,
+        contributions: &BTreeMap<String, Contribution<'_>>,
+    ) -> Option<Self> {
+        if contributions
+            .keys()
+            .any(|path| !manifest.entries.contains_key(path))
         {
             return None;
         }
-        let known: BTreeSet<_> = files.keys().cloned().collect();
+        let known: BTreeSet<_> = manifest.entries.keys().cloned().collect();
         let mut index = Self {
-            format: 1,
+            format: FORMAT,
             records: BTreeMap::new(),
+            links: BTreeMap::new(),
             consumers: Postings::new(),
             incoming: Postings::new(),
             selected_modules: Postings::new(),
         };
         for (path, entry) in &manifest.entries {
-            let file = files.get(path)?;
-            if file.content_hash.as_deref() != Some(&entry.content_hash)
-                || file.parser_version != Some(entry.parser_version)
-                || file.bytes != Some(entry.size)
-            {
-                return None;
-            }
-            let language = file.language.unwrap_or(Language::Unknown);
-            let mut record = Record {
-                header: entry.header(),
-                language,
-                facts_available: entry.extraction.is_some(),
-                names: BTreeSet::new(),
-                references: BTreeSet::new(),
-                imports: BTreeSet::new(),
-                module: None,
-                surface: None,
-                rust_sensitive: false,
-                bare_import: false,
-            };
-            let owned = grouped.get(path.as_str())?;
-            for node in owned {
-                record.names.extend(node.name.iter().cloned());
-                record.names.extend(node.qualified_name.iter().cloned());
-            }
-            if let Some(facts) = &entry.extraction {
-                record.module = crate::binding_surface::module(facts);
-                if entry.quarantine.is_none() {
-                    record.surface =
-                        crate::binding_surface::fingerprint(owned.iter().copied(), facts, language);
-                }
-                for symbol in &facts.symbols {
-                    record.names.insert(symbol.name.clone());
-                    record.names.insert(symbol.qualified_name.clone());
-                    record.rust_sensitive |= symbol
-                        .attributes
-                        .get("rust_module_form")
-                        .is_some_and(|form| form == "external");
-                }
-                for fact in &facts.references {
-                    record.rust_sensitive |= fact.rust_use.is_some()
-                        || fact.receiver.is_some()
-                        || ["crate::", "self::", "super::"]
-                            .iter()
-                            .any(|prefix| fact.name.starts_with(prefix));
-                    // A receiver call depends on its member and on the fields
-                    // its receiver is reached through, wherever they are declared.
-                    if let Some(receiver) = &fact.receiver {
-                        let raw = fact.raw_name.as_deref().unwrap_or(&fact.name);
-                        if let Some((_, member)) = raw.rsplit_once('.') {
-                            record.references.insert(
-                                member
-                                    .split("::")
-                                    .next()
-                                    .unwrap_or(member)
-                                    .trim()
-                                    .to_owned(),
-                            );
-                        }
-                        record.references.extend(receiver_names(receiver));
+            let (record, links) = if let Some(contribution) = contributions.get(path) {
+                let record = if retained.contains(path) {
+                    if entry.extraction.is_some() {
+                        return None;
                     }
-                    if fact.dynamic {
-                        continue;
+                    let prior = previous?.records.get(path)?;
+                    let mut expected = prior.header.clone();
+                    expected.mtime_ns = entry.mtime_ns;
+                    if !prior.facts_available || expected != entry.header() {
+                        return None;
                     }
-                    record.references.insert(fact.name.clone());
+                    let mut record = prior.clone();
+                    record.header = entry.header();
                     record
-                        .imports
-                        .extend(crate::resolve::import_specifiers(fact, language));
-                }
-                if let Some(module) = &record.module {
-                    record
-                        .imports
-                        .extend(module.imports.iter().map(|import| import.source.clone()));
-                    record.imports.extend(
-                        module
-                            .exports
-                            .iter()
-                            .filter_map(|export| export.source.clone()),
-                    );
-                    record.bare_import = record.imports.iter().any(|specifier| {
-                        !specifier.starts_with('.') && !specifier.starts_with('/')
-                    });
-                }
-            }
-            if retained.contains(path) {
-                if entry.extraction.is_some() {
-                    return None;
-                }
-                let prior = previous?.records.get(path)?;
+                } else {
+                    Record::build(entry, &contribution.nodes)?
+                };
+                (record, contribution.links.clone())
+            } else {
+                let previous = previous?;
+                let prior = previous.records.get(path)?;
                 let mut expected = prior.header.clone();
                 expected.mtime_ns = entry.mtime_ns;
-                if !prior.facts_available || expected != entry.header() {
+                // Facts supplied for an uncontributed path would be ignored.
+                if expected != entry.header() || entry.extraction.is_some() {
                     return None;
                 }
-                record = prior.clone();
+                let mut record = prior.clone();
                 record.header = entry.header();
-            }
+                (
+                    record,
+                    previous.links.get(path).cloned().unwrap_or_default(),
+                )
+            };
             for name in &record.references {
                 index
                     .consumers
@@ -190,7 +316,7 @@ impl DependencyIndex {
             }
             for specifier in &record.imports {
                 if let Some(target) =
-                    crate::resolve::resolve_specifier(path, specifier, &known, language)
+                    crate::resolve::resolve_specifier(path, specifier, &known, record.language)
                 {
                     index
                         .selected_modules
@@ -200,27 +326,11 @@ impl DependencyIndex {
                 }
             }
             index.records.insert(path.clone(), record);
-        }
-        for edge in edges {
-            if let Some(target) = edge.to.as_ref().and_then(|id| paths.get(id)) {
-                if let Some(source) = paths.get(&edge.from) {
-                    index
-                        .incoming
-                        .entry((*target).clone())
-                        .or_default()
-                        .insert((*source).clone());
-                }
-                if let Some(owner) = &edge.path
-                    && known.contains(owner)
-                {
-                    index
-                        .incoming
-                        .entry((*target).clone())
-                        .or_default()
-                        .insert(owner.clone());
-                }
+            if !links.is_empty() {
+                index.links.insert(path.clone(), links);
             }
         }
+        index.incoming = incoming(&index.links, &known);
         Some(index)
     }
 
@@ -231,6 +341,12 @@ impl DependencyIndex {
         self.records.iter().filter_map(|(path, record)| {
             record.module.as_ref().map(|module| (path.as_str(), module))
         })
+    }
+
+    /// Whether the index holds a record for `path`.
+    #[must_use]
+    pub fn has_record(&self, path: &str) -> bool {
+        self.records.contains_key(path)
     }
 
     /// Whether the generation has a cached extraction, including an empty one.
@@ -245,7 +361,7 @@ impl DependencyIndex {
     /// Artifact authentication must separately bind this index to its graph.
     #[must_use]
     pub fn validates(&self, header: &Manifest, available: &BTreeSet<String>) -> bool {
-        if self.format != 1 || self.records.keys().ne(header.entries.keys()) {
+        if self.format != FORMAT || self.records.keys().ne(header.entries.keys()) {
             return false;
         }
         let known: BTreeSet<_> = self.records.keys().cloned().collect();
@@ -277,10 +393,8 @@ impl DependencyIndex {
         }
         self.consumers == consumers
             && self.selected_modules == selected
-            && self
-                .incoming
-                .iter()
-                .all(|(target, sources)| known.contains(target) && sources.is_subset(&known))
+            && self.links.keys().all(|path| known.contains(path))
+            && self.incoming == incoming(&self.links, &known)
     }
 
     /// Whether this changed file retains the cached outward binding surface.

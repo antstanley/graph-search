@@ -19,7 +19,7 @@ fn open(root: &Path) -> Index {
     .unwrap()
 }
 fn facts(index: &Index) -> BTreeMap<String, SourceFileUnits> {
-    let store = graph_search_engine::GrafeoStore::open(
+    let store = graph_search_engine::NativeStore::open(
         index.store_dir(),
         &graph_search_engine::StoreOptions::default(),
     )

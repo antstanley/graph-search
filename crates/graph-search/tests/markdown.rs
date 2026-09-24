@@ -52,7 +52,7 @@ fn link_fields_persist_and_incremental_edits_match_fresh_extraction() {
     let store_dir = index.store_dir().to_path_buf();
     drop(index);
     let read = || {
-        let store = graph_search_engine::GrafeoStore::open(
+        let store = graph_search_engine::NativeStore::open(
             &store_dir,
             &graph_search_engine::StoreOptions::default(),
         )

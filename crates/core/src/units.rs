@@ -551,6 +551,63 @@ pub struct SourceCoverage {
 }
 
 impl SourceCoverage {
+    /// Adds `other`: the coverage of a union of disjoint file sets.
+    pub fn add(&mut self, other: &Self) {
+        self.combine(other, u64::saturating_add);
+    }
+
+    /// Removes `other`, the coverage of a subset of the files `self` covers.
+    pub fn subtract(&mut self, other: &Self) {
+        self.combine(other, u64::saturating_sub);
+    }
+
+    fn combine(&mut self, other: &Self, op: fn(u64, u64) -> u64) {
+        let Self {
+            package_scope_incomplete_files,
+            source_indexed_files,
+            source_units,
+            source_unit_truncated_files,
+            source_link_truncated_files,
+            source_documentation_truncated_files,
+            source_framework_region_files,
+            source_framework_regions,
+            source_framework_unextracted_regions,
+            source_framework_truncated_files,
+        } = other;
+        self.package_scope_incomplete_files = op(
+            self.package_scope_incomplete_files,
+            *package_scope_incomplete_files,
+        );
+        self.source_indexed_files = op(self.source_indexed_files, *source_indexed_files);
+        self.source_units = op(self.source_units, *source_units);
+        self.source_unit_truncated_files = op(
+            self.source_unit_truncated_files,
+            *source_unit_truncated_files,
+        );
+        self.source_link_truncated_files = op(
+            self.source_link_truncated_files,
+            *source_link_truncated_files,
+        );
+        self.source_documentation_truncated_files = op(
+            self.source_documentation_truncated_files,
+            *source_documentation_truncated_files,
+        );
+        self.source_framework_region_files = op(
+            self.source_framework_region_files,
+            *source_framework_region_files,
+        );
+        self.source_framework_regions =
+            op(self.source_framework_regions, *source_framework_regions);
+        self.source_framework_unextracted_regions = op(
+            self.source_framework_unextracted_regions,
+            *source_framework_unextracted_regions,
+        );
+        self.source_framework_truncated_files = op(
+            self.source_framework_truncated_files,
+            *source_framework_truncated_files,
+        );
+    }
+
     /// Counts the coverage of one generation's source facts.
     pub fn summarize<'a>(files: impl Iterator<Item = &'a SourceFileUnits>) -> Self {
         let mut summary = Self::default();
@@ -660,6 +717,33 @@ pub fn validate_batch<'a>(
         }
     }
     Ok(())
+}
+
+/// Whether `path` is a recognized package manifest (`Cargo.toml`,
+/// `package.json`, `pnpm-workspace.yaml`, `pyproject.toml`).
+#[must_use]
+pub fn is_package_manifest(path: &str) -> bool {
+    crate::packages::manifest_family(path).is_some()
+}
+
+/// Validates the package facts of a source the batch did not replace, against
+/// the post-batch nodes (`lookup`): its package manifest may have changed or
+/// gone.
+/// # Errors
+/// When the facts no longer match their file or package manifest.
+pub fn validate_package<'a>(
+    file: &Node,
+    source: &SourceFileUnits,
+    lookup: impl Fn(&graph_search_types::NodeId) -> Option<&'a Node>,
+) -> crate::Result<()> {
+    if crate::packages::valid(file, source, &lookup) {
+        Ok(())
+    } else {
+        Err(crate::Error::Store(format!(
+            "package facts do not match {}",
+            file.path
+        )))
+    }
 }
 
 /// Validates that retrieval facts belong to the projected source version.

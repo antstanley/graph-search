@@ -144,11 +144,36 @@ a clean rebuild, and is measured with Criterion (see `AGENTS.md`).
 
    The intervals are wide because unrelated processes were using the CPU during
    the run. Each phase re-measures against this baseline, back to back.
-1. **Shards replace Grafeo (format 10).** Engine only. Nodes, edges, dangling
-   edges and occurrences become per-file shard records in packs. The graph port
-   is served natively. Publish writes changed shards and reuses the rest. The
-   in-memory incoming index and derived query indexes still build lazily from
-   shards.
+1. **Shards replace Grafeo (format 10). Done.** Nodes, edges (resolved and
+   dangling) and occurrences are per-file shard records in 256 KiB packs. The
+   `nodes`, `incoming`, `foreign`, `edge_counts` and `package_members` posting
+   tables (base plus delta segments, per-block BLAKE3) replace the Grafeo id maps,
+   the dangling sidecar, the occurrence sidecar and the edge-count table. Publish
+   plans first (validation, surviving identities, untouched files that pointed
+   at a removed node), then writes only the replaced shards and source records,
+   one delta per table, and updates the summary and the dependency index by
+   delta (`DependencyIndex::update`, per-path links). Packs carried forward are
+   hard-linked from their header alone; extraction records are verified when
+   read. Criterion, back to back against `ec229dd`:
+
+   | Benchmark | Format 9 | Format 10 | Change |
+   |---|---|---|---|
+   | `sync_scaling` 250 modules | 209 ms | 117 ms | −43.6% |
+   | `sync_scaling` 1,000 modules | 757 ms | 220 ms | −71.0% |
+   | `sync_scaling` 4,000 modules | 3.68 s | 707 ms | −80.8% |
+   | `storage_sync/rust_body_edit` | 203 ms | 134 ms | −34.0% |
+   | `storage_sync/json_edit` | 208 ms | 134 ms | −36.0% |
+   | `storage_open/open_then_symbol` | 40.7 ms | 31.2 ms | −23.3% |
+   | `storage_open/open_then_explore` | 118 ms | 100 ms | −15.1% |
+   | `storage_open/open_then_text` | 4.8 ms | 4.9 ms | no change |
+   | `storage_publish/reindex_full` | 416 ms | 484 ms | +16.3% (regression) |
+   | Store size (storage corpus) | 3,522 KiB | 2,110 KiB | −40% |
+
+   Sync still grows with the workspace (117 ms → 220 ms → 707 ms): core
+   reconciliation still reads every node three times and rebuilds the symbol
+   table, which phases 3 and 4 remove. A full re-index is slower because every
+   shard, table row and dependency record is written through the per-file
+   paths.
 2. **Posting tables.** `names`, `incoming`, `consumers`, `selected`, `cross` as
    base and delta segments. Delta summaries and edge counts. Publish writes one
    delta per table.

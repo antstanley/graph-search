@@ -14,6 +14,7 @@ pub(crate) const FILE: &str = "extractions.json";
 pub(crate) const LAYOUT: Layout = Layout {
     index: FILE,
     directory: "extraction-records",
+    pack_bytes: crate::source_records::PACK_BYTES,
 };
 
 type Identities = BTreeMap<

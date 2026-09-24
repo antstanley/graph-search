@@ -286,7 +286,7 @@ fn lexical_targets_and_unresolved_values_survive_publication_and_reopen() {
 #[test]
 fn changing_shadow_bindings_matches_a_clean_build_and_persists_file_facts() {
     use graph_search_core::GraphStore;
-    use graph_search_engine::{GrafeoStore, StoreOptions};
+    use graph_search_engine::{NativeStore, StoreOptions};
     let root = tempfile::tempdir().unwrap();
     let file = root.path().join("a.rs");
     std::fs::write(&file, "fn send(){} fn entry(){send();}\n").unwrap();
@@ -319,7 +319,7 @@ fn changing_shadow_bindings_matches_a_clean_build_and_persists_file_facts() {
             .callees(&TraversalQuery::new("entry", 1))
             .unwrap();
         assert_eq!(actual.edges, expected.edges);
-        let store = GrafeoStore::open(index.store_dir(), &StoreOptions::default()).unwrap();
+        let store = NativeStore::open(index.store_dir(), &StoreOptions::default()).unwrap();
         let manifest = store.manifest().unwrap().unwrap();
         let extraction = manifest.entries["a.rs"].extraction.as_ref().unwrap();
         assert!(!extraction.scopes.is_empty());
@@ -780,7 +780,7 @@ fn local_declarations_override_renamed_import_provenance() {
 #[test]
 fn rust_use_leaf_facts_survive_packs_reopen_and_alias_edits() {
     use graph_search_core::GraphStore;
-    use graph_search_engine::{GrafeoStore, StoreOptions};
+    use graph_search_engine::{NativeStore, StoreOptions};
     let root = tempfile::tempdir().unwrap();
     let options = OpenOptions {
         root: root.path().into(),
@@ -796,7 +796,7 @@ fn rust_use_leaf_facts_survive_packs_reopen_and_alias_edits() {
         index.sync().unwrap();
         drop(index);
         index = Index::open(options.clone()).unwrap();
-        let store = GrafeoStore::open(index.store_dir(), &StoreOptions::default()).unwrap();
+        let store = NativeStore::open(index.store_dir(), &StoreOptions::default()).unwrap();
         let manifest = store.manifest().unwrap().unwrap();
         let actual = manifest.entries["lib.rs"].extraction.as_ref().unwrap();
         let expected = RustExtractor

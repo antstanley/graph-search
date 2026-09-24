@@ -158,7 +158,7 @@ impl Index {
             std::fs::create_dir_all(&store_dir)
                 .map_err(|source| Error::Core(graph_search_core::Error::io(&store_dir, source)))?;
         }
-        let store = graph_search_engine::GrafeoStore::open(
+        let store = graph_search_engine::NativeStore::open(
             &store_dir,
             &graph_search_engine::StoreOptions {
                 read_only: options.read_only,

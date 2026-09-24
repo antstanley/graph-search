@@ -8,7 +8,7 @@ use graph_search_core::{
     ports::{ExtractionFacts, GraphSnapshot, GraphStore, ListRegistry},
     reconcile::Projector,
 };
-use graph_search_engine::{GrafeoStore, StoreOptions};
+use graph_search_engine::{NativeStore, StoreOptions};
 use graph_search_types::{ApplyOutcome, Language, Manifest, WriteBatch};
 use std::{cell::RefCell, collections::BTreeSet, path::Path};
 
@@ -61,7 +61,7 @@ impl GraphStore for Observed {
 fn store(persistent: bool, dir: &Path) -> Observed {
     Observed {
         inner: if persistent {
-            Box::new(GrafeoStore::open(dir, &StoreOptions::default()).unwrap())
+            Box::new(NativeStore::open(dir, &StoreOptions::default()).unwrap())
         } else {
             Box::new(MemoryStore::new())
         },

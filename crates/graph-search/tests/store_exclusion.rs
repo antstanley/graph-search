@@ -178,7 +178,7 @@ fn policy_change_removes_previously_indexed_storage() {
     std::fs::write(root.join("a.rs"), "fn a() {}\n").unwrap();
     std::fs::write(store.join("decoy.rs"), "fn storage_marker() {}\n").unwrap();
     let registry = ListRegistry::new(graph_search_langs::all_extractors());
-    let mut old = graph_search_engine::GrafeoStore::open(
+    let mut old = graph_search_engine::NativeStore::open(
         &store,
         &graph_search_engine::StoreOptions::default(),
     )

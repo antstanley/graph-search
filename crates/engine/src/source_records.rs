@@ -12,9 +12,10 @@ use std::{
 
 type Files = BTreeMap<String, SourceFileUnits>;
 const DIRECTORY: &str = "source-records";
-const SOURCE_LAYOUT: Layout = Layout {
+pub(crate) const SOURCE_LAYOUT: Layout = Layout {
     index: crate::sidecar::SOURCE_FILE,
     directory: DIRECTORY,
+    pack_bytes: PACK_BYTES,
 };
 
 /// Artifact names are fixed by the owning storage module, never read from disk.
@@ -22,9 +23,19 @@ const SOURCE_LAYOUT: Layout = Layout {
 pub(crate) struct Layout {
     pub(crate) index: &'static str,
     pub(crate) directory: &'static str,
+    /// Target uncompressed pack size. A selective read inflates one whole pack,
+    /// so facts read one file at a time use small packs.
+    pub(crate) pack_bytes: usize,
 }
-const PACK_BYTES: usize = 8 * 1024 * 1024;
-const SMALL_PACK_BYTES: u64 = 1024 * 1024;
+/// Default pack size for facts that are read in bulk.
+pub(crate) const PACK_BYTES: usize = 8 * 1024 * 1024;
+
+impl Layout {
+    /// Packs below this size are combined when more than one is reused.
+    fn small_pack_bytes(self) -> u64 {
+        (self.pack_bytes >> 3) as u64
+    }
+}
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -384,6 +395,7 @@ pub(crate) fn load(dir: &Path) -> io::Result<Files> {
 /// Pack bytes are validated once, when this descriptor is consumed by the loader.
 pub(crate) struct Prepared(Stored);
 
+#[cfg(test)]
 pub(crate) fn prepare(bytes: &[u8], generation_format: u32) -> io::Result<Prepared> {
     let stored = decode_index(bytes)?;
     if let Stored::Index(index) = &stored {
@@ -445,7 +457,7 @@ struct Writer<'a> {
     limit: usize,
 }
 impl<'a> Writer<'a> {
-    fn new(directory: &'a Path) -> Self {
+    fn new(directory: &'a Path, limit: usize) -> Self {
         Self {
             directory,
             records: BTreeMap::new(),
@@ -453,7 +465,7 @@ impl<'a> Writer<'a> {
             written: BTreeSet::new(),
             bytes: Vec::new(),
             pending: BTreeMap::new(),
-            limit: PACK_BYTES,
+            limit,
         }
     }
     fn retain(&mut self, path: &str, reference: &Reference) {
@@ -552,6 +564,7 @@ fn link_or_copy(source: &Path, target: &Path, hash: &str) -> io::Result<()> {
     Ok(())
 }
 
+#[cfg(test)]
 /// New generations share verified packs, compact those below 75% live bytes,
 /// and combine multiple sub-MiB packs. New records are packed with bounded buffering.
 /// `touched`, when supplied, must include every path whose facts may differ from
@@ -579,6 +592,7 @@ pub(crate) fn save_cached(
     )
 }
 
+#[cfg(test)]
 /// Shared immutable pack writer. Reuse eligibility belongs to each fact type.
 pub(crate) fn save_records<T: EncodeRecord>(
     dir: &Path,
@@ -618,7 +632,7 @@ pub(crate) fn save_records_retaining<T: EncodeRecord>(
     }
     let directory = dir.join(layout.directory);
     std::fs::create_dir(&directory)?;
-    let mut writer = Writer::new(&directory);
+    let mut writer = Writer::new(&directory, layout.pack_bytes);
     let mut reusable: BTreeMap<&str, Group<'_>> = BTreeMap::new();
     // Older JSON-record generations are rebuilt, never mixed into a native index.
     let old_index = old_index.filter(|index| index.format >= NATIVE_FORMAT);
@@ -643,7 +657,7 @@ pub(crate) fn save_records_retaining<T: EncodeRecord>(
     }
     let mut small = 0usize;
     for hash in reusable.keys() {
-        if raw_len(&previous.join(layout.directory).join(hash))? < SMALL_PACK_BYTES {
+        if raw_len(&previous.join(layout.directory).join(hash))? < layout.small_pack_bytes() {
             small = small.saturating_add(1);
         }
     }
@@ -661,7 +675,7 @@ pub(crate) fn save_records_retaining<T: EncodeRecord>(
         } else {
             0
         };
-        let compact_small = small > 1 && (len as u64) < SMALL_PACK_BYTES;
+        let compact_small = small > 1 && (len as u64) < layout.small_pack_bytes();
         if !packed || compact_small || live_bytes(len, &group)? < minimum_live(len) {
             let pack = read_pack(&previous.join(layout.directory), hash, NATIVE_FORMAT)?;
             let bytes = pack.bytes();
@@ -750,7 +764,7 @@ mod tests {
         let root = tempfile::tempdir().unwrap();
         let directory = root.path().join(DIRECTORY);
         std::fs::create_dir(&directory).unwrap();
-        let mut writer = Writer::new(&directory);
+        let mut writer = Writer::new(&directory, PACK_BYTES);
         writer.add("a", &"selected").unwrap();
         writer.add("a-copy", &"selected").unwrap();
         writer.add("b", &"x".repeat(4096)).unwrap();
@@ -808,7 +822,7 @@ mod tests {
         let root = tempfile::tempdir().unwrap();
         let directory = root.path().join(DIRECTORY);
         std::fs::create_dir(&directory).unwrap();
-        let mut writer = Writer::new(&directory);
+        let mut writer = Writer::new(&directory, PACK_BYTES);
         writer.limit = 1;
         writer.add("a", &record("a")).unwrap();
         writer.add("a-copy", &record("a")).unwrap();
@@ -1107,7 +1121,7 @@ mod tests {
         let root = tempfile::tempdir().unwrap();
         let directory = root.path().join(DIRECTORY);
         std::fs::create_dir(&directory).unwrap();
-        let mut writer = Writer::new(&directory);
+        let mut writer = Writer::new(&directory, PACK_BYTES);
         writer.limit = 150;
         let files = Files::from([
             ("a".into(), record("a")),

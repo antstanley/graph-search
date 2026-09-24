@@ -7,7 +7,7 @@ use graph_search_core::{
     ports::{GraphSnapshot, GraphStore, ListRegistry},
     reconcile::Projector,
 };
-use graph_search_engine::{GrafeoStore, StoreOptions};
+use graph_search_engine::{NativeStore, StoreOptions};
 use graph_search_types::{ApplyOutcome, Manifest, WriteBatch};
 use std::path::Path;
 
@@ -112,7 +112,7 @@ fn run(case: &Case) {
         let projector = Projector::new(&registry, &policy);
         let mut store = Capture {
             inner: if persistent {
-                Box::new(GrafeoStore::open(db.path(), &StoreOptions::default()).unwrap())
+                Box::new(NativeStore::open(db.path(), &StoreOptions::default()).unwrap())
             } else {
                 Box::new(MemoryStore::new())
             },
@@ -121,7 +121,7 @@ fn run(case: &Case) {
         projector.reindex(root.path(), &mut store).unwrap();
         if persistent {
             drop(store.inner);
-            store.inner = Box::new(GrafeoStore::open(db.path(), &StoreOptions::default()).unwrap());
+            store.inner = Box::new(NativeStore::open(db.path(), &StoreOptions::default()).unwrap());
         }
         assert!(
             store.dependency_index().unwrap().is_some(),
@@ -140,7 +140,7 @@ fn run(case: &Case) {
         equal(&store, &clean, case.name);
         if persistent {
             drop(store.inner);
-            store.inner = Box::new(GrafeoStore::open(db.path(), &StoreOptions::default()).unwrap());
+            store.inner = Box::new(NativeStore::open(db.path(), &StoreOptions::default()).unwrap());
             equal(&store, &clean, case.name);
         }
         store.upserts.clear();

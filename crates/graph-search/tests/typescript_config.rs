@@ -2,12 +2,12 @@
 #![allow(clippy::unwrap_used, clippy::panic)]
 use graph_search::{Index, OpenOptions};
 use graph_search_core::ports::GraphStore;
-use graph_search_engine::{GrafeoStore, StoreOptions};
+use graph_search_engine::{NativeStore, StoreOptions};
 use graph_search_types::source::SourceFileUnits;
 use std::{collections::BTreeMap, path::Path};
 
 fn facts(store: &Path) -> BTreeMap<String, SourceFileUnits> {
-    let store = GrafeoStore::open(store, &StoreOptions::default()).unwrap();
+    let store = NativeStore::open(store, &StoreOptions::default()).unwrap();
     store.snapshot().unwrap().source_files().unwrap().clone()
 }
 fn open(root: &Path, store: &Path) -> Index {
@@ -72,13 +72,13 @@ fn configuration_facts_survive_reopen_and_incremental_changes_match_clean_rebuil
     std::fs::remove_file(root.path().join("base.json")).unwrap();
     index.sync().unwrap();
     assert!(!facts(store.path()).contains_key("base.json"));
-    let generation = GrafeoStore::open(store.path(), &StoreOptions::default())
+    let generation = NativeStore::open(store.path(), &StoreOptions::default())
         .unwrap()
         .generation()
         .unwrap();
     index.sync().unwrap();
     assert_eq!(
-        GrafeoStore::open(store.path(), &StoreOptions::default())
+        NativeStore::open(store.path(), &StoreOptions::default())
             .unwrap()
             .generation()
             .unwrap(),

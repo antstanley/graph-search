@@ -2,12 +2,12 @@
 #![allow(clippy::unwrap_used, clippy::panic)]
 use graph_search::{Index, OpenOptions};
 use graph_search_core::{ports::GraphStore, typescript::inherit};
-use graph_search_engine::{GrafeoStore, StoreOptions};
+use graph_search_engine::{NativeStore, StoreOptions};
 use graph_search_types::source::SourceFileUnits;
 use std::{collections::BTreeMap, path::Path};
 
 fn facts(store: &Path) -> BTreeMap<String, SourceFileUnits> {
-    GrafeoStore::open(store, &StoreOptions::default())
+    NativeStore::open(store, &StoreOptions::default())
         .unwrap()
         .snapshot()
         .unwrap()

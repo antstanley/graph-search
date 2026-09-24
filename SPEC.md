@@ -5,7 +5,7 @@
 | **Status** | Draft (M0) |
 | **Owner** | Ant Stanley |
 | **Scope** | Repository-wide |
-| **Depends on** | Tree-sitter (parsing), Grafeo (embedded graph store) |
+| **Depends on** | Tree-sitter (parsing); a native generation store (§4.3) |
 | **Delivery shape** | An in-process Rust library (shape 3, §11.1); the CLI is a thin client over it |
 | **Consumed by** | An in-process host (a future `nanus` tool; the evaluation harness); and, via the CLI, a person and the `nanus` agent through `bash` |
 
@@ -72,8 +72,8 @@ situ with no harness change and a one-line rollback.
 - **No daemon, no file watcher, no socket service.** v1 is an in-process library
   plus a thin CLI; `index`/`sync` and a lazy reconcile are the freshness story.
   A socket service (`serve`) is §11.1 shape 2, deferred and optional.
-- **No embeddings or vector search.** Grafeo's vector/BM25 features are not
-  enabled in v1; `text` remains literal-substring, matching `nanus` `grep`.
+- **No embeddings or vector search.** No vector or BM25 engine is built in
+  v1; `text` remains literal-substring, matching `nanus` `grep`.
 - **No MCP server.** CLI-first. An MCP surface is a later, optional adapter.
 - **No `nanus` integration and no tool removal.** `glob` and `grep` stay exactly
   as they are until the evaluation (§16) says otherwise.
@@ -113,7 +113,7 @@ nothing above `core` changes.
 
 ### 4.1 Crates and the dependency rule
 
-Dependencies point inward. `core` knows nothing about tree-sitter or Grafeo. The
+Dependencies point inward. `core` knows nothing about tree-sitter or storage. The
 engine and the parser are adapters wired by the **library** (`crates/graph-search`)
 — the product — and consumed in-process by the CLI and by any host that links it.
 
@@ -133,7 +133,7 @@ engine and the parser are adapters wired by the **library** (`crates/graph-searc
                  ▼                   ▼
      ┌───────────────────┐   ┌──────────────────────┐
      │ graph-search-     │   │ graph-search-langs    │
-     │ engine (Grafeo)   │   │ (tree-sitter          │
+     │ engine (native)   │   │ (tree-sitter          │
      │ impl GraphStore   │   │  extractors)          │
      └─────────┬─────────┘   └──────────┬───────────┘
                └───────────┬────────────┘
@@ -153,7 +153,7 @@ engine and the parser are adapters wired by the **library** (`crates/graph-searc
 | `graph-search-types` | Ids, node/edge records, requests, results, the JSON contract types. | *(nothing in-tree)* |
 | `graph-search-core` | Domain model; port traits; the projector (parse→graph); the reconcile (diff/apply); the query engine; the `files`/`text` walker. | `types` only |
 | `graph-search-langs` | Tree-sitter grammars and per-language extraction queries; impl of core's `LanguageExtractor`. | `core`, `types`, tree-sitter |
-| `graph-search-engine` | The embedded Grafeo store; impl of core's `GraphStore`. | `core`, `types`, `grafeo` |
+| `graph-search-engine` | The native generation store; impl of core's `GraphStore`. | `core`, `types`, `zstd` |
 | `graph-search` | **The library (the product).** The public API (`Index` → `SearchService`), options, and the wiring of concrete adapters behind the core ports. What a host links in-process. | adapters + `core`, `types` |
 | `graph-search-cli` | A thin client: argument parsing, dispatch into the library, rendering. It wires nothing itself. | `graph-search` |
 
@@ -206,28 +206,34 @@ Design notes:
   `explore`. This keeps `glob`/`grep` semantics exact (no tokenizer, no BM25
   mismatch) and means the binary is useful even with no index built.
 
-### 4.3 The engine: Grafeo
+### 4.3 The engine: a native generation store
 
-`graph-search-engine` wraps the embedded **Grafeo** database (Apache-2.0,
-pure-Rust; `GrafeoDB::new_in_memory()` / `GrafeoDB::open(path)`; GQL and a direct
-API). The store lives at `<root>/.graph-search/index/` by default and is
-git-ignored.
+`graph-search-engine` implements core's `GraphStore` port with its own storage
+(format 10, `research/16-proportional-sync.md`). The store lives at
+`<root>/.graph-search/index/` by default and is git-ignored. It replaced the
+embedded Grafeo database, as this section always allowed: an in-process
+adjacency map proved sufficient, and Grafeo rebuilt and re-serialized the whole
+graph on every publish, so sync cost grew with the workspace.
 
-**Feature selection is a milestone-zero decision.** Grafeo's `embedded` profile
-is `lpg + gql + ai(vector+text+hybrid) + algos + parallel + regex + grafeo-file +
-arrow-export`. v1 needs graph + persistence and *not* `ai`; the engine crate
-should enable the narrowest set that supports LPG storage, traversal, and
-on-disk persistence (candidate: `--no-default-features --features gql,grafeo-file`,
-confirmed against Grafeo's feature table during M2). Keeping `ai` off removes the
-HNSW index, BM25, CDC and the embedding question entirely.
+- **Per-file shards.** Every graph fact a file owns (its nodes, the edges whose
+  owning path it is, resolved or dangling, and its reference occurrences) is one
+  shard record in content-addressed zstd packs that every generation shares.
+- **Posting tables.** Global lookups are sorted `(key, owner path, value)` rows
+  in immutable segments: a base plus small per-publish deltas that tombstone the
+  owners they replace, compacted into a new base when the deltas outgrow a
+  quarter of it. `nodes` (id to owning file), `incoming` (edge and occurrence
+  targets), `foreign` (edges stored away from their source node's file),
+  `edge_counts` and `package_members` are tables.
+- **Publication writes what changed.** A publish writes the shards, source
+  records and posting rows of the files it replaces, links every other pack
+  and segment, and updates the summary and dependency index by delta.
 
-Two properties to preserve:
+Two properties hold:
 
-- **No Grafeo type crosses the port.** GQL strings and `NodeId`/`Value` types are
+- **No storage type crosses the port.** Packs, segments and generations are
   confined to `engine`, exactly as `nanus` keeps `std::io::Error` out of its
   domain.
-- **The engine is replaceable.** If an in-process adjacency map proves
-  sufficient, `engine` is swapped without a change in `core` or the CLI.
+- **The engine is replaceable.** `core` and the CLI see only the port.
 
 ### 4.4 The parsers: tree-sitter
 
@@ -837,21 +843,30 @@ path details are omitted, and its text total does not use the retained-list leng
 
 ### 6.4 Apply
 
-Reconciliation calls `GraphStore::publish` with one `WriteBatch`. The Grafeo
-adapter prepares a complete replacement graph in isolation, saves it with the
-manifest, dangling references, native source facts and reference occurrences under `generations/<id>/`, then publishes a
-small `CURRENT` descriptor by atomic rename. The descriptor records storage
-format 9 and BLAKE3 fingerprints of every committed top-level artifact. A missing
-or corrupt committed artifact is an error, never a silently empty index. Generations
-written before format 8 carry SHA-256 fingerprints and fail verification; they are
-rebuilt, not migrated (deleting the store directory is always a safe rebuild).
+Reconciliation calls `GraphStore::publish` with one `WriteBatch`. The native
+store plans the publication first: it validates the batch, decides which node
+identities survive, rewrites the untouched files that point at a removed node,
+and computes the new posting rows, summary and dependency index. Only then does
+it write, under `generations/<id>/`: the changed shards and source records (new
+packs; every other pack is hard-linked), one delta segment per posting table,
+the extraction records, the dependency index, the manifest header and the
+summary. It then publishes a small `CURRENT` descriptor by atomic rename. The
+descriptor records storage format 10 and BLAKE3 fingerprints of the small index
+artifacts (`shards.json`, `source-units.json`, `tables.json`, `summary.json`,
+`manifest.json`, `extractions.json`, `dependencies.json.zst`); packs and segments
+are committed transitively by their own content hashes. A missing or corrupt
+committed artifact is an error, never a silently empty index. A generation from
+an earlier format is never read: the store opens unpublished and is rebuilt, not
+migrated (deleting the store directory is always a safe rebuild).
 
 Opening a generation is proportional to its header, not its size. Open validates
 the descriptor's completeness, rejects uncommitted artifacts, takes the reader lease,
 and verifies and parses only `manifest.json` and `summary.json`. Every other
-artifact (the graph, dangling references, source and occurrence facts, extraction
-and dependency indexes, the edge occurrence table) is verified against its CURRENT
-fingerprint by its first reader, before any of its bytes are used; the lease keeps
+artifact (the shard, source and extraction indexes, the posting tables, the
+dependency index) is verified against its CURRENT fingerprint by its first reader,
+before any of its bytes are used; a shard or record is verified against its own
+hash when it is read, and a segment block against its segment's footer, whose
+hash the table list commits. The lease keeps
 those immutable paths alive for as long as the handle may read them. Facts are
 validated against the graph when they load, exactly as on an eager open, and
 retrieval indexes (metadata, source-region postings, occurrence positions,
@@ -860,15 +875,13 @@ query that touches it, loudly, and a failed load is not cached. `status` and the
 result context of every query read only the header, the summary and the tree, so
 they never load the graph or its facts.
 
-Format 9 adds two derived artifacts. `summary.json` holds the generation's exact
-node, edge and file counts and its source coverage counters, so status and result
-coverage need no facts. `edge-occurrences.bin` holds, for every relationship with
-at least one source occurrence, the BLAKE3 digest of its edge id and its occurrence
-count (`GSE1`, then 32-byte digest and little-endian `u32` entries in strictly
-ascending digest order); relationship queries report `occurrence_count` from it by
-binary search without loading occurrence facts. Both are computed by the writer
-from the final prepared state. Older generations lack them and fall back to
-computing counts at open and to the occurrence index.
+`summary.json` holds the generation's exact node, edge and file counts and its
+source coverage counters, so status and result coverage need no facts; the writer
+updates it by delta, subtracting what the replaced shards and sources counted and
+adding their replacements. The `edge_counts` posting table holds, per file, the
+occurrence count of every relationship its references support; relationship
+queries report `occurrence_count` as the sum of a key's rows without loading
+occurrence facts.
 
 All content hashes, both file fingerprints in the manifest and artifact, pack and
 record fingerprints, are lowercase hex BLAKE3 (256-bit). BLAKE3 is fast through
@@ -876,10 +889,10 @@ portable SIMD with runtime dispatch (NEON on AArch64, SSE4.1/AVX2/AVX-512 on x86
 rather than dedicated SHA instructions, which some deployment CPUs lack. Each query
 verifies the committed bytes it reads, so hash throughput is query latency.
 
-Preparation applies the old projection and the update before constructing derived
-retrieval indexes. Intermediate mutation reads only the graph, ID maps and owned
-facts; it does not query those indexes. The final indexes are built before
-persistence or exposure of the replacement store. Publication borrows the batch's
+Publication reads only the shards and records of the files it replaces or
+rewrites, plus posting lookups for the identities it removes. Retrieval indexes
+(metadata, source-region postings, occurrence positions, adjacency) are rebuilt
+on their next use, not on the write path. Publication borrows the batch's
 manifest instead of cloning its raw extraction cache.
 
 Source facts use a version-3 per-file index in `source-units.json`. Each entry
@@ -964,7 +977,7 @@ fingerprints fail hydration rather than silently becoming empty caches.
 
 `GraphStore::extraction_facts(paths)` returns only requested cached facts; missing
 records and unknown paths are omitted, while present empty extractions remain present.
-MemoryStore selects shared facts directly. Grafeo uses the pinned verified descriptor
+MemoryStore selects shared facts directly. The native store uses the pinned verified descriptor
 to look up requested paths, groups by pack and exact byte slice, inflates each
 pack holding a requested record (one bounded zstd frame; a frame has no random
 access), and verifies each selected record hash before decoding. Duplicate slices
@@ -985,7 +998,7 @@ fingerprints except for mtime. Representation and policy identities must agree.
 Stale requests, conflicting ownership and missing caches fail before mutation.
 Ordinary publication still treats absent extraction values as cache removal.
 
-Grafeo retains verified descriptors for untouched records. Timestamp-only changes
+The native store retains verified descriptors for untouched records. Timestamp-only changes
 load and rewrite just those records with updated fingerprints. Compaction copies
 verified record slices without typed JSON decoding; malformed cold values remain
 errors when explicitly requested, rather than being silently converted to empty
@@ -1017,14 +1030,13 @@ handle refuses reads and writes until reopen. Reopen follows the complete
 published descriptor; it does not combine artifacts from different generations.
 Orphan prepared directories are invisible. Reclamation retains the current and
 previous generation plus every generation leased by a live store handle. A
-reader pins the existing mandatory dangling-reference sidecar
-(`dangling.jsonl.zst`: one zstd frame of JSON lines since format 8) with a shared OS
-file lock before validating/loading its generation; no reader-side file creation
+reader pins the generation's empty `lease` file with a shared OS file lock
+before validating/loading its generation; no reader-side file creation
 or write permission is required. Publication pins the newly prepared store before
 changing CURRENT. The lease lasts through lazy extraction reads and closes after
 the store's graph/fact fields. Reclamation takes a nonblocking exclusive lock on
 the same file before removing an older directory. Contention or lock/open errors
-skip removal; unfinished directories missing the mandatory sidecar cannot have
+skip removal; unfinished directories missing the lease file cannot have
 an admitted reader and remain reclaimable. Cleanup retries on a later publication,
 not immediately when a reader exits. Failed cleanup may leave additional files.
 Retaining arbitrarily many distinct reader generations therefore retains their
@@ -1223,8 +1235,7 @@ scope/type system: package visibility, reexports, dynamic mutation, receiver
 types and unsupported grammar constructs retain their existing approximation.
 
 Reference occurrence representation 1 additionally persists each raw reference
-in a checksummed `occurrences.json.zst` artifact (one zstd frame of JSON) owned by
-its source file and hash.
+in its file's shard, owned by its source file and hash.
 Occurrence identity encodes the original file, hash, owner, relationship kind,
 name/spelling, raw-reference ordinal, line and optional byte/line span. It excludes
 the selected target and binding reason, so rebinding unchanged source preserves
@@ -2204,8 +2215,7 @@ settings.
   open an index from an arbitrary file supplied by the repository.
 - **No code execution.** The tool never runs, compiles, or imports anything it
   finds; it only reads and parses.
-- **No network.** Nothing in the default feature set reaches out (Grafeo's `ai`/
-  `embed` features, which could, are off).
+- **No network.** Nothing in the default feature set reaches out.
 - **Symlinks** are not followed out of the root.
 - **Caps everywhere.** Every loop is bounded by a named constant (§14); a
   pathological tree degrades by reporting caps, not by hanging.

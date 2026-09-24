@@ -8,7 +8,7 @@ use graph_search_core::{
     typescript_aliases::{Aliases, Dispatch},
     typescript_files::{Availability, Lookup, Mode, Options, Probe},
 };
-use graph_search_engine::{GrafeoStore, StoreOptions};
+use graph_search_engine::{NativeStore, StoreOptions};
 use std::{collections::BTreeSet, path::Path};
 
 fn open(root: &Path, store: &Path) -> Index {
@@ -26,7 +26,7 @@ type Result = (
 );
 
 fn resolve(root: &Path, store: &Path, specifier: &str) -> Result {
-    let store = GrafeoStore::open(store, &StoreOptions::default()).unwrap();
+    let store = NativeStore::open(store, &StoreOptions::default()).unwrap();
     let packages = store.manifest().unwrap().unwrap().package_boundaries;
     let snapshot = store.snapshot().unwrap();
     let config = inherit("tsconfig.json", snapshot.source_files().unwrap()).unwrap();
