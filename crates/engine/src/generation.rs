@@ -250,13 +250,23 @@ pub(crate) fn allocate(root: &Path) -> io::Result<PathBuf> {
     ))
 }
 
-/// Write and sync a temporary file before the visibility-changing rename.
-/// The caller must sync the parent directory after a successful rename.
+/// Write and flush a temporary file before the visibility-changing rename.
+/// The caller must flush the parent directory after a successful rename; the
+/// publication barrier makes both durable (see [`crate::durable`]).
 pub(crate) fn replace(path: &Path, bytes: &[u8]) -> io::Result<()> {
     let tmp = path.with_extension("tmp");
     let mut file = std::fs::File::create(&tmp)?;
     file.write_all(bytes)?;
-    file.sync_all()?;
+    crate::durable::flush(&file)?;
+    std::fs::rename(tmp, path)
+}
+
+/// [`replace`] with a full sync: the commit point, durable on return.
+fn commit(path: &Path, bytes: &[u8]) -> io::Result<()> {
+    let tmp = path.with_extension("tmp");
+    let mut file = std::fs::File::create(&tmp)?;
+    file.write_all(bytes)?;
+    crate::durable::sync(&file)?;
     std::fs::rename(tmp, path)
 }
 
@@ -287,7 +297,9 @@ pub(crate) fn prepare_pointer(root: &Path, dir: &Path) -> io::Result<BTreeMap<St
         files: files.clone(),
     })
     .map_err(io::Error::other)?;
-    replace(&root.join(CURRENT), &pointer)?;
+    // Everything the pointer commits is durable before the pointer is.
+    crate::durable::barrier(dir)?;
+    commit(&root.join(CURRENT), &pointer)?;
     Ok(files)
 }
 
@@ -340,8 +352,9 @@ pub(crate) fn collect(root: &Path) {
     }
 }
 
+/// Flushes a directory's entries; durable after the publication barrier.
 pub(crate) fn sync_dir(dir: &Path) -> io::Result<()> {
-    std::fs::File::open(dir)?.sync_all()
+    crate::durable::flush_dir(dir)
 }
 
 /// Called only after publishing under the writer lock. Retain current, previous

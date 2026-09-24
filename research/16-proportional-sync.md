@@ -81,9 +81,10 @@ containing:
 
 A lookup merges base and deltas, newest first, dropping rows whose owner path is
 tombstoned in a newer segment. When the deltas exceed a fraction of the base
-(about 25%) or a count (about 8), the publish compacts them into a new base.
-Compaction is O(table), so it is amortized over the O(changed) publishes that
-made it necessary.
+(about 25%), the publish compacts them into a new base. Compaction is O(table),
+so it is amortized over the O(changed) publishes that made it necessary. Past a
+count of deltas (about 8), the newest deltas are merged into one, size-tiered,
+without touching the base (see phase 1e).
 
 Tables:
 
@@ -257,6 +258,37 @@ a clean rebuild, and is measured with Criterion (see `AGENTS.md`).
    | `storage_publish/reindex_full` | 765 ms (noisy) | 543 ms | no change (p = 0.08) |
 
    The store grows 1.3% (2,210,190 to 2,238,206 bytes) for the three tables.
+
+1e. **One durability barrier; size-tiered delta merges. Done.** A profile of
+   the format 13 one-file sync at 4,000 modules put 28% of samples in
+   `F_FULLFSYNC`: std's `sync_all` on macOS flushes the drive's whole cache,
+   and every artifact file and directory paid it. Artifacts now `fsync(2)`
+   (hand data to the drive), and one `F_FULLFSYNC` barrier before `CURRENT`
+   makes them all durable; `CURRENT` and the store root are then synced in
+   full (`crates/engine/src/durable.rs`). Elsewhere `fsync(2)` is already
+   durable and the barrier is a no-op. The same profile put 21% in
+   `segment::publish`: past eight deltas every table rewrote its whole base,
+   every eighth publish. Now only the newest deltas merge, size-tiered (a
+   delta joins the merge while it is no larger than everything newer), and
+   the base is rewritten only when the deltas exceed a quarter of it.
+
+   Criterion against `244348e`, separate target directories (a first run was
+   void: a VM and Docker at full CPU during the second half):
+
+   | Benchmark | Before | After | Change |
+   |---|---|---|---|
+   | `sync_scaling` 250 modules | 59 ms | 19 ms | −67.8% |
+   | `sync_scaling` 1,000 modules | 78 ms | 31 ms | −60.7% |
+   | `sync_scaling` 4,000 modules | 136 ms | 77 ms | −42.5% |
+   | `storage_sync/rust_body_edit` | 59 ms | 19 ms | −68.9% |
+   | `storage_sync/json_edit` | 61 ms | 20 ms | −66.6% |
+   | `storage_publish/reindex_full` | 535 ms | 377 ms | −29.6% |
+
+   The open benches read +11% to +23% in that run while load rose; an
+   A/B/A rerun of `storage_open` alone put the new binary within the spread
+   of the baseline against itself (−7% to +0% base-vs-base; −5% to +6% new),
+   as expected: a freshly published store is one base segment and opening it
+   syncs nothing.
 
 2. **Posting tables.** `names`, `incoming`, `consumers`, `selected`, `cross` as
    base and delta segments. Delta summaries and edge counts. Publish writes one

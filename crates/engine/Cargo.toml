@@ -15,6 +15,9 @@ serde_json = { workspace = true }
 thiserror = { workspace = true }
 zstd = { workspace = true }
 
+[target.'cfg(target_vendor = "apple")'.dependencies]
+rustix = { workspace = true }
+
 [dev-dependencies]
 tempfile = { workspace = true }
 zstd = { workspace = true }

@@ -220,8 +220,9 @@ graph on every publish, so sync cost grew with the workspace.
   shard record in content-addressed zstd packs that every generation shares.
 - **Posting tables.** Global lookups are sorted `(key, owner path, value)` rows
   in immutable segments: a base plus small per-publish deltas that tombstone the
-  owners they replace, compacted into a new base when the deltas outgrow a
-  quarter of it. `nodes` (id to owning file), `incoming` (edge and occurrence
+  owners they replace. Past eight deltas the newest are merged into one
+  (size-tiered, so a row is rewritten a logarithmic number of times), and the
+  base is rewritten only when the deltas outgrow a quarter of it. `nodes` (id to owning file), `incoming` (edge and occurrence
   targets), `foreign` (edges stored away from their source node's file),
   `edge_counts`, `package_members`, `typescript_configs`,
   `package_manifests`, the dependency postings (`dep_consumers`,
@@ -1041,8 +1042,11 @@ synced before its rename. During generation preparation, manifest and dangling
 writers defer their parent-directory sync to the generation owner; standalone
 sidecar writes retain their own directory sync. Pack subdirectories are still
 synced separately. After all artifacts are ready, the generation directory and
-its parent are synced before CURRENT is replaced; the store root is synced after
-that replacement. No unpublished intermediate state needs a separate directory
+its parent are synced, then one barrier makes every earlier sync durable before
+CURRENT is replaced; CURRENT and the store root are synced in full after that
+replacement. On Apple platforms an artifact sync is `fsync(2)`, which hands data
+to the drive without flushing its cache, and the barrier is one `F_FULLFSYNC`,
+which flushes it; elsewhere every sync is already durable. No unpublished intermediate state needs a separate directory
 commit. File contents and containing directories are synced before durable acknowledgement. If syncing
 the directory fails after the pointer rename, publication is uncertain: the
 handle refuses reads and writes until reopen. Reopen follows the complete

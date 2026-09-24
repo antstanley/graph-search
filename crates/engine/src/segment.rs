@@ -26,9 +26,11 @@ const MAGIC: &[u8; 4] = b"GSG1";
 const FORMAT: u32 = 1;
 /// Uncompressed bytes per block: a lookup inflates one or two of these.
 const BLOCK_BYTES: usize = 16 * 1024;
-/// Compact once the deltas hold this fraction of the base's rows (1/4)...
+/// Rewrite the base once the deltas hold this fraction of its rows (1/4), so
+/// a base rewrite is paid for by the changes since the last one.
 const DELTA_DIVISOR: u64 = 4;
-/// ...or once a table has this many deltas.
+/// Past this many deltas, the newest ones are merged into one (never the
+/// base), keeping lookups bounded without reading the whole table.
 const MAX_DELTAS: usize = 8;
 /// The directory, inside a generation, that holds segment files.
 pub(crate) const DIRECTORY: &str = "postings";
@@ -423,8 +425,9 @@ impl Table {
 
 /// Publishes the next version of a table into generation `dir`: the previous
 /// segments (in `previous_dir`) are linked, and one delta replaces `owners`
-/// with `rows`, every one of which must belong to a replaced owner. Compacts
-/// into a new base when the deltas outgrow the policy.
+/// with `rows`, every one of which must belong to a replaced owner. The newest
+/// deltas are merged when there are too many, and the base is rewritten only
+/// when the deltas outgrow a fraction of it.
 pub(crate) fn publish(
     dir: &Path,
     name: &str,
@@ -451,41 +454,82 @@ pub(crate) fn publish(
     let base_rows = segments.first().map_or(0, |base| base.rows);
     let delta_rows: u64 = segments.iter().skip(1).map(|segment| segment.rows).sum();
     let deltas = segments.len().saturating_sub(1);
-    let compact =
-        deltas > MAX_DELTAS || delta_rows.saturating_mul(DELTA_DIVISOR) > base_rows.max(1);
-    if compact {
-        // Every earlier segment is read from the previous generation.
-        let mut opened = Vec::new();
-        for segment in &segments[..segments.len().saturating_sub(1)] {
-            opened.push(Segment::open(&source, segment)?);
+    let open = |index: usize, segment: &SegmentRef| {
+        if index.saturating_add(1) == segments.len() {
+            Segment::open(&target, segment)
+        } else {
+            Segment::open(&source, segment)
         }
-        opened.push(Segment::open(
-            &target,
-            &segments[segments.len().saturating_sub(1)],
-        )?);
-        let rows = Table { segments: opened }.rows()?;
-        let base = write(&target, name, rows, &BTreeSet::new())?;
+    };
+    let replace_newest = |segments: &mut Vec<SegmentRef>, from: usize, merged: SegmentRef| {
         // The superseded delta is unreferenced; a shared directory's collector
         // removes it with the other superseded segments.
-        let delta_file = target.join(&segments[segments.len().saturating_sub(1)].file);
-        if source != target && delta_file != target.join(&base.file) {
-            let _ = std::fs::remove_file(delta_file);
+        if let Some(delta) = segments.last() {
+            let delta_file = target.join(&delta.file);
+            if source != target && delta_file != target.join(&merged.file) {
+                let _ = std::fs::remove_file(delta_file);
+            }
         }
-        return Ok(TableRef {
-            segments: vec![base],
-        });
+        segments.truncate(from);
+        segments.push(merged);
+    };
+    if delta_rows.saturating_mul(DELTA_DIVISOR) > base_rows.max(1) {
+        let opened = segments
+            .iter()
+            .enumerate()
+            .map(|(index, segment)| open(index, segment))
+            .collect::<io::Result<Vec<_>>>()?;
+        let base = write(
+            &target,
+            name,
+            Table { segments: opened }.rows()?,
+            &BTreeSet::new(),
+        )?;
+        replace_newest(&mut segments, 0, base);
+        return Ok(TableRef { segments });
+    }
+    if deltas > MAX_DELTAS {
+        // Size-tiered: merge the newest deltas, extending back while an older
+        // delta is no larger than everything newer, so each row is rewritten
+        // a logarithmic number of times before the base absorbs it.
+        let last = segments.len().saturating_sub(1);
+        let mut from = last.saturating_sub(1).max(1);
+        let mut newer: u64 = segments[from..].iter().map(|segment| segment.rows).sum();
+        while from > 1 && segments[from.saturating_sub(1)].rows <= newer {
+            from = from.saturating_sub(1);
+            newer = newer.saturating_add(segments[from].rows);
+        }
+        let opened = segments
+            .iter()
+            .enumerate()
+            .skip(from)
+            .map(|(index, segment)| open(index, segment))
+            .collect::<io::Result<Vec<_>>>()?;
+        let tombstones: BTreeSet<String> = opened
+            .iter()
+            .flat_map(|segment| segment.tombstones.iter().cloned())
+            .collect();
+        let merged = write(
+            &target,
+            name,
+            Table { segments: opened }.rows()?,
+            &tombstones,
+        )?;
+        replace_newest(&mut segments, from, merged);
     }
     // A directory every generation shares already holds the earlier segments.
     for segment in segments[..segments.len().saturating_sub(1)]
         .iter()
         .filter(|_| source != target)
     {
+        // Only the previous generation's segments need linking; a merged
+        // delta was written into `target` already.
         let to = target.join(&segment.file);
         if !to.exists() && std::fs::hard_link(source.join(&segment.file), &to).is_err() {
             let bytes = std::fs::read(source.join(&segment.file))?;
             let mut file = std::fs::File::create(&to)?;
             file.write_all(&bytes)?;
-            file.sync_all()?;
+            crate::durable::flush(&file)?;
         }
     }
     Ok(TableRef { segments })
@@ -573,11 +617,12 @@ mod tests {
         let mut table = TableRef::default();
         // Oracle: owner -> its current rows.
         let mut oracle: BTreeMap<String, Vec<Row>> = BTreeMap::new();
-        for generation in 0..30u32 {
+        let mut bases = 0;
+        for generation in 0..120u32 {
             let dir = root.path().join(format!("g{generation}"));
             std::fs::create_dir(&dir).unwrap();
             let (replaced, rows): (BTreeSet<String>, Vec<Row>) = if generation == 0 {
-                let rows: Vec<Row> = (0..40)
+                let rows: Vec<Row> = (0..80)
                     .flat_map(|f| {
                         (0..5).map(move |k| {
                             Row::new(format!("name{k}"), format!("f{f}"), format!("f{f}#{k}"))
@@ -586,7 +631,7 @@ mod tests {
                     .collect();
                 (rows.iter().map(|r| r.owner.clone()).collect(), rows)
             } else {
-                let file = format!("f{}", generation % 40);
+                let file = format!("f{}", generation % 80);
                 let rows = (0..3)
                     .map(|k| {
                         Row::new(
@@ -617,6 +662,9 @@ mod tests {
             )
             .unwrap();
             assert!(table.segments.len() <= MAX_DELTAS + 1);
+            if table.segments.len() == 1 {
+                bases += 1;
+            }
             let opened = Table::open(&dir, &table).unwrap();
             let mut expected: Vec<Row> = oracle.values().flatten().cloned().collect();
             expected.sort();
@@ -632,6 +680,9 @@ mod tests {
             }
             previous_dir = Some(dir);
         }
+        // 400 base rows absorb 100 delta rows (about 33 generations of 3)
+        // before a rewrite; merging deltas never rewrites the base.
+        assert!(bases <= 5, "{bases} base rewrites");
     }
 
     #[test]

@@ -79,6 +79,9 @@ blake3 = "1"
 
 # Pack compression (engine only): one zstd frame per immutable record pack.
 zstd = { version = "0.13", default-features = false }
+# Plain fsync(2) on Apple platforms (engine only), where std's `sync_all` always
+# flushes the whole drive cache (see `crates/engine/src/durable.rs`).
+rustix = { version = "1", default-features = false, features = ["fs", "std"] }
 
 # Dev.
 proptest = "1"

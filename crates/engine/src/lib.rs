@@ -11,6 +11,7 @@
 #![warn(missing_docs)]
 
 mod compress;
+mod durable;
 mod generation;
 mod manifest_records;
 mod record_codec;

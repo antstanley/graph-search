@@ -1186,10 +1186,11 @@ impl NativeStore {
         };
         // Rename has made the new generation visible. A directory-sync error
         // cannot honestly be reported as a rollback: refuse reads until reopen.
-        if let Err(error) = self
-            .inject("after_publish")
-            .and_then(|()| generation::sync_dir(&self.store_dir).map_err(store_io))
-        {
+        if let Err(error) = self.inject("after_publish").and_then(|()| {
+            std::fs::File::open(&self.store_dir)
+                .and_then(|dir| crate::durable::sync(&dir))
+                .map_err(store_io)
+        }) {
             self.unavailable = true;
             return Err(Error::Store(format!(
                 "generation published but directory sync failed: {error}; reopen required"
@@ -1260,7 +1261,7 @@ impl NativeStore {
         retained: &BTreeSet<String>,
     ) -> Result<Written> {
         std::fs::File::create(dir.join(generation::LEASE))
-            .and_then(|file| file.sync_all())
+            .and_then(|file| crate::durable::flush(&file))
             .map_err(store_io)?;
         let objects = self.objects();
 

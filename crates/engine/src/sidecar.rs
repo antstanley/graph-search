@@ -42,7 +42,8 @@ pub fn load_manifest(store_dir: &Path) -> std::io::Result<Option<Manifest>> {
 /// When the store directory is unwritable.
 pub fn save_manifest(store_dir: &Path, manifest: &Manifest) -> std::io::Result<()> {
     prepare_manifest(store_dir, manifest)?;
-    crate::generation::sync_dir(store_dir)
+    crate::generation::sync_dir(store_dir)?;
+    crate::durable::barrier(store_dir)
 }
 
 /// Sync the file; the unpublished-generation owner must sync its directory
@@ -55,7 +56,7 @@ pub(crate) fn prepare_manifest(store_dir: &Path, manifest: &Manifest) -> std::io
         .map_err(|error| std::io::Error::new(std::io::ErrorKind::InvalidData, error.to_string()))?;
     let mut file = std::fs::File::create(&tmp)?;
     file.write_all(text.as_bytes())?;
-    file.sync_all()?;
+    crate::durable::flush(&file)?;
     std::fs::rename(&tmp, &target)
 }
 
