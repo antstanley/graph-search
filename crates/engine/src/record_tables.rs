@@ -15,7 +15,7 @@
 
 use crate::record_codec::{DecodeRecord, EncodeRecord};
 use crate::segment::{Row, Table};
-use crate::source_records::{Layout, Reference, Writer};
+use crate::source_records::{Layout, Writer};
 use serde::de::DeserializeOwned;
 use std::collections::{BTreeMap, BTreeSet};
 use std::io;
@@ -376,12 +376,20 @@ pub(crate) fn update<T: EncodeRecord>(
         .map(|path| (*path).to_owned())
         .chain(moved)
         .collect();
+    finish(family, &output, owners, &retired, &small)
+}
+
+/// The delta for records `output` wrote in place of `owners`' old ones.
+fn finish(
+    family: Family,
+    output: &Writer<'_>,
+    owners: BTreeSet<String>,
+    retired: &BTreeSet<String>,
+    small: &BTreeMap<String, u64>,
+) -> io::Result<Delta> {
     let mut path_rows = Vec::new();
     let mut pack_rows = Vec::new();
-    for (path, reference) in &output.records {
-        let Reference::Packed(packed) = reference else {
-            return Err(io::Error::other("new records are always packed"));
-        };
+    for (path, packed) in &output.records {
         let size = output
             .sizes
             .get(&packed.pack)
@@ -405,7 +413,7 @@ pub(crate) fn update<T: EncodeRecord>(
         .collect();
     let mut small_rows = Vec::new();
     for (pack, size) in &output.sizes {
-        if *size < layout.small_pack_bytes() {
+        if *size < family.layout.small_pack_bytes() {
             small_owners.insert(pack.clone());
             small_rows.push(Row::new(SMALL, pack.as_str(), size.to_string()));
         }
@@ -428,6 +436,30 @@ pub(crate) fn update<T: EncodeRecord>(
     })
 }
 
+/// A fresh family of the given encoded record bytes, which need not decode:
+/// for tests that damage a record while keeping it authenticated.
+#[cfg(test)]
+pub(crate) fn raw(
+    objects: &Path,
+    family: Family,
+    records: &BTreeMap<String, Vec<u8>>,
+) -> io::Result<Delta> {
+    let directory = objects.join(family.layout.directory);
+    std::fs::create_dir_all(&directory)?;
+    let mut output = Writer::new(&directory, family.layout.pack_bytes);
+    for (path, bytes) in records {
+        output.add_encoded(path, bytes)?;
+    }
+    output.flush()?;
+    finish(
+        family,
+        &output,
+        records.keys().cloned().collect(),
+        &BTreeSet::new(),
+        &BTreeMap::new(),
+    )
+}
+
 /// Bytes of distinct ranges among `members`: records deduplicated within a
 /// batch share one range.
 fn live_bytes(members: &[(String, Entry)]) -> usize {
@@ -438,4 +470,128 @@ fn live_bytes(members: &[(String, Entry)]) -> usize {
     ranges.iter().fold(0usize, |total, (_, len)| {
         total.saturating_add(usize::try_from(*len).unwrap_or(usize::MAX))
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::segment::{TableRef, Tables};
+    use graph_search_types::source::SourceFileUnits;
+
+    const FAMILY: Family = Family {
+        layout: Layout {
+            directory: "test-records",
+            pack_bytes: 1024,
+        },
+        paths: "test_paths",
+        packs: "test_packs",
+        small: "test_small",
+    };
+
+    fn record(text: &str) -> SourceFileUnits {
+        SourceFileUnits {
+            source_hash: text.repeat(8),
+            version: 1,
+            ..SourceFileUnits::default()
+        }
+    }
+
+    fn publish(
+        objects: &Path,
+        refs: &mut Tables,
+        writes: &BTreeMap<String, SourceFileUnits>,
+        dropped: &BTreeSet<String>,
+    ) {
+        let opened: BTreeMap<String, Table> = refs
+            .tables
+            .iter()
+            .map(|(name, reference)| (name.clone(), Table::open(objects, reference).unwrap()))
+            .collect();
+        let delta = update(
+            objects,
+            FAMILY,
+            Records::open(FAMILY, &opened).as_ref(),
+            writes,
+            dropped,
+        )
+        .unwrap();
+        let previous = (!refs.tables.is_empty()).then_some(objects);
+        for table in FAMILY.tables() {
+            let reference = crate::segment::publish(
+                objects,
+                table,
+                previous,
+                refs.tables.get(table).unwrap_or(&TableRef::default()),
+                &delta.owners[table],
+                delta.rows[table].clone(),
+            )
+            .unwrap();
+            refs.tables.insert(table.to_owned(), reference);
+        }
+    }
+
+    #[test]
+    fn churn_bounds_dead_bytes_and_small_pack_count() {
+        let root = tempfile::tempdir().unwrap();
+        let objects = root.path();
+        let mut files: BTreeMap<String, SourceFileUnits> = (0..32)
+            .map(|i| (format!("{i:02}"), record(&i.to_string())))
+            .collect();
+        let mut refs = Tables::default();
+        publish(objects, &mut refs, &files, &BTreeSet::new());
+        for edit in 0..40 {
+            let path = format!("{:02}", edit % 32);
+            let mut writes = BTreeMap::new();
+            let mut dropped = BTreeSet::new();
+            if files.contains_key(&path) {
+                let value = record(&format!("edit-{edit}"));
+                files.insert(path.clone(), value.clone());
+                writes.insert(path, value);
+            }
+            if edit == 20 {
+                dropped = files
+                    .keys()
+                    .filter(|path| path.as_str() >= "08")
+                    .cloned()
+                    .collect();
+                files.retain(|path, _| path.as_str() < "08");
+                writes.retain(|path, _| !dropped.contains(path));
+            }
+            publish(objects, &mut refs, &writes, &dropped);
+            let opened: BTreeMap<String, Table> = refs
+                .tables
+                .iter()
+                .map(|(name, reference)| (name.clone(), Table::open(objects, reference).unwrap()))
+                .collect();
+            let records = Records::open(FAMILY, &opened).unwrap();
+            assert_eq!(records.load::<SourceFileUnits>(objects).unwrap(), files);
+            let mut packs: BTreeMap<String, Vec<(String, Entry)>> = BTreeMap::new();
+            for path in records.paths().unwrap() {
+                let entry = records.get(&path).unwrap().unwrap();
+                packs
+                    .entry(entry.pack.clone())
+                    .or_default()
+                    .push((path, entry));
+            }
+            let small = packs
+                .values()
+                .filter(|members| members[0].1.size < FAMILY.layout.small_pack_bytes())
+                .count();
+            assert!(small <= 2, "edit {edit}: {small} small packs");
+            for members in packs.values() {
+                let size = usize::try_from(members[0].1.size).unwrap();
+                if (size as u64) >= FAMILY.layout.small_pack_bytes() {
+                    assert!(
+                        live_bytes(members) >= crate::source_records::minimum_live(size),
+                        "edit {edit}: a pack below 75% live bytes survived"
+                    );
+                }
+            }
+            assert_eq!(
+                records.small_packs().unwrap().len(),
+                small,
+                "edit {edit}: the small table tracks the small packs"
+            );
+        }
+    }
 }

@@ -60,7 +60,6 @@ const DEPENDENCY_TABLES: [&str; 6] = [
 ];
 /// Every file's dependency record, read one file at a time.
 const DEPENDENCY_LAYOUT: crate::source_records::Layout = crate::source_records::Layout {
-    index: generation::DEPENDENCY_RECORDS,
     directory: "dependency-records",
     pack_bytes: 256 * 1024,
 };
@@ -158,7 +157,10 @@ pub struct NativeStore {
     shards: RwLock<HashMap<String, Arc<Shard>>>,
     sources: OnceLock<BTreeMap<String, SourceFileUnits>>,
     occurrence_files: OnceLock<BTreeMap<String, OccurrenceFile>>,
-    extraction_records: OnceLock<Option<crate::manifest_records::Verified>>,
+    /// Identities of the extraction values this handle wrote or read.
+    extraction_identities: RwLock<crate::manifest_records::Identities>,
+    /// Every path with an extraction record, kept current across publications.
+    extraction_paths: OnceLock<BTreeSet<String>>,
     /// Dependency records read so far.
     records: RwLock<HashMap<String, Arc<DependencyRecord>>>,
     /// Every node, sorted by id: the metadata index and bulk reads.
@@ -210,7 +212,8 @@ impl NativeStore {
             shards: RwLock::new(HashMap::new()),
             sources: OnceLock::new(),
             occurrence_files: OnceLock::new(),
-            extraction_records: OnceLock::new(),
+            extraction_identities: RwLock::new(BTreeMap::new()),
+            extraction_paths: OnceLock::new(),
             records: RwLock::new(HashMap::new()),
             nodes: OnceLock::new(),
             metadata: OnceLock::new(),
@@ -563,20 +566,25 @@ impl NativeStore {
         Ok((total > 0).then_some(total))
     }
 
-    fn extraction_records(&self) -> Result<Option<&crate::manifest_records::Verified>> {
-        loaded(&self.extraction_records, || {
-            match (
-                self.artifact(crate::manifest_records::FILE)?,
-                self.manifest_header.as_ref(),
-            ) {
-                (Some(bytes), Some(header)) => Ok(Some(
-                    crate::manifest_records::prepare_verified(&bytes, header, &self.data_dir)
-                        .map_err(store_io)?,
-                )),
-                _ => Ok(None),
-            }
+    fn extraction_records(&self) -> Result<Option<Records<'_>>> {
+        if self.manifest_header.is_none() {
+            return Ok(None);
+        }
+        self.family(crate::manifest_records::RECORDS)
+    }
+
+    /// Every path with an extraction record.
+    fn extraction_paths(&self) -> Result<&BTreeSet<String>> {
+        loaded(&self.extraction_paths, || {
+            Ok(self
+                .extraction_records()?
+                .map(|records| records.paths())
+                .transpose()
+                .map_err(store_io)?
+                .unwrap_or_default()
+                .into_iter()
+                .collect())
         })
-        .map(Option::as_ref)
     }
 
     fn metadata(&self) -> Result<&graph_search_core::metadata::MetadataIndex> {
@@ -1187,7 +1195,7 @@ impl NativeStore {
                 return Err(error);
             }
         };
-        let files = match generation::prepare_pointer(&self.store_dir, &dir) {
+        let files = match generation::prepare_pointer(&self.store_dir, &dir, &written.committed) {
             Ok(files) => files,
             Err(error) => {
                 let _ = std::fs::remove_dir_all(&dir);
@@ -1253,7 +1261,10 @@ fn dependency_rows(
 /// The indexes a publish wrote, adopted without reading them back.
 struct Written {
     tables: Tables,
-    extraction: Option<crate::manifest_records::Verified>,
+    /// The paths with an extraction record, when the publish had a manifest.
+    extraction: Option<BTreeSet<String>>,
+    /// The hashes of the artifacts CURRENT commits, by name.
+    committed: BTreeMap<String, String>,
 }
 
 impl NativeStore {
@@ -1314,11 +1325,29 @@ impl NativeStore {
             &plan.record_owners,
         )
         .map_err(store_io)?;
-        let families = [
+        let extraction = match manifest {
+            Some(manifest) => Some(
+                crate::manifest_records::update(
+                    &objects,
+                    self.extraction_records()?.as_ref(),
+                    self.extraction_paths()?,
+                    manifest,
+                    &self.extraction_identities,
+                    retained,
+                )
+                .map_err(store_io)?,
+            ),
+            None => None,
+        };
+        self.inject("after_extraction_persist")?;
+        let mut families = vec![
             (SHARD_RECORDS, &shards, true),
             (SOURCE_RECORDS, &sources, true),
             (DEPENDENCY_RECORDS, &dependencies, coherent),
         ];
+        if let Some(extraction) = &extraction {
+            families.push((crate::manifest_records::RECORDS, &extraction.delta, true));
+        }
 
         // Posting tables: one delta each, compacted by policy.
         let old_tables = self.table_refs()?;
@@ -1346,7 +1375,7 @@ impl NativeStore {
                 tables.tables.insert((*table).to_owned(), reference);
             }
         }
-        for (family, delta, carried) in families {
+        for &(family, delta, carried) in &families {
             for table in family.tables() {
                 let reference = crate::segment::publish(
                     &objects,
@@ -1377,28 +1406,27 @@ impl NativeStore {
             tables.tables.insert(table.to_owned(), reference);
         }
         generation::sync_dir(&objects.join(crate::segment::DIRECTORY)).map_err(store_io)?;
-        generation::replace(
-            &dir.join(generation::TABLES),
-            &serde_json::to_vec(&tables).map_err(|error| Error::Store(error.to_string()))?,
-        )
-        .map_err(store_io)?;
-        self.inject("after_table_persist")?;
-
-        let mut extraction = None;
-        if let Some(manifest) = manifest {
-            extraction = Some(
-                crate::manifest_records::save_into(
-                    dir,
-                    &objects,
-                    &objects,
-                    manifest,
-                    self.extraction_records()?,
-                    retained,
-                )
-                .map_err(store_io)?,
+        // The artifacts CURRENT commits, hashed as they are written.
+        let mut committed: BTreeMap<String, String> = BTreeMap::new();
+        let mut commit = |name: &str, bytes: &[u8]| -> Result<()> {
+            generation::replace(&dir.join(name), bytes).map_err(store_io)?;
+            committed.insert(
+                name.to_owned(),
+                graph_search_core::hash::content_hash(bytes),
             );
-            self.inject("after_extraction_persist")?;
-            sidecar::prepare_manifest(dir, &manifest.header()).map_err(store_io)?;
+            Ok(())
+        };
+        commit(
+            generation::TABLES,
+            &serde_json::to_vec(&tables).map_err(|error| Error::Store(error.to_string()))?,
+        )?;
+        self.inject("after_table_persist")?;
+        if let Some(manifest) = manifest {
+            commit(
+                sidecar::MANIFEST_FILE,
+                &serde_json::to_vec(&manifest.header())
+                    .map_err(|error| Error::Store(error.to_string()))?,
+            )?;
         }
         // The objects this generation keeps alive, for the collector: the
         // previous list, less what this publish retired, plus what it wrote.
@@ -1417,9 +1445,11 @@ impl NativeStore {
         };
         listed.retain(|name| {
             !within(crate::segment::DIRECTORY, name)
-                && !within(crate::manifest_records::LAYOUT.directory, name)
+                // Without a manifest, the extraction records go with it.
+                && (extraction.is_some()
+                    || !within(crate::manifest_records::LAYOUT.directory, name))
         });
-        for (family, delta, carried) in families {
+        for &(family, delta, carried) in &families {
             let directory = family.layout.directory;
             if carried {
                 for pack in &delta.retired {
@@ -1435,14 +1465,6 @@ impl NativeStore {
                     .map(|pack| format!("{directory}/{pack}")),
             );
         }
-        if let Some(extraction) = &extraction {
-            listed.extend(
-                extraction
-                    .pack_names()
-                    .into_iter()
-                    .map(|name| format!("{}/{name}", crate::manifest_records::LAYOUT.directory)),
-            );
-        }
         for table in tables.tables.values() {
             listed.extend(
                 table
@@ -1456,16 +1478,19 @@ impl NativeStore {
             &serde_json::to_vec(&listed).map_err(|error| Error::Store(error.to_string()))?,
         )
         .map_err(store_io)?;
-        generation::replace(
-            &dir.join(generation::SUMMARY),
+        commit(
+            generation::SUMMARY,
             &serde_json::to_vec(&plan.summary).map_err(|error| Error::Store(error.to_string()))?,
-        )
-        .map_err(store_io)?;
+        )?;
         self.inject("after_manifest_persist")?;
         generation::sync_dir(dir).map_err(store_io)?;
         generation::sync_dir(&self.store_dir.join("generations")).map_err(store_io)?;
         self.inject("after_generation_sync")?;
-        Ok(Written { tables, extraction })
+        Ok(Written {
+            tables,
+            extraction: extraction.map(|update| update.paths),
+            committed,
+        })
     }
 
     /// Switches this handle to the generation it just published. Shards it
@@ -1524,7 +1549,10 @@ impl NativeStore {
 
         self.sources = OnceLock::new();
         self.occurrence_files = OnceLock::new();
-        self.extraction_records = OnceLock::from(written.extraction);
+        *self.extraction_identities.write().map_err(|_| poisoned())? = manifest
+            .map(crate::manifest_records::identities)
+            .unwrap_or_default();
+        self.extraction_paths = OnceLock::from(written.extraction.unwrap_or_default());
         self.nodes = OnceLock::new();
         self.metadata = OnceLock::new();
         self.body = OnceLock::new();
@@ -1564,11 +1592,7 @@ impl GraphStore for NativeStore {
             }
             retained.clear();
         } else {
-            let available = self
-                .extraction_records()?
-                .map(crate::manifest_records::Verified::paths)
-                .unwrap_or_default();
-            if !retained.is_subset(&available) {
+            if !retained.is_subset(self.extraction_paths()?) {
                 return Err(Error::Store("missing retained extraction".into()));
             }
             // Timestamp changes require a new full record fingerprint. Only these
@@ -1614,14 +1638,16 @@ impl GraphStore for NativeStore {
 
     fn manifest(&self) -> Result<Option<Manifest>> {
         self.ensure_available()?;
-        match (&self.manifest_header, self.extraction_records()?) {
-            (Some(header), Some(index)) => {
-                crate::manifest_records::hydrate(&self.objects(), header, index)
-                    .map(Some)
-                    .map_err(store_io)
-            }
-            (Some(header), None) => Ok(Some(header.clone())),
-            _ => Ok(None),
+        match &self.manifest_header {
+            Some(header) => crate::manifest_records::hydrate(
+                &self.objects(),
+                header,
+                self.extraction_records()?.as_ref(),
+                &self.extraction_identities,
+            )
+            .map(Some)
+            .map_err(store_io),
+            None => Ok(None),
         }
     }
 
@@ -1633,12 +1659,16 @@ impl GraphStore for NativeStore {
         if paths.is_empty() {
             return Ok(BTreeMap::new());
         }
-        match (&self.manifest_header, self.extraction_records()?) {
-            (Some(header), Some(index)) => {
-                crate::manifest_records::selected(&self.objects(), header, index, paths)
-                    .map_err(store_io)
-            }
-            _ => Ok(BTreeMap::new()),
+        match &self.manifest_header {
+            Some(header) => crate::manifest_records::selected(
+                &self.objects(),
+                header,
+                self.extraction_records()?.as_ref(),
+                &self.extraction_identities,
+                paths,
+            )
+            .map_err(store_io),
+            None => Ok(BTreeMap::new()),
         }
     }
 
@@ -2064,57 +2094,66 @@ mod publication_tests {
         store.publish(original.clone()).unwrap();
         let dir = store.data_dir.clone();
         drop(store);
-        let index_path = dir.join(crate::manifest_records::FILE);
-        let mut index: serde_json::Value =
-            serde_json::from_slice(&std::fs::read(&index_path).unwrap()).unwrap();
-        let mut pack = Vec::new();
-        let records = index["records"].as_object_mut().unwrap();
-        for (path, record) in records.iter_mut() {
-            let old = crate::compress::inflate_pack(
-                &std::fs::read(
-                    root.path()
-                        .join(generation::OBJECTS)
-                        .join("extraction-records")
-                        .join(record["pack"].as_str().unwrap()),
-                )
-                .unwrap(),
+        // Rewrite the extraction records with src/b.rs as valid authenticated
+        // JSON bytes that are not a typed FileEntry. Decoding every cold record
+        // would fail; preserving it must not hide the error when this path is
+        // later explicitly requested.
+        let objects = root.path().join(generation::OBJECTS);
+        let raw: BTreeMap<String, Vec<u8>> = original
+            .manifest
+            .entries
+            .iter()
+            .filter(|(_, entry)| entry.extraction.is_some())
+            .map(|(path, entry)| {
+                let mut bytes = Vec::new();
+                if path == "src/b.rs" {
+                    bytes.extend_from_slice(b"true");
+                } else {
+                    crate::record_codec::EncodeRecord::encode_record(&entry, &mut bytes).unwrap();
+                }
+                (path.clone(), bytes)
+            })
+            .collect();
+        let delta =
+            crate::record_tables::raw(&objects, crate::manifest_records::RECORDS, &raw).unwrap();
+        let tables_path = dir.join(generation::TABLES);
+        let mut refs: Tables =
+            serde_json::from_slice(&std::fs::read(&tables_path).unwrap()).unwrap();
+        for table in crate::manifest_records::RECORDS.tables() {
+            let reference = crate::segment::publish(
+                &objects,
+                table,
+                None,
+                &TableRef::default(),
+                &delta.owners[table],
+                delta.rows[table].clone(),
             )
             .unwrap();
-            let start = usize::try_from(record["offset"].as_u64().unwrap()).unwrap();
-            let len = usize::try_from(record["len"].as_u64().unwrap()).unwrap();
-            // Valid authenticated JSON bytes, but not a typed FileEntry. Decoding
-            // every cold record would fail; preserving it must not hide the error
-            // when this path is later explicitly requested.
-            let bytes = if path == "src/b.rs" {
-                b"true".as_slice()
-            } else {
-                &old[start..start + len]
-            };
-            record["offset"] = serde_json::json!(pack.len());
-            record["len"] = serde_json::json!(bytes.len());
-            record["hash"] = graph_search_core::hash::content_hash(bytes).into();
-            pack.extend_from_slice(bytes);
+            refs.tables.insert(table.to_owned(), reference);
         }
-        let pack = crate::compress::deflate(&pack).unwrap();
-        let hash = graph_search_core::hash::content_hash(&pack);
-        for record in records.values_mut() {
-            record["pack"] = hash.clone().into();
-        }
-        std::fs::write(
-            root.path()
-                .join(generation::OBJECTS)
-                .join("extraction-records")
-                .join(hash),
-            pack,
-        )
-        .unwrap();
-        let bytes = serde_json::to_vec(&index).unwrap();
-        std::fs::write(&index_path, &bytes).unwrap();
+        let bytes = serde_json::to_vec(&refs).unwrap();
+        std::fs::write(&tables_path, &bytes).unwrap();
+        // The new objects are this generation's, so the collector keeps them.
+        let list_path = dir.join(generation::OBJECT_LIST);
+        let mut listed: Vec<String> =
+            serde_json::from_slice(&std::fs::read(&list_path).unwrap()).unwrap();
+        listed.extend(
+            delta
+                .written
+                .iter()
+                .map(|pack| format!("{}/{pack}", crate::manifest_records::LAYOUT.directory)),
+        );
+        listed.extend(refs.tables.values().flat_map(|table| {
+            table
+                .files()
+                .map(|file| format!("{}/{file}", crate::segment::DIRECTORY))
+                .collect::<Vec<_>>()
+        }));
+        std::fs::write(&list_path, serde_json::to_vec(&listed).unwrap()).unwrap();
         let pointer_path = root.path().join(generation::CURRENT);
         let mut pointer: serde_json::Value =
             serde_json::from_slice(&std::fs::read(&pointer_path).unwrap()).unwrap();
-        pointer["files"][crate::manifest_records::FILE] =
-            graph_search_core::hash::content_hash(&bytes).into();
+        pointer["files"][generation::TABLES] = graph_search_core::hash::content_hash(&bytes).into();
         std::fs::write(pointer_path, serde_json::to_vec(&pointer).unwrap()).unwrap();
         let mut store = NativeStore::open(root.path(), &StoreOptions::default()).unwrap();
         assert!(store.manifest().is_err());
@@ -2314,15 +2353,16 @@ mod publication_tests {
         let older = NativeStore::open(root.path(), &StoreOptions::default()).unwrap();
         assert!(older.generation().unwrap().is_none());
         drop(older);
-        pointer["format"] = serde_json::json!(14);
+        // A current-format descriptor without its table list is incomplete.
+        pointer["format"] = serde_json::json!(15);
         pointer["files"]
             .as_object_mut()
             .unwrap()
-            .remove(crate::manifest_records::FILE);
+            .remove(generation::TABLES);
         std::fs::write(&pointer_path, serde_json::to_vec(&pointer).unwrap()).unwrap();
         assert!(NativeStore::open(root.path(), &StoreOptions::default()).is_err());
         std::fs::write(&pointer_path, original_pointer).unwrap();
-        std::fs::remove_file(dir.join(crate::manifest_records::FILE)).unwrap();
+        std::fs::remove_file(dir.join(generation::TABLES)).unwrap();
         assert!(open_and_read(root.path()).is_err());
     }
 
@@ -2371,7 +2411,7 @@ mod publication_tests {
         store.publish(fixture_batch()).unwrap();
         let old = state(&store);
         let orphan = generation::allocate(root.path()).unwrap();
-        std::fs::write(orphan.join(crate::shards::FILE), b"unfinished").unwrap();
+        std::fs::write(orphan.join(generation::TABLES), b"unfinished").unwrap();
         drop(store);
         let reopened = NativeStore::open(root.path(), &StoreOptions::default()).unwrap();
         assert_eq!(state(&reopened), old);

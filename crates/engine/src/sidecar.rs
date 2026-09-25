@@ -21,19 +21,26 @@ pub fn load_manifest(store_dir: &Path) -> std::io::Result<Option<Manifest>> {
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(None),
         Err(error) => return Err(error),
     };
-    let manifest = serde_json::from_str(&text)
+    let manifest: Manifest = serde_json::from_str(&text)
         .map_err(|error| std::io::Error::new(std::io::ErrorKind::InvalidData, error.to_string()))?;
-    // A generation keeps its packs in the store's object directory; a bare
-    // directory keeps them beside its index.
-    let packs = if store_dir
-        .join(crate::manifest_records::LAYOUT.directory)
-        .is_dir()
+    // A header's extraction values live in the generation's record family.
+    if manifest
+        .entries
+        .values()
+        .any(|entry| entry.extraction.is_some())
+        || !store_dir.join(crate::generation::TABLES).exists()
     {
-        store_dir.to_path_buf()
-    } else {
-        objects_of(store_dir)
-    };
-    crate::manifest_records::load(store_dir, &packs, manifest).map(Some)
+        return Ok(Some(manifest));
+    }
+    let objects = objects_of(store_dir);
+    let tables = open_tables(store_dir, &objects)?;
+    crate::manifest_records::hydrate(
+        &objects,
+        &manifest,
+        crate::record_tables::Records::open(crate::manifest_records::RECORDS, &tables).as_ref(),
+        &std::sync::RwLock::default(),
+    )
+    .map(Some)
 }
 
 /// Writes the manifest atomically.
@@ -52,7 +59,7 @@ pub(crate) fn prepare_manifest(store_dir: &Path, manifest: &Manifest) -> std::io
     std::fs::create_dir_all(store_dir)?;
     let target = store_dir.join(MANIFEST_FILE);
     let tmp = store_dir.join(format!("{MANIFEST_FILE}.tmp"));
-    let text = serde_json::to_string_pretty(manifest)
+    let text = serde_json::to_string(manifest)
         .map_err(|error| std::io::Error::new(std::io::ErrorKind::InvalidData, error.to_string()))?;
     let mut file = std::fs::File::create(&tmp)?;
     file.write_all(text.as_bytes())?;
@@ -78,6 +85,20 @@ fn table_refs(generation: &Path) -> std::io::Result<crate::segment::Tables> {
         .map_err(std::io::Error::other)
 }
 
+/// A generation directory's opened tables.
+fn open_tables(
+    generation: &Path,
+    objects: &Path,
+) -> std::io::Result<std::collections::BTreeMap<String, crate::segment::Table>> {
+    table_refs(generation)?
+        .tables
+        .iter()
+        .map(|(name, reference)| {
+            crate::segment::Table::open(objects, reference).map(|table| (name.clone(), table))
+        })
+        .collect()
+}
+
 /// Reads the native source facts a generation directory commits.
 /// # Errors
 /// On unreadable or malformed data.
@@ -86,13 +107,7 @@ pub fn load_sources(
 ) -> std::io::Result<std::collections::BTreeMap<String, graph_search_types::source::SourceFileUnits>>
 {
     let objects = objects_of(generation);
-    let tables = table_refs(generation)?
-        .tables
-        .iter()
-        .map(|(name, reference)| {
-            crate::segment::Table::open(&objects, reference).map(|table| (name.clone(), table))
-        })
-        .collect::<std::io::Result<std::collections::BTreeMap<_, _>>>()?;
+    let tables = open_tables(generation, &objects)?;
     match crate::record_tables::Records::open(crate::store::SOURCE_RECORDS, &tables) {
         Some(records) => records.load(&objects),
         None => Ok(std::collections::BTreeMap::new()),

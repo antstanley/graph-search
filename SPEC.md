@@ -209,7 +209,7 @@ Design notes:
 ### 4.3 The engine: a native generation store
 
 `graph-search-engine` implements core's `GraphStore` port with its own storage
-(format 14, `research/16-proportional-sync.md`). The store lives at
+(format 15, `research/16-proportional-sync.md`). The store lives at
 `<root>/.graph-search/index/` by default and is git-ignored. It replaced the
 embedded Grafeo database, as this section always allowed: an in-process
 adjacency map proved sufficient, and Grafeo rebuilt and re-serialized the whole
@@ -856,10 +856,10 @@ identities survive, rewrites the untouched files that point at a removed node,
 and computes the new posting rows, summary and dependency index. Only then does
 it write the changed shards and source records as new packs and one delta
 segment per posting table into `objects/`, and, under `generations/<id>/`, the
-table list, the object list, the extraction index, the manifest header and the
-summary. It then publishes a small `CURRENT` descriptor by atomic rename. The
-descriptor records storage format 14 and BLAKE3 fingerprints of the small
-artifacts (`tables.json`, `summary.json`, `manifest.json`, `extractions.json`);
+table list, the object list, the manifest header and the summary. It then
+publishes a small `CURRENT` descriptor by atomic rename. The descriptor records
+storage format 15 and BLAKE3 fingerprints of the small artifacts (`tables.json`,
+`summary.json`, `manifest.json`), taken from the bytes as they are written;
 packs and segments are committed
 transitively by their own content hashes. A missing or corrupt
 committed artifact is an error, never a silently empty index. A generation from
@@ -869,7 +869,7 @@ migrated (deleting the store directory is always a safe rebuild).
 Opening a generation is proportional to its header, not its size. Open validates
 the descriptor's completeness, rejects uncommitted artifacts, takes the reader lease,
 and verifies and parses only `manifest.json` and `summary.json`. Every other
-artifact (the shard, source and extraction indexes, the posting tables) is
+artifact (the posting tables, including every pack family's index) is
 verified against its CURRENT fingerprint by its first reader,
 before any of its bytes are used; a shard or record is verified against its own
 hash when it is read, and a segment block against its segment's footer, whose
@@ -902,16 +902,16 @@ rewrites, plus posting lookups for the identities it removes. Retrieval indexes
 on their next use, not on the write path. Publication borrows the batch's
 manifest instead of cloning its raw extraction cache.
 
-Shards, source facts and dependency records are each a pack family whose index
-is three posting tables (format 14, `crates/engine/src/record_tables.rs`):
+Shards, source facts, dependency records and extraction records are each a
+pack family whose index is three posting tables (formats 14 and 15,
+`crates/engine/src/record_tables.rs`):
 `<family>_paths` maps a path to its entry, `<family>_packs` lists each pack's
 entries by pack, and `<family>_small` lists the packs below the family's
 small-pack size. An entry holds the pack fingerprint, record fingerprint, byte
 offset, nonzero length and the pack's inflated size. A publish writes one delta
 per table for the changed files and the packs they lived in, so nothing
 proportional to the workspace is written; the object list is updated by the
-packs a publish writes and retires. The extraction index remains a version-3
-JSON index in `extractions.json`, tied to the manifest header.
+packs a publish writes and retires.
 Each immutable pack under `source-records/` is one zstd frame (level 3, with its
 content size) of concatenated records; offsets and lengths address the inflated
 bytes, and the pack fingerprint covers the compressed file, so corruption is
@@ -994,30 +994,24 @@ boundaries, Cargo manifests and every changed or removed file's module
 declarations are unchanged; anything else, including another writer's
 publication or a failed one, rebuilds them.
 
-Generation format 6 and later commit `extractions.json` whenever they commit a manifest.
-This version-2 record index uses the same native pack codec under `extraction-records/`.
-Each record is a complete per-file manifest entry with a present extraction value;
-header entries carry no extraction values. Reopen authenticates the header and index,
-rejects unknown record owners, and verifies pack/record hashes and checked ranges
-when extraction facts are first needed. It defers raw JSON value decoding until
-facts are requested. A private verified-index
-wrapper can be constructed only by initial pack/record verification or the writer.
-Hydration rechecks each full pack hash and range bounds. With that pinned descriptor,
-identical pack bytes preserve the already-verified record hashes, so hydration does
-not hash every record again. Standalone sidecar reads still verify record hashes.
-Hydration requires extraction presence and an exact match of the remaining entry fingerprint,
+A generation that commits a manifest keeps its extraction values as the
+`extraction` pack family under `extraction-records/` (format 15,
+`crates/engine/src/manifest_records.rs`). Each record is a complete per-file
+manifest entry with a present extraction value; header entries carry no
+extraction values. A record's pack hash and record hash are verified, and its
+owner and fingerprint checked against the header, when its facts are first
+needed; raw JSON values are decoded only then. Hydration requires extraction
+presence and an exact match of the remaining entry fingerprint,
 and combines records with the pinned header. Malformed fact values or mismatched
 fingerprints fail hydration rather than silently becoming empty caches.
 
 `GraphStore::extraction_facts(paths)` returns only requested cached facts; missing
 records and unknown paths are omitted, while present empty extractions remain present.
-MemoryStore selects shared facts directly. The native store uses the pinned verified descriptor
-to look up requested paths, groups by pack and exact byte slice, inflates each
+MemoryStore selects shared facts directly. The native store looks up the requested
+paths in the family's tables, groups them by pack, inflates each
 pack holding a requested record (one bounded zstd frame; a frame has no random
-access), and verifies each selected record hash before decoding. Duplicate slices
-share one data read. Unselected records are not decoded and unrelated packs are not
-opened. This authenticates returned records, not unselected bytes that may have
-changed after open; full hydration still verifies whole packs. Selected records must
+access), and verifies each selected record hash before decoding. Unselected
+records are not decoded and unrelated packs are not opened. Selected records must
 match the complete per-file header fingerprint. Its identity cache stores only weak
 references and merges selected paths without evicting other cached identities.
 Empty requests perform no fact I/O; unavailable handles still refuse reads. Legacy
@@ -1032,15 +1026,17 @@ fingerprints except for mtime. Representation and policy identities must agree.
 Stale requests, conflicting ownership and missing caches fail before mutation.
 Ordinary publication still treats absent extraction values as cache removal.
 
-The native store retains verified descriptors for untouched records. Timestamp-only changes
-load and rewrite just those records with updated fingerprints. Compaction copies
-verified record slices without typed JSON decoding; malformed cold values remain
+The native store never reads or rewrites untouched records; a handle keeps the
+set of paths with a record current across its own publications, so finding the
+records a publish drops reads nothing. Timestamp-only changes load and rewrite
+just those records with updated fingerprints. Compaction copies verified record
+slices without typed JSON decoding; malformed cold values remain
 errors when explicitly requested, rather than being silently converted to empty
 facts. New/materialized records use shared-identity or serialized-hash equality to
 prove reuse; source hashes alone do not prove equal facts. MemoryStore preserves
 shared payloads and reuses compact dependency records. Compatibility adapters may
 materialize retained facts before ordinary publication. Legacy embedded manifests
-migrate on publication. Header, extraction index, packs and graph become visible
+migrate on publication. Header, extraction records, packs and graph become visible
 through the same CURRENT swap; generation leases protect retained readers.
 
 This layout reduces unchanged source-fact serialization and storage duplication.

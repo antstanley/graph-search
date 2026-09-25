@@ -379,6 +379,33 @@ a clean rebuild, and is measured with Criterion (see `AGENTS.md`).
    | `storage_sync/json_edit` | 20.5 ms | 17.3 ms | −16.6% |
    | `storage_publish/reindex_full` | 362 ms | 359 ms | −0.9% |
 
+1i. **Extraction records as a pack family (format 15). Done.** After 1h,
+   rebuilding the whole-workspace extraction index (`extractions.json`) was
+   about 8% of a one-file sync at 4,000 modules, writing the pretty-printed
+   manifest header about 3%, and reading every committed artifact back to
+   hash it about 2%. Extraction records are now a fourth `record_tables`
+   family; a handle keeps the set of paths with a record current across its
+   own publications, so the records a publish drops, and the retention check,
+   read nothing. A record is rewritten when its value is not the one the
+   handle last wrote or read for the same header and its encoding hashes
+   differently from the stored record. The header is compact JSON, and
+   `CURRENT` takes each artifact's hash from the bytes as they are written.
+   The whole-map index code in `source_records.rs` is gone; what remains is
+   the pack writer every family shares.
+
+   Criterion against `edcbafc`, base and new alternated twice on the sync
+   benches (an A/B/A run was too loaded to separate them):
+
+   | Benchmark | Base | New | Change |
+   |---|---|---|---|
+   | `sync_scaling` 4,000 modules | 41.0 / 43.4 ms | 36.7 / 41.1 ms | −12.5% / −12.5% |
+   | `sync_scaling` 1,000 modules | 20.5 / 19.6 ms | 21.0 / 29.4 ms | no change / no change |
+   | `sync_scaling` 250 modules | 17.0 / 15.4 ms | 17.1 / 19.3 ms | no change / +20.6% (wide interval) |
+   | `storage_sync/rust_body_edit` | 16.5 / 17.8 ms | 17.2 / 18.7 ms | +7.1% / no change |
+
+   The gain is at scale; small workspaces may pay a fixed cost for the three
+   extra segments each publish writes. The store shrinks 1.4%.
+
 2. **Posting tables.** `names`, `incoming`, `consumers`, `selected`, `cross` as
    base and delta segments. Delta summaries and edge counts. Publish writes one
    delta per table.

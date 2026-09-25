@@ -17,13 +17,9 @@ use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 use std::io;
 
-/// The name the shard layout carries; since format 14 the shard index is a
-/// set of posting tables (see `record_tables`), not an artifact.
-pub(crate) const FILE: &str = "shards.json";
 /// Shards are read one file at a time, so their packs are kept small: a lookup
 /// inflates at most one pack of this size.
 pub(crate) const LAYOUT: Layout = Layout {
-    index: FILE,
     directory: "shard-records",
     pack_bytes: 256 * 1024,
 };

@@ -21,7 +21,9 @@ pub(crate) const CURRENT: &str = "CURRENT";
 /// structure, so a sync reads only the symbols its references name.
 /// Format 14: the shard, source and dependency pack indexes are posting
 /// tables (`record_tables`), so a publish writes nothing per unchanged file.
-const FORMAT: u32 = 14;
+/// Format 15: the extraction index is a record family too, and the manifest
+/// header is compact JSON hashed as it is written.
+const FORMAT: u32 = 15;
 /// The store-level directory of content-addressed packs and segments.
 pub(crate) const OBJECTS: &str = "objects";
 /// Every object a generation references, relative to [`OBJECTS`]: what the
@@ -36,11 +38,8 @@ pub(crate) const TABLES: &str = "tables.json";
 pub(crate) const SUMMARY: &str = "summary.json";
 /// Artifacts every generation commits.
 const REQUIRED: [&str; 2] = [SUMMARY, TABLES];
-/// The name the dependency-record layout carries; since format 14 its index
-/// is a set of posting tables, not an artifact.
-pub(crate) const DEPENDENCY_RECORDS: &str = "dependencies.json";
 /// Artifacts a generation may commit.
-const OPTIONAL: [&str; 2] = [crate::sidecar::MANIFEST_FILE, crate::manifest_records::FILE];
+const OPTIONAL: [&str; 1] = [crate::sidecar::MANIFEST_FILE];
 static SERIAL: AtomicU64 = AtomicU64::new(0);
 
 #[derive(Serialize, Deserialize)]
@@ -170,13 +169,6 @@ fn select(root: &Path, bytes: &[u8]) -> io::Result<Selected> {
             "incomplete generation descriptor",
         ));
     }
-    let has_extractions = pointer.files.contains_key(crate::manifest_records::FILE);
-    let has_manifest = pointer.files.contains_key(crate::sidecar::MANIFEST_FILE);
-    if has_extractions != has_manifest {
-        return Err(io::Error::other(
-            "incomplete extraction generation descriptor",
-        ));
-    }
     for name in OPTIONAL {
         if !pointer.files.contains_key(name) && dir.join(name).exists() {
             return Err(io::Error::new(
@@ -271,27 +263,26 @@ fn commit(dir: &Path, path: &Path, bytes: &[u8]) -> io::Result<()> {
     std::fs::rename(tmp, path)
 }
 
-/// Commits every written artifact of `dir` by hash and makes it CURRENT.
-/// Returns the committed hashes, so the publisher can adopt the generation
-/// without reading it back.
-pub(crate) fn prepare_pointer(root: &Path, dir: &Path) -> io::Result<BTreeMap<String, String>> {
+/// Commits `files`, the hashes of the artifacts written into `dir`, and makes
+/// `dir` CURRENT. Returns the committed hashes, so the publisher can adopt the
+/// generation without reading it back.
+pub(crate) fn prepare_pointer(
+    root: &Path,
+    dir: &Path,
+    files: &BTreeMap<String, String>,
+) -> io::Result<BTreeMap<String, String>> {
     let id = dir
         .file_name()
         .and_then(|s| s.to_str())
         .ok_or_else(|| io::Error::other("invalid generation name"))?;
-    let mut files = BTreeMap::new();
-    for name in REQUIRED.iter().chain(OPTIONAL.iter()) {
-        match std::fs::read(dir.join(name)) {
-            Ok(bytes) => {
-                files.insert(
-                    (*name).to_owned(),
-                    graph_search_core::hash::content_hash(&bytes),
-                );
-            }
-            Err(error) if OPTIONAL.contains(name) && error.kind() == io::ErrorKind::NotFound => {}
-            Err(error) => return Err(error),
-        }
+    if REQUIRED.iter().any(|name| !files.contains_key(*name))
+        || files
+            .keys()
+            .any(|name| !REQUIRED.contains(&name.as_str()) && !OPTIONAL.contains(&name.as_str()))
+    {
+        return Err(io::Error::other("incomplete generation artifacts"));
     }
+    let files = files.clone();
     let pointer = serde_json::to_vec(&Pointer {
         format: FORMAT,
         id: id.to_owned(),
