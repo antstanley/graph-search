@@ -32,4 +32,8 @@ class Host:
     def close(self):
         if self.proc.poll() is None:
             self.proc.stdin.close()
-            self.proc.wait(timeout=60)
+            try:
+                self.proc.wait(timeout=60)
+            except subprocess.TimeoutExpired:
+                self.proc.kill()
+                self.proc.wait()

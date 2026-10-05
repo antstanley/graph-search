@@ -70,6 +70,17 @@ fn answer(index: &Index, request: &Value) -> Result<Value, Failure> {
             }
             graph(&service.neighbors(&query)?)
         }
+        // Individual reference sites with their resolution class and reason.
+        "occurrences" => {
+            let query: graph_search_types::occurrence::OccurrenceQuery =
+                serde_json::from_value(json!({
+                    "target": target,
+                    "by": request["by"].as_str().unwrap_or("name"),
+                    "filters": {},
+                    "limit": limit(request),
+                }))?;
+            json!({"items": service.occurrences(&query)?.items})
+        }
         "deps" => graph(&service.deps(&DepsQuery::new(target).with_limit(limit(request)))?),
         "explore" => {
             let k = request["k"].as_u64().and_then(|k| u32::try_from(k).ok()).unwrap_or(8);

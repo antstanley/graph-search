@@ -14,6 +14,7 @@ use std::io::Read;
 use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
 use syn::visit::{self, Visit};
+use syn::parse::Parse;
 use syn::{Attribute, Expr, Ident, Token};
 
 struct Frame {
@@ -251,16 +252,106 @@ impl<'ast> Visit<'ast> for Oracle<'_> {
 
     fn visit_macro(&mut self, mac: &'ast syn::Macro) {
         // Most call-carrying macros (`assert!`, `format!`, `vec!`, `println!`,
-        // `write!`) take comma-separated expressions.
+        // `write!`) take comma-separated expressions. Others are parsed by
+        // their documented grammar: an item list (`proptest!`), `select!`
+        // arms, and insta's `assert_snapshot!(expr, @"...")`.
+        self.in_macro += 1;
         if let Ok(args) = mac.parse_body_with(Punctuated::<Expr, Token![,]>::parse_terminated) {
-            self.in_macro += 1;
             for arg in &args {
                 self.visit_expr(arg);
             }
-            self.in_macro -= 1;
+        } else if let Ok(exprs) = mac.parse_body_with(snapshot_arguments) {
+            for expr in &exprs {
+                self.visit_expr(expr);
+            }
+        } else if let Ok(arms) = mac.parse_body_with(select_arms) {
+            for expr in &arms {
+                self.visit_expr(expr);
+            }
+        } else if let Ok(file) = mac.parse_body_with(syn::File::parse) {
+            for item in &file.items {
+                self.visit_item(item);
+            }
+        } else if let Ok(bodies) = mac.parse_body_with(proptest_bodies) {
+            // Functions a macro generates are not indexed definitions; their
+            // calls belong to the enclosing scope.
+            for body in &bodies {
+                self.visit_block(body);
+            }
         }
+        self.in_macro -= 1;
         visit::visit_macro(self, mac);
     }
+}
+
+/// `expr, ..., @"inline snapshot"` (insta): the expressions before the `@`.
+fn snapshot_arguments(input: syn::parse::ParseStream<'_>) -> syn::Result<Vec<Expr>> {
+    let mut exprs = Vec::new();
+    while !input.is_empty() {
+        if input.peek(Token![@]) {
+            input.parse::<Token![@]>()?;
+            input.parse::<syn::Lit>()?;
+            input.parse::<Option<Token![,]>>()?;
+            continue;
+        }
+        exprs.push(input.parse()?);
+        if !input.is_empty() {
+            input.parse::<Token![,]>()?;
+        }
+    }
+    if exprs.is_empty() {
+        return Err(input.error("no expressions"));
+    }
+    Ok(exprs)
+}
+
+/// `proptest!`: `[#![config]] (#[attr]* fn name(pat in strategy, ..) { .. })*`.
+fn proptest_bodies(input: syn::parse::ParseStream<'_>) -> syn::Result<Vec<syn::Block>> {
+    input.call(Attribute::parse_inner)?;
+    let mut bodies = Vec::new();
+    while !input.is_empty() {
+        input.call(Attribute::parse_outer)?;
+        input.parse::<Token![fn]>()?;
+        input.parse::<Ident>()?;
+        let arguments;
+        syn::parenthesized!(arguments in input);
+        arguments.parse::<proc_macro2::TokenStream>()?;
+        bodies.push(input.parse()?);
+    }
+    if bodies.is_empty() {
+        return Err(input.error("no test functions"));
+    }
+    Ok(bodies)
+}
+
+/// `tokio::select!`: `[biased;] pat = future [, if cond] => handler, ... [else => handler]`.
+fn select_arms(input: syn::parse::ParseStream<'_>) -> syn::Result<Vec<Expr>> {
+    let mut exprs = Vec::new();
+    if input.peek(syn::Ident) && input.fork().parse::<syn::Ident>()? == "biased" {
+        input.parse::<syn::Ident>()?;
+        input.parse::<Token![;]>()?;
+    }
+    while !input.is_empty() {
+        if input.peek(Token![else]) {
+            input.parse::<Token![else]>()?;
+        } else {
+            syn::Pat::parse_multi_with_leading_vert(input)?;
+            input.parse::<Token![=]>()?;
+            exprs.push(Expr::parse_without_eager_brace(input)?);
+            if input.peek(Token![,]) && input.peek2(Token![if]) {
+                input.parse::<Token![,]>()?;
+                input.parse::<Token![if]>()?;
+                exprs.push(Expr::parse_without_eager_brace(input)?);
+            }
+        }
+        input.parse::<Token![=>]>()?;
+        exprs.push(input.parse()?);
+        input.parse::<Option<Token![,]>>()?;
+    }
+    if exprs.is_empty() {
+        return Err(input.error("no arms"));
+    }
+    Ok(exprs)
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {

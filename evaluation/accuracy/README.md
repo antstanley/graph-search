@@ -26,7 +26,7 @@ graph-search --bench evaluation -- repo`).
 |---|---|---|
 | `oracles/python_oracle.py` | CPython `ast` | tree-sitter-python |
 | `oracles/ts_oracle.cjs` | TypeScript compiler parser (`typescript` 6.x, syntactic only) | tree-sitter-typescript/javascript |
-| `oracles/rust-oracle` | `syn` 2 with span locations | tree-sitter-rust |
+| `oracles/rust-oracle` | `syn` 2 with span locations; macro arguments parsed as expression lists, item lists, `select!` arms, `proptest!` bodies and insta `@"…"` snapshots (`json!` bodies are not read) | tree-sitter-rust |
 | `oracles/okf_oracle.py` | a CommonMark-subset reader | tree-sitter-okf |
 
 ## Tasks and metrics
@@ -89,6 +89,8 @@ CARGO_TARGET_DIR=/tmp/rust-oracle-target cargo build --release --manifest-path e
 python3 evaluation/accuracy/run.py --repos repos.json --out evaluation/accuracy/results/<date>
 python3 evaluation/accuracy/report.py evaluation/accuracy/results/<date> [--exclude-from-pool REPO ...]
 ```
+
+A configured repository whose root no longer exists is skipped and reported.
 
 If a file makes indexing abort, `--exclude-aborting` excludes directories
 named like its parent and retries (graph-search excludes match directory names,

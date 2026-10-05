@@ -651,6 +651,9 @@ def main():
         if args.only and name not in args.only:
             continue
         print(f"== {name}", flush=True)
+        if not Path(root).is_dir():
+            print(f"   skipped: {root} does not exist", flush=True)
+            continue
         try:
             result = run_repo(name, root, args.out, stop_python, set(args.okf))
             print(json.dumps({lang: {k: v for k, v in s.items() if k in ("comparable_defs", "concepts")}
