@@ -44,11 +44,14 @@ impl Packages {
         Self { facts, workspaces }
     }
 
+    /// `source` maps a build-output file that is not in the tree to its
+    /// source file (a TypeScript project's `outDir` to `rootDir`).
     pub(crate) fn resolve(
         &self,
         from: &str,
         specifier: &str,
         known: &BTreeSet<String>,
+        source: &dyn Fn(&str) -> Option<String>,
     ) -> Result<String, &'static str> {
         if specifier.starts_with('.') || specifier.starts_with('/') {
             return resolve_specifier(from, specifier, known, Language::TypeScript)
@@ -136,7 +139,7 @@ impl Packages {
             } else {
                 "node_mapping_missing"
             })?;
-        resolve_target(manifest, target, known)
+        resolve_target(manifest, target, known, source)
     }
 
     fn scope(&self, from: &str) -> Result<(&str, &PackageManifest), &'static str> {
@@ -162,6 +165,7 @@ fn resolve_target(
     manifest: &str,
     target: &NodePackageTarget,
     known: &BTreeSet<String>,
+    source: &dyn Fn(&str) -> Option<String>,
 ) -> Result<String, &'static str> {
     let path = match target {
         NodePackageTarget::Path(path) | NodePackageTarget::InvariantPath(path) => path,
@@ -212,7 +216,8 @@ fn resolve_target(
         .collect();
     match choices.as_slice() {
         [path] => Ok(path.clone()),
-        [] => Err("node_mapping_target_missing"),
+        // Unbuilt output (`dist/index.js`): the source it is compiled from.
+        [] => source(&target).ok_or("node_mapping_target_missing"),
         _ => Err("node_mapping_target_ambiguous"),
     }
 }

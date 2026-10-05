@@ -17,8 +17,10 @@ use graph_search_types::source::SourceFileUnits;
 use serde_json::Value;
 use std::collections::{BTreeMap, BTreeSet};
 
-/// Maximum admitted configuration files considered for one generation.
-pub(crate) const MAX_PROJECT_CONFIGS: usize = 32;
+/// Maximum admitted configuration files considered for one generation. A
+/// lookup walks the importing file's ancestor directories, so its cost does
+/// not grow with the number of projects.
+pub(crate) const MAX_PROJECT_CONFIGS: usize = 1024;
 
 /// Whether an admitted path names a configuration that can define aliases.
 #[must_use]
@@ -32,9 +34,9 @@ pub(crate) fn is_project_config(path: &str) -> bool {
 /// One directory's configuration and its compiled bounded resolver.
 #[derive(Clone, Debug)]
 struct Project {
-    /// Directory of the configuration without a trailing slash; empty at the root.
-    directory: String,
     resolution: Option<Resolved>,
+    /// The compiled output directory and the source directory it mirrors.
+    output: Option<(String, String)>,
 }
 
 #[derive(Clone, Debug)]
@@ -47,7 +49,8 @@ struct Resolved {
 /// ordinary relative/package rules.
 #[derive(Clone, Debug, Default)]
 pub(crate) struct Projects {
-    projects: Vec<Project>,
+    /// By configuration directory.
+    projects: BTreeMap<String, Project>,
 }
 
 impl Projects {
@@ -92,21 +95,33 @@ impl Projects {
             // Ambiguity above the bound is explicit: no project is selected.
             return Self::default();
         }
-        let mut projects: Vec<Project> = configs
+        let projects = configs
             .into_iter()
-            .map(|(directory, path)| Project {
-                resolution: compile(path, sources),
-                directory,
+            .map(|(directory, path)| {
+                (
+                    directory,
+                    Project {
+                        resolution: compile(path, sources),
+                        output: output_mapping(path, sources),
+                    },
+                )
             })
             .collect();
-        // Longest directory first: `find` then returns the nearest configuration.
-        projects.sort_by(|a, b| {
-            b.directory
-                .len()
-                .cmp(&a.directory.len())
-                .then_with(|| a.directory.cmp(&b.directory))
-        });
         Self { projects }
+    }
+
+    /// The nearest project whose directory contains `path`.
+    fn nearest(&self, path: &str) -> Option<&Project> {
+        let mut directory = path;
+        loop {
+            directory = directory.rsplit_once('/').map_or("", |(parent, _)| parent);
+            if let Some(project) = self.projects.get(directory) {
+                return Some(project);
+            }
+            if directory.is_empty() {
+                return None;
+            }
+        }
     }
 
     /// Resolves one bare specifier through the importing file's nearest project.
@@ -125,12 +140,7 @@ impl Projects {
         {
             return None;
         }
-        let project = self.projects.iter().find(|project| {
-            project.directory.is_empty()
-                || from
-                    .strip_prefix(&project.directory)
-                    .is_some_and(|rest| rest.starts_with('/'))
-        })?;
+        let project = self.nearest(from)?;
         let resolved = project.resolution.as_ref()?;
         let mut presence = |_candidate: &str| Ok(Availability::Unknown);
         let packages = BTreeSet::new();
@@ -150,6 +160,93 @@ impl Projects {
 
 /// Compiles one configuration's aliases and file-loader options, or records the
 /// unsupported reason by returning `None`.
+impl Projects {
+    /// The source file a project compiles to `output`, when `output` lies
+    /// under the project's `outDir`: the same relative path under `rootDir`
+    /// with its source extension (`dist/a.js` -> `src/a.ts`).
+    pub(crate) fn output_source(&self, output: &str, known: &BTreeSet<String>) -> Option<String> {
+        self.nearest(output).and_then(|project| {
+            let (out_dir, root_dir) = project.output.as_ref()?;
+            let relative = output.strip_prefix(out_dir.as_str())?.strip_prefix('/')?;
+            let (stem, extensions): (&str, &[&str]) = if let Some(stem) = relative
+                .strip_suffix(".d.ts")
+                .or_else(|| relative.strip_suffix(".js"))
+            {
+                (stem, &["ts", "tsx"])
+            } else if let Some(stem) = relative.strip_suffix(".mjs") {
+                (stem, &["mts"])
+            } else {
+                (relative.strip_suffix(".cjs")?, &["cts"])
+            };
+            let choices: Vec<String> = extensions
+                .iter()
+                .map(|extension| format!("{root_dir}/{stem}.{extension}"))
+                .filter(|candidate| known.contains(candidate))
+                .collect();
+            match choices.as_slice() {
+                [source] => Some(source.clone()),
+                _ => None,
+            }
+        })
+    }
+}
+
+/// A project's `outDir` and the `rootDir` it mirrors, both workspace-relative.
+/// Without an explicit `rootDir`, only `include` patterns that all start in
+/// one top directory name it.
+fn output_mapping(
+    path: &str,
+    sources: &BTreeMap<String, SourceFileUnits>,
+) -> Option<(String, String)> {
+    let effective = typescript::inherit(path, sources).ok()?;
+    let options = effective
+        .configuration
+        .fields
+        .get("compilerOptions")?
+        .as_object()?;
+    let directory = |origin: &str| {
+        origin
+            .rsplit_once('/')
+            .map_or("", |(directory, _)| directory)
+            .to_owned()
+    };
+    let join = |base: &str, relative: &str| -> Option<String> {
+        let mut parts: Vec<&str> = base.split('/').filter(|part| !part.is_empty()).collect();
+        for part in relative.split('/') {
+            match part {
+                "" | "." => {}
+                ".." => {
+                    parts.pop()?;
+                }
+                other => parts.push(other),
+            }
+        }
+        (!parts.is_empty()).then(|| parts.join("/"))
+    };
+    let out_dir = join(
+        &directory(effective.option_origins.get("outDir")?),
+        options.get("outDir")?.as_str()?,
+    )?;
+    let root_dir = if let Some(root) = options.get("rootDir").and_then(Value::as_str) {
+        join(&directory(effective.option_origins.get("rootDir")?), root)?
+    } else {
+        let include = effective.configuration.fields.get("include")?.as_array()?;
+        let mut tops = include.iter().map(|pattern| {
+            pattern
+                .as_str()
+                .map(|pattern| pattern.trim_start_matches("./"))
+                .and_then(|pattern| pattern.split('/').next())
+                .filter(|top| !top.contains('*') && !top.is_empty())
+        });
+        let first = tops.next()??;
+        if !tops.all(|top| top == Some(first)) {
+            return None;
+        }
+        join(&directory(effective.field_origins.get("include")?), first)?
+    };
+    (out_dir != root_dir).then_some((out_dir, root_dir))
+}
+
 fn compile(path: &str, sources: &BTreeMap<String, SourceFileUnits>) -> Option<Resolved> {
     let effective = typescript::inherit(path, sources).ok()?;
     let mode = mode(&effective)?;
@@ -239,6 +336,34 @@ mod tests {
         assert_eq!(
             projects.resolve("src/app.ts", "missing/thing", &known),
             None
+        );
+    }
+
+    #[test]
+    fn a_sveltekit_app_without_its_generated_base_still_resolves_lib() {
+        let mut sources = BTreeMap::new();
+        sources.insert(
+            "app/tsconfig.json".into(),
+            source(
+                r#"{"extends":"./.svelte-kit/tsconfig.json","compilerOptions":{"strict":true}}"#,
+            ),
+        );
+        let effective = crate::typescript::inherit("app/tsconfig.json", &sources);
+        assert!(effective.is_ok(), "{effective:?}");
+        let effective = effective.unwrap();
+        assert!(mode(&effective).is_some());
+        let aliases = Aliases::compile(&effective);
+        assert!(aliases.is_ok(), "{aliases:?}");
+        let options = Options::compile(&effective, mode(&effective).unwrap());
+        assert!(options.is_ok(), "{options:?}");
+        let projects = Projects::build(&sources);
+        let known: BTreeSet<String> = ["app/src/hooks.ts", "app/src/lib/logger.ts"]
+            .into_iter()
+            .map(str::to_owned)
+            .collect();
+        assert_eq!(
+            projects.resolve("app/src/hooks.ts", "$lib/logger", &known),
+            Some("app/src/lib/logger.ts".into())
         );
     }
 

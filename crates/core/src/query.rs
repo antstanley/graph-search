@@ -66,6 +66,19 @@ struct Seeds {
     files_scanned: u64,
 }
 
+/// How directly a node defines its name: 0 for declarations, 1 for members
+/// and variables, 2 for function-local symbols.
+fn definition_tier(node: &Node) -> u8 {
+    if node.attribute("lexical_local") == Some("true") {
+        2
+    } else {
+        u8::from(matches!(
+            node.kind,
+            NodeKind::Field | NodeKind::Variant | NodeKind::Variable | NodeKind::Export
+        ))
+    }
+}
+
 /// The read API over one snapshot.
 pub struct QueryEngine<'a> {
     snapshot: &'a dyn GraphSnapshot,
@@ -306,6 +319,15 @@ impl<'a> QueryEngine<'a> {
                 &mut self.work.borrow_mut(),
             )?
         };
+        let mut found = found;
+        // Among equally named matches, declarations come before members and
+        // variables, and those before function-local symbols; the sort is
+        // stable, so bare names still precede qualified ones.
+        found.sort_by(|a, b| {
+            b.score
+                .total_cmp(&a.score)
+                .then_with(|| definition_tier(&a.item).cmp(&definition_tier(&b.item)))
+        });
         let mut nodes: Vec<SymbolHit> = found
             .into_iter()
             .map(|scored| SymbolHit::of(&scored.item))
@@ -801,6 +823,7 @@ impl<'a> QueryEngine<'a> {
             candidates,
             files_scanned,
         } = self.seed(query, root, policy, &mut sources, &context)?;
+        self.credit_index_links(&mut seeds, &evidence)?;
         if coverage.enumeration_complete.is_some() {
             coverage.quarantined_files = context.coverage.quarantined_files;
             self.snapshot.source_coverage().apply(&mut coverage);
@@ -1707,6 +1730,61 @@ impl<'a> QueryEngine<'a> {
             return Ok(file_id);
         }
         self.resolve_target(target)
+    }
+
+    /// An OKF `index.md`/`log.md` entry restates the document it links to
+    /// (`- [Title](doc.md) - description`). A seed matched on such a line
+    /// stands for that document: the linked concept takes the seed's place,
+    /// moving up if it ranked lower.
+    fn credit_index_links(
+        &self,
+        seeds: &mut Vec<Scored<Node>>,
+        evidence: &BTreeMap<NodeId, graph_search_types::source::SourceEvidence>,
+    ) -> Result<()> {
+        let mut index = 0usize;
+        while index < seeds.len() {
+            let node = &seeds[index].item;
+            let reserved = std::path::Path::new(&node.path)
+                .file_name()
+                .is_some_and(|name| name == "index.md" || name == "log.md");
+            let Some(line) = evidence
+                .get(&node.id)
+                .filter(|_| reserved && matches!(node.kind, NodeKind::Section | NodeKind::File))
+                .map(|evidence| evidence.match_line)
+            else {
+                index = index.saturating_add(1);
+                continue;
+            };
+            let targets: BTreeSet<NodeId> = self
+                .read_edges(&node.id, &[EdgeKind::LinksTo], Direction::Out)?
+                .into_iter()
+                .filter(|edge| edge.from == node.id && edge.line == Some(line))
+                .filter_map(|edge| edge.to)
+                .collect();
+            let targets: Vec<NodeId> = targets.into_iter().collect();
+            let [target] = targets.as_slice() else {
+                index = index.saturating_add(1);
+                continue;
+            };
+            let Some(concept) = self
+                .read_node(target)?
+                .filter(|node| node.kind == NodeKind::Concept)
+            else {
+                index = index.saturating_add(1);
+                continue;
+            };
+            if let Some(later) = seeds.iter().position(|seed| seed.item.id == concept.id) {
+                if later < index {
+                    // Already ranked above its index entry.
+                    seeds.remove(index);
+                    continue;
+                }
+                seeds.remove(later);
+            }
+            seeds[index].item = concept;
+            index = index.saturating_add(1);
+        }
+        Ok(())
     }
 
     fn validate_filters(&self, filters: &graph_search_types::query::GraphFilters) -> Result<()> {

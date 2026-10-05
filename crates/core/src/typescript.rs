@@ -96,8 +96,13 @@ impl Loader<'_> {
         self.active.insert(path.into());
         let mut effective = EffectiveConfig::default();
         for base in bases {
-            let target = self.target(path, base)?;
-            let inherited = self.load(&target)?;
+            let inherited = match self.target(path, base) {
+                Ok(target) => self.load(&target)?,
+                Err("ts_config_missing") => {
+                    sveltekit_generated(path, base)?.ok_or("ts_config_missing")?
+                }
+                Err(reason) => return Err(reason),
+            };
             effective.merge(&inherited, false)?;
         }
         let mut local = EffectiveConfig {
@@ -145,6 +150,73 @@ impl Loader<'_> {
         }
         Err("ts_config_missing")
     }
+}
+
+/// `SvelteKit` writes `.svelte-kit/tsconfig.json` at build time, and an app's
+/// own `tsconfig.json` extends it; the generated file is ignored and hidden,
+/// so it is never indexed. When that base is missing, its default content
+/// stands in: the `$lib` alias, bundler resolution and the app's source
+/// membership, relative to `.svelte-kit/` as `SvelteKit` writes them. Aliases
+/// declared in `svelte.config.js` (`kit.alias`) are executable configuration
+/// and are not modeled.
+fn sveltekit_generated(
+    from: &str,
+    base: &str,
+) -> Result<Option<Arc<EffectiveConfig>>, &'static str> {
+    let directory = from.rsplit_once('/').map_or("", |(directory, _)| directory);
+    let candidate = normalize(directory, base)?;
+    let Some((generated_dir, "tsconfig.json")) = candidate.rsplit_once('/') else {
+        return Ok(None);
+    };
+    if generated_dir.rsplit('/').next() != Some(".svelte-kit") {
+        return Ok(None);
+    }
+    let sources = |patterns: &[&str]| -> Value {
+        Value::Array(
+            patterns
+                .iter()
+                .map(|p| Value::String((*p).into()))
+                .collect(),
+        )
+    };
+    let mut options = Map::new();
+    let mut paths = Map::new();
+    paths.insert("$lib".into(), sources(&["../src/lib"]));
+    paths.insert("$lib/*".into(), sources(&["../src/lib/*"]));
+    options.insert("paths".into(), Value::Object(paths));
+    options.insert("moduleResolution".into(), Value::String("bundler".into()));
+    options.insert("module".into(), Value::String("esnext".into()));
+    let mut fields = BTreeMap::new();
+    fields.insert("compilerOptions".to_owned(), Value::Object(options.clone()));
+    fields.insert(
+        "include".to_owned(),
+        sources(&[
+            "../src/**/*.js",
+            "../src/**/*.ts",
+            "../src/**/*.svelte",
+            "../test/**/*.js",
+            "../test/**/*.ts",
+            "../tests/**/*.js",
+            "../tests/**/*.ts",
+            "../vite.config.js",
+            "../vite.config.ts",
+        ]),
+    );
+    let configuration = TypeScriptConfig {
+        fields,
+        // The ordered wildcard keys of `paths`.
+        path_patterns: vec!["$lib/*".into()],
+        unavailable_reason: None,
+    };
+    Ok(Some(Arc::new(EffectiveConfig {
+        configuration,
+        field_origins: BTreeMap::from([("include".to_owned(), candidate.clone())]),
+        option_origins: options
+            .keys()
+            .map(|key| (key.clone(), candidate.clone()))
+            .collect(),
+        dependencies: BTreeMap::new(),
+    })))
 }
 
 fn validate_shapes(config: &TypeScriptConfig) -> Result<(), &'static str> {

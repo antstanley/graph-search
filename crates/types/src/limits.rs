@@ -148,7 +148,12 @@ pub const RESULT_SCHEMA_VERSION: u32 = 4;
 /// impls name their impl, and a lone `use super::*` binds the parent's names;
 /// TS `abstract` methods are methods, and `this.#private()` and awaited
 /// generic calls bind; every duplicate declaration is contained.
-pub const PARSER_VERSION: u32 = 28;
+/// v29: Python docstrings are documentation and `from pkg import mod` calls
+/// bind through `mod`; TS function-valued fields are methods, dynamic imports
+/// bind, typed receivers (`new C()`, `: C`, `this.f`) bind `x.m()`, docs on
+/// exports survive repeated nested names, and body parse errors keep exports;
+/// Rust macro-argument receivers are typed and test modules see parent imports.
+pub const PARSER_VERSION: u32 = 29;
 
 /// Default independent ceiling on edges delivered by one graph/explore query.
 pub const RETURNED_EDGES_DEFAULT: usize = 1000;

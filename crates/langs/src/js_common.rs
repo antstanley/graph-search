@@ -252,7 +252,30 @@ impl<'a> JsExtractor<'a> {
                     .or_else(|| node.child_by_field_name("property"))
                     .map(|name| self.text(name).to_owned());
                 if let Some(name) = name {
-                    self.emit(node, NodeKind::Field, name, self.first_line(node));
+                    // `load = async () => ..` is called like a method.
+                    let callable = node.child_by_field_name("value").is_some_and(|value| {
+                        matches!(
+                            value.kind(),
+                            "arrow_function" | "function_expression" | "function"
+                        )
+                    });
+                    let kind = if callable {
+                        NodeKind::Method
+                    } else {
+                        NodeKind::Field
+                    };
+                    self.emit(node, kind, name, self.first_line(node));
+                    let mut cursor = node.walk();
+                    if callable
+                        && node
+                            .children(&mut cursor)
+                            .any(|child| child.kind() == "static")
+                        && let Some(method) = self.extraction.symbols.last_mut()
+                    {
+                        method
+                            .attributes
+                            .insert("static_callable".into(), "true".into());
+                    }
                     self.walk_children(node);
                     self.scope.pop();
                 }
@@ -491,10 +514,23 @@ impl<'a> JsExtractor<'a> {
                                     .chars()
                                     .all(|c| c.is_alphanumeric() || c == '_' || c == '$')
                         })
+                        .map(str::to_owned)
                 } else if fact.name == import.local {
-                    Some(import.imported.as_str())
+                    Some(import.imported.clone())
                 } else {
-                    None
+                    // `Imported.member()`: a member of the imported binding,
+                    // resolved by core through the export (a class's method).
+                    fact.name
+                        .strip_prefix(import.local.as_str())
+                        .and_then(|name| name.strip_prefix('.'))
+                        .filter(|member| {
+                            fact.kind == EdgeKind::Calls
+                                && !member.is_empty()
+                                && member.chars().all(|c| {
+                                    c.is_alphanumeric() || c == '_' || c == '$' || c == '#'
+                                })
+                        })
+                        .map(|member| format!("{}.{member}", import.imported))
                 };
                 if let Some(target) = target {
                     let cost = import.source.len().saturating_add(target.len());
@@ -503,7 +539,7 @@ impl<'a> JsExtractor<'a> {
                     } else {
                         added_bytes = added_bytes.saturating_add(cost);
                         fact.via_import = Some(import.source.clone());
-                        fact.name = target.to_owned();
+                        fact.name = target;
                         None
                     }
                 } else {

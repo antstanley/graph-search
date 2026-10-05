@@ -235,7 +235,10 @@ impl<'s> SymbolTable<'s> {
         if let Some(target) = self.ts_projects.resolve(from, specifier, known) {
             return Ok(target);
         }
-        self.node_packages.resolve(from, specifier, known)
+        self.node_packages
+            .resolve(from, specifier, known, &|output| {
+                self.ts_projects.output_source(output, known)
+            })
     }
     /// Select the nearest admitted configuration for each file and compile its
     /// declared `paths`/`baseUrl` aliases. Unsupported configurations are skipped.
@@ -553,7 +556,7 @@ pub fn specifier_candidates(
         | Language::Vue
         | Language::Astro => js_candidates(from_path, specifier),
         Language::Css | Language::Html => vec![relative(from_path, specifier)],
-        Language::Python => python_candidates(from_path, specifier),
+        Language::Python => python_candidates(from_path, specifier, known_files),
         // Dependency tracking only: with the bundle-root fallback this selects a
         // superset of what a `links_to` path can resolve to, so any change in a
         // link's or a citation's target is still observed.
@@ -643,15 +646,46 @@ fn js_candidates(from_path: &str, specifier: &str) -> Vec<String> {
 /// (`.`, `..pkg`). A module is a package directory with an `__init__` or a
 /// `.py`/`.pyi` file; as in Python's own path finder, a regular package wins over
 /// a same-named module file.
-fn python_candidates(from_path: &str, specifier: &str) -> Vec<String> {
-    python_module_path(from_path, specifier).map_or_else(Vec::new, |joined| {
-        vec![
-            format!("{joined}/__init__.py"),
-            format!("{joined}/__init__.pyi"),
-            format!("{joined}.py"),
-            format!("{joined}.pyi"),
+fn python_candidates(
+    from_path: &str,
+    specifier: &str,
+    known_files: &BTreeSet<String>,
+) -> Vec<String> {
+    let Some(joined) = python_module_path(from_path, specifier) else {
+        return Vec::new();
+    };
+    let module = |root: &str| {
+        let path = if root.is_empty() {
+            joined.clone()
+        } else {
+            format!("{root}/{joined}")
+        };
+        [
+            format!("{path}/__init__.py"),
+            format!("{path}/__init__.pyi"),
+            format!("{path}.py"),
+            format!("{path}.pyi"),
         ]
-    })
+    };
+    let mut candidates = module("").to_vec();
+    // An absolute import also searches the project directories above the
+    // importing file: each ancestor that is not itself a package (holds no
+    // `__init__.py`) is a `sys.path` root as pytest and scripts make one,
+    // nearest first, after the workspace root.
+    if !specifier.trim().starts_with('.') {
+        let mut directory = std::path::Path::new(from_path).parent();
+        while let Some(path) = directory {
+            let root = path.to_string_lossy();
+            if root.is_empty() {
+                break;
+            }
+            if !known_files.contains(&format!("{root}/__init__.py")) {
+                candidates.extend(module(&root));
+            }
+            directory = path.parent();
+        }
+    }
+    candidates
 }
 
 /// The slash-joined module path a Python specifier names, or `None` when it
@@ -1042,6 +1076,25 @@ pub(crate) fn resolve_in(
                     to_name: target,
                 };
             }
+            // `Export.member()`: a method of the exported class.
+            if fact.kind == EdgeKind::Calls
+                && let Some((export, member)) = fact.name.split_once('.')
+                && !member.contains('.')
+            {
+                return match js_class_member(&target, export, member, table, known_files) {
+                    Ok(node) => Resolution {
+                        class: ResolutionClass::ExplicitImport,
+                        reason: None,
+                        fact: fact.clone(),
+                        to_name: node
+                            .qualified_name
+                            .clone()
+                            .unwrap_or_else(|| fact.name.clone()),
+                        to: Some(node.id.clone()),
+                    },
+                    Err(reason) => dangling(fact.name.clone(), reason),
+                };
+            }
             return match table.js_modules.resolve(
                 &target,
                 &fact.name,
@@ -1243,6 +1296,140 @@ pub fn edges_for_extraction(
     .0
 }
 
+/// The method `member` of the class `module` exports as `export`.
+fn js_class_member(
+    module: &str,
+    export: &str,
+    member: &str,
+    table: &SymbolTable<'_>,
+    known_files: &BTreeSet<String>,
+) -> Result<Rc<Node>, &'static str> {
+    let class =
+        table
+            .js_modules
+            .resolve(module, export, EdgeKind::References, table, known_files)?;
+    let class = table.get(&class).ok_or("js_export_missing")?;
+    if class.kind != NodeKind::Class {
+        return Err("js_import_member_not_a_class");
+    }
+    let qualified = format!(
+        "{}.{member}",
+        class.qualified_name.as_deref().unwrap_or_default()
+    );
+    let methods: Vec<_> = table
+        .named_in(&class.path, &qualified)
+        .into_iter()
+        .filter(|node| {
+            node.kind == NodeKind::Method && node.qualified_name.as_deref() == Some(&qualified)
+        })
+        .collect();
+    match methods.as_slice() {
+        [method] => Ok(Rc::clone(method)),
+        [] => Err("js_class_member_missing"),
+        _ => Err("js_class_member_ambiguous"),
+    }
+}
+
+/// Local names a Python file's `from pkg import name [as local]` binds to a
+/// module file (`pkg/name.py`), keyed by local name, valued by the module's
+/// import specifier.
+fn python_submodules(
+    references: &[ReferenceFact],
+    from_path: &str,
+    known_files: &BTreeSet<String>,
+) -> BTreeMap<String, String> {
+    let mut modules = BTreeMap::new();
+    for fact in references {
+        let (EdgeKind::Imports, Some(specifier)) = (fact.kind, &fact.via_import) else {
+            continue;
+        };
+        let nested = python_submodule_specifier(specifier, &fact.name);
+        if resolve_specifier(from_path, &nested, known_files, Language::Python).is_some() {
+            let local = fact.raw_name.clone().unwrap_or_else(|| fact.name.clone());
+            modules.insert(local, nested);
+        }
+    }
+    modules
+}
+
+/// Local names a Python file's `from m import name [as local]` binds, keyed by
+/// local name: the imported name and its module specifier.
+fn python_imported_names(references: &[ReferenceFact]) -> BTreeMap<String, (String, String)> {
+    let mut names: BTreeMap<String, Option<(String, String)>> = BTreeMap::new();
+    for fact in references {
+        let (EdgeKind::Imports, Some(specifier)) = (fact.kind, &fact.via_import) else {
+            continue;
+        };
+        let local = fact.raw_name.clone().unwrap_or_else(|| fact.name.clone());
+        let binding = Some((fact.name.clone(), specifier.clone()));
+        // A name imported twice from different places is left to the
+        // ordinary rules.
+        names
+            .entry(local)
+            .and_modify(|existing| {
+                if *existing != binding {
+                    *existing = None;
+                }
+            })
+            .or_insert(binding);
+    }
+    names
+        .into_iter()
+        .filter_map(|(local, binding)| binding.map(|binding| (local, binding)))
+        .collect()
+}
+
+/// A bare call of a name the file imports with `from m import name`: that
+/// definition in `m`. `None` leaves the call to the ordinary rules.
+fn python_imported_call(
+    fact: &ReferenceFact,
+    imported: &BTreeMap<String, (String, String)>,
+    from_path: &str,
+    table: &SymbolTable<'_>,
+    known_files: &BTreeSet<String>,
+) -> Option<Resolution> {
+    if fact.kind != EdgeKind::Calls || fact.via_import.is_some() || fact.name.contains('.') {
+        return None;
+    }
+    let (name, specifier) = imported.get(&fact.name)?;
+    let mut call = fact.clone();
+    call.name.clone_from(name);
+    call.via_import = Some(specifier.clone());
+    let resolution = resolve_in(&call, from_path, table, known_files, Language::Python, None);
+    resolution.to.is_some().then(|| Resolution {
+        fact: fact.clone(),
+        ..resolution
+    })
+}
+
+/// `module.member()` where `module` was imported with `from pkg import
+/// module`: the member of that module file. `None` leaves the call to the
+/// ordinary rules (a `from`-imported class's `Class.method()` among them).
+fn python_submodule_call(
+    fact: &ReferenceFact,
+    submodules: &BTreeMap<String, String>,
+    from_path: &str,
+    table: &SymbolTable<'_>,
+    known_files: &BTreeSet<String>,
+) -> Option<Resolution> {
+    if fact.kind != EdgeKind::Calls || fact.via_import.is_some() || submodules.is_empty() {
+        return None;
+    }
+    let (module, member) = fact.name.split_once('.')?;
+    if member.contains('.') {
+        return None;
+    }
+    let specifier = submodules.get(module)?;
+    let mut call = fact.clone();
+    member.clone_into(&mut call.name);
+    call.via_import = Some(specifier.clone());
+    let resolution = resolve_in(&call, from_path, table, known_files, Language::Python, None);
+    resolution.to.is_some().then(|| Resolution {
+        fact: fact.clone(),
+        ..resolution
+    })
+}
+
 /// Projects aggregate relationships and independent source occurrences in one resolution pass.
 #[must_use]
 #[allow(clippy::too_many_arguments)]
@@ -1267,6 +1454,14 @@ pub fn project_references(
     let receivers = (language == Language::Rust).then(|| {
         crate::rust_receivers::Receivers::new(&extraction.references, file_path, table, known_files)
     });
+    let (submodules, imported) = if language == Language::Python {
+        (
+            python_submodules(&extraction.references, file_path, known_files),
+            python_imported_names(&extraction.references),
+        )
+    } else {
+        (BTreeMap::new(), BTreeMap::new())
+    };
     for (ordinal, fact) in extraction.references.iter().enumerate() {
         let from = fact
             .from_key
@@ -1275,14 +1470,18 @@ pub fn project_references(
             .cloned()
             .unwrap_or_else(|| file_id.clone());
         let from = occurrence_owner(&from, fact, file_id, table);
-        let resolution = resolve_in(
-            fact,
-            file_path,
-            table,
-            known_files,
-            language,
-            receivers.as_ref(),
-        );
+        let resolution = python_submodule_call(fact, &submodules, file_path, table, known_files)
+            .or_else(|| python_imported_call(fact, &imported, file_path, table, known_files))
+            .unwrap_or_else(|| {
+                resolve_in(
+                    fact,
+                    file_path,
+                    table,
+                    known_files,
+                    language,
+                    receivers.as_ref(),
+                )
+            });
         let mut record = ReferenceOccurrence {
             id: String::new(),
             owner: from.clone(),

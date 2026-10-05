@@ -38,6 +38,25 @@ pub(crate) fn name(node: Node<'_>, source: &str) -> Option<String> {
 }
 
 /// Collect after declarations/scopes so exported declarations retain their keys.
+/// Whether every syntax error in `statement` lies inside a function or class
+/// body. Such an error cannot change what the statement imports or exports
+/// (`export function f() { db<Row[]>`..` }` still exports `f`).
+fn errors_inside_bodies(statement: Node<'_>) -> bool {
+    let mut stack = vec![(statement, false)];
+    while let Some((node, in_body)) = stack.pop() {
+        if (node.is_error() || node.is_missing()) && !in_body {
+            return false;
+        }
+        if !node.has_error() {
+            continue;
+        }
+        let in_body = in_body || matches!(node.kind(), "statement_block" | "class_body");
+        let mut cursor = node.walk();
+        stack.extend(node.children(&mut cursor).map(|child| (child, in_body)));
+    }
+    true
+}
+
 #[allow(clippy::too_many_lines)] // one bounded branch per ESM grammar construct
 pub(crate) fn enrich(root: Node<'_>, source: &str, extraction: &mut Extraction) {
     let mut module = JsModule {
@@ -57,7 +76,7 @@ pub(crate) fn enrich(root: Node<'_>, source: &str, extraction: &mut Extraction) 
             continue;
         }
         module.is_module = true;
-        if statement.has_error() {
+        if statement.has_error() && !errors_inside_bodies(statement) {
             module.complete = false;
             continue;
         }
@@ -279,4 +298,114 @@ fn push_export(module: &mut JsModule, bytes: &mut usize, export: JsExport) -> bo
     *bytes = bytes.saturating_add(cost);
     module.exports.push(export);
     true
+}
+
+/// `const { a, b: c } = await import("x")` and `const m = await import("x")`
+/// bind names to another module as a static import does (the test idiom of
+/// mocking first, then importing). Lexical scoping leaves those bindings
+/// without a target; calls through them gain the import's provenance.
+pub(crate) fn bind_dynamic_imports(root: Node<'_>, source: &str, extraction: &mut Extraction) {
+    // Binding identifier span -> (imported name, specifier).
+    let mut imported: std::collections::BTreeMap<(u32, u32), (String, String)> =
+        std::collections::BTreeMap::new();
+    let mut stack = vec![root];
+    while let Some(node) = stack.pop() {
+        if node.kind() == "variable_declarator"
+            && let (Some(pattern), Some(value)) = (
+                node.child_by_field_name("name"),
+                node.child_by_field_name("value"),
+            )
+            && let Some(specifier) = dynamic_import(value, source)
+        {
+            let mut bind = |local: Node<'_>, name: String| {
+                let span = crate::walk::span_of(local);
+                imported.insert((span.start_byte, span.end_byte), (name, specifier.clone()));
+            };
+            match pattern.kind() {
+                "identifier" => bind(pattern, "*".into()),
+                "object_pattern" => {
+                    let mut cursor = pattern.walk();
+                    for property in pattern.named_children(&mut cursor) {
+                        match property.kind() {
+                            "shorthand_property_identifier_pattern" => {
+                                bind(property, crate::walk::text(property, source).to_owned());
+                            }
+                            "pair_pattern" => {
+                                if let (Some(key), Some(value)) = (
+                                    property.child_by_field_name("key"),
+                                    property.child_by_field_name("value"),
+                                ) && value.kind() == "identifier"
+                                    && key.kind() == "property_identifier"
+                                {
+                                    bind(value, crate::walk::text(key, source).to_owned());
+                                }
+                            }
+                            _ => {}
+                        }
+                    }
+                }
+                _ => {}
+            }
+            continue;
+        }
+        let mut cursor = node.walk();
+        stack.extend(node.named_children(&mut cursor));
+    }
+    if imported.is_empty() {
+        return;
+    }
+    for fact in &mut extraction.references {
+        if fact.kind != graph_search_types::EdgeKind::Calls || fact.via_import.is_some() {
+            continue;
+        }
+        let Some(binding) = fact.binding.and_then(|id| extraction.bindings.get(id)) else {
+            continue;
+        };
+        let Some((name, specifier)) =
+            imported.get(&(binding.span.start_byte, binding.span.end_byte))
+        else {
+            continue;
+        };
+        let target = if name == "*" {
+            fact.name
+                .strip_prefix(binding.name.as_str())
+                .and_then(|rest| rest.strip_prefix('.'))
+                .filter(|member| {
+                    !member.is_empty()
+                        && member
+                            .chars()
+                            .all(|c| c.is_alphanumeric() || c == '_' || c == '$')
+                })
+        } else {
+            (fact.name == binding.name).then_some(name.as_str())
+        };
+        if let Some(target) = target {
+            fact.name = target.to_owned();
+            fact.via_import = Some(specifier.clone());
+            fact.dynamic = false;
+            fact.unresolved_reason = None;
+            fact.lexical_target = None;
+        }
+    }
+}
+
+/// The specifier of `import("x")`, awaited or not.
+fn dynamic_import(value: Node<'_>, source: &str) -> Option<String> {
+    let call = if value.kind() == "await_expression" {
+        value.named_child(0)?
+    } else {
+        value
+    };
+    if call.kind() != "call_expression" || call.child_by_field_name("function")?.kind() != "import"
+    {
+        return None;
+    }
+    let arguments = call.child_by_field_name("arguments")?;
+    let mut cursor = arguments.walk();
+    let first = arguments
+        .named_children(&mut cursor)
+        .find(|child| child.kind() != "comment")?;
+    (first.kind() == "string")
+        .then(|| name(first, source))
+        .flatten()
 }

@@ -3,6 +3,17 @@ use graph_search_types::package::{NodePackageMetadata, NodePackageTarget};
 use serde_json::Value;
 use std::collections::BTreeMap;
 
+/// The runtime file a declaration file describes (`x.d.ts` -> `x.js`), and
+/// whether `path` was a declaration file.
+fn runtime_path(path: &str) -> (String, bool) {
+    for (declaration, runtime) in [(".d.ts", ".js"), (".d.mts", ".mjs"), (".d.cts", ".cjs")] {
+        if let Some(stem) = path.strip_suffix(declaration) {
+            return (format!("{stem}{runtime}"), true);
+        }
+    }
+    (path.to_owned(), false)
+}
+
 fn target(value: &Value) -> NodePackageTarget {
     fn invariant(value: &Value, depth: usize) -> NodePackageTarget {
         match value {
@@ -20,7 +31,11 @@ fn target(value: &Value) -> NodePackageTarget {
                             && !key.chars().any(char::is_control)
                     }) =>
             {
-                let mut path = None;
+                // A declaration file and its own runtime file (`x.d.ts`,
+                // `x.js`) describe one module; any other difference is a
+                // condition-dependent target.
+                let mut module = None;
+                let mut runtime = None;
                 for value in object.values() {
                     let (NodePackageTarget::Path(candidate)
                     | NodePackageTarget::InvariantPath(candidate)) =
@@ -28,12 +43,16 @@ fn target(value: &Value) -> NodePackageTarget {
                     else {
                         return NodePackageTarget::Unsupported;
                     };
-                    if path.as_ref().is_some_and(|path| path != &candidate) {
+                    let (same, declaration) = runtime_path(&candidate);
+                    if module.as_ref().is_some_and(|module| module != &same) {
                         return NodePackageTarget::Unsupported;
                     }
-                    path = Some(candidate);
+                    module = Some(same);
+                    if !declaration || runtime.is_none() {
+                        runtime = Some(candidate);
+                    }
                 }
-                path.map_or(
+                runtime.map_or(
                     NodePackageTarget::Unsupported,
                     NodePackageTarget::InvariantPath,
                 )
@@ -194,6 +213,12 @@ mod tests {
     }
     #[test]
     fn conditions_bind_only_when_every_branch_has_the_same_path_and_a_default() {
+        assert_eq!(
+            extract(&serde_json::json!({"exports":{"types":"./dist/index.d.ts","default":"./dist/index.js"}}))
+                .exports
+                .unwrap()["."],
+            NodePackageTarget::InvariantPath("./dist/index.js".into())
+        );
         for exports in [
             serde_json::json!({"types":"./api.ts","default":"./api.ts"}),
             serde_json::json!({"node":{"import":"./api.ts","default":"./api.ts"},"default":"./api.ts"}),

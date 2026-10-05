@@ -831,21 +831,25 @@ impl Extractor<'_> {
                 continue;
             }
             if self.text(*token).starts_with('(')
-                && let Some((callee, anchor)) = self.token_callee(&tokens[..index])
+                && let Some((callee, anchor, receiver)) = self.token_callee(&tokens[..index])
             {
                 let raw = callee.clone();
                 let mut reference =
                     self.reference_from(EdgeKind::Calls, self.owned_callee(callee), anchor);
                 reference.raw_name = Some(raw);
+                reference.receiver = receiver;
                 self.extraction.references.push(reference);
             }
             self.macro_calls(*token);
         }
     }
 
-    /// The callee spelled by the tokens just before a parenthesised tree, and
-    /// the token naming it.
-    fn token_callee<'t>(&self, before: &[Node<'t>]) -> Option<(String, Node<'t>)> {
+    /// The callee spelled by the tokens just before a parenthesised tree, the
+    /// token naming it, and a method call's stated receiver type.
+    fn token_callee<'t>(
+        &self,
+        before: &[Node<'t>],
+    ) -> Option<(String, Node<'t>, Option<ReceiverType>)> {
         let mut end = before.len();
         // A turbofish: `name::<T>(..)`.
         if before.last()?.kind() == ">" {
@@ -888,22 +892,37 @@ impl Extractor<'_> {
         let callee = match previous {
             Some("fn" | "struct" | "enum" | "union" | "::" | "!" | "'") => return None,
             Some(".") => {
-                // `receiver.method(..)`: a lone `self` or identifier receiver.
+                // `receiver.method(..)` or `base.field.method(..)`, with a
+                // `self` or identifier base.
                 let [method] = segments.as_slice() else {
                     return None;
                 };
                 let receiver = *before.get(start.checked_sub(2)?)?;
-                let chained = start
-                    .checked_sub(3)
-                    .is_some_and(|index| matches!(before[index].kind(), "." | "::"));
-                if chained || !matches!(receiver.kind(), "self" | "identifier") {
+                if !matches!(receiver.kind(), "self" | "identifier") {
                     return None;
                 }
-                format!("{}.{method}", self.text(receiver))
+                let preceding = |back: usize| start.checked_sub(back).map(|i| before[i].kind());
+                if preceding(3) == Some(".")
+                    && let Some(base) = start.checked_sub(4).map(|i| before[i])
+                    && matches!(base.kind(), "self" | "identifier")
+                    && receiver.kind() == "identifier"
+                    && !matches!(preceding(5), Some("." | "::"))
+                {
+                    let ty = self.receiver_context().receiver(base).map(|base_type| {
+                        ReceiverType::Field(Box::new(base_type), self.text(receiver).to_owned())
+                    });
+                    let callee = format!("{}.{}.{method}", self.text(base), self.text(receiver));
+                    return Some((callee, name, ty));
+                }
+                if matches!(preceding(3), Some("." | "::")) {
+                    return None;
+                }
+                let ty = self.receiver_context().receiver(receiver);
+                return Some((format!("{}.{method}", self.text(receiver)), name, ty));
             }
             _ => segments.join("::"),
         };
-        Some((callee, name))
+        Some((callee, name, None))
     }
 
     /// Whether `name` is `Self` or a generic type parameter of an enclosing

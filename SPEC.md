@@ -1265,9 +1265,17 @@ support declaration-order lookup. Parameters, destructuring, closures, Rust
 and catch bindings participate. Pattern keys, constructors, types and default
 expressions are not mistaken for bound identifiers. Rust locals become visible
 after their declaration; JS lexical bindings suppress outer lookup even before
-initialization. Direct immutable `const` function expressions have syntactic
+initialization, except from inside a nested function body, which runs only when
+called (a function may call a `const` declared after it). Direct immutable `const` function expressions have syntactic
 targets, including self-reference from their body. Mutable aliases and arbitrary
-value flow are not inferred.
+value flow are not inferred. A JS/TS binding's class is taken from what the
+syntax states — `new C(..)`, a `: C` annotation, a `C` parameter — and a class
+field's from its annotation or a constructor parameter property: `x.m()` and
+`this.f.m()` then bind as `C.m()`, to a same-file class's method or through
+`C`'s import (a `function` between `this` and the class refuses). A Rust inline
+module whose only glob is `use super::*` sees its parent module's items and
+imports (`super::name` when the parent binds nothing). `const { a } = await
+import("x")` and `const m = await import("x")` bind like static imports.
 
 Call facts retain original expression spans and raw callee spelling before
 import/receiver rewriting, plus scope/binding ordinals, explicit lexical target
@@ -1362,9 +1370,12 @@ qualified or unique-name lookup elsewhere.
 |---|---|
 | `contains` | file → top level, class → method/field, function → nested `def` |
 | `imports` | `import a.b` (one edge per name); `from m import x` emits the module edge `m` and one binding `x` via `m` |
-| `calls` | `call` → callee spelling; `self.m()` in a method becomes `Class.m`; `mod.f()` where `import a.b as mod` (or `import mod`) binds `mod` becomes `f` via module `a.b` |
+| `calls` | `call` → callee spelling; `self.m()` in a method becomes `Class.m`; `mod.f()` where `import a.b as mod` (or `import mod`) binds `mod` becomes `f` via module `a.b`, and where `from a import b [as mod]` names a module file `a/b.py`, `f` via that module |
 | `extends` | `class C(Base, pkg.Base, Generic[T])` positional bases, a subscripted base naming the class it parameterizes (keyword arguments such as `metaclass=` are not bases) |
 | `type_uses` | parameter, return, annotated-assignment, type-alias and PEP 695 bound annotations, including names in string forward references; excluding builtin scalar/container names, `typing` special forms and generic aliases, in-scope PEP 695 type parameters, `Literal[…]` arguments and `Annotated[…]` metadata |
+
+A docstring (a string literal opening a module, class or function body) is
+documentation of that definition, as Rust's `//!` is.
 
 A Python call binds to a `class` (calling it constructs an instance), and a bare
 call name never binds to a `method`, which is only reachable through a
@@ -1373,7 +1384,11 @@ receiver.
 Module specifiers resolve against the known file set, never `sys.path` or
 installed packages. `a.b` tries `a/b/__init__.py`, `a/b/__init__.pyi`, `a/b.py`
 and `a/b.pyi` from the workspace root: as in Python's path finder, a regular
-package wins over a same-named module. A leading dot is the importing file's
+package wins over a same-named module. An absolute specifier then tries each
+directory above the importing file that is not itself a package (holds no
+`__init__.py`), nearest first — the project roots pytest and scripts put on
+`sys.path`. A bare call of a name the file imports with `from m import name`
+binds through that import before the generic rules. A leading dot is the importing file's
 directory; each further dot walks one directory up, and walking past the root has
 no target. `from m import x` (and a module-qualified call) binds only a top-level
 symbol `x` of `m`, never a method, class field or nested `def` sharing the name;
@@ -1447,6 +1462,11 @@ paths with the bundle-root fallback for every kind, a superset of what a
 `links_to` path can select. A heading repeated under the same parent keeps one
 qualified name; its fact key gains `@line` (and `#n` while that is still
 taken), so containment stays exact.
+
+In `explore`, a seed matched on a line of a reserved `index.md`/`log.md` that
+holds exactly one resolved `links_to` stands for the concept it links: the
+concept takes the seed's place (an index entry restates its target's
+description).
 
 `neighbors` is the query for OKF relationships. `deps` reads only edges
 incident to the file node. For an OKF document those are its incoming links to
@@ -1529,7 +1549,10 @@ All graph modes accept `--lang`, `--path GLOB`, `--limit`, and `--json`.
 Semantics:
 
 - `<name>` matches `name` or `qualified_name`, case-sensitive by default; a
-  fuzzy/prefix match is a later option, not a default.
+  fuzzy/prefix match is a later option, not a default. Bare-name matches precede
+  qualified ones; among equals, declarations precede members and variables
+  (fields, variants, variables, export aliases), which precede function-local
+  symbols.
 - `<id>` is exact.
 - `impact --depth N` reports **counts by depth and by kind**, plus the top
   nodes; it does not dump the whole cone. A model asking "what breaks" wants the
@@ -3165,7 +3188,8 @@ transitions; exhaustion makes workspace dependency bindings unavailable.
 
 Conditional maps may retain a distinct `InvariantPath` fact when every branch
 names the same path and every conditional object has a default, at depth at most
-16. Differing, missing-default, array, blocked-branch and invalid-key projections
+16. A declaration file and its own runtime file (`x.d.ts`, `x.js`) name the same
+module; the runtime path is kept. Otherwise differing, missing-default, array, blocked-branch and invalid-key projections
 remain unsupported. This does not choose an execution environment or resolve
 installed dependencies. Source version 13 refreshes these facts; parser 18 is
 unchanged. Workspace edits participate in conservative manifest rebinding.
@@ -3193,7 +3217,10 @@ This helper does not itself identify Svelte/Vue/Astro regions: the registered
 framework adapters do (see "Native framework script regions"). Namespaced identity
 and `Extraction::merge` still do not prove framework visibility: module/instance
 scope relationships are declared per dialect, but template relations are not
-modeled and multi-region files retain an explicit incomplete ESM surface.
+modeled and multi-region files retain an explicit incomplete ESM surface. A
+syntax error confined to function or class bodies leaves an `import`/`export`
+statement's surface intact (`export function f() { db<T>`..` }` exports `f`);
+any other error in such a statement makes the file's surface incomplete.
 
 JS/TS destructured declarations use the same pattern-only identifier traversal as
 lexical scopes. Default-value expressions and computed property keys contribute
@@ -3328,8 +3355,16 @@ records, and compiles its `paths`/`baseUrl` aliases with the selected module mod
 Only two modes are supported: `moduleResolution: "bundler"` and
 `moduleResolution: "node16"|"nodenext"` (ESM, or CommonJS when the authored
 `module` is `commonjs`). A configuration with `classic`, absent, `node10`, or any
-other resolution mode is skipped rather than approximated. More than 32 admitted
-configurations in one generation also disables selection explicitly. Failure to
+other resolution mode is skipped rather than approximated. More than 1,024
+admitted configurations in one generation also disables selection explicitly;
+the nearest configuration is found by walking the importing file's ancestor
+directories. A base `.svelte-kit/tsconfig.json` is written by SvelteKit at build
+time and ignored, so never indexed: when it is missing, its default content
+stands in (`$lib` and `$lib/*` to `src/lib`, bundler resolution, the app's
+source membership); `kit.alias` entries in `svelte.config.js` are not modeled.
+A package map target that is a project's unbuilt output (under `outDir`) binds
+to the source file it compiles from (under `rootDir`, or the single top
+directory of `include`), with its source extension. Failure to
 inherit, compile aliases, or compile loader options leaves ordinary relative and
 package resolution unchanged; it never guesses a target.
 

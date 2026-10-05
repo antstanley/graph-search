@@ -76,9 +76,10 @@ fn owner(
             break None;
         };
         let Some(first) = first else { break None };
-        if contained
-            .any(|(_, fact)| fact.is_none_or(|fact| fact.span.start_byte >= first.span.end_byte))
-        {
+        // A second declaration in the wrapper (`export const a = .., b = ..`)
+        // makes it ambiguous; symbols nested inside the first declaration do
+        // not, even when their keys repeat (`const spec` in two blocks).
+        if contained.any(|((start, _), _)| *start >= first.span.end_byte as usize) {
             break None;
         }
         break Some(first.key.clone());
@@ -226,6 +227,21 @@ mod tests {
                 ..facts.doc_comments[0].span.end_byte as usize],
             "/** exported café */"
         );
+    }
+
+    #[test]
+    fn exported_declarations_keep_docs_despite_repeated_nested_names() {
+        let facts = extract(
+            "/** documented */\nexport function outer(a: number) {\n  if (a) { const spec = 1; return spec; }\n  const spec = 2;\n  return spec;\n}\n",
+            false,
+        );
+        let outer = facts
+            .symbols
+            .iter()
+            .find(|fact| fact.name == "outer")
+            .unwrap();
+        assert_eq!(facts.doc_comments.len(), 1);
+        assert_eq!(facts.doc_comments[0].owner_key.as_ref(), Some(&outer.key));
     }
 
     #[test]

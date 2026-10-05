@@ -47,6 +47,7 @@ impl LanguageExtractor for PythonExtractor {
             keys: BTreeSet::new(),
             modules: module_bindings(tree.root_node(), file.text),
         };
+        extractor.docstring(tree.root_node(), None);
         extractor.walk_node(tree.root_node());
         Ok(extractor.extraction)
     }
@@ -264,6 +265,7 @@ impl Extractor<'_> {
             self.heritage(superclasses);
         }
         if let Some(body) = node.child_by_field_name("body") {
+            self.docstring(body, self.scope.last().map(|scope| scope.key.clone()));
             self.walk_children(body);
         }
         self.scope.pop();
@@ -314,9 +316,42 @@ impl Extractor<'_> {
             self.walk_children(parameters);
         }
         if let Some(body) = node.child_by_field_name("body") {
+            self.docstring(body, self.scope.last().map(|scope| scope.key.clone()));
             self.walk_children(body);
         }
         self.scope.pop();
+    }
+
+    /// A docstring: the string literal opening a module, class or function
+    /// body (PEP 257). It documents its definition from inside, as Rust's
+    /// `//!` does, so explore can credit the definition with its text.
+    fn docstring(&mut self, body: Node<'_>, owner_key: Option<String>) {
+        let mut cursor = body.walk();
+        let Some(first) = body
+            .named_children(&mut cursor)
+            .find(|child| child.kind() != "comment")
+        else {
+            return;
+        };
+        let mut cursor = first.walk();
+        let string = (first.kind() == "expression_statement")
+            .then(|| first.named_children(&mut cursor).next())
+            .flatten()
+            .filter(|child| child.kind() == "string" && first.named_child_count() == 1);
+        let Some(string) = string else { return };
+        if self.extraction.doc_comments.len()
+            == graph_search_types::limits::MAX_DOC_COMMENTS_PER_FILE
+        {
+            self.extraction.doc_comments_truncated = true;
+            return;
+        }
+        self.extraction
+            .doc_comments
+            .push(graph_search_types::extraction::DocCommentFact {
+                span: crate::walk::span_of(string),
+                owner_key,
+                inner: true,
+            });
     }
 
     /// Parameter and return annotations become `type_uses` edges.
@@ -448,6 +483,16 @@ impl Extractor<'_> {
             let name = self.text(target).to_owned();
             if !name.is_empty() {
                 self.imported(&name, &specifier, child);
+                // `from pkg import mod as m`: the local name is the raw spelling.
+                let alias = (child.kind() == "aliased_import")
+                    .then(|| child.child_by_field_name("alias"))
+                    .flatten()
+                    .map(|alias| self.text(alias).to_owned());
+                if let Some(alias) = alias
+                    && let Some(fact) = self.extraction.references.last_mut()
+                {
+                    fact.raw_name = Some(alias);
+                }
             }
         }
     }

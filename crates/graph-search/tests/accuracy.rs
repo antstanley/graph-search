@@ -760,3 +760,589 @@ fn rust_calls_through_a_child_module_path_resolve() {
         [Some("sym:src/util.rs#function:double".to_owned())]
     );
 }
+#[test]
+fn ts_function_valued_class_fields_are_callable_methods() {
+    let (_directory, index) = fixture(&[(
+        "a.ts",
+        "export class A {\n  private load = async (id: string) => id;\n  static make = function () { return new A(); };\n  private count = 0;\n  run() { return this.load(\"x\"); }\n}\nexport function build() { return A.make(); }\n",
+    )]);
+    let kinds: Vec<_> = ["load", "make", "count"]
+        .iter()
+        .map(|name| {
+            index
+                .search()
+                .symbol(&SymbolQuery::new(*name))
+                .unwrap()
+                .nodes[0]
+                .kind
+        })
+        .collect();
+    assert_eq!(kinds, [NodeKind::Method, NodeKind::Method, NodeKind::Field]);
+    for (caller, callee) in [
+        ("A.run", "sym:a.ts#method:A.load"),
+        ("build", "sym:a.ts#method:A.make"),
+    ] {
+        let callees = index
+            .search()
+            .callees(&TraversalQuery::new(caller, 1))
+            .unwrap();
+        assert!(
+            callees
+                .edges
+                .iter()
+                .any(|e| e.to.as_deref() == Some(callee)),
+            "{caller}: {:?}",
+            callees.edges
+        );
+    }
+}
+#[test]
+fn symbol_lookup_ranks_declarations_above_members_and_locals() {
+    let (_directory, index) = fixture(&[
+        (
+            "a.rs",
+            "pub struct Params { pub internal: bool }\npub enum Mode { Internal }\n",
+        ),
+        ("b.rs", "pub fn internal() {}\npub struct Internal;\n"),
+        (
+            "c.ts",
+            "export function has() { const set = () => 1; return set(); }\n",
+        ),
+        ("d.ts", "export function set() {}\n"),
+    ]);
+    let first = |name: &str| {
+        let nodes = index
+            .search()
+            .symbol(&SymbolQuery::new(name))
+            .unwrap()
+            .nodes;
+        (nodes[0].kind, nodes[0].path.clone())
+    };
+    assert_eq!(first("internal"), (NodeKind::Function, "b.rs".to_owned()));
+    assert_eq!(first("Internal"), (NodeKind::Struct, "b.rs".to_owned()));
+    assert_eq!(first("set"), (NodeKind::Function, "d.ts".to_owned()));
+}
+#[test]
+fn ts_exports_survive_parse_errors_inside_function_bodies() {
+    // tree-sitter-typescript cannot parse a tagged template with type
+    // arguments (postgres.js: db<Row[]>`...`); the export is still intact.
+    let (_directory, index) = fixture(&[
+        (
+            "src/db.ts",
+            "export async function findRun({ db }: { db: any }) {\n  const [run] = await db<Row[]>`\n    SELECT id FROM runs\n  `;\n  return run;\n}\nexport function statusOf(x: string) { return x; }\n",
+        ),
+        (
+            "src/use.ts",
+            "import { findRun, statusOf } from \"./db\";\nexport function main() { statusOf(\"a\"); return findRun({ db: null }); }\n",
+        ),
+    ]);
+    let callees = index
+        .search()
+        .callees(&TraversalQuery::new("main", 1))
+        .unwrap();
+    let mut bound: Vec<_> = callees.edges.iter().filter_map(|e| e.to.clone()).collect();
+    bound.sort();
+    assert_eq!(
+        bound,
+        [
+            "sym:src/db.ts#function:findRun",
+            "sym:src/db.ts#function:statusOf"
+        ]
+    );
+}
+#[test]
+fn sveltekit_apps_resolve_lib_and_relative_imports_without_the_generated_tsconfig() {
+    // `.svelte-kit/tsconfig.json` is generated and ignored, so never indexed.
+    let (_directory, index) = fixture(&[
+        (
+            "app/package.json",
+            "{\"name\":\"app\",\"type\":\"module\",\"devDependencies\":{\"@sveltejs/kit\":\"^2\"}}",
+        ),
+        ("app/svelte.config.js", "export default { kit: {} };\n"),
+        (
+            "app/tsconfig.json",
+            "{\"extends\":\"./.svelte-kit/tsconfig.json\",\"compilerOptions\":{\"strict\":true,\"moduleResolution\":\"bundler\"}}",
+        ),
+        (
+            "app/src/lib/logger.ts",
+            "export function shortId() { return 'x'; }\n",
+        ),
+        (
+            "app/src/lib/server/config.ts",
+            "export function storageConfig() { return 1; }\n",
+        ),
+        (
+            "app/src/hooks.ts",
+            "import { shortId } from '$lib/logger';\nimport { storageConfig } from './lib/server/config.js';\nexport function handle() { shortId(); return storageConfig(); }\n",
+        ),
+    ]);
+    let callees = index
+        .search()
+        .callees(&TraversalQuery::new("handle", 1))
+        .unwrap();
+    let mut bound: Vec<_> = callees.edges.iter().filter_map(|e| e.to.clone()).collect();
+    bound.sort();
+    assert_eq!(
+        bound,
+        [
+            "sym:app/src/lib/logger.ts#function:shortId",
+            "sym:app/src/lib/server/config.ts#function:storageConfig"
+        ]
+    );
+}
+#[test]
+fn python_docstrings_document_their_definitions() {
+    let (_directory, index) = fixture(&[(
+        "tax.py",
+        "\"\"\"Purchase helpers.\"\"\"\n\n\ndef unrelated():\n    return 1\n\n\ndef compute_tax(amount):\n    \"\"\"Zeta marker computes the levy owed on a purchase.\"\"\"\n    return amount * 0.2\n\n\nclass Ledger:\n    \"\"\"Zeta ledger records settled purchases.\"\"\"\n\n    def add(self, x):\n        return x\n",
+    )]);
+    for (query, name) in [
+        (
+            "Zeta marker computes the levy owed on a purchase",
+            "compute_tax",
+        ),
+        ("Zeta ledger records settled purchases", "Ledger"),
+    ] {
+        let result = index
+            .search()
+            .explore(&ExploreQuery::new(query).with_k(1))
+            .unwrap();
+        let item = &result.items[0];
+        assert_eq!(item.node.name, name);
+        let documentation = item
+            .evidence
+            .as_ref()
+            .and_then(|e| e.documentation.as_ref());
+        assert_eq!(
+            documentation
+                .and_then(|d| d.documented_symbol.as_ref())
+                .map(ToString::to_string),
+            Some(item.node.id.clone()),
+            "{query}"
+        );
+    }
+}
+#[test]
+fn python_calls_through_from_imported_submodules_resolve() {
+    let (_directory, index) = fixture(&[
+        ("compiler/__init__.py", ""),
+        (
+            "compiler/case_compiler.py",
+            "def get_compile_job(x):\n    return x\n\n\nclass Job:\n    @staticmethod\n    def create():\n        return Job()\n",
+        ),
+        ("compiler/utils.py", "def helper():\n    return 1\n"),
+        ("other.py", "def get_compile_job(x):\n    return None\n"),
+        (
+            "tests/test_case.py",
+            "from compiler import case_compiler, utils as u\nfrom compiler.case_compiler import Job\n\n\ndef test_job():\n    case_compiler.get_compile_job(1)\n    u.helper()\n    Job.create()\n",
+        ),
+    ]);
+    let callees = index
+        .search()
+        .callees(&TraversalQuery::new("test_job", 1))
+        .unwrap();
+    let mut bound: Vec<_> = callees.edges.iter().filter_map(|e| e.to.clone()).collect();
+    bound.sort();
+    assert_eq!(
+        bound,
+        [
+            "sym:compiler/case_compiler.py#function:get_compile_job",
+            "sym:compiler/case_compiler.py#method:Job.create",
+            "sym:compiler/utils.py#function:helper",
+        ]
+    );
+}
+#[test]
+fn python_submodule_calls_rebind_when_the_module_changes() {
+    let (directory, index) = fixture(&[
+        ("pkg/__init__.py", ""),
+        ("pkg/mod.py", "def run():\n    return 1\n"),
+        (
+            "app.py",
+            "from pkg import mod\n\n\ndef main():\n    return mod.run()\n",
+        ),
+    ]);
+    let bound = |index: &Index| -> Vec<String> {
+        index
+            .search()
+            .callees(&TraversalQuery::new("main", 1))
+            .unwrap()
+            .edges
+            .iter()
+            .filter_map(|e| e.to.clone())
+            .collect()
+    };
+    assert_eq!(bound(&index), ["sym:pkg/mod.py#function:run"]);
+    std::fs::write(
+        directory.path().join("pkg/mod.py"),
+        "def start():\n    return 1\n",
+    )
+    .unwrap();
+    index.sync().unwrap();
+    assert!(bound(&index).is_empty());
+    std::fs::write(
+        directory.path().join("pkg/mod.py"),
+        "def other():\n    pass\n\n\ndef run():\n    return 2\n",
+    )
+    .unwrap();
+    index.sync().unwrap();
+    assert_eq!(bound(&index), ["sym:pkg/mod.py#function:run"]);
+}
+#[test]
+fn rust_receiver_calls_in_macro_arguments_bind_through_stated_types() {
+    let (_directory, index) = fixture(&[(
+        "src/lib.rs",
+        "pub struct Stats { hits: u32 }\nimpl Stats { pub fn percent(&self) -> u32 { self.hits } }\npub struct Other;\nimpl Other { pub fn percent(&self) -> u32 { 0 } }\npub struct View { stats: Stats }\nimpl View {\n    pub fn show(&self, s: &Stats) -> String {\n        let local: Stats = Stats { hits: 1 };\n        format!(\"{} {} {}\", s.percent(), local.percent(), self.stats.percent())\n    }\n}\n",
+    )]);
+    let callees = index
+        .search()
+        .callees(&TraversalQuery::new("View::show", 1))
+        .unwrap();
+    let call = callees
+        .edges
+        .iter()
+        .find(|e| e.to.as_deref() == Some("sym:src/lib.rs#method:Stats::percent"));
+    assert_eq!(
+        call.and_then(|e| e.occurrence_count),
+        Some(3),
+        "{:?}",
+        callees.edges
+    );
+}
+#[test]
+fn ts_dynamic_import_bindings_resolve_like_static_imports() {
+    let (_directory, index) = fixture(&[
+        (
+            "src/store.ts",
+            "export function setAuth() {}\nexport function clearAuth() {}\nexport function getToken() {}\n",
+        ),
+        (
+            "src/store.test.ts",
+            "const { setAuth, clearAuth: reset } = await import('./store');\nconst store = await import('./store');\nexport function run() {\n  setAuth();\n  reset();\n  store.getToken();\n}\n",
+        ),
+    ]);
+    let callees = index
+        .search()
+        .callees(&TraversalQuery::new("run", 1))
+        .unwrap();
+    let mut bound: Vec<_> = callees.edges.iter().filter_map(|e| e.to.clone()).collect();
+    bound.sort();
+    assert_eq!(
+        bound,
+        [
+            "sym:src/store.ts#function:clearAuth",
+            "sym:src/store.ts#function:getToken",
+            "sym:src/store.ts#function:setAuth"
+        ]
+    );
+}
+#[test]
+fn ts_functions_may_call_consts_declared_later_in_an_outer_scope() {
+    let (_directory, index) = fixture(&[(
+        "a.ts",
+        "export const tidFromPath = (path: string) => extractDate(path);\nexport function eager() {\n  const early = later();\n  const later = () => 1;\n  return early;\n}\nexport const extractDate = (path: string) => path;\nfunction later() { return 0; }\n",
+    )]);
+    let callees = |name: &str| -> Vec<(String, Option<String>)> {
+        index
+            .search()
+            .callees(&TraversalQuery::new(name, 1))
+            .unwrap()
+            .edges
+            .iter()
+            .map(|e| (e.to_name.clone(), e.to.clone()))
+            .collect()
+    };
+    assert_eq!(
+        callees("tidFromPath"),
+        [(
+            "extractDate".to_owned(),
+            Some("sym:a.ts#function:extractDate".to_owned())
+        )]
+    );
+    // Same function, used before its declaration: the temporal dead zone.
+    assert!(
+        callees("eager").iter().all(|(_, to)| to.is_none()),
+        "{:?}",
+        callees("eager")
+    );
+}
+#[test]
+fn rust_test_modules_see_parent_imports_through_super_glob() {
+    let (_directory, index) = fixture(&[
+        (
+            "Cargo.toml",
+            "[package]\nname = \"x\"\nversion = \"0.1.0\"\n",
+        ),
+        (
+            "src/view.rs",
+            "pub struct ViewState;\nimpl ViewState {\n    pub fn new() -> Self { ViewState }\n    pub fn cancel_edit(&mut self) {}\n}\n",
+        ),
+        (
+            "src/other.rs",
+            "pub struct Other;\nimpl Other { pub fn new() -> Self { Other } pub fn cancel_edit(&mut self) {} }\n",
+        ),
+        (
+            "src/lib.rs",
+            "mod other;\nmod view;\nuse crate::view::ViewState;\npub fn run() { let mut v = ViewState::new(); v.cancel_edit(); }\n#[cfg(test)]\nmod tests {\n    use super::*;\n    fn case() { let mut view = ViewState::new(); view.cancel_edit(); }\n}\n",
+        ),
+    ]);
+    let callees = index
+        .search()
+        .callees(&TraversalQuery::new("tests::case", 1))
+        .unwrap();
+    let mut bound: Vec<_> = callees.edges.iter().filter_map(|e| e.to.clone()).collect();
+    bound.sort();
+    assert_eq!(
+        bound,
+        [
+            "sym:src/view.rs#method:ViewState::cancel_edit",
+            "sym:src/view.rs#method:ViewState::new"
+        ]
+    );
+}
+#[test]
+fn ts_members_of_imported_classes_resolve() {
+    let (_directory, index) = fixture(&[
+        (
+            "src/ledger.ts",
+            "export class Ledger {\n  static eligibility(run: number) { return run; }\n  record() {}\n}\nexport default class Store { static open() { return new Store(); } }\n",
+        ),
+        (
+            "src/other.ts",
+            "export class Other { static eligibility() {} }\n",
+        ),
+        (
+            "src/use.ts",
+            "import { Ledger as L } from './ledger';\nimport Store from './ledger';\nexport function main() {\n  L.eligibility(1);\n  Store.open();\n}\n",
+        ),
+    ]);
+    let callees = index
+        .search()
+        .callees(&TraversalQuery::new("main", 1))
+        .unwrap();
+    let mut bound: Vec<_> = callees.edges.iter().filter_map(|e| e.to.clone()).collect();
+    bound.sort();
+    assert_eq!(
+        bound,
+        [
+            "sym:src/ledger.ts#method:Ledger.eligibility",
+            "sym:src/ledger.ts#method:Store.open"
+        ]
+    );
+}
+#[test]
+fn ts_instance_calls_bind_through_declared_and_constructed_classes() {
+    let (_directory, index) = fixture(&[
+        (
+            "src/s3.ts",
+            "export class S3Client {\n  bucketExists(name: string) { return !!name; }\n  listObjects() { return []; }\n}\n",
+        ),
+        (
+            "src/other.ts",
+            "export class Other { bucketExists() {} listObjects() {} flush() {} }\n",
+        ),
+        (
+            "src/use.ts",
+            "import { S3Client } from './s3';\nclass Buffer { flush() {} }\nexport class Deployer {\n  private buffer: Buffer = new Buffer();\n  constructor(private readonly s3: S3Client) {}\n  run(client: S3Client) {\n    const fresh = new S3Client();\n    const typed: S3Client = fresh;\n    fresh.bucketExists('a');\n    client.listObjects();\n    typed.listObjects();\n    this.s3.bucketExists('b');\n    this.buffer.flush();\n    const later = function (this: any) { return this.s3.bucketExists('c'); };\n    return later;\n  }\n}\n",
+        ),
+    ]);
+    let callees = index
+        .search()
+        .callees(&TraversalQuery::new("Deployer.run", 1))
+        .unwrap();
+    let mut bound: Vec<_> = callees
+        .edges
+        .iter()
+        .filter_map(|e| e.to.clone().map(|to| (to, e.occurrence_count)))
+        .collect();
+    bound.sort();
+    assert_eq!(
+        bound,
+        [
+            (
+                "sym:src/s3.ts#method:S3Client.bucketExists".to_owned(),
+                Some(2)
+            ),
+            (
+                "sym:src/s3.ts#method:S3Client.listObjects".to_owned(),
+                Some(2)
+            ),
+            ("sym:src/use.ts#method:Buffer.flush".to_owned(), Some(1)),
+        ],
+        "{:?}",
+        callees.edges
+    );
+}
+#[test]
+fn ts_imported_class_member_calls_rebind_when_the_class_changes() {
+    let (directory, index) = fixture(&[
+        (
+            "src/s3.ts",
+            "export class S3Client {\n  static make() { return new S3Client(); }\n  exists() { return true; }\n}\n",
+        ),
+        (
+            "src/use.ts",
+            "import { S3Client } from './s3';\nexport function main() {\n  const c = S3Client.make();\n  const d = new S3Client();\n  return d.exists();\n}\n",
+        ),
+    ]);
+    let bound = |index: &Index| -> Vec<String> {
+        let mut to: Vec<_> = index
+            .search()
+            .callees(&TraversalQuery::new("main", 1))
+            .unwrap()
+            .edges
+            .iter()
+            .filter_map(|e| e.to.clone())
+            .collect();
+        to.sort();
+        to
+    };
+    assert_eq!(
+        bound(&index),
+        [
+            "sym:src/s3.ts#method:S3Client.exists",
+            "sym:src/s3.ts#method:S3Client.make"
+        ]
+    );
+    std::fs::write(
+        directory.path().join("src/s3.ts"),
+        "export class S3Client {\n  static build() { return new S3Client(); }\n  present() { return true; }\n}\n",
+    )
+    .unwrap();
+    index.sync().unwrap();
+    assert!(bound(&index).is_empty(), "{:?}", bound(&index));
+    std::fs::write(
+        directory.path().join("src/s3.ts"),
+        "export class S3Client {\n  static make() { return new S3Client(); }\n  exists() { return true; }\n}\n",
+    )
+    .unwrap();
+    index.sync().unwrap();
+    assert_eq!(
+        bound(&index),
+        [
+            "sym:src/s3.ts#method:S3Client.exists",
+            "sym:src/s3.ts#method:S3Client.make"
+        ]
+    );
+}
+#[test]
+fn workspace_packages_exporting_unbuilt_output_resolve_to_their_sources() {
+    let (_directory, index) = fixture(&[
+        ("package.json", "{\"name\":\"root\",\"private\":true}"),
+        ("pnpm-workspace.yaml", "packages:\n  - packages/*\n"),
+        (
+            "packages/core/package.json",
+            "{\"name\":\"core\",\"type\":\"module\",\"exports\":{\".\":{\"types\":\"./dist/index.d.ts\",\"default\":\"./dist/index.js\"}}}",
+        ),
+        (
+            "packages/core/tsconfig.json",
+            "{\"compilerOptions\":{\"rootDir\":\"src\",\"outDir\":\"dist\",\"module\":\"NodeNext\",\"moduleResolution\":\"NodeNext\"},\"include\":[\"src/**/*\"]}",
+        ),
+        (
+            "packages/core/src/index.ts",
+            "export { pollUntil } from './util.js';\n",
+        ),
+        (
+            "packages/core/src/util.ts",
+            "export function pollUntil() { return 1; }\n",
+        ),
+        (
+            "packages/cli/package.json",
+            "{\"name\":\"cli\",\"type\":\"module\",\"dependencies\":{\"core\":\"workspace:*\"}}",
+        ),
+        (
+            "packages/cli/src/deploy.ts",
+            "import { pollUntil } from 'core';\nexport function deploy() { return pollUntil(); }\n",
+        ),
+    ]);
+    let callees = index
+        .search()
+        .callees(&TraversalQuery::new("deploy", 1))
+        .unwrap();
+    let bound: Vec<_> = callees.edges.iter().filter_map(|e| e.to.clone()).collect();
+    assert_eq!(
+        bound,
+        ["sym:packages/core/src/util.ts#function:pollUntil"],
+        "{:?}",
+        callees.edges
+    );
+}
+#[test]
+fn okf_index_entries_credit_the_concept_they_link() {
+    let (_directory, index) = fixture(&[
+        (
+            "index.md",
+            "---\nokf_version: \"0.2\"\n---\n\n# Start here\n\n- [Corpus scope](corpus.md) - How this bundle was assembled and what its evidence labels mean.\n- [Other](other.md) - Unrelated material about release cadence.\n",
+        ),
+        (
+            "corpus.md",
+            "---\ntype: Method\ntitle: Corpus scope\ndescription: How this bundle was assembled and what its evidence labels mean.\n---\n\n# Scope\n\nThe corpus covers papers.\n",
+        ),
+        (
+            "other.md",
+            "---\ntype: Note\ntitle: Other\n---\n\n# Body\n\nText.\n",
+        ),
+    ]);
+    let result = index
+        .search()
+        .explore(
+            &ExploreQuery::new("How this bundle was assembled and what its evidence labels mean")
+                .with_k(3),
+        )
+        .unwrap();
+    assert_eq!(
+        (
+            result.items[0].node.kind,
+            result.items[0].node.path.as_str()
+        ),
+        (NodeKind::Concept, "corpus.md"),
+        "{:?}",
+        result
+            .items
+            .iter()
+            .map(|i| (i.node.kind, i.node.path.clone()))
+            .collect::<Vec<_>>()
+    );
+    assert_eq!(
+        result
+            .items
+            .iter()
+            .filter(|i| i.node.path == "corpus.md" && i.node.kind == NodeKind::Concept)
+            .count(),
+        1
+    );
+}
+#[test]
+fn python_absolute_imports_resolve_from_a_nested_project_root() {
+    // lh/app is a project directory (not a package): pytest and scripts put it
+    // on sys.path, so `from compiler import ...` names lh/app/compiler.
+    let (_directory, index) = fixture(&[
+        ("lh/app/compiler/__init__.py", ""),
+        (
+            "lh/app/compiler/case_compiler.py",
+            "def get_compile_job(x):\n    return x\n",
+        ),
+        (
+            "lh/app/tests/test_case.py",
+            "from compiler import case_compiler\nfrom compiler.case_compiler import get_compile_job\n\n\ndef test_job():\n    case_compiler.get_compile_job(1)\n    get_compile_job(2)\n",
+        ),
+        (
+            "other/compiler/case_compiler.py",
+            "def get_compile_job(x):\n    return None\n",
+        ),
+    ]);
+    let callees = index
+        .search()
+        .callees(&TraversalQuery::new("test_job", 1))
+        .unwrap();
+    let to: Vec<_> = callees.edges.iter().map(|e| e.to.clone()).collect();
+    assert_eq!(
+        to,
+        [Some(
+            "sym:lh/app/compiler/case_compiler.py#function:get_compile_job".to_owned()
+        )],
+        "{:?}",
+        callees.edges
+    );
+    assert_eq!(callees.edges[0].occurrence_count, Some(2));
+}

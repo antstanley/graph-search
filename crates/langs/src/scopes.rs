@@ -23,6 +23,9 @@ pub(crate) fn enrich(root: Node<'_>, source: &str, extraction: &mut Extraction) 
         rust_imports: BTreeMap::new(),
         rust_globs: BTreeMap::new(),
         classes: crate::class_bindings::Classes::new(extraction),
+        typed: BTreeMap::new(),
+        field_types: BTreeMap::new(),
+        rebinds_this: BTreeSet::new(),
     };
     let mut key_counts = BTreeMap::new();
     for symbol in &extraction.symbols {
@@ -94,6 +97,15 @@ struct Index<'a> {
     /// Glob import paths (`super::*`) declared directly in each scope.
     rust_globs: BTreeMap<usize, Vec<String>>,
     classes: crate::class_bindings::Classes,
+    /// JS/TS: the class a binding holds, by the binding identifier's span:
+    /// `new C()`, a `: C` annotation or a `C` parameter.
+    typed: BTreeMap<(u32, u32), String>,
+    /// JS/TS: by class scope, each field's declared class (`f: C`, or a
+    /// constructor parameter property).
+    field_types: BTreeMap<usize, BTreeMap<String, String>>,
+    /// JS/TS function scopes whose `this` is not the enclosing class's
+    /// (`function` declarations and expressions).
+    rebinds_this: BTreeSet<usize>,
 }
 
 impl Index<'_> {
@@ -142,6 +154,116 @@ impl Index<'_> {
             kind: kind.into(),
         });
         id
+    }
+
+    /// JS/TS declared classes of bindings and class fields.
+    fn record_types(&mut self, node: Node<'_>, kind: &str, scope: usize) {
+        match kind {
+            "variable_declarator" => {
+                let Some(name) = node
+                    .child_by_field_name("name")
+                    .filter(|n| n.kind() == "identifier")
+                else {
+                    return;
+                };
+                let ty = node
+                    .child_by_field_name("type")
+                    .and_then(|ty| self.class_named(ty))
+                    .or_else(|| {
+                        node.child_by_field_name("value")
+                            .and_then(|value| self.constructed(value))
+                    });
+                if let Some(ty) = ty {
+                    let span = span_of(name);
+                    self.typed.insert((span.start_byte, span.end_byte), ty);
+                }
+            }
+            "required_parameter" | "optional_parameter" => {
+                let (Some(pattern), Some(ty)) = (
+                    node.child_by_field_name("pattern")
+                        .filter(|n| n.kind() == "identifier"),
+                    node.child_by_field_name("type")
+                        .and_then(|ty| self.class_named(ty)),
+                ) else {
+                    return;
+                };
+                let span = span_of(pattern);
+                self.typed
+                    .insert((span.start_byte, span.end_byte), ty.clone());
+                // `constructor(private store: Store)` also declares a field.
+                let mut cursor = node.walk();
+                let property = node
+                    .children(&mut cursor)
+                    .any(|child| matches!(child.kind(), "accessibility_modifier" | "readonly"));
+                if property && let Some(class) = self.enclosing_class(scope) {
+                    self.field_types
+                        .entry(class)
+                        .or_default()
+                        .insert(text(pattern, self.source).to_owned(), ty);
+                }
+            }
+            "public_field_definition" | "field_definition" => {
+                let Some(name) = node
+                    .child_by_field_name("name")
+                    .or_else(|| node.child_by_field_name("property"))
+                else {
+                    return;
+                };
+                let ty = node
+                    .child_by_field_name("type")
+                    .and_then(|ty| self.class_named(ty))
+                    .or_else(|| {
+                        node.child_by_field_name("value")
+                            .and_then(|value| self.constructed(value))
+                    });
+                if let (Some(ty), Some(class)) = (ty, self.enclosing_class(scope)) {
+                    self.field_types
+                        .entry(class)
+                        .or_default()
+                        .insert(text(name, self.source).to_owned(), ty);
+                }
+            }
+            _ => {}
+        }
+    }
+
+    /// The class a type annotation names: `C` or `C<T>`.
+    fn class_named(&self, annotation: Node<'_>) -> Option<String> {
+        let ty = if annotation.kind() == "type_annotation" {
+            annotation.named_child(0)?
+        } else {
+            annotation
+        };
+        let name = match ty.kind() {
+            "type_identifier" => ty,
+            "generic_type" => ty.child_by_field_name("name")?,
+            _ => return None,
+        };
+        (name.kind() == "type_identifier").then(|| text(name, self.source).to_owned())
+    }
+
+    /// The class `new C(..)` (awaited or not) constructs.
+    fn constructed(&self, value: Node<'_>) -> Option<String> {
+        let value = if value.kind() == "await_expression" {
+            value.named_child(0)?
+        } else {
+            value
+        };
+        if value.kind() != "new_expression" {
+            return None;
+        }
+        let constructor = value.child_by_field_name("constructor")?;
+        (constructor.kind() == "identifier").then(|| text(constructor, self.source).to_owned())
+    }
+
+    /// The innermost class scope at or above `scope`.
+    fn enclosing_class(&self, mut scope: usize) -> Option<usize> {
+        loop {
+            if self.scopes[scope].kind == "class" {
+                return Some(scope);
+            }
+            scope = self.scopes[scope].parent?;
+        }
     }
 
     fn function_scope(&self, mut scope: usize) -> usize {
@@ -243,6 +365,16 @@ impl Index<'_> {
             _ => None,
         };
         let scope = scope_kind.map_or(parent, |kind| self.scope(parent, span, kind));
+        if matches!(
+            kind,
+            "function_declaration"
+                | "generator_function_declaration"
+                | "function_expression"
+                | "generator_function"
+        ) {
+            self.rebinds_this.insert(scope);
+        }
+        self.record_types(node, kind, scope);
         self.condition_bindings(node, scope);
         if scope_kind == Some("function") {
             if let Some(parameters) = node
@@ -414,10 +546,114 @@ impl Index<'_> {
             }
         }
         let mut import_bytes = 8 * 1024 * 1024;
+        let symbols = &extraction.symbols;
         for reference in &mut extraction.references {
             self.attach_reference(reference, &by_scope, &mut import_bytes);
+            self.attach_typed_receiver(reference, &by_scope, &mut import_bytes, symbols);
         }
         self.attach_symbols(extraction);
+    }
+
+    /// The class a call's receiver holds and the method it names:
+    /// `x.m()` through a typed binding, or `this.f.m()` through a typed field.
+    fn typed_receiver(
+        &self,
+        reference: &graph_search_types::extraction::ReferenceFact,
+        raw: &str,
+    ) -> Option<(String, String)> {
+        let member = |rest: &str| {
+            let member = rest.strip_prefix('.')?;
+            (!member.is_empty()
+                && member
+                    .chars()
+                    .all(|c| c.is_alphanumeric() || c == '_' || c == '$' || c == '#'))
+            .then(|| member.to_owned())
+        };
+        if let Some(binding) = reference.binding.and_then(|id| self.bindings.get(id))
+            && let Some(ty) = self
+                .typed
+                .get(&(binding.span.start_byte, binding.span.end_byte))
+        {
+            return Some((
+                ty.clone(),
+                member(raw.strip_prefix(binding.name.as_str())?)?,
+            ));
+        }
+        let rest = raw.strip_prefix("this.")?;
+        let (field, rest) = rest.split_at(rest.find('.')?);
+        let method = member(rest)?;
+        // Walk to the class, refusing a `function` that rebinds `this`.
+        let mut scope = reference.scope?;
+        loop {
+            if self.scopes[scope].kind == "class" {
+                break;
+            }
+            if self.rebinds_this.contains(&scope) {
+                return None;
+            }
+            scope = self.scopes[scope].parent?;
+        }
+        let ty = self
+            .field_types
+            .get(&scope)?
+            .get(field.trim_start_matches('#'))
+            .or_else(|| self.field_types.get(&scope)?.get(field))?;
+        Some((ty.clone(), method))
+    }
+
+    /// `x.m()` where `x` holds a `C` (`new C()`, `: C`, a `C` parameter), and
+    /// `this.f.m()` where field `f` is declared a `C`: the call is `C.m()`,
+    /// bound like a static call — a same-file class's method, or through
+    /// `C`'s import. Only unresolved calls are rewritten.
+    fn attach_typed_receiver(
+        &self,
+        reference: &mut graph_search_types::extraction::ReferenceFact,
+        by_scope: &[BTreeMap<&str, Vec<usize>>],
+        import_bytes: &mut usize,
+        symbols: &[graph_search_types::extraction::SymbolFact],
+    ) {
+        if reference.kind != EdgeKind::Calls
+            || reference.via_import.is_some()
+            || reference.lexical_target.is_some()
+            || self.typed.is_empty() && self.field_types.is_empty()
+        {
+            return;
+        }
+        let raw = reference
+            .raw_name
+            .clone()
+            .unwrap_or_else(|| reference.name.clone());
+        let Some((class, method)) = self.typed_receiver(reference, &raw) else {
+            return;
+        };
+        reference.name = format!("{class}.{method}");
+        reference.raw_name = None;
+        reference.binding = None;
+        reference.dynamic = false;
+        reference.unresolved_reason = None;
+        self.attach_reference(reference, by_scope, import_bytes);
+        // A class declared in this file: its method, static or not.
+        if let Some(key) = reference
+            .binding
+            .and_then(|id| self.bindings.get(id))
+            .and_then(|binding| binding.target_key.as_ref())
+        {
+            let methods: Vec<_> = symbols
+                .iter()
+                .filter(|symbol| {
+                    symbol.kind == graph_search_types::NodeKind::Method
+                        && symbol.parent_key.as_ref() == Some(key)
+                        && symbol.name == method
+                })
+                .collect();
+            if let [method] = methods.as_slice() {
+                reference.name.clone_from(&method.qualified_name);
+                reference.lexical_target = Some(method.key.clone());
+                reference.dynamic = false;
+                reference.unresolved_reason = None;
+            }
+        }
+        reference.raw_name = Some(raw);
     }
 
     #[allow(clippy::too_many_lines)] // ordered lexical/import precedence and provenance
@@ -451,6 +687,12 @@ impl Index<'_> {
         let unqualified = base == raw;
         let mut current = Some(scope);
         let mut type_only_seen = false;
+        // Whether the walk left a function: its body runs only when called, so
+        // an outer binding declared later is initialized by then.
+        let mut deferred = false;
+        // `super::name`, when an inline module's `use super::*` hands the
+        // lookup to its parent and the parent binds nothing.
+        let mut super_fallback = None;
         while let Some(id) = current {
             let candidates = by_scope[id].get(base);
             let imports_present = candidates
@@ -560,6 +802,7 @@ impl Index<'_> {
                 }
                 reference.binding = Some(binding_id);
                 let initialized = span.start_byte >= binding.initialized_from
+                    || deferred
                     || binding
                         .target_key
                         .as_ref()
@@ -600,12 +843,24 @@ impl Index<'_> {
                     && globs[0] == "super::*"
                     && (unqualified || raw[base.len()..].starts_with("::"))
                 {
+                    // An inline module's parent is in this file, so its items
+                    // and `use` imports are bindings the walk can reach.
+                    if self.scopes[id].kind == "module"
+                        && let Some(parent) = self.scopes[id].parent
+                    {
+                        super_fallback = Some(format!("super::{raw}"));
+                        current = Some(parent);
+                        continue;
+                    }
                     reference.name = format!("super::{raw}");
                 } else {
                     reference.dynamic = true;
                     reference.unresolved_reason = Some("rust_glob_exports_unavailable".into());
                 }
                 break;
+            }
+            if self.scopes[id].kind == "function" {
+                deferred = true;
             }
             if self.scopes[id].kind == "module" {
                 // Rust module items do not inherit the parent module's names.
@@ -616,6 +871,15 @@ impl Index<'_> {
                 break;
             }
             current = self.scopes[id].parent;
+        }
+        if let Some(path) = super_fallback
+            && reference.binding.is_none()
+            && (!reference.dynamic
+                || reference.unresolved_reason.as_deref() == Some("rust_module_binding_unknown"))
+        {
+            reference.name = path;
+            reference.dynamic = false;
+            reference.unresolved_reason = None;
         }
         if type_only_seen && reference.binding.is_none() && !reference.dynamic {
             reference.dynamic = true;

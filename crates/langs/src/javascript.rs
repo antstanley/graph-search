@@ -41,6 +41,11 @@ impl LanguageExtractor for JavaScriptExtractor {
         };
         extractor.walk_node(tree.root_node());
         crate::scopes::enrich(tree.root_node(), file.text, &mut extractor.extraction);
+        crate::js_modules::bind_dynamic_imports(
+            tree.root_node(),
+            file.text,
+            &mut extractor.extraction,
+        );
         crate::js_modules::enrich(tree.root_node(), file.text, &mut extractor.extraction);
         extractor.bind_imports();
         crate::doc_comments::enrich(
