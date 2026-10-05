@@ -21,7 +21,7 @@ pub(crate) fn enrich(root: Node<'_>, source: &str, extraction: &mut Extraction) 
         target_bounds: BTreeMap::new(),
         namespace_targets: BTreeSet::new(),
         rust_imports: BTreeMap::new(),
-        rust_globs: BTreeSet::new(),
+        rust_globs: BTreeMap::new(),
         classes: crate::class_bindings::Classes::new(extraction),
     };
     let mut key_counts = BTreeMap::new();
@@ -91,7 +91,8 @@ struct Index<'a> {
     target_bounds: BTreeMap<String, Span>,
     namespace_targets: BTreeSet<String>,
     rust_imports: BTreeMap<usize, (String, bool)>,
-    rust_globs: BTreeSet<usize>,
+    /// Glob import paths (`super::*`) declared directly in each scope.
+    rust_globs: BTreeMap<usize, Vec<String>>,
     classes: crate::class_bindings::Classes,
 }
 
@@ -109,7 +110,10 @@ impl Index<'_> {
                 continue;
             }
             if import.glob {
-                self.rust_globs.insert(scope);
+                self.rust_globs
+                    .entry(scope)
+                    .or_default()
+                    .push(reference.name.clone());
                 continue;
             }
             let Some(name) = &import.local_name else {
@@ -586,9 +590,21 @@ impl Index<'_> {
                 }
                 break;
             }
-            if self.rust_globs.contains(&id) {
-                reference.dynamic = true;
-                reference.unresolved_reason = Some("rust_glob_exports_unavailable".into());
+            if let Some(globs) = self.rust_globs.get(&id) {
+                // A lone `use super::*` (the test-module idiom) brings in
+                // the parent module's names: a name not declared here is the
+                // parent's, which core resolves as the path `super::name` and
+                // leaves dangling when the parent lacks it. Any other glob
+                // could supply the name from anywhere.
+                if globs.len() == 1
+                    && globs[0] == "super::*"
+                    && (unqualified || raw[base.len()..].starts_with("::"))
+                {
+                    reference.name = format!("super::{raw}");
+                } else {
+                    reference.dynamic = true;
+                    reference.unresolved_reason = Some("rust_glob_exports_unavailable".into());
+                }
                 break;
             }
             if self.scopes[id].kind == "module" {

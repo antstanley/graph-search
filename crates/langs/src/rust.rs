@@ -244,14 +244,21 @@ impl Extractor<'_> {
     /// The type methods on `self` are qualified by: the enclosing `impl` (or
     /// trait) path.
     fn self_type(&self) -> Option<&str> {
-        self.scope
-            .iter()
+        // A scope's own key segment follows its parent's key and `>`. It is
+        // not the text after the last `>`: a generic impl's segment
+        // (`impl:impl Default for Holder<T>`) ends in one.
+        (0..self.scope.len())
             .rev()
-            .find(|scope| {
-                let last = scope.key.rsplit('>').next().unwrap_or(&scope.key);
-                last.starts_with("impl:") || last.starts_with("trait:")
+            .find(|&index| {
+                let key = self.scope[index].key.as_str();
+                let own = index
+                    .checked_sub(1)
+                    .and_then(|parent| key.strip_prefix(self.scope[parent].key.as_str()))
+                    .and_then(|rest| rest.strip_prefix('>'))
+                    .unwrap_or(key);
+                own.starts_with("impl:") || own.starts_with("trait:")
             })
-            .map(|scope| scope.qualified.as_str())
+            .map(|index| self.scope[index].qualified.as_str())
     }
 
     fn receiver(&self, node: Node<'_>) -> Option<ReceiverType> {
@@ -431,6 +438,16 @@ impl Extractor<'_> {
             | "abstract_type"
             | "dynamic_type"
             | "macro_type" => self.type_use(node),
+            "macro_invocation" => {
+                self.walk_children(node);
+                let mut cursor = node.walk();
+                let tree = node
+                    .named_children(&mut cursor)
+                    .find(|child| child.kind() == "token_tree");
+                if let Some(tree) = tree {
+                    self.macro_calls(tree);
+                }
+            }
             "token_tree" | "token_repetition" => {} // macro bodies: not expanded
             _ => self.walk_children(node),
         }
@@ -749,15 +766,10 @@ impl Extractor<'_> {
         let Some(function) = node.child_by_field_name("function") else {
             return;
         };
-        let mut callee = crate::rust_use::path_text(function, self.source)
-            .unwrap_or_else(|| self.text(function).trim().to_owned());
-        if let Some(member) = callee.strip_prefix("self.")
-            && !member.contains('.')
-            && let Some(scope) = self.scope.last()
-            && let Some((owner, _)) = scope.qualified.rsplit_once("::")
-        {
-            callee = format!("{owner}::{member}");
-        }
+        let callee = self.owned_callee(
+            crate::rust_use::path_text(function, self.source)
+                .unwrap_or_else(|| self.text(function).trim().to_owned()),
+        );
         if callee.is_empty() || callee.chars().next().is_some_and(char::is_numeric) {
             // `0()`, string literals: not name references.
             return;
@@ -784,6 +796,114 @@ impl Extractor<'_> {
         if let Some(args) = node.child_by_field_name("arguments") {
             self.walk_children(args);
         }
+    }
+
+    /// `self.method` and `Self::item` name the enclosing impl's member.
+    fn owned_callee(&self, callee: String) -> String {
+        if let Some(member) = callee.strip_prefix("self.")
+            && !member.contains('.')
+            && let Some(scope) = self.scope.last()
+            && let Some((owner, _)) = scope.qualified.rsplit_once("::")
+        {
+            format!("{owner}::{member}")
+        } else if let Some(member) = callee.strip_prefix("Self::")
+            && !member.contains("::")
+            && let Some(owner) = self.self_type()
+        {
+            // `Self::new()` names the enclosing impl's associated function, as
+            // `self.method()` names its method.
+            format!("{owner}::{member}")
+        } else {
+            callee
+        }
+    }
+
+    /// Calls written in a macro invocation's arguments (`assert!(f(x))`,
+    /// `format!("{}", self.name())`). The grammar leaves those as token trees,
+    /// so call shapes are recognised from tokens: a path or `receiver.method`
+    /// followed by a parenthesised tree. Macro names (`m!(..)`) and `fn`
+    /// declarations are not calls; nested trees are searched too.
+    fn macro_calls(&mut self, tree: Node<'_>) {
+        let mut cursor = tree.walk();
+        let tokens: Vec<Node<'_>> = tree.children(&mut cursor).collect();
+        for (index, token) in tokens.iter().enumerate() {
+            if token.kind() != "token_tree" {
+                continue;
+            }
+            if self.text(*token).starts_with('(')
+                && let Some((callee, anchor)) = self.token_callee(&tokens[..index])
+            {
+                let raw = callee.clone();
+                let mut reference =
+                    self.reference_from(EdgeKind::Calls, self.owned_callee(callee), anchor);
+                reference.raw_name = Some(raw);
+                self.extraction.references.push(reference);
+            }
+            self.macro_calls(*token);
+        }
+    }
+
+    /// The callee spelled by the tokens just before a parenthesised tree, and
+    /// the token naming it.
+    fn token_callee<'t>(&self, before: &[Node<'t>]) -> Option<(String, Node<'t>)> {
+        let mut end = before.len();
+        // A turbofish: `name::<T>(..)`.
+        if before.last()?.kind() == ">" {
+            let mut depth = 0usize;
+            loop {
+                end = end.checked_sub(1)?;
+                match before[end].kind() {
+                    ">" => depth = depth.saturating_add(1),
+                    "<" => {
+                        depth = depth.saturating_sub(1);
+                        if depth == 0 {
+                            break;
+                        }
+                    }
+                    _ => {}
+                }
+            }
+            if before.get(end.checked_sub(1)?)?.kind() != "::" {
+                return None;
+            }
+            end = end.saturating_sub(1);
+        }
+        let name = *before.get(end.checked_sub(1)?)?;
+        if name.kind() != "identifier" {
+            return None;
+        }
+        let mut start = end.saturating_sub(1);
+        let mut segments = vec![self.text(name)];
+        while start >= 2
+            && before[start.saturating_sub(1)].kind() == "::"
+            && matches!(
+                before[start.saturating_sub(2)].kind(),
+                "identifier" | "self" | "super" | "crate"
+            )
+        {
+            segments.insert(0, self.text(before[start.saturating_sub(2)]));
+            start = start.saturating_sub(2);
+        }
+        let previous = start.checked_sub(1).map(|index| before[index].kind());
+        let callee = match previous {
+            Some("fn" | "struct" | "enum" | "union" | "::" | "!" | "'") => return None,
+            Some(".") => {
+                // `receiver.method(..)`: a lone `self` or identifier receiver.
+                let [method] = segments.as_slice() else {
+                    return None;
+                };
+                let receiver = *before.get(start.checked_sub(2)?)?;
+                let chained = start
+                    .checked_sub(3)
+                    .is_some_and(|index| matches!(before[index].kind(), "." | "::"));
+                if chained || !matches!(receiver.kind(), "self" | "identifier") {
+                    return None;
+                }
+                format!("{}.{method}", self.text(receiver))
+            }
+            _ => segments.join("::"),
+        };
+        Some((callee, name))
     }
 
     /// Whether `name` is `Self` or a generic type parameter of an enclosing

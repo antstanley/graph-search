@@ -1169,10 +1169,15 @@ impl<'a> Projector<'a> {
     ) -> Pending {
         let entry = &pending.entry;
         // Stable ids: the qualified name, disambiguated by line only when the
-        // file repeats a same-kind name (`SPEC.md` §5.3).
+        // file repeats a same-kind name, and by `#n` when that line already
+        // holds one (minified sources) (`SPEC.md` §5.3).
         let mut seen: BTreeMap<(graph_search_types::kind::NodeKind, String), u32> = BTreeMap::new();
+        let mut taken = std::collections::BTreeSet::new();
         let mut symbols = Vec::new();
         let mut ids = BTreeMap::new();
+        // Each fact's own id: a duplicate declaration group (`#[cfg]` variants)
+        // shares one key, so `ids` alone would contain only its last member.
+        let mut own = Vec::with_capacity(extraction.symbols.len());
         for fact in &extraction.symbols {
             let count = seen
                 .entry((fact.kind, fact.qualified_name.clone()))
@@ -1183,7 +1188,17 @@ impl<'a> Projector<'a> {
             } else {
                 None
             };
-            let id = NodeId::symbol(&entry.rel, fact.kind, &fact.qualified_name, disambiguator);
+            let mut id = NodeId::symbol(&entry.rel, fact.kind, &fact.qualified_name, disambiguator);
+            let mut attempt = 2_u32;
+            while taken.contains(&id) {
+                id = NodeId::new(format!(
+                    "{}#{attempt}",
+                    NodeId::symbol(&entry.rel, fact.kind, &fact.qualified_name, disambiguator)
+                ));
+                attempt = attempt.saturating_add(1);
+            }
+            taken.insert(id.clone());
+            own.push(id.clone());
             ids.insert(fact.key.clone(), id.clone());
             symbols.push(Node {
                 id,
@@ -1205,27 +1220,24 @@ impl<'a> Projector<'a> {
         }
         // Containment: file to top-level items, parent to child.
         let mut edges = Vec::new();
-        for fact in &extraction.symbols {
-            let id = ids[&fact.key].clone();
-            let parent = fact
+        for ((fact, node), id) in extraction.symbols.iter().zip(&mut symbols).zip(&own) {
+            node.parent = fact
                 .parent_key
                 .as_ref()
                 .and_then(|key| ids.get(key))
-                .cloned()
+                .cloned();
+            let parent = node
+                .parent
+                .clone()
                 .unwrap_or_else(|| pending.projection.file.id.clone());
             edges.push(Edge::resolved(
                 &parent,
                 EdgeKind::Contains,
-                &id,
+                id,
                 fact.qualified_name.as_str(),
                 Some(entry.rel.as_str()),
                 Some(fact.span.start_line),
             ));
-            if let Some(parent_id) = fact.parent_key.as_ref().and_then(|k| ids.get(k))
-                && let Some(node) = symbols.iter_mut().find(|n| n.id == id)
-            {
-                node.parent = Some(parent_id.clone());
-            }
         }
         pending.projection.symbols = symbols;
         pending.projection.edges = edges;

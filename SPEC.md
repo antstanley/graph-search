@@ -478,6 +478,8 @@ database migration.
 - `disambiguator` is the 1-based source line, used only when a file has two
   same-kind same-name symbols (e.g. two `impl` blocks) — the smallest thing that
   keeps ids unique without making them change when a file grows above them.
+  When that line already holds one (minified sources repeat names on one line)
+  it gains `#<n>`, the smallest `n ≥ 2` still free, in source order.
 - File identity follows the **path**; a rename is detected by content hash in the
   reconcile (§6.3) and is reported as a rename, not a delete + add.
 
@@ -1178,23 +1180,29 @@ be and tested per language with fixtures (§15).
 |---|---|
 | `contains` | item nesting (`file`→item, `impl`→method, `struct`→field) |
 | `imports` | `use_declaration` (also `mod x;` → `x.rs`/`x/mod.rs`) |
-| `calls` | `call_expression` → callee path |
+| `calls` | `call_expression` → callee path; in a macro invocation's arguments, a token-level call shape (`f(..)`, `a::f(..)`, `f::<T>(..)`, `self.f(..)`, `x.f(..)`) |
 | `type_uses` | parameter/return/field types |
 | `implements` | `impl Trait for Type` |
 | `references` | path expressions not already a call/type |
+
+`self.f()` and `Self::f()` name the enclosing impl's or trait's member
+(`Type::f`, generics dropped). Macro arguments are token trees to the grammar:
+calls there are recognised from tokens, never expanded, so macro names
+(`m!(..)`), `fn` declarations and calls built by a macro's own expansion are not
+calls, and their receivers carry no stated type.
 
 ### 7.2 TypeScript / JavaScript (incl. JSX/TSX)
 
 | Node | Capture |
 |---|---|
-| `function` / `method` / `class` / `interface` / `enum` / `type_alias` / `const` / `variable` / `field` | declarations |
+| `function` / `method` / `class` / `interface` / `enum` / `type_alias` / `const` / `variable` / `field` | declarations (an `abstract` member is a `method`) |
 | `export` | `export_statement` bindings |
 
 | Edge | Source |
 |---|---|
 | `contains` | class → method, module → top-level |
 | `imports` / `exports` | `import`/`export … from`, `require()` |
-| `calls` | `call_expression` |
+| `calls` | `call_expression`; `this.f()` and `this.#f()` written in a class method name `Class.f` / `Class.#f` |
 | `extends` / `implements` | `class … extends/implements …` |
 | `type_uses` | annotations, generics, return types |
 | `references` | identifier uses |
@@ -1237,6 +1245,10 @@ every time* and to **saying what was not resolved**.
    function elsewhere. Failed explicit lexical targets also remain unresolved.
 2. **Imports** — explicit import provenance uses the supported module resolver
    and a unique compatible target. Failure cannot fall through to workspace names.
+   A Rust glob import supplies no names, except that a scope whose only glob is
+   `use super::*` reads an otherwise unbound `f` (or `T::f`) as `super::f`. A
+   Rust path starting at a module declared beside it (`util::f` with
+   `mod util;`) is walked from that module.
 3. **Same file, same name** — require one visible, compatible definition.
    Function/block-local declarations cannot escape their lexical source extent.
 4. **Qualified paths** — require the complete qualified name, without discarding

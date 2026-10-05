@@ -127,8 +127,10 @@ impl<'a> JsExtractor<'a> {
     /// refuses to guess through one.
     fn this_member_target(&self, callee: &str) -> Option<String> {
         let member = callee.strip_prefix("this.")?;
-        if member.is_empty()
-            || !member
+        // A `#private` member keeps its `#`, as its method's name does.
+        let name = member.strip_prefix('#').unwrap_or(member);
+        if name.is_empty()
+            || !name
                 .chars()
                 .all(|c| c.is_alphanumeric() || c == '_' || c == '$')
         {
@@ -186,7 +188,8 @@ impl<'a> JsExtractor<'a> {
             "class_declaration" | "abstract_class_declaration" => {
                 self.class(node);
             }
-            "method_definition" => {
+            // An `abstract` member is a method without a body.
+            "method_definition" | "abstract_method_signature" => {
                 let name = node
                     .child_by_field_name("name")
                     .map_or_else(String::new, |name| self.text(name).to_owned());
@@ -533,7 +536,15 @@ impl<'a> JsExtractor<'a> {
 
     fn call(&mut self, node: Node<'_>) {
         if let Some(function) = node.child_by_field_name("function") {
-            let callee = self.text(function).trim().to_owned();
+            // With type arguments, tree-sitter-typescript parses
+            // `await f<T>(x)` as a call whose function is `await f`.
+            let mut callee_node = function;
+            while callee_node.kind() == "await_expression"
+                && let Some(operand) = callee_node.named_child(0)
+            {
+                callee_node = operand;
+            }
+            let callee = self.text(callee_node).trim().to_owned();
             if callee == "require" {
                 // `const x = require("./x")`: the module edge.
                 if let Some(args) = node.child_by_field_name("arguments")

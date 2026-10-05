@@ -144,7 +144,11 @@ pub const RESULT_SCHEMA_VERSION: u32 = 4;
 /// `test_owned`.
 /// v27: `.md` files inside an OKF bundle are extracted as `okf` concepts,
 /// sections, cross-links and source citations instead of indexed as unknown.
-pub const PARSER_VERSION: u32 = 27;
+/// v28: Rust calls in macro arguments are extracted, `Self::item` and generic
+/// impls name their impl, and a lone `use super::*` binds the parent's names;
+/// TS `abstract` methods are methods, and `this.#private()` and awaited
+/// generic calls bind; every duplicate declaration is contained.
+pub const PARSER_VERSION: u32 = 28;
 
 /// Default independent ceiling on edges delivered by one graph/explore query.
 pub const RETURNED_EDGES_DEFAULT: usize = 1000;

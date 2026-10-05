@@ -978,7 +978,9 @@ pub(crate) fn resolve_in(
                         !segment.is_empty()
                             && segment.chars().all(|c| c.is_alphanumeric() || c == '_')
                     })
-            }))
+            })
+            // `child::item` names a module declared beside the reference.
+            || table.rust_paths.starts_at_local_module(fact, from_path, table))
     {
         return match table.rust_paths.resolve(fact, from_path, table) {
             Ok(id) => Resolution {

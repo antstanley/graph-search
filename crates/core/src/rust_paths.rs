@@ -542,6 +542,21 @@ impl Paths {
         })
     }
 
+    /// Whether `fact`'s path starts at a module declared in its own module
+    /// (`util::double` beside `mod util;`), an edition-2018 path
+    /// [`Self::resolve`] walks from there.
+    pub(crate) fn starts_at_local_module(
+        &self,
+        fact: &ReferenceFact,
+        path: &str,
+        table: &SymbolTable<'_>,
+    ) -> bool {
+        fact.name.split_once("::").is_some_and(|(first, _)| {
+            !matches!(first, "crate" | "self" | "super" | "Self")
+                && self.local_module(&self.origin(path, fact.span), first, table)
+        })
+    }
+
     /// Whether `name` spells a workspace library crate.
     pub(crate) fn is_crate(&self, name: &str) -> bool {
         self.crates.contains_key(identifier(name))
